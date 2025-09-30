@@ -1,0 +1,468 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title pb-md-5">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Notisi ya Marekebisho kwenye Tanki{% else %} Fuel Tank Adjustment{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+   
+
+
+</div>
+
+<div class="table-data" id="invoice_wrapper" >
+    <div class="order">
+
+        {% include 'headingfuel.html' %} 
+
+    <div class="row ">
+        <div class="col-md-3  border-right" >
+            <header class="border-bottom  ">
+                <div class="row classic_div py-2">
+
+                <div class="col-12">
+                   <form action="{% url 'adjView' %}" method="get">
+                    <div class="input-group"> 
+                      <div class="input-group-prepend border">
+                        <button type="button" onclick="$('.listin').toggle(400)" class="d-flex d-md-none btn btn-light btn-sm  " >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+
+                            
+                            </svg>
+                        </button>
+                       
+                     </div> 
+                       
+                              <!-- <input type="text" name="code" id="code" placeholder=" {% if useri.langSet == 0 %}  Andika no ya Mauzo {% else %} write Sales no.. {% endif %}" class="form-control smallFont">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-secondary smallerFont btn-sm pt-2">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                   <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                 </svg>
+                            </button>
+                        </div>   -->
+                       
+                       
+                    </div>
+              </form>
+
+                </div>
+
+
+                </div>
+
+                
+            </header>
+
+            <div class="listin" style="height: 100vh;">
+                <ul class="list-unstyled listin" style='overflow-y:auto;height:63vh;overflow-x:hidden' >
+                   {% for invo in tr %}
+   
+                   {% if invo.id == trf.id %}
+   
+                   <li class="p-2  border-bottom" style="border-left:4px solid rgb(0, 106, 228) ;background:var(--light-blue)" >
+                    {% else %}   
+                   <li class="p-2  border-bottom" >
+                    {% endif %}
+                       
+   
+                           <a  class="row smallerFont fontColor text-decoration-none"  href="{% url 'adjView' %}?i={{invo.id}} " >
+                               <div class="col-12">
+                                     <span class="smallFont text-primary" > ADJ-{{invo.code}}</span>  | <span class="brown ">
+                                        {% if invo.container %}
+                                            {% if useri.langSet == 0 %} Matanki ya Kontena{%else%} Container Tanks{%endif%}
+                                        {%else%}
+                                            {% if useri.langSet == 0 %} Matanki ya Pampu{%else%} Pump's Tanks{%endif%}
+
+                                        {% endif %}
+                                     </span>   
+                               </div>
+                              
+   
+                               <div class="col-12 latoFont smallFont  pt-0">
+                                 <span class="bluePrint btn btn-default btn-sm smallFont px-0 latoFont"> {{invo.operator.user.first_name | title}}  {{invo.operator.user.last_name | title}}</span> |
+                              
+                               
+                                
+                                <script>
+                                     document.write(moment('{{invo.tarehe | date:"r"  }}').format('DD/MM/YYYY  HH:mm')) 
+                                </script>
+                              
+                              
+                                       
+                               </div>
+   
+                       
+                             </a>
+                       
+                   </li>
+   
+                   {% endfor %}
+               </ul>
+   
+               <div>
+              
+                   {% if tr.has_previous %}
+                     <a href="{% url 'adjView' %}?page=1&i={{trf.id}}" type="button"  class="btn btn-default border0">
+                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-left" viewBox="0 0 16 16">
+                         <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
+                       </svg>
+                       </a>
+                 
+                       <a href="{% url 'adjView' %}?page={{tr.previous_page_number}}&i={{trf.id}}" type="button"  class="btn btn-default  border0">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                           <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                         </svg>
+                       </a>
+                     {% endif %}
+                 
+                   {% if tr.has_next %}
+                       <a href="{% url 'adjView' %}?page={{tr.next_page_number}}&i={{trf.id}}" type="button" class="btn btn-default border0">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                           <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                         </svg>
+                       </a>
+                 
+                       <a href="{% url 'adjView' %}?page={{pages}}&i={{trf.id}}" type="button"  class="btn btn-default border0" >
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-right" viewBox="0 0 16 16">
+                           <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
+                         </svg>
+                       </a>
+                 {% endif %}
+                       <label for="">
+                        
+                         {% if useri.langSet == 0 %} Ukurasa wa {{p_num}} kati ya {{pages}} {% else %} page {{p_num}} of {{pages}} {% endif %}
+                 
+                       </label>
+               </div>             
+               </div> 
+        </div>
+        <div class="col-md-9"  >
+            
+            <div  class="table-responsive pt-3 px-md-2 " id="invo_box" >
+
+                <div class="classic_div mt-sm-2 pt-3 pb-2 px-3 the_invo_page" id="the_invo_page" >
+                    <h5 class="text-secondary mt-1 pb-3  border-bottom font-weight-bold">
+                        {% if useri.langSet == 0 %}NOTISI YA KUPIMA MAFUTA KWENYE TANKI{% else %}TANK'S FUEL MESURE NOTE{% endif %}
+                     </h5>
+
+                      <div class="row mt-3">
+
+                    
+
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Kituo {% else %}Station{% endif %}
+                         </div>
+                         <div class="col-9">
+                           
+                               {{trf.Interprise.name|title}}  
+                            
+
+                        </div>
+
+                        <div class="col-3">
+                            {% if useri.langSet == 0 %}TareheMuda {% else %}Date Time{% endif %}
+                        </div>
+                        <div class="col-9">
+                                <script>
+                                   document.write(moment('{{trf.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                               </script>     
+                        </div>
+
+
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Kupima {% else %}Adjustment{% endif %}#
+                         </div>
+                         <div class="col-9 text-primary ">
+                            ADJ-{{trf.code}}
+                         </div>
+
+                         {% if trf.session %}
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Mpango Zamu {% else %}Shift Session{% endif %}
+                         </div>
+                         <div class="col-9 text-primary ">
+                            <a href="/salepurchase/SessionView?i={{trf.session.id}}">
+                                <u>{{trf.session.session.name}}</u> 
+                             </a>
+                         </div>
+                         {% endif %} 
+
+                         {% if trf.receive %}
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Kutoka {% else %}From{% endif %}
+                         </div>
+                         <div class="col-9 text-primary ">
+                            <a href="/salepurchase/viewFuelReceive?i={{trf.receive.id}}">TTR-{{trf.receive.code}}</a>
+                         </div>
+                         {% endif %} 
+
+
+
+
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Mhusika {% else %}Operator{% endif %}
+                         </div>
+                         <div class="col-9 ">
+                               <span class="bluePrint" > {{trf.operator.user.first_name | title}} {{trf.operator.user.last_name| title}}</span>  ({{trf.operator.cheo}})
+                          </div>
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Imerekodiwa na {% else %}Recorded By{% endif %}
+                         </div>
+                         <div class="col-9 ">
+                               <span class="bluePrint" > {{trf.by.user.user.first_name | title}} {{trf.by.user.user.last_name| title}}</span>  ({{trf.by.user.cheo}})
+                          </div>
+
+
+                     </div>
+
+                     <hr>
+          
+
+    
+                
+                         
+                            <div class="row">
+                                <div class="col-7">
+                                                    <strong>{% if useri.langSet == 0 %}Matanki{% else %}Tanks{% endif %}</strong>
+            
+                                </div>
+                                <div class="col-5 smallFont text-right">
+                                      <!-- <a type="button" onclick="$('#Shiftdetails').toggle(500)" href="#" >
+                                           {% if useri.langSet == 0 %}Maelezo ya Kina{% else %}Shift Details  {% endif %}
+                                       
+                                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+                                            <polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
+                                    </a> -->
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                            
+                            <table class="table table-bordered smallFont table-sm">
+                                <thead>
+                                    <tr class="smallFont" >
+                                      
+                                        <td class="pl-1">#</td>
+                                        <td class="pl-1">{% if useri.langSet == 0 %}Tanki{% else %}Tank{% endif %}</td>
+                                        <td class="pl-1">{% if useri.langSet == 0 %}MaFuta{% else %}Fuel{% endif %}</td>
+                                        <td class="pl-1">{% if useri.langSet == 0 %}Bei{% else %}Price{% endif %}<span class="text-primary">({{currencii}})</span></td>
+                                     
+                                        <td class="pl-1">{% if useri.langSet == 0 %}Kabla{% else %} Before{% endif %} <span class="text-primary">LTRS</span> </td>
+                                       
+                                        <td class="pl-1">{% if useri.langSet == 0 %}Stick{% else %} Stick{% endif %} <span class="text-primary">LTRS</span> </td>
+                                        
+                                        <td class="pl-1">{% if useri.langSet == 0 %}Tofauti{% else %} Difference{% endif %} <span class="text-primary">LTRS</span> </td>
+                                       
+                                        <td class="pl-1">{% if useri.langSet == 0 %}Thamani{% else %} Worth{% endif %} <span class="text-primary">({{currencii}})</span> </td>
+                                      </tr>
+                                </thead>
+                           
+                                     <tbody>  
+                                      
+                                       {% for t in tankAdj %}
+                                        
+
+                                         <tr>
+                                             <td>{{forloop.counter}}</td>
+                                             <td>{{t.tank.name}}</td>
+                                             <td>{{t.tank.fuel.name}}</td>
+                                             <td>{{t.price|floatformat:'-2'|intcomma}}</td>
+                                             <td>{{t.read|floatformat:'-2'|intcomma}}</td>
+                                             <td>{{t.stick|floatformat:'-2'|intcomma}}</td>
+                                             <td class="weight600 {% if t.diff >= 0  %}green{% else %}brown{%endif%}" >
+                                                {{t.diff|floatformat:'-2'|intcomma}}
+                                             </td>
+                                             <td class="weight600 {% if t.diff >= 0  %}green{% else %}brown{%endif%}">
+                                                   <script>
+                                                      var diff = Number('{{t.diff}}'),
+                                                          pr = Number('{{t.price}}'),
+                                                          worth = Number(diff*pr)
+                                                          document.write(worth.toLocaleString())
+                                                   </script>
+                                             </td>
+                                            </tr>  
+                                       {% endfor %}
+
+                                       <tr class="grey  border-bottom">
+                                         <th colspan="5" >Total</th>
+                                         <th class="weight600 {% if diffSum >= 0  %}green{% else %}brown{%endif%}" >{% if diffSum == 0 %}{% if useri.langSet == 0 %}Sawa{% else %}Ok{% endif %}{% endif %} {% if diffSum > 0 %}{% if useri.langSet == 0 %}Ziada{% else %}Credit{% endif %}{% endif %}{% if diffSum < 0 %}{% if useri.langSet == 0 %}Hasara{% else %}Loss{% endif %}{% endif %}</th>
+                                         <th class=" {% if diffSum >= 0  %}green{% else %}brown{%endif%}" >{{diffSum|floatformat:'-2'|intcomma}}</th>
+                                         <th class=" {% if diffSum >= 0  %}green{% else %}brown{%endif%}">{{amoSum|floatformat:'-2'|intcomma}}</th>
+
+                                       </tr>
+            
+                                    
+                                     </tbody>
+                            </table>
+                         </div>
+                  
+
+                     <hr>
+                      <div><strong>{% if useri.langSet == 0 %}Viambatanisho{% else %}Attachments{% endif %}:</strong></div>
+                      {% if attach%}
+                      <ul class="list-unstyled" >
+
+                         {% for at in attach %}
+                           <li>
+                               <a href="{{at.file.url}}" target="_blank" >
+                                   <div class="d-flex" >
+                                       <div class="p-2">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                                              <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+                                          </svg>
+                                        </span>
+                                          
+                                       </div>
+
+                                       <div>
+                                           
+                                            <small class="d-block" >date: 
+
+                                              <script>
+                                                document.write(moment('{{at.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                            </script> 
+                                            | {% if at.printedDocu %} {% if useri.langSet == 0 %}Dokument iliyoprintiwa na kusainiwa {% else %}Printed and signed document{% endif %} {% else %} {{at.attach_name}} {%endif%}
+                                            </small>
+
+                                            <small class="d-block" >
+                                                By: {{at.by.user.first_name|title}} {{at.by.user.last_name|title}}
+ 
+                                            </small>
+                                           
+                                       </div>
+
+                                   </div>
+                               </a>
+                           </li>
+                          {% endfor %} 
+                       </ul> 
+
+                       {% else %}
+                            <p class="btn-sm" >{% if useri.langSet == 0 %}Hakuna Viambatanisho{% else %}No Attachments{% endif %} </p>  
+                       {% endif %}
+
+
+
+                    </div>
+                </div>    
+
+
+        </div>
+
+
+
+   </div>              
+              
+    </div>
+
+</div>
+
+    
+
+    <!-- Modal Attachments -->
+    <div class="modal fade" id="addAttachment" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+      <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              {% if useri.langSet == 0 %}Kiambatanisho{% else %}Attachment {%endif%}
+            </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+            <form id="attachform" action="/salepurchase/addAttach" method="post">
+                 {% csrf_token %}
+              <div class="classic_div text-center">
+                    <label type="button" class="btn btn-light" for="attachment">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="3.3em" height="3.3em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                        <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+                    </svg>
+                      <div class="text-center">
+                         <small id="attach_name" > 
+                          
+                          {% if useri.langSet == 0 %}Bonyeza Kuongeza{% else %}Press to Add{% endif %}
+                        </small> 
+                      </div>
+                    </label>
+                    <input type="file" name="attachment" onchange="
+                      const val = $(this).val();
+                       $('#submitattach').prop('disabled',val=='');
+                       $('#attach_name').html(val)
+
+                    " accept=".pdf" hidden id="attachment">
+                    <input type="hidden" name="adj" value="{{trf.id}}" >
+                </div>
+
+                <div class="form-group mt-3">
+                    <label for="attach_name" class="brown"  >{% if useri.langSet == 0 %}Jina la Kiambatanisho{% else %}Attachment Name{%endif%} <sup>*</sup> </label>
+                    <input type="text"
+                      class="form-control btn-sm" name="attach_name" id="attach_name" aria-describedby="helpId" placeholder="">
+                    
+                      <div class="custom-control custom-checkbox">
+                       <input type="checkbox" class="custom-control-input" 
+                        onchange="$('#printedDoc').val(Number($(this).prop('checked')))"
+                       name="printedDocIn"
+                       id="printedDocIn">
+                      
+                       
+                       <label class="custom-control-label latoFont smallFont cursor-pointer" style="cursor: pointer !important;" for="printedDocIn">
+                          <small>{% if useri.langSet == 0 %}Dokumenti iliyoprintiwa na kusainiwa{% else %}Printed and signed document{% endif %}</small>
+                       </label>
+                       </div>
+                       <input type="hidden" value=0 id="printedDoc" name="printedDoc">
+                  </div>
+
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" id="submitattach" disabled class="btn btn-primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </button>
+                  </div>
+            </form>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+
+{% endblock %}
+
+{% block additionaljs %}
+
+
+{% endblock %}
+
+{% block fuel %} active {% endblock %}

@@ -1,0 +1,313 @@
+
+  
+{% extends 'index.html' %}
+
+{% block page_content %}
+{% load humanize %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}wasambazaji {% else %} Vendors{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+
+<button data-toggle="modal" data-target="#wasambazaji-modal" id="addVendor" class="btn btn-default btn-download">
+    <!-- <i class='bx bxs-cloud-download' ></i> -->
+    <span class="text"> {% if useri.langSet == 0 %} Ongeza Msambazaji{% else %}Add Supplier{% endif %}</span>
+</button>
+
+
+</div>
+
+<div class="table-data">
+    <div class="order">
+
+        {% include 'headingPurchases.html'  %}  
+      <div class="head">
+        <h4>
+
+              <svg width="1.1em" height="1.1625em" viewBox="0 0 16 17" class="bi bi-compass" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
+                <path d="M6.94 7.44l4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z"/>
+              </svg>
+            
+            {% if useri.langSet == 0 %}Wasambazaji{% else %}Suppliers{% endif %}
+        
+        </h4>
+        <!-- <i class='bx bx-search' ></i>
+        <i class='bx bx-filter' ></i> -->
+      </div>
+
+      <div class="weight600 row mb-4 " style="margin:auto .09em;" >
+           <div class="col-md-6 ">
+             <div class="row classic_div   py-2 border ">
+                <div class="col-6">
+                      {% if useri.langSet == 0 %}Pesa Inayodaiwa Jumla{% else %}Total InDebt{%endif%}
+                </div>
+                <div class="col-6 brown text-right">
+                    <span class="text-primary">{{currencii}}.</span> {{madeni|floatformat:'-2'|intcomma}}
+                </div>              
+             </div>
+
+           </div>
+                        
+          </div>
+
+
+      <div class="table-responsive">
+                <table id="all_staffs" class=" smallFont"  >
+                    <thead>
+                    <tr>
+                         <th>#</th>
+                        <th>{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
+                        <th>{% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Simu{% else %}Phone{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Barua Pepe{% else %}Email{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Anadai{% else %}Debt{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                        <th>{% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %}</th>
+                    </tr>
+                    </thead>
+
+                
+
+
+                    <tbody>
+                
+
+                        {% for s in vendors %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td> <a href="/salepurchase/viewVendor?v={{s.ven.id}}">{{s.ven.jina }}</a> </td>
+                                <td>{{s.ven.address | title }} </td>
+                                <td>{{s.ven.code}}{{s.ven.simu1}} {% if s.ven.simu2 %} ,{{s.ven.code}}{{s.ven.simu2}} {% endif %} </td>
+                                <td> {% if s.ven.email %} {{s.ven.email}} {% else %} --- {% endif %} </td>
+                                <td class="{% if s.deni %}brown{% endif %}" > {% if s.deni %} {{s.deni|floatformat:'-2'|intcomma}} {% else %} --- {% endif %} </td>
+                                <td> 
+                                    
+                                     {% if useri.admin or useri.ceo  %}                                 
+                                      <a href="/salepurchase/viewVendor?v={{s.ven.id}}" class="btn btn-light btn-sm"  title="View" >
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                              <circle cx="12" cy="12" r="3"></circle>
+                                          </svg>
+                                        </a>
+                                      {% endif %}
+                                </td>
+                                <!-- <td>
+                                <a href="#" title="{% if useri.langSet == 0 %}Ingia{% else %}Shift to {%endif%} {{s.Interprise.name}}" class="btn btn-light btn-sm">
+                                    <i class='bx bx-link-external'></i>
+                                </a>
+                                </td> -->
+                            </tr>
+                        {% endfor %}
+
+                       
+
+                    </tbody>
+                </table>
+      </div>
+
+     
+    </div>
+</div>
+
+
+
+<!-- kuongeza wasambazaji ................................................................ -->
+<div class="modal fade" id="wasambazaji-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog animate"  style="-webkit-box-shadow: 0px 0px 38px 11px rgba(0,0,0,0.57); 
+    box-shadow: 0px 0px 38px 11px rgba(0,0,0,0.57);" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title latoFont" id="wasambazaji-head"><svg width="1.3em" height="1.3625em" viewBox="0 0 16 17" class="bi bi-compass" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
+            <path d="M6.94 7.44l4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z"/>
+          </svg>  {% if useri.langSet == 0 %} Ongeza Msambazaji  {% else %} Add Supplier {% endif %}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <!-- <form action=""> -->
+  
+             
+                <form action="/salepurchase/addvendor" data-active_customer=0 data-edit=0 data-customer_value=0 data-valued=0 class="pt-3" id="form-mteja">
+                    {% csrf_token %}
+          
+                    
+                    <div class="form-group">
+                     
+                       <label for="mteja-jina" class="smallFont brown weight600">{% if useri.langSet == 0 %} Jina la Msambazaji{% else %} Supplier Name{% endif %} <sup class="text-danger font-weight-bold">*</sup></label>
+                     
+                     
+                        <input type="text" id="mteja-jina" class="form-control input-data smallFont">
+                     <small hidden class="smallerFont verify-customer text-danger">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                      </svg>
+                      {% if useri.langSet == 0 %} Tafadhali andika jina la Msambazaji {% else %} Please write Supplier Name {% endif %}
+                     </small>
+               
+                    </div>
+          
+                    <div class="form-group">
+                     
+                       <label for="mteja-sehemu" class="smallFont brown weight600"> {% if useri.langSet == 0 %} Anwani  {% else %} Supplier Address{% endif %}<sup class="text-danger font-weight-bold">*</sup> </label>
+                     
+                    
+                        <input type="text" id="mteja-sehemu" placeholder=" {% if useri.langSet == 0 %}Andika sehemu anayopatikana   {% else %} Write Supplier address {% endif %}" class="form-control input-data smallFont">
+                        <small hidden class="smallerFont verify-Supplier text-danger">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                          </svg>
+                          {% if useri.langSet == 0 %} Tafadhali Andika mahali Msambazaji anapatikana  {% else %} Please write Supplier Address {% endif %}
+                         </small>
+                     
+                    </div>
+          
+                    <div class="form-group pb-2">
+                      
+                       <label for="mteja-simu" class="smallFont brown weight600"> {% if useri.langSet == 0 %}  Namba ya Simu 1 {% else %} Phone 1 {% endif %} <sup class="text-danger font-weight-bold">*</sup></label>
+                    
+                      
+          
+                        <div class="input-group ">
+                          <div class="input-group-prepend">
+                            <input type="text" value="+255" id="mteja-simu-code" class="pl-2 smallerFont form-control simuCode" style="width:58px;">
+                          </div>
+                             <input type="number" placeholder=" {% if useri.langSet == 0 %} kama.  712345678 {% else %} eg. 712345678{% endif %}" id="mteja-simu" class="form-control made-input input-data smallFont" >
+                             <small hidden class="smallerFont verify-customer text-danger">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                              </svg>
+                              {% if useri.langSet == 0 %} Tafadhali Andika namba ya simu kwa simu1 kwa usahihi  {% else %}Please write Customer contact 1 correctly {% endif %}
+                             </small>
+                        </div>
+          
+                      
+                    </div>
+        
+        
+                    <div class="form-group">
+                    
+                       <label for="mteja-simu2" class="smallFont weight600">{% if useri.langSet == 0 %} Namba ya Simu 2  {% else %} Phone 2 {% endif %}: </label>
+                      
+                      
+          
+                        <div class="input-group ">
+                          <div class="input-group-prepend">
+                            <input type="text" value="+255" class="pl-2 form-control simuCode smallerFont" id="mteja-simu2-code" style="width:58px;">
+          
+                          </div>
+                             <input type="number" placeholder=" {% if useri.langSet == 0 %} kama.  712345678 {% else %} eg. 712345678{% endif %}" id="mteja-simu2" class="made-input form-control input-data smallFont" >
+          
+                        </div>
+                      <small hidden class="smallerFont verify-customer text-danger">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                              </svg>
+                              {% if useri.langSet == 0 %} Tafadhali Andika namba ya simu kwa 2 kwa usahihi  {% else %}Please write Supplier contact 2 correctly {% endif %}
+                      </small>      
+                    
+                    </div>
+                    
+                    <script>
+                      $('#mteja-simu-code2').keyup(function(){
+                        if($(this).val()){
+                           $('#mteja-simu-code').prop('disabled',true)
+                           $('#mteja-simu-code').val($(this).val())
+                        }else{
+                          $('#mteja-simu-code').prop('disabled',true)
+                           $('#mteja-simu-code').val($(this).val())                
+                        }
+                       
+                      })
+          
+          
+                      $('#mteja-simu-code').keyup(function(){
+                        if($(this).val()){
+                           $('#mteja-simu2-code').prop('disabled',true)
+                           $('#mteja-simu2-code').val($(this).val())
+                        }else{
+                          $('#mteja-simu2-code').prop('disabled',true)
+                           $('#mteja-simu2-code').val($(this).val())                
+                        }
+                       
+                      })
+                    </script>
+          
+                    <div class="form-group">
+                      
+                       <label for="mteja-mail" class="smallFont"> {% if useri.langSet == 0 %} Barua pepe(email)  {% else %} Email Address {% endif %}:  </label>
+                      
+                     
+                        <input type="email" placeholder=" {% if useri.langSet == 0 %} kama.  {% else %} eg. {% endif %} mfanoemail@provider.com"  id="mteja-mail" class="form-control smallFont input-data">
+                    
+                    </div>
+          
+                    <div class="row py-3">
+                    
+                      <div class="col-12 text-center">
+          
+                        <button type="submit" class="btn btn-primary py-2 latoFont ">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                          </svg>
+                           {% if useri.langSet == 0 %} Ongeza Msambazaji{% else %} Add Supplier {% endif %}
+                        </button>
+                      </div>
+          
+                        <div class="col-12 mt-2 text-center">     
+                           <button type="button" class="btn btn-light text-center latoFont smallFont" data-dismiss="modal">Close</button>
+                       </div>
+          
+                    </div>
+          
+                  </form>   
+  
+  </div>
+        
+      </div>
+    </div>
+  </div>
+
+
+
+{% endblock %}
+
+{% block additionaljs %}
+<script src="/static/js/vendors.js" ></script>
+ <script>
+
+
+
+$(document).ready(function(){
+      $('#all_staffs').DataTable();
+
+    })
+
+</script>
+{% endblock %}
+
+{% block vendors %} active  {% endblock %}

@@ -1,0 +1,373 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Chagu Oil</title>
+        
+        <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}"> 
+            
+            
+            
+        <script type="text/javascript" src="{% static 'js/jquery.js' %}" ></script>
+        
+        <!-- <script src="{% static 'js/staffaccordion.js' %}"></script> -->
+        
+        
+        
+        <link rel="stylesheet"  href="{% static 'css/jquery-ui.css' %}" >
+        <link rel="stylesheet"  href="{% static 'css/audioformat.css' %}" >
+        
+        <script src="{% static 'js/jquery-ui.js' %}"></script>
+        
+        <script src="{% static 'js/popper.min.js' %}"></script>
+        <script src="{% static 'js/bootstrap.min.js' %}"></script>
+        
+        <script type="text/javascript" src="{% static 'js/toastr.min.js' %}"></script>
+        <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+        
+        
+        <link rel='stylesheet prefetch' href="{% static 'css/normalize.min.css' %}" >
+        
+        <!-- <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet"> -->
+        
+        <link rel='stylesheet prefetch' href="{% static 'css/animate.min.css' %}">
+        
+        
+        
+        
+        <!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
+        
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="{% static 'css/bootstrap-select.min.css' %}">
+        
+        <!-- Latest compiled and minified JavaScript -->
+        <!-- <script src="{% static 'js/bootstrap-select.min.js' %}"></script> -->
+        
+        <style>
+            @media screen and (max-width: 766px){
+                form{
+                    min-width: 95%;
+
+                }
+
+               
+            }
+            @media screen and (min-width: 766px){
+                form{
+                    min-width: 500px;
+                } 
+                #the_phone{
+                    font-size: small;
+                }
+            }
+        </style>
+        
+        <link rel="stylesheet" href="{% static 'css/header.css' %}">
+        <link rel="stylesheet" href="{% static 'css/usedashanimations.css' %}">
+        <!-- <script src="{% static 'js/nav.js' %}"></script> -->
+        
+        </head>
+<body class="whiteBg">
+
+
+
+<div style="min-height: 100vh;" class="whiteBg d-flex justify-content-center align-items-center">
+   
+    <div class="shadow p-3" style="max-width: 600px;min-width:300px">
+        <div class="text-center">
+            <a href="/?lang={{lang}}" class="navbar-brand">
+                <img id="brandlogo" style="width:220px" src="{% static 'pics/logowithtext.png'  %}" />
+            </a>
+        </div>
+      
+        <h5 class="py-3 text-center" >{% if lang == 0 %}KUHAKIKI NENO LA SIRI KUSAHAULIKA{% else %}FORGOTTEN PASSWORD CONFIRMATION{% endif %}</h5>
+
+        <form action="/register" class="p-2 p-md-3  " id="reg1Form"  method="POST" >
+            {% csrf_token %}
+
+            <div class="text-right pb-2">
+                <select class="latoFont ml-2 py-0 border0" style="border-color:#ccc ;" name="lang" id="langSel">
+                    {% if lang == 0 %}
+                    <option value="0">SWA</option>
+                    <option value="1">ENG</option>
+                    {% else %}
+                       <option value="1">ENG</option>
+                         <option value="0">SWA</option>
+                    {% endif %}
+                </select>
+            </div>
+
+             <div class="form-group pb-2 ">
+                <label class="weight500 brown" for="email">{% if lang == 0 %}Barua Pepe{% else %} Email{% endif %} <sup>*</sup> </label>
+               <input type="email" name="email" data-pwd=1 data-valu=0 id="email" value="{{regi.user.email}}"  class="form-control smallFont darkblue"  placeholder="{% if lang == 0 %}Andika Barua Pepe{% else %} Write Email {% endif %}" aria-describedby="helpId">
+            </div>
+
+            <div class="py-1">
+                 <button id="sendMailBtn" type="button"  class="btn btn-primary form-control">
+                    {% if lang == 0 %}Tuma{% else %}Send{% endif %}
+                 </button>
+            </div>
+
+        </form>
+
+        <div class="mb-4 mx-2 mx-md-3" ><a href="/login?lang={{lang}}" class=" latoFont">{% if lang == 0 %}Kuingia{% else %}Login{% endif %}</a></div>
+
+   
+
+        <script>
+            $('#langSel').change(function(){
+                const sel = $(this).val()
+                location.replace(`/register?lang=${sel}`)
+            })
+        </script>
+    </div>
+
+
+</div>
+
+<div class="footer mt-4 py-3 bg-dark text-light">
+    <div class="row">
+        <div class="col-md-4">
+            
+        </div>
+
+    </div>
+    <hr>
+    <p class="text-center"  >
+       
+          <span style="font-size: large;" > &copy; </span>              
+   
+
+        2023 Horizoncodes.
+
+        {% if lang == 0 %}Haki zote zimehifadhiwa{% else %}All Rights reserved{% endif %}
+        <a href="#" class="ml-2 pl-1"> {% if lang == 0 %}Usiri{% else %}Privacy{% endif %}</a>
+        <a href="#" class="ml-2 pl-1"> {% if lang == 0 %}Kananuni na taratibu{% else %}Terms & conditions{% endif %}</a>
+        <a href="#" class="ml-2 pl-1"> {% if lang == 0 %}Usalama{% else %}Security{% endif %}</a>
+    
+    </p>
+    <p class="text-center socialmedia">
+        <a href="#" class="ml-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" stroke="black" fill="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-facebook">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+             </svg>
+        </a>
+
+
+        <a href="#" class="ml-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" stroke="black" fill="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-youtube">
+                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+            </svg>
+        </a>
+
+
+
+
+        <a href="#" class="ml-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" stroke="black" fill="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+        </a>
+        <a href="#" class="ml-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" stroke="black" fill="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter">
+                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+              </svg>
+        </a>
+    </p>
+</div> 
+
+
+
+
+
+<!-- Modal Profile Loader-->
+<div class="modal fade" id="loadMe"  tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="loadMeLabel" aria-hidden="true">
+    <div class="modal-dialog  modal-dialog-centered d-flex justify-content-center" role="document" >
+      <div class="modal-content" style="width:212px;">
+        <div class="modal-body text-left" style="padding:5px 11px;width:211px">
+      <div  class="row">
+      
+      <div class="lds-ring col-3"><div></div><div></div><div></div><div></div></div>
+      
+          
+            <div class="col-9 pt-2" > 
+              
+              {% if lang == 0 %} Tafadhari Subiri...  {% else %} Please Wait.. {% endif %}
+            
+          </div>
+      </div>
+        </div>
+      </div>
+      </div>
+</div>
+
+
+  
+  <!-- Mail confirm -->
+  <div class="modal fade" id="ConfirmMailModal" tabindex="-1" data-backdrop="static"  role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+                <div class="modal-header">
+                        <h5 class="modal-title">{% if lang == 0 %}Kuhakiki Anuani ya Barua Pepe {% else %} Confirm Email address{% endif %}</h5>
+                          
+                    </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <h5 class="text-center  latoFont "> <span >{% if lang == 0 %}Ndani ya {% else %}Within {% endif %}:</span>    <span class="brown weight600 downCounter" id="downCounter" ></span> <span class="brown weight400">sec</span> </h5>
+                    <div class="form-group">
+                      <label for="emailCheck" class="smallFont" id="mailtoConfirn" ></label>
+                      <input type="number" name="emailCheck" id="emailCheck" class="form-control" placeholder="" aria-describedby="helpId">
+                      
+                    </div>
+                    <p class="text-right">
+                        <button id="foggotPwdCodeConfirm" class="btn btn-primary btn-sm">
+                            <span class="spinner-border spinner-border-sm" id="confirmMailSpiner" hidden  role="status" aria-hidden="true"></span>
+                            <span class="ml-2">{% if lang == 0 %}Tuma{% else %}Send{% endif %}</span>  
+                        </button>
+                    </p>
+                </div>
+            </div>
+           
+        </div>
+    </div>
+  </div>
+
+
+  <!-- SEt New PASWORD -->
+  <div class="modal fade" id="ConfirmPhoneModal" tabindex="-1" data-backdrop="static"  role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+                <div class="modal-header">
+                        <h6 class="modal-title">{% if lang == 0 %}Tengeneza neno la siri {% else %}Set password{% endif %}</h6>
+                          
+                    </div>
+            <div class="modal-body">
+               <form action="/SetPwd" method="post">
+                <div class="form-group pb-2 ">
+            
+               
+                    <label class="weight500 brown" for="password">{% if lang == 0 %}Tengeneza Neno la Siri{% else %} Set Password{% endif %} <sup>*</sup> </label>
+                   <div class="input-group">
+                        <input type="password" name="password" id="password" class="form-control smallFont darkblue" placeholder="{% if lang == 0 %}Changanya namba herufi kubwa na ndogo na alama, Angalau 6{% else %}At least 6 mixed numbers,symbols, uppercase & lowercase letters{% endif %}" aria-describedby="helpId">
+                        <button type="button" class="btn btn-default py-2 border btn-sm input-group-append  showpwd">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>                  
+                   </div>
+    
+                   <div id="pwdSign"></div>
+    
+                   <small id="strengthMessage"></small>
+                </div>
+                 <div class="form-group pb-2 ">
+                
+                   
+                    <label class="weight500 brown" for="passwordConfirm">{% if lang == 0 %}Hakiki Neno siri {% else %} Re-enter Password{% endif %} <sup>*</sup> </label>
+                   
+                   <div class="input-group">
+                            <input type="password" name="passwordConfirm"  id="passwordConfirm" class="form-control smallFont darkblue" placeholder="{% if lang == 0 %}Andika nenosiri tena{% else %} Re-enter password{% endif %}" aria-describedby="helpId">
+    
+                            <button type="button" class="btn btn-default showpwd py-2 border btn-sm input-group-append ">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>                               
+                   </div>
+    
+                   <small id="pwdMisMatch" class="brown"></small>
+                </div>
+
+                <div class="text-right">
+                    <button id="sendPhone" class="pt-2 latoFont  btn-primary btn-sm">
+                        <span class="spinner-border spinner-border-sm" id="confirmphoneSpiner" hidden  role="status" aria-hidden="true"></span>
+                       <span class="ml-2">{% if lang == 0 %}Tuma{% else %}Send{% endif %}</span>  
+                     </button>
+                </div>
+    
+                <script>
+                   // $('#ConfirmPhoneModal').modal('show')
+                    $('.showpwd').click(function(){
+                        const type = $(this).siblings('input').attr('type'),
+                              on = `<svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>`,
+                              off = `
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye-off">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                        </path><line x1="1" y1="1" x2="23" y2="23"></line>
+                                    </svg>
+                            `
+    
+                        $(this).siblings('input').attr('type',type=="text"?"password":"text")
+                        $(this).html(type=="text"?on:off)
+                        
+                    })
+                </script>
+             </form>
+            </div>
+           
+        </div>
+    </div>
+  </div>
+  
+ 
+<script  src="{% static 'js/lugha.js' %}" ></script>
+<script  src="{% static 'js/jisaji.js' %}" ></script>
+
+<script>
+   $('#foggotPwdCodeConfirm').click(function(){
+       const mail = $('#email').val(),
+             id = $('#email').data('valu'),
+             code = $('#emailCheck').val(),
+             data = {
+               data:{ 
+                mail,
+                id,
+                code
+            },
+            url:'/confirmMailPwdFoggot'
+             }
+             if(code!=''){
+                $('#confirmMailSpiner').prop('hidden',false)
+                $(this).prop('disabled',true)
+                const sendIt = POSTREQUEST(data)
+                sendIt.then(resp=>{
+                    if(resp.success){
+
+                        $('#ConfirmMailModal').modal('hide')
+                        
+
+                        location.replace('/passWordResset?lang={{lang}}')
+                    }else{
+                        toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haukufanikiwa','Error '), {timeOut: 5000});
+                    }
+
+                    $('#loadMe').modal('hide')
+                    hideLoading()
+
+                $('#confirmMailSpiner').prop('hidden',true)
+                $(this).prop('disabled',false)
+                })
+                
+             }else{
+                redborder('#emailCheck')
+             }
+   })
+</script>
+
+<input type="hidden" id="luga" value="{{lang}}" name="luga">
+
+
+
+</body>
+</html>

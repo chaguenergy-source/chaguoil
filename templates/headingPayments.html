@@ -1,0 +1,31 @@
+<div class="text-right tabs_menu">
+                    <a class="{% if isAkaunti %} activetab {% endif %}" href="/accounting/payaccounts" title="{% if useri.langSet == 0 %}Akaunti{% else %}Accounts{% endif %}" >
+                           <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24" style="fill: currentColor">
+							<path d="M20 4H4c-1.103 0-2 .897-2 2v2h20V6c0-1.103-.897-2-2-2zM2 18c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2v-6H2v6zm3-3h6v2H5v-2z"></path>
+						</svg>
+                    </a>
+
+                    <a class="border-left pl-1 {% if isPdBills %} activetab {% endif %}"  href="/accounting/pdcBills" title="{% if useri.langSet == 0 %}Malipo na Muda{% else %}Periodic Bills {% endif %}" >
+                        <svg xmlns="http://www.w3.org/2000/svg" height="1.4em" viewBox="0 -960 960 960" width="1.4em" fill="currentColor">
+                        <path d="M360-840v-80h240v80H360Zm80 440h80v-240h-80v240Zm40 320q-74 0-139.5-28.5T226-186q-49-49-77.5-114.5T120-440q0-74 28.5-139.5T226-694q49-49 114.5-77.5T480-800q62 0 119 20t107 58l56-56 56 56-56 56q38 50 58 107t20 119q0 74-28.5 139.5T734-186q-49 49-114.5 77.5T480-80Zm0-80q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-280Z"/>
+                        </svg>
+                    </a>
+
+                    <a class="border-left pl-1 {% if isdeposit %} activetab {% endif %} " href="/accounting/deposit" title="{% if useri.langSet == 0 %}Miamala ya kuweka{% else %}Deposit {% endif %}" >
+                         <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus-square">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                    </a>
+
+
+
+                    <a class="border-left pl-1 {% if iswithdraw %} activetab {% endif %}"  href="/accounting/withdraw" title="{% if useri.langSet == 0 %}Miamala ya Kutoa{% else %}Withdraw {% endif %}" >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus-square">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                    </a>
+
+
+</div> 

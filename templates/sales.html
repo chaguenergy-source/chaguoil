@@ -1,0 +1,194 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Mauzo ya mafuta Wateja Muhimu {% else %} Fuel Sales to Important Customers{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+   
+
+
+</div>
+
+<div class="table-data">
+    <div class="order">
+
+             {% include 'headingInvoice.html' %} 
+              
+              
+      <div class="head">
+
+
+        <h5 >
+
+          <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign">
+            <line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+
+                {% if useri.langSet == 0 %}Mauzo ya mafuta {% else %}Fuel Sales{% endif %}</h5>
+        
+      </div>
+
+      <div class="table-responsive">
+        <table   >
+            <thead>
+                <tr class="text-center" >
+                    <th class="p-2">{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %} </th>
+                    {% if general  %}
+                       <th class="p-2">{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %} </th>
+                    {% endif %}
+                   
+                    <th class="p-2">{% if useri.langSet == 0 %}Ankara{% else %}Invoice{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Mteja{% else %}Customer{% endif %} </th>
+                 
+                    <th class="p-2">{% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %} </th>
+
+                
+                    <th class="p-2">{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">(TZS)</span>  </th>
+                  
+                    <th class="p-2">{% if useri.langSet == 0 %}Ilolipwa{% else %}Payed{% endif %} <span class="text-primary">(TZS)</span>  </th>
+                    
+                    <!-- <th class="p-2">{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %} </th> -->
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Imelekodiwa na{% else %}Recorded by{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %} </th>
+
+                  
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for t in tr %}
+                <tr  >
+                      <td>
+                        <script>
+                            document.write(moment('{{t.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                        </script> 
+                      </td>
+
+                      {% if general %}
+                        <td>{{t.by.Interprise.name}}</td>    
+                      {% endif %} 
+
+                      <td>
+                        <a href="/salepurchase/viewFuelSales?i={{t.id}}">
+                            INVO-{{t.code}}
+                        </a>
+                    </td>
+
+                    <td>{{t.customer.jina |title}}</td>
+
+                      <td>
+                           {% if t.amount == t.payed and not t.payed == 0 %}
+                             <span class="status completed">
+                                {% if useri.langSet == 0 %}Imelipwa{% else %}Paid{% endif %}
+                             </span>
+                           {% endif %}  
+
+                           {% if t.amount > t.payed and t.payed > 0 %}
+                              <span class="status process">
+                                {% if useri.langSet == 0 %}Imelipwa Kiasi{% else %}Less Paid{% endif %}
+                              </span>
+                           {% endif %}  
+
+                           {% if  t.payed == 0 %}
+                              <span class="status pending">
+                                {% if useri.langSet == 0 %}Haijalipwa{% else %}Unpaid{% endif %}
+                              </span>
+                           {% endif %}  
+
+
+                      </td>
+
+                      <!-- <td>{{t.From.tank.name}}</td>
+
+                      <td>{{t.receive.name}}</td> -->
+
+                   
+
+       
+
+                      <td>
+                         {{t.amount|floatformat:'-2'|intcomma}}
+                      </td>
+
+                      <td>{{t.payed|floatformat:'-2'|intcomma}}</td>
+                      
+                      <td>{{t.by.user.user.first_name | title}} {{t.by.user.user.last_name | title}}</td>
+                      <td>
+                        <a href="/salepurchase/viewFuelSales?i={{t.id}}" class="btn-light btn btn-sm" title="{% if useri.langSet == 0 %}Onesha{% else %}View{% endif %}" >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </a>
+                      </td>  
+                    </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+      </div>
+
+      <p class=" pt-4 border-top">
+           
+        {% if tr.has_previous %}
+          <a href="{% url 'soldFuel' %}?page=1" type="button"  class="btn btn-default border0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
+            </svg>
+            </a>
+      
+            <a href="{% url 'soldFuel' %}?page={{tr.previous_page_number}}" type="button"  class="btn btn-default  border0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+              </svg>
+            </a>
+          {% endif %}
+      
+        {% if tr.has_next %}
+            <a href="{% url 'soldFuel' %}?page={{tr.next_page_number}}" type="button" class="btn btn-default border0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+              </svg>
+            </a>
+      
+            <a href="{% url 'soldFuel' %}?page={{pages}}" type="button"  class="btn btn-default border0" >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
+              </svg>
+            </a>
+      {% endif %}
+            <label for="">
+             
+              {% if useri.langSet == 0 %} Ukurasa wa {{p_num}} kati ya {{pages}} {% else %} page {{p_num}} of {{pages}} {% endif %}
+      
+            </label>
+        </p>
+
+
+     
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block customers %} active  {% endblock %}

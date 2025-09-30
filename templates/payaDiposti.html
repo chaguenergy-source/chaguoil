@@ -1,0 +1,207 @@
+{% extends 'index.html' %}
+
+{% load humanize %}
+
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                 <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Miamala ya Kuweka{% else %} Deposit Transactions{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
+    <div class="table-data">
+        <div class="order">
+                   {% include 'headingPayments.html' %}   
+          <div class="head">
+    
+    
+            <h5 >
+    
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" style="fill: currentColor">
+                    <path d="M20 4H4c-1.103 0-2 .897-2 2v2h20V6c0-1.103-.897-2-2-2zM2 18c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2v-6H2v6zm3-3h6v2H5v-2z"></path></svg>
+              {% if useri.langSet == 0 %}Miamala ya Kuweka{% else %}Deposit Transactions{% endif %} </h5>
+            
+          </div>
+
+         
+
+         {% if exists %}
+          <div class="table-responsive">
+           
+                <table id="all_payAcc" class=" table table-bordered"  >
+                    <thead>
+                        <tr class="smallFont " >
+                            <th scope="col"> {% if useri.langSet == 0 %} Tarehe  {% else %} Date {% endif %}</th>
+                            <th scope="col"> {% if useri.langSet == 0 %} Akaunti  {% else %} Account {% endif %}</th>
+                            <th scope="col"> {% if useri.langSet == 0 %} kiasi  {% else %} Amount {% endif %}  <span class="text-primary latoFont">TZS</span></th>
+                            <th scope="col"> {% if useri.langSet == 0 %} kabla  {% else %} Before {% endif %}<span class="text-primary latoFont">TZS</span></th>
+                            <th scope="col"> {% if useri.langSet == 0 %} baada  {% else %} After {% endif %} <span class="text-primary latoFont">TZS</span></th>
+                            <th scope="col"> {% if useri.langSet == 0 %} kutoka  {% else %} From {% endif %} </th>
+                            <th scope="col"> {% if useri.langSet == 0 %} Maelezo  {% else %} Descriptions {% endif %}</th>
+                            <th scope="col"> {% if useri.langSet == 0 %} Na  {% else %} By {% endif %}</th>
+                          </tr>
+                          </thead>
+
+                        <tbody>
+
+                            {% for w in weka %}
+                               <tr class="text-center" >
+                                  <td>
+                                    <script>
+                                        document.write(moment('{{w.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                      </script> 
+                                  </td>
+                                  <td class="text-left px-2" ><a href="#">{{w.Akaunt.Akaunt_name}}</a> </td>
+                                  <td>{{w.Amount|floatformat:'-2'|intcomma}} </td>
+                                  <td>{{w.before|floatformat:'-2'|intcomma}} </td>
+                                  <td>{{w.After|floatformat:'-2'|intcomma}} </td>
+                                  <td>
+                                    <u class="brown px-2">
+                                        {% if w.mauzo or w.shift %}
+                                                {% if useri.langSet == 0 %}Mauzo{%else%}Sales{%endif%}
+                                        {%endif%}
+
+                                        {% if w.huduma %}
+                                                {% if useri.langSet == 0 %}Huduma{%else%}Service{%endif%}
+                                        {%endif%}
+                                        {% if w.kuhamisha %}
+                                                {% if useri.langSet == 0 %}Kuhamisha{%else%}Transfer{%endif%}
+                                        {%endif%}
+                                        {% if not w.huduma and not w.mauzo and not w.kuhamisha and not w.biforeShift %}
+                                                {% if useri.langSet == 0 %}Mtaji{%else%}Capital{%endif%}
+                                        {%endif%}
+                                    </u>
+
+                                         
+                                  </td>
+
+                                  <td class="text-left px-2" >
+                                    {% if w.customer %} 
+                                      {% if useri.langSet == 0 %} 
+                                         Malipo ya ankara mauzo ya mafuta kutoka kwa  
+                                      {%else%} 
+                                         Invoice payment Fuel sales from
+                                      {%endif%}<a href="/salepurchase/ViewCustomer?i={{w.customer.id}}">{{w.customer.jina|title}}</a> 
+                                    {% endif %} 
+                                    
+                                    <!-- {% if w.sales %}
+                                      {% if useri.langSet == 0 %} 
+                                         Malipo ya ankara <a href="/salepurchase/viewFuelSales?i={{w.sales.id}}">SA-{{w.sales.code}}</a> mauzo ya mafuta kutoka kwa  
+                                      {%else%} 
+                                         Invoice <a href="/salepurchase/viewFuelSales?i={{w.sales.id}}">SA-{{w.sales.code}}</a>  payment Fuel sales from
+                                      {%endif%}<a href="/salepurchase/ViewCustomer?i={{w.sales.customer.id}}">{{w.sales.customer.jina|title}}</a> 
+
+                                    {% endif %} -->
+
+                                    {% if w.shift and not w.biforeShift %}
+                                        {% if useri.langSet == 0 %} 
+                                          mauzo ya mafuta kutoka zamu <a href="/salepurchase/viewShift?i={{w.shift.id}}">SH-{{w.shift.code}}</a>  na  <span class="bluePrint">{{w.shift.by.user.first_name|title}} {{w.shift.by.user.last_name|title}}</span> 
+                                        {%else%} 
+                                          Fuel sales from shift <a href="/salepurchase/viewShft?i={{w.shift.id}}">SH-{{w.shift.code}}</a>  by  <span class="bluePrint">{{w.shift.by.user.first_name|title}} {{w.shift.by.user.last_name|title}}</span> 
+
+                                        {% endif %}
+
+                                         
+                                    {% endif %}
+
+                                    {% if w.biforeShift %}
+                                       {% if useri.langSet == 0 %} 
+                                          Kuchukua pesa kutoka zamu
+                                       {% else %}
+                                          Cash Deposit before
+                                       {% endif %}
+                                       <a href="/salepurchase/viewShift?i={{w.shift.id}}">SH-{{w.shift.code}}</a>
+                                    {% endif %}
+
+                                    {% if w.maelezo %}
+                                      <span class="brown">{{w.maelezo}}</span> 
+                                    {% endif %}
+                                  </td>
+
+
+                                  <td>{{w.by.user.first_name |title}} {{w.by.user.last_name |title}}</td>
+                               </tr>
+                            {% endfor %}
+
+                        </tbody>
+                        
+
+
+                </table>
+
+               
+               
+          </div>
+
+          <p class=" pt-4 ">
+           
+
+
+            {% if weka.has_previous %}
+              <a href="{% url 'deposit' %}?page=1" type="button"  class="btn btn-light border0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-left" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
+                </svg>
+                </a>
+          
+                <a href="{% url 'deposit' %}?page={{weka.previous_page_number}}" type="button"  class="btn btn-light  border0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                  </svg>
+                </a>
+              {% endif %}
+          
+            {% if weka.has_next %}
+                <a href="{% url 'deposit' %}?page={{weka.next_page_number}}" type="button" class="btn btn-light border0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                  </svg>
+                </a>
+          
+                <a href="{% url 'deposit' %}?page={{pages}}" type="button"  class="btn btn-light border0" >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
+                  </svg>
+                </a>
+          {% endif %}
+                <span >
+                 
+                  {% if useri.langSet == 0 %} Ukurasa wa {{p_num}} kati ya {{pages}} {% else %} page {{p_num}} of {{pages}} {% endif %}
+          
+                </span>
+            </p>
+
+
+
+           {% else %}
+                     <p class="pt-3 pb-5 text-center">
+                                {% if useri.langSet == 0 %} Hakuna Miamala ya kuweka  kwa sasa{% else %}No Deposit transaction   Found{% endif %}
+                    
+                    </p>
+           
+          {% endif %}
+        </div>
+    </div>
+    
+    
+{%endblock%}
+
+
+{% block payaccount %} active {% endblock %}

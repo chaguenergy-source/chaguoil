@@ -1,0 +1,152 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Mpangilio {% else %} Settings{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+   
+
+
+</div>
+
+<div class="table-data">
+    <div class="order">
+         <h4>{% if useri.langSet == 0 %}Nembo ya Kampuni{% else %}Company Logo{% endif %}</h4>
+           <div role="button" data-toggle="modal" data-target="#companyLogoModal" style="width:200px" class=" px-3"  >
+                        {% if useri.company.logo %}
+                            <img src="{{ useri.company.logo.url }}" alt="Company Logo" style="max-width:100%;object-fit:contain;">
+                        {% else %}
+                            <span>{% if useri.langSet == 0 %}Bonyeza Kuongeza Nembo{% else %}Click to Add Logo{% endif %}</span>
+                        {% endif %}
+                    
+            </div>
+
+    <!-- Company Logo Modal -->
+    <div class="modal fade" id="companyLogoModal" tabindex="-1" role="dialog" aria-labelledby="companyLogoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="companyLogoModalLabel">
+                        {% if useri.langSet == 0 %}Badilisha Nembo ya Kampuni{% else %}Change Company Logo{% endif %}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="companyLogoForm" enctype="multipart/form-data" method="post">
+                            {% csrf_token %}
+                            <div class="form-group text-center">
+                                   
+                                    <label  for="companyLogo" style="width:150px;height:150px;" id="thecompayLogo">
+                                            {% if useri.company.logo %}
+                                                    <img src="{{ useri.company.logo.url }}" alt="Company Logo" style="max-width:100%;object-fit:contain;">
+                                            {% else %}
+                                                    <span>{% if useri.langSet == 0 %}Bonyeza Kuongeza Nembo{% else %}Click to Add Logo{% endif %}</span>
+                                            {% endif %}
+                                    </label>
+                                    <input type="file" hidden class="form-control" id="companyLogo" name="companyLogo" accept="image/*" required>
+                            </div>
+                            <div class="text-right">
+                                 <button type="submit" class="btn btn-primary">
+                                    {% if useri.langSet == 0 %}Pakia Nembo{% else %}Upload Logo{% endif %}
+                                </button>
+                            </div>
+                            
+                            <div id="uploadStatus" style="margin-top:10px;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+
+            // On file input change, update the label to show the selected image
+        $('#companyLogo').on('change', function() {
+            var file = this.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#thecompayLogo').html('<img src="' + e.target.result + '" alt="Company Logo" style="max-width:100%;object-fit:contain;">');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                $('#thecompayLogo').html('<span>{% if useri.langSet == 0 %}Bonyeza Kuongeza Nembo{% else %}Click to Add Logo{% endif %}</span>');
+            }
+        });
+
+
+        $('#companyLogoForm').on('submit', function(e) {
+            $('#companyLogoModal').modal('hide');
+            $('#loadMe').modal('show');
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/upload_company_logo',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                beforeSend: function() {
+                    $('#uploadStatus').html('Uploading...');
+                },
+                success: function(response) {
+                    const msg = lang(response.swa,response.eng);
+                    $('#loadMe').modal('hide');
+                    hideLoading();
+                    if(response.success) {
+                       toastr.success(msg,lang('Imefanikiwa','Success'),{timeOut:2000});
+                       location.reload();
+                    } else {
+                        toastr.error(msg,lang('Imeshindikana','Failed'),{timeOut:2000});
+                        
+                    }
+                },
+                error: function(xhr) {
+                      $('#loadMe').modal('hide');
+                      hideLoading();
+                    $('#uploadStatus').html('<span style="color:red;">Upload failed. Please try again.</span>');
+                }
+            });
+        });
+    });
+    </script>
+
+        <!-- company details settings -->
+
+     
+
+
+     
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block additionaljs %}
+ <script src="/static/js/settings.js"></script>
+
+{% endblock %}
+
+{% block settings %} active  {% endblock %}

@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chagu Oil</title>
+
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}"> 
+    
+    
+    
+<script type="text/javascript" src="{% static 'js/jquery.js' %}" ></script>
+
+<!-- <script src="{% static 'js/staffaccordion.js' %}"></script> -->
+
+
+
+<link rel="stylesheet"  href="{% static 'css/jquery-ui.css' %}" >
+<!-- <link rel="stylesheet"  href="{% static 'css/audioformat.css' %}" > -->
+
+<script src="{% static 'js/jquery-ui.js' %}"></script>
+
+<script src="{% static 'js/popper.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+
+
+
+<link rel='stylesheet prefetch' href="{% static 'css/normalize.min.css' %}" >
+
+<!-- <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet"> -->
+
+<link rel='stylesheet prefetch' href="{% static 'css/animate.min.css' %}">
+
+
+
+
+<!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="{% static 'css/bootstrap-select.min.css' %}">
+
+<!-- Latest compiled and minified JavaScript -->
+<!-- <script src="{% static 'js/bootstrap-select.min.js' %}"></script> -->
+
+<style>
+    
+</style>
+
+<link rel="stylesheet" href="{% static 'css/header.css' %}">
+<!-- <script src="{% static 'js/nav.js' %}"></script> -->
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'pics/logo1.png' %}">
+
+</head>
+<body>
+    
+<div class="bs-example whiteBg">
+
+    
+ 
+    <div class="col-xs-12">
+        {% for message in messages %}
+
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" id="invalid_credit"  role="alert">
+       
+              <span > {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}<ion-icon name="checkmark-outline"></ion-icon> {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}<ion-icon name="warning-outline"></ion-icon> {% endif %} 
+               <span  id="logerror"  >{{message}}</span>
+            </span>
+               <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                 <span aria-hidden="true">&times;</span>
+               </button>
+             </div>
+
+
+   {% endfor %}
+   
+   </div>
+
+
+
+</div>
+
+
+<div style="min-height: 100vh;" class="whiteBg d-flex justify-content-center align-items-center">
+   
+        <div class="shadow p-3 mt-3" style="max-width: 600px;min-width:300px">
+            <div class="text-center">
+                <!-- <a href="/?lang={{lang}}" class="navbar-brand">
+                    <img id="brandlogo" style="width:100px" src="{% static 'pics/logowithtext.png'  %}" />
+                </a> -->
+
+                <h2>Chagu Oil</h2>
+            </div>
+          
+            <h5 class="py-3 text-center" >{% if lang == 0 %}KUINGIA{% else %}LOGIN{% endif %}</h5>
+
+            <form action="/" method="POST" style="min-width: 300px;">
+                {% csrf_token %}
+                
+                {% if confirm %}
+                  <div class="contains" hidden >
+                {% else %}    
+                   <div>
+                {% endif %}
+
+                        <div class="form-group py-2">
+                        
+                        <input type="email" name="email" id="email" value="{{email}}" class="form-control" placeholder="{% if lang == 0 %}Andika Anwani ya Barua Pepe {% else %} Write Email Address {% endif %}" aria-describedby="helpId">
+                        
+                        </div>
+
+                        <div class="form-group py-2">
+                        
+                        <input type="password" name="password" id="password" value="{{password}}" class="form-control" placeholder="{% if lang == 0 %}Andika neno la siri {% else %} Write password {% endif %}" aria-describedby="helpId">
+                        
+                        </div>                    
+                </div>
+
+                {% if confirm %}
+                   <p>
+                       {% if lang == 0 %}
+                         Ingiza number ya uthibitisho iliyotumwa kwenye barua pepe yako
+                       {% else %} 
+                           Enter verification code Sent to your email
+                       {% endif %}
+                    </p>
+
+                        <div class="form-group py-2">
+                        
+                        <input type="number" name="code" id="code"  class="form-control" placeholder="{% if lang == 0 %}Andika numba iliyotumwa {% else %} Write verification number {% endif %}" aria-describedby="helpId">
+                        
+                        </div>                     
+                {% endif %}
+
+
+
+
+                <div class="py-1">
+                     <button type="submit" class="btn btn-secondary form-control">
+                        {% if lang == 0 %}Kusanya{% else %}Submit{% endif %}
+                     </button>
+                </div>
+
+            </form>
+
+            <div class="my-1"><a href="/register?lang={{lang}}" class=" latoFont">{% if lang == 0 %}Kujisajiri{% else %}Register{% endif %}</a></div>
+            <div class="my-1"><a href="/fogotpwd?lang={{lang}}" class=" latoFont">{% if lang == 0 %}Nimesahau neno la siri{% else %}Forgot password{% endif %}</a></div>
+
+            <div class="text-right">
+                <select class="latoFont ml-2 py-0 border0" name="lang" id="langSel">
+                    {% if lang == 0 %}
+                    <option value="0">SWA</option>
+                    <option value="1">ENG</option>
+                    {% else %}
+                       <option value="1">ENG</option>
+                         <option value="0">SWA</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <script>
+                $('#langSel').change(function(){
+                    const sel = $(this).val()
+        
+                    location.replace(`/?lang=${sel}`)
+                })
+            </script>
+        </div>
+
+        
+</div>
+
+
+</body>
+</html>

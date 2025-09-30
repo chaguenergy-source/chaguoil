@@ -1,0 +1,90 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Mpangilio {% else %} Settings{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+   
+
+
+</div>
+
+<div class="table-data">
+    <div class="order">
+
+           
+          
+        
+		<div class=" px-3" id="colorMode" >
+            <h6>{% if useri.langSet == 0 %} Muonekano{% else %}Theme{% endif %}</h6>
+
+             <div class="d-flex">
+                    <div >	
+                        {% if useri.darkMode %}	
+                            <input type="checkbox" checked id="switch-mode" hidden>
+                        {% else %}
+                            <input type="checkbox" id="switch-mode" hidden>
+                        {% endif %}    
+                        <label for="switch-mode" class="switch-mode"></label>
+                    </div>
+
+                    <div class=" fontColor ml-2">				  
+                        {% if useri.langSet == 0 %} Rangi Nyeusi {% else %}Dark Mode {% endif %}
+                    </div>
+             </div>
+
+				
+		</div>
+
+        <!-- company details settings -->
+
+        <hr>
+        {% if useri.admin %}
+        <div class=" px-3" id="companyDetails" >
+
+            <h6>
+                <a style="color:var(--fontColor)" href="/companyDetails">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-briefcase mr-1" viewBox="0 0 24 24">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                        <path d="M16 3h-8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>
+                    </svg>
+                    {% if useri.langSet == 0 %} Taarifa za Kampuni {% else %} Company Details {% endif %}
+                </a>
+                </h6>
+
+             
+            </div>
+
+        {% endif %}
+
+
+     
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block additionaljs %}
+ <script src="/static/js/settings.js"></script>
+
+{% endblock %}
+
+{% block settings %} active  {% endblock %}

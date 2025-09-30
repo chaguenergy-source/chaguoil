@@ -1,0 +1,41 @@
+
+<div id="CompanyTitle" hidden>
+        <div >
+        <div class="letterhead">
+            <!-- Company Name Full Width -->
+            <div class="row">
+            <div class="col-12">
+                <div class="company-name">{{useri.company.jina}}</div>
+            </div>
+            </div>
+           
+         
+            <!-- Contact Info Left and Right -->
+             <!-- I want this to be centered -->
+              <div class="d-flex justify-content-center align-items-center">
+                        <div class="row classic_div" style="width:750px" >
+
+                    <div class="col-4 mx-0 contact-info contact-left">
+                        <p class="mb-0">Phone: {{useri.company.phone}} {%if useri.company.phone2%},{{useri.company.phone2}}{% endif %}</p>
+                        <p class="mb-0">Email: {{useri.company.email}}</p>
+                    </div>
+
+                    <!-- Logo Centered -->
+                    <div class="col-4 mx-0 logo-center">
+                        
+                          <img src="{% if useri.company.logo %}{{useri.company.logo.url}}{% endif %}" alt="Logo" class="company-logo">
+                    </div>
+
+                    <div class="col-4 mx-0 contact-info contact-right">
+                        <p class="mb-0">{{useri.company.address}}, {{useri.company.country}}</p>
+                    </div>
+                    </div>  
+            </div>
+
+
+      
+        </div>
+        </div>
+</div>
+
+

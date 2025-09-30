@@ -1,0 +1,711 @@
+  
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title pb-md-5">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Wateja{% else %} Customers{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+
+</div>  
+
+<div class="table-data" id="invoice_wrapper" style="min-height: 85vh;overflow-y: auto;overflow-x: hidden;" >
+    
+    <div class="order fontColor ">
+
+        {% include 'headingPurchases.html'  %}    
+
+    <div>    
+        <div class="row">
+            <div class="col-md-5 row">
+                <div class="col-12">
+                    <strong> {% if useri.langSet == 0 %}Taarifa za Msambazaji{% else %}Vendor Details{% endif %}</strong>
+                </div>
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}
+                </div>
+                <div class="col-9">
+                    <u class="bluePrint">{{ven.jina}}</u>  | <button class="btn btn-lightedit_btn text-primary"  data-toggle="modal" data-target="#wasambazaji-modal"
+                                         
+                                          style="font-size: 16;"  title="Edit" >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                      </svg>   
+                                      </button>
+                </div>
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}
+                </div>
+                <div class="col-9">
+                    {{ven.address | title}}  
+                </div>
+
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Simu{% else %}Phone{% endif %}
+                </div>
+                <div class="col-9">
+                    {{ven.code}}{{ven.simu1}}{% if ven.simu2 %}, {{ven.code}}{{ven.simu2}} {%endif%}
+                </div>
+                
+                {% if ven.email %} 
+                        <div class="col-3">
+                            Email
+                        </div>
+                        <div class="col-9">
+                            {{ven.email}}
+                        </div>
+                {% endif %}
+
+        
+
+            </div>
+
+
+        
+
+
+        
+
+        </div>
+          
+         {% if useri.admin %}   
+        <p class="text-right">
+            <a href="#" type="button" onclick="$('#newPurchase').toggle(200)" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Mpya{% else %}New{% endif %}</a>
+        </p>
+
+         <select hidden  name="allFuel" id="allFuel">
+            <option value=0 >------</option> 
+            {% for f in allfuel %}
+             <option value={{f.id}} >{{f.name}}</option> 
+            {% endfor %}
+         </select>
+
+         <div id="newPurchase" class=" border py-4 px-3" style="display: none;border-radius: 5px;" >
+            <h5 class="mb-3" >{% if useri.langSet == 0 %}Manunuzi ya Mafuta Kutoka{% else %}Fuel Purchases From{% endif %} <u class="bluePrint">{{ven.jina}}</u>  </h5>
+             <div class="row">
+                <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="brown" for="pu_date">
+                                    {% if useri.langSet == 0 %}Tarehe Muda{% else %}Date Time{% endif %}
+                                    <sup>*</sup>
+                                </label>
+                                <input type="datetime-local" class="form-control" name="pu_date" id="pu_date" aria-describedby="helpId" placeholder="">
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label  for="pu_reference">
+                                    {% if useri.langSet == 0 %}Rejeo{% else %}Reference{% endif %}
+                                    
+                                </label>
+                                <input type="text" class="form-control" name="pu_reference" id="pu_reference" aria-describedby="helpId" placeholder="">
+                            </div>
+                </div>
+             </div>
+            <div class="table-responsive mt-3">
+                <table class="table-sm table" >
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th> {% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                            <th>  {% if useri.langSet == 0 %}Bei/Kununulia{% else %}Purchase Price{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                            <th> {% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">LTRS</span></th>
+                            <th> {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                            <th> {% if useri.langSet == 0 %}Ondoa{% else %}Remove{% endif %} </th>
+                        </tr>
+                        </thead>
+                    <tbody id="puRows" >
+                        <tr data-pos=1 class="puRow" >
+                            <td class="IndexNo" data-pos=1 >1</td>
+                            <td>
+                                <select name="fuelSelect1" id="fuelSelect1" class="form-control brown btn-sm">
+                                        <option value=0 >------</option> 
+                                        {% for f in allfuel %}
+                                        <option value={{f.id}} >{{f.name}}</option> 
+                                        {% endfor %}
+                            </select>
+                        </td>  
+                        <td>
+                            
+                                <div class="input-group  " >                   
+                                    <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                        <label class="mt-1 text-danger " for="FuelPriceTotal"></label> 
+                                    <div class="box-pointer d-inline "></div>
+                                    </div>
+                                    <input type="number" data-pos=1   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="puPrice1" name="puPrice1"  class=" money-fomat btn-sm form-control fuelPurchases weight600">
+                                </div>
+                        </td>                      
+                        <td>
+                            <div class="input-group  " >                   
+                                    <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                        <label class="mt-1 text-danger " for="FuelPriceTotal"></label> 
+                                    <div class="box-pointer d-inline "></div>
+                                    </div>
+                                    <input type="number" data-pos=1   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="puQty1" name="puQty1"  class=" money-fomat btn-sm form-control fuelPurchases weight600">
+                                </div>
+                           
+                        </td>                      
+                        <td>
+                            <input type="text" readonly id="totPrice1" name="totPrice1"  class="form-control btn-sm weight600">
+                        </td> 
+                        
+                        <td>
+                            <a type="button" data-pos=1 class="brown rowRemoveBtn text-danger" >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus-circle">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                                </svg>
+                                </a>                             
+                        </td>
+                 
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="text-right">
+                <a href="#" type="button" id="addPubtn" class="text-primary smallerFont">
+                    +{% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}
+                </a>
+            </p>
+
+            <div class="row">
+                <div class="col-md-6"></div>
+                <h5 class="col-md-6  row">
+                  <div class="col-4 text-right">
+                      {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">({{currencii}})</span> 
+                  </div>
+                  <div class="col-8 text-right" id="TotPuPrice">
+                      0
+                  </div>
+                </h5>
+            </div>
+        <hr>
+            <p class="text-right">
+                <button id="saveBtn" data-vendor="{{ven.id}}" href="#" type="button" class="btn btn-primary btn-sm">
+                    Save
+                </button>
+            </p>            
+        </div>
+
+        {% endif %}
+
+            <div class="row mt-4">
+                <div class="col-lg-6 ">
+                    <div class="table-responsive mt-4">
+                        <table class="table table-sm fontColor smallFont border "  >
+                            <thead>
+                                <tr class="fontColor" >
+                                    <th class="ml-2" >{% if useri.langSet == 0 %}Mwezi{% else %}Month{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Ankara{% else %}Invoice(s){% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}<span class="text-primary">({{currencii}})</span></th>
+                                    <th>{% if useri.langSet == 0 %}Ilolipwa{% else %}Paid{% endif %}<span class="text-primary">({{currencii}})</span></th>
+                                    <th>{% if useri.langSet == 0 %}Anadai{% else %}Debt{% endif %}<span class="text-primary">({{currencii}})</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="fontColor" >
+                                    <td  class="pl-1" >
+                                        <span>
+                                             <script>document.write(moment().format('MMMM, YYYY'))</script>
+                                        </span>
+                                    </td>
+                                    <td>{{saleLen}}</td>
+                                    <td>{{totAmo|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{paid|floatformat:'-2'|intcomma}}</td>
+                                    <td class="brown" >{{bakiM|floatformat:'-2'|intcomma}}</td>
+                                </tr>  
+
+                                <tr class="fontColor" >
+                                    <td  class="pl-1" >
+                                        {% if useri.langSet == 0 %}Miezi ilopita{% else %}last Month(s){% endif %}
+                                    </td>
+                                    <td>{{prevsaleLen}}</td>
+                                    <td>{{totprev|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{paidprev|floatformat:'-2'|intcomma}}</td>
+                                    <td class="brown" >{{debtprev|floatformat:'-2'|intcomma}}</td>
+                                </tr>
+                                <tr class="fontColor weight600 smallFont" >
+                                    <td >
+                                        {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %}
+                                    </td>
+                                    <td>{{totI}}</th>
+                                    <td>{{totA|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{totP|floatformat:'-2'|intcomma}}</td>
+                                    <td class="brown" >{{totD|floatformat:'-2'|intcomma}}</td>
+                                </tr>
+
+                            
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        <div class="text-right smallerFont tabs_menu" >
+            <a href="#" data-show="this_Month" class="report_show bluePrint" >
+                
+                {% if useri.langSet == 0 %}Mwezi Huu{% else %} This Month{% endif %}
+            </a>|
+            <a href="#" data-show="last_Month" class="report_show " >
+                
+                {% if useri.langSet == 0 %}Deni Miezi Ilopita{% else %}Debt last Month(s){% endif %}
+            </a>
+            
+        </div>
+
+
+        <script>
+            $('.report_show').click(function(){
+                 $('.report_show').removeClass('bluePrint')
+                 $(this).addClass('bluePrint')
+                 $('.list_toggle').hide()
+                 $('.list_toggle').hide(100)
+                 const show = $(this).data('show')
+                 $(`.${show}`).show(100)
+
+
+            })
+        </script>
+
+ 
+        <div class="mt-4 this_Month list_toggle" >
+            <strong>
+                {% if useri.langSet == 0 %}Ankara Mwezi Huu{% else %}Invoices This Month {% endif %}
+            </strong>
+        </div>
+ 
+        <div style="display: none;" class="mt-4 last_Month list_toggle" >
+            <strong>
+                {% if useri.langSet == 0 %}Madeni Ankara Miezi Ilopita{% else %}Invoices Debt last Month(s) {% endif %}
+            </strong>
+        </div>
+
+
+
+
+        <div class="table-responsive this_Month list_toggle" id="this_Month" >
+            {% if sale %}
+            <table class="table  " >
+
+                <thead>
+                    <tr class="text-center" >
+                        <th class="p-2">{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %} </th>
+                        <th  class="p-2" > {% if useri.langSet == 0 %}Rejeo{% else %}Reference{% endif %} </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Manunuzi{% else %}Purchases{% endif %} </th>
+                      
+                    
+                        <th class="p-2">{% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %} </th>
+                       
+
+                       
+                    
+
+                        <th class="p-2">{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">(TZS)</span>  </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Ilolipwa{% else %}Payed{% endif %} <span class="text-primary">(TZS)</span>  </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %} <span class="text-primary">(TZS)</span>  </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Kupokelewa{% else %}Received{% endif %}   </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Statasi{% else %}Status{% endif %}   </th>
+                        
+
+                        <th class="p-2">{% if useri.langSet == 0 %}Imelekodiwa na{% else %}Recorded by{% endif %} </th>
+                       
+                    
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for t in sale %}
+                    <tr  >
+                        <td> 
+                            <script>
+                                document.write(moment('{{t.b.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                            </script> 
+                        </td>
+
+                        <td>{% if t.b.ref %}{{t.b.ref}}{%else%}------{% endif %}</td>
+
+                        <td>
+                            <a href="/salepurchase/viewPurchase?i={{t.b.id}}">
+                                PU-{{t.b.code}}
+                            </a>
+                        </td>
+
+
+                        <td>
+                            {% if t.b.amount == t.b.payed %}
+                                <span class="status completed">
+                                    {% if useri.langSet == 0 %}Imelipwa{% else %}Paid{% endif %}
+                                </span>
+                            {% endif %}  
+
+                            {% if t.b.amount > t.b.payed and t.b.payed > 0 %}
+                                <span class="status process">
+                                    {% if useri.langSet == 0 %}Imelipwa Kiasi{% else %}Less Paid{% endif %}
+                                </span>
+                            {% endif %}  
+
+                            {% if  t.b.payed == 0 %}
+                                <span class="status pending">
+                                    {% if useri.langSet == 0 %}Haijalipwa{% else %}Unpaid{% endif %}
+                                </span>
+                            {% endif %}  
+
+
+                        </td>
+
+                    
+
+                        
+
+
+                        <td>
+                           {{t.b.amount|floatformat:'-2'|intcomma}}
+                        </td>
+
+                        <td>{{t.b.payed|floatformat:'-2'|intcomma}}</td>
+                        <td class="{% if t.b.deni > 0 %}brown{% endif %}" >{{t.b.deni|floatformat:'-2'|intcomma}}</td>
+
+                        <td class="weight400">
+                           {{t.rperc | floatformat:'-2' }}%
+                        </td>
+                        <td>
+                            {% if t.rcvd == 0 and not t.b.closed %}
+                            <i class="brown weigth400" > {% if useri.langSet == 0 %}Bado..{% else %}pending..{% endif %} </i>
+                           {% endif %}
+                           {% if t.rcvd > 0 and not t.b.closed %}
+                             <i class="text-info weigth400" >{% if useri.langSet == 0 %}Inaendelea{% else %}In progress{% endif %}... </i>
+                           {% endif %} 
+                           {%if t.b.closed %}
+                             <i class="text-primary weigth400" >{% if useri.langSet == 0 %}Imefungwa{% else %}Closed{% endif %}. </i>
+                           {% endif %} 
+                        </td>
+
+                        <td>{{t.b.record_by.user.first_name | title}} {{t.b.record_by.user.last_name | title}}</td>
+                    
+                        </tr>
+                    {% endfor %}
+                </tbody>
+
+
+            </table>
+             {% else %}  
+               <p class="text-center">
+                  {% if useri.langSet == 0 %}Hakuna Ankara yeyote{% else %}No Invoice Found {% endif %}
+               </p>   
+
+             {% endif %}
+         </div>
+
+       <div class="table-responsive last_Month list_toggle"  id="last_Month"  style="display: none;"  >
+           {% if prevsale %}
+            <table class="table  " >
+
+                <thead>
+                    <tr class="text-center" >
+                        <th class="p-2">{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %} </th>
+                    
+                        <th class="p-2">{% if useri.langSet == 0 %}Rejeo{% else %}Reference{% endif %} </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Manunuzi{% else %}Purchases{% endif %} </th>
+                      
+                    
+                        <th class="p-2">{% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %} </th>
+                       
+
+                       
+                    
+
+                        <th class="p-2">{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">(TZS)</span>  </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Ilolipwa{% else %}Payed{% endif %} <span class="text-primary">(TZS)</span>  </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %} <span class="text-primary">(TZS)</span>  </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Kupokelewa{% else %}Received{% endif %}   </th>
+                        <th class="p-2">{% if useri.langSet == 0 %}Statasi{% else %}Status{% endif %}   </th>
+                        
+
+                        <th class="p-2">{% if useri.langSet == 0 %}Imelekodiwa na{% else %}Recorded by{% endif %} </th>
+                       
+                    
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for t in prevsale %}
+                    <tr  >
+                        <td> 
+                            <script>
+                                document.write(moment('{{t.b.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                            </script> 
+                        </td>
+
+                        <td>{% if t.b.ref %}{{t.b.ref}}{%else%}------{% endif %}</td>
+
+                        <td>
+                            <a href="/salepurchase/viewPurchase?i={{t.b.id}}">
+                                PU-{{t.b.code}}
+                            </a>
+                        </td>
+
+
+                        <td>
+                            {% if t.b.amount == t.b.payed %}
+                                <span class="status completed">
+                                    {% if useri.langSet == 0 %}Imelipwa{% else %}Paid{% endif %}
+                                </span>
+                            {% endif %}  
+
+                            {% if t.b.amount > t.b.payed and t.b.payed > 0 %}
+                                <span class="status process">
+                                    {% if useri.langSet == 0 %}Imelipwa Kiasi{% else %}Less Paid{% endif %}
+                                </span>
+                            {% endif %}  
+
+                            {% if  t.b.payed == 0 %}
+                                <span class="status pending">
+                                    {% if useri.langSet == 0 %}Haijalipwa{% else %}Unpaid{% endif %}
+                                </span>
+                            {% endif %}  
+
+
+                        </td>
+
+                    
+
+                        
+
+
+                        <td>
+                           {{t.b.amount|floatformat:'-2'|intcomma}}
+                        </td>
+
+                        <td>{{t.b.payed|floatformat:'-2'|intcomma}}</td>
+                        <td class="{% if t.b.deni > 0 %}brown{% endif %}" >{{t.b.deni|floatformat:'-2'|intcomma}}</td>
+
+                        <td class="weight400">
+                           {{t.rperc|floatformat:'-2'}}%
+                        </td>
+                        <td>
+                            {% if t.rcvd == 0 and not t.b.closed %}
+                            <i class="brown weigth400" > {% if useri.langSet == 0 %}Bado..{% else %}pending..{% endif %} </i>
+                           {% endif %}
+                           {% if t.rcvd > 0 and not t.b.closed %}
+                             <i class="text-info weigth400" >{% if useri.langSet == 0 %}Inaendelea{% else %}In progress{% endif %}... </i>
+                           {% endif %} 
+                           {%if t.b.closed %}
+                             <i class="text-primary weigth400" >{% if useri.langSet == 0 %}Imefungwa{% else %}Closed{% endif %}. </i>
+                           {% endif %} 
+                        </td>
+                        <td>{{t.b.record_by.user.first_name | title}} {{t.b.record_by.user.last_name | title}}</td>
+                    
+                        </tr>
+                    {% endfor %}
+                </tbody>
+
+
+            </table>
+            {% else %}  
+            <p class="text-center">
+                {% if useri.langSet == 0 %}Hakuna Ankara yeyote{% else %}No Invoice Found {% endif %}
+            </p>   
+          {% endif %}
+            
+        </div>
+
+
+
+        </div>
+    </div>
+
+  
+  </div>    
+
+
+  {% include 'venPayBills.html' %}
+
+  <!-- kuongeza wasambazaji ................................................................ -->
+<div class="modal fade" id="wasambazaji-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog animate"  style="-webkit-box-shadow: 0px 0px 38px 11px rgba(0,0,0,0.57); 
+    box-shadow: 0px 0px 38px 11px rgba(0,0,0,0.57);" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title latoFont" id="wasambazaji-head"><svg width="1.3em" height="1.3625em" viewBox="0 0 16 17" class="bi bi-compass" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
+            <path d="M6.94 7.44l4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z"/>
+          </svg>  {% if useri.langSet == 0 %} Kuediti Msambazaji  {% else %} Edit Supplier {% endif %}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <!-- <form action=""> -->
+  
+             
+                <form action="/salepurchase/addvendor" data-active_customer=0 data-edit=1 data-customer_value=0 data-valued={{ven.id}} class="pt-3" id="form-mteja">
+                    {% csrf_token %}
+          
+                    
+                    <div class="form-group">
+                     
+                       <label for="mteja-jina" class="smallFont brown weight600">{% if useri.langSet == 0 %} Jina la Msambazaji{% else %} Supplier Name{% endif %} <sup class="text-danger font-weight-bold">*</sup></label>
+                     
+                     
+                        <input type="text" id="mteja-jina" value="{{ven.jina}}" class="form-control input-data smallFont">
+                     <small hidden class="smallerFont verify-customer text-danger">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                      </svg>
+                      {% if useri.langSet == 0 %} Tafadhali andika jina la Msambazaji {% else %} Please write Supplier Name {% endif %}
+                     </small>
+               
+                    </div>
+          
+                    <div class="form-group">
+                     
+                       <label for="mteja-sehemu" class="smallFont brown weight600"> {% if useri.langSet == 0 %} Anwani  {% else %} Supplier Address{% endif %}<sup class="text-danger font-weight-bold">*</sup> </label>
+                     
+                    
+                        <input type="text" id="mteja-sehemu" value="{{ven.address}}" placeholder=" {% if useri.langSet == 0 %}Andika sehemu anayopatikana   {% else %} Write Supplier address {% endif %}" class="form-control input-data smallFont">
+                        <small hidden class="smallerFont verify-Supplier text-danger">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                          </svg>
+                          {% if useri.langSet == 0 %} Tafadhali Andika mahali Msambazaji anapatikana  {% else %} Please write Supplier Address {% endif %}
+                         </small>
+                     
+                    </div>
+          
+                    <div class="form-group pb-2">
+                      
+                       <label for="mteja-simu" class="smallFont brown weight600"> {% if useri.langSet == 0 %}  Namba ya Simu 1 {% else %} Phone 1 {% endif %} <sup class="text-danger font-weight-bold">*</sup></label>
+                    
+                      
+          
+                        <div class="input-group ">
+                          <div class="input-group-prepend">
+                            <input type="text" value="+255" id="mteja-simu-code" class="pl-2 smallerFont form-control simuCode" style="width:58px;">
+                          </div>
+                             <input type="tel" value="{{ven.simu1}}" placeholder=" {% if useri.langSet == 0 %} kama.  712345678 {% else %} eg. 712345678{% endif %}" id="mteja-simu" class="form-control made-input input-data smallFont" >
+                             <small hidden class="smallerFont verify-customer text-danger">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                              </svg>
+                              {% if useri.langSet == 0 %} Tafadhali Andika namba ya simu kwa simu1 kwa usahihi  {% else %}Please write Customer contact 1 correctly {% endif %}
+                             </small>
+                        </div>
+          
+                      
+                    </div>
+        
+        
+                    <div class="form-group">
+                    
+                       <label for="mteja-simu2" class="smallFont weight600">{% if useri.langSet == 0 %} Namba ya Simu 2  {% else %} Phone 2 {% endif %}: </label>
+                      
+                      
+          
+                        <div class="input-group ">
+                          <div class="input-group-prepend">
+                            <input type="text" value="+255" class="pl-2 form-control simuCode smallerFont" id="mteja-simu2-code" style="width:58px;">
+          
+                          </div>
+                             <input type="number" value="{{ven.simu2}}" placeholder=" {% if useri.langSet == 0 %} kama.  712345678 {% else %} eg. 712345678{% endif %}" id="mteja-simu2" class="made-input form-control input-data smallFont" >
+          
+                        </div>
+                      <small hidden class="smallerFont verify-customer text-danger">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                              </svg>
+                              {% if useri.langSet == 0 %} Tafadhali Andika namba ya simu kwa 2 kwa usahihi  {% else %}Please write Supplier contact 2 correctly {% endif %}
+                      </small>      
+                    
+                    </div>
+                    
+                    <script>
+                      $('#mteja-simu-code2').keyup(function(){
+                        if($(this).val()){
+                           $('#mteja-simu-code').prop('disabled',true)
+                           $('#mteja-simu-code').val($(this).val())
+                        }else{
+                          $('#mteja-simu-code').prop('disabled',true)
+                           $('#mteja-simu-code').val($(this).val())                
+                        }
+                       
+                      })
+          
+          
+                      $('#mteja-simu-code').keyup(function(){
+                        if($(this).val()){
+                           $('#mteja-simu2-code').prop('disabled',true)
+                           $('#mteja-simu2-code').val($(this).val())
+                        }else{
+                          $('#mteja-simu2-code').prop('disabled',true)
+                           $('#mteja-simu2-code').val($(this).val())                
+                        }
+                       
+                      })
+                    </script>
+          
+                    <div class="form-group">
+                      
+                       <label for="mteja-mail" class="smallFont"> {% if useri.langSet == 0 %} Barua pepe(email)  {% else %} Email Address {% endif %}:  </label>
+                      
+                     
+                        <input type="email" value="{{ven.email}}" placeholder=" {% if useri.langSet == 0 %} kama.  {% else %} eg. {% endif %} mfanoemail@provider.com"  id="mteja-mail" class="form-control smallFont input-data">
+                    
+                    </div>
+          
+                    <div class="row py-3">
+                    
+                      <div class="col-12 text-center">
+          
+                        <button type="submit" class="btn btn-primary py-2 latoFont ">
+                          Save
+                        </button>
+                      </div>
+          
+                        <div class="col-12 mt-2 text-center">     
+                           <button type="button" class="btn btn-light text-center latoFont smallFont" data-dismiss="modal">Close</button>
+                       </div>
+          
+                    </div>
+          
+                  </form>   
+  
+  </div>
+        
+      </div>
+    </div>
+  </div>
+
+
+  
+
+
+{% endblock %}
+
+
+
+{% block additionaljs %}
+<script src="/static/js/vendors.js" ></script>
+
+  <script src="/static/js/purchases.js"></script>
+
+{% endblock %}
+
+{% block vendors %} active  {% endblock %}

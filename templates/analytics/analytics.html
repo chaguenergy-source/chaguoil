@@ -1,0 +1,66 @@
+{% extends 'index.html' %}
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+
+            <li>
+                <a class="active" href="#">Analytics</a>
+            </li>
+        </ul>
+    </div>
+    
+
+
+</div>
+
+<div class="table-data">
+    <div class="order" style="min-height:70vh" >
+            <h4>
+            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="fill: currentColor">
+                <path d="M13 6c2.507.423 4.577 2.493 5 5h4c-.471-4.717-4.283-8.529-9-9v4z"></path>
+                <path d="M18 13c-.478 2.833-2.982 4.949-5.949 4.949-3.309 0-6-2.691-6-6C6.051 8.982 8.167 6.478 11 6V2c-5.046.504-8.949 4.773-8.949 9.949 0 5.514 4.486 10 10 10 5.176 0 9.445-3.903 9.949-8.949h-4z"></path>
+            </svg>
+                  Analytics </h4>
+            <ul class="list-unstyled">
+
+
+                <li class="py-1"></li><a href="/analytics/salesr">
+                    {% if useri.langSet == 0 %} Ripoti ya Mauzo {% else %} Sales Report{% endif %}
+                </a></li>
+
+                <li class="py-1"><a href="/analytics/evaluationr">
+                                        {% if useri.langSet == 0 %} Uchambuzi na Tathmini ya kila siku {% else %}Daily Analysis and Evaluation{% endif %}
+
+                </a></li>
+            <li class="py-1"><a href="/analytics/expensesr">
+                {% if useri.langSet == 0 %} Ripoti ya Matumizi {% else %} Expenses Report{% endif %}
+            </a></li>
+
+            <li class="py-1"><a href="/analytics/transactionsr">
+                {% if useri.langSet == 0 %} Ripoti ya Miamala ya Kuhamisha na Kupokea Pesa {% else %} Money Transfer and Receipt Transactions Report{% endif %}
+            </a></li>
+
+            <li class="py-1"><a href="/analytics/profitlossr">
+                {% if useri.langSet == 0 %} Ripoti ya Faida na Hasara {% else %} Profit and Loss Report{% endif %}
+            </a></li>
+
+
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block analytics %} active  {% endblock %}

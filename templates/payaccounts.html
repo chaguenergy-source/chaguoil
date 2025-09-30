@@ -1,0 +1,1281 @@
+{% extends 'index.html' %}
+
+{% load humanize %}
+
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Malipo{% else %} Payment{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+{% if useri.admin %}
+<button data-toggle="modal" data-target="#addAkaunting" class="btn btn-default btn-download">
+    <!-- <i class='bx bxs-cloud-download' ></i> -->
+    <span class="text"> {% if useri.langSet == 0 %} Ongeza Akaunti{% else %}Add Account{% endif %}</span>
+</button>
+{% endif %}
+
+</div>
+
+
+
+<div class="table-data">
+    <div class="order">
+               {% include 'headingPayments.html' %}  
+      <div class="head">
+
+
+        <h5 >
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24" style="fill: currentColor">
+                <path d="M20 4H4c-1.103 0-2 .897-2 2v2h20V6c0-1.103-.897-2-2-2zM2 18c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2v-6H2v6zm3-3h6v2H5v-2z"></path>
+              </svg>
+       
+                {% if useri.langSet == 0 %}Akaunti za malipo{% else %}Payment Accounts{% endif %}</h5>
+        
+      </div>
+
+        <div class="weight600 row mb-4" style="margin:auto .09em;" >
+           <div class="col-md-6 ">
+             <div class="row classic_div   py-2 border">
+                <div class="col-6">
+                      {% if useri.langSet == 0 %}Balansi  Jumla{% else %}Total Balance{%endif%}
+                </div>
+                <div class="col-6 text-right">
+                    <span class="text-primary">{{currencii}}.</span> {{AccSum|floatformat:'-2'|intcomma}}
+                </div>              
+             </div>
+
+           </div>
+                        
+          </div>
+
+      <div class="table-responsive">
+            <table id="all_payAcc" class=" smallFont"  >
+                <thead>
+                <tr>
+                    <th>{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
+                    <th>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %} </th>
+                    <th>{% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">(TZS)</span> </th>
+                    <td> {% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %}</td>
+                </tr>
+                </thead>
+
+
+
+                <tbody>
+                    {% for s in payacc %}
+                        <tr>
+                            <td><u class="brown" >{{s.Akaunt_name  }}</u>  </td>
+                             <td class="text-primary">  {{s.Interprise.name}} </td>
+                            <td> {{s.aina}} </td>
+                           
+                            <td> {{s.Amount  | floatformat:'-2' | intcomma}} </td>
+                            <td>
+                                <button class="btn btn-light btn-sm edit_btn"  data-toggle="modal" data-target="#editAkaunting"
+                                data-val="{{s.id}}"
+                                data-name="{{s.Akaunt_name}}" 
+                                data-amount="{{s.Amount}}" 
+                                data-aina="{{s.aina}}" 
+                                data-onesha="{{s.onesha}}" 
+                              
+                                style="font-size: 16;"  title="Edit" >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>                                   
+                           </button>
+
+                           
+                                <span class="place" hidden data-place="#ac_id">{{s.id}}</span>
+                                <span class="place" hidden data-place="#ac_amaount">{{s.Amount}}</span>
+                                <span class="place" hidden data-place="#Akaunt-name2">{{s.Akaunt_name}}</span>
+                            <span class="place" hidden data-place="#jina_la_akaumti">{{s.Akaunt_name}}<sub class="text-primary">({{s.aina}})</sub></span>
+                            <span class="place" hidden data-place="#aina_ya_Akaunt2">{{s.aina}}</span>
+                            <span class="place" hidden data-place="#Akaunt-amount2">{{s.Amount}}</span>
+                            <span class="place" hidden data-place="#ac_kiasi"><span class="smallerFont"></span> {{s.Amount|floatformat:'-2'|intcomma}}</span>
+                            <span class="place" hidden data-place="#amountCash">{{s.Amount}}</span>
+                            <span class="onesha" hidden >{{s.onesha}}</span>
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                   
+                </tbody>
+            </table>
+      </div>
+
+
+     
+    </div>
+</div>
+
+
+
+<!-- aDD PYMENT ACCOUNT.... -->
+<div class="modal fade" id="addAkaunting" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog animate" role="document">
+      <div class="modal-content border-0">
+        <div class="modal-header  bg-primary">
+          <h6 class="modal-title  text-light" id="exampleModalLabel"> {% if useri.langSet == 0 %} Ongeza Akaunti ya malipo  {% else %} Add Payment Account {% endif %}</h6>
+         
+          
+         
+        </div>
+          <!-- <div class="d-flex mt-0  p-0"  >
+            <img  width="100%"  src="{{baseUrl}}/{{'top1.svg'}}" alt="pic">
+          </div>
+         -->
+        <div class="modal-body px-4">
+         
+  
+          <form action="/accounting/addAkaunt" method="POST" id='saveakaunt_form'> 
+            {% csrf_token %}
+  
+  
+               <div class="form-groupi">
+              <label for="recipient-name" class="col-form-label robotoFont brown smallFont "> {% if useri.langSet == 0 %} Jina la Akaunti  {% else %} Account Name {% endif %}: <sup class="text-danger"><b>*</b></sup> </label>
+              <input type="text"
+              onkeyup="
+              if($(this).val()!=''){
+                $(this).removeClass('redborder')
+              }
+              "
+              class="form-control lazima_akaunti robotoFont" id="Akaunt-name">
+            </div>
+  
+            <div class="form-groupi mt-3">
+              <label for="message-text" class="col-form-label brown robotoFont smallFont "> {% if useri.langSet == 0 %}  Njia ya Malipo {% else %} Payment means {% endif %} <sup class="text-danger"><b>*</b></sup>:</label>
+               <input type="text" 
+               onkeyup="
+               if($(this).val()!=''){
+                 $(this).removeClass('redborder')
+               }
+               "
+               id="aina_ya_Akaunt" class="form-control lazima_akaunti robotoFont ">
+             </div>
+
+
+            <div class="form-groupi mt-3">
+              <label for="message-text" class="col-form-label robotoFont brown smallFont "> {% if useri.langSet == 0 %}  Kituo {% else %} Station {% endif %} <sup class="text-danger"><b>*</b></sup>:</label>
+              <select
+              
+              id="account_station" class="form-control machaguo-pesa border smallFont latoFont selectpicker" data-live-search="true">
+               {% if general %}
+               <option value=0  >{% if useri.langSet == 0 %}--Chagua Kituo--{% else %}--Select Station--{% endif %}</option>
+                {% for s in stations %}
+                   <option value={{s.id}}  >{{s.name}}</option>
+                {% endfor %}
+               {% else %}
+                  <option value={{shell.id}}  >{{shell.name}}</option>
+
+               {% endif %}
+            </select>
+             </div>
+                      
+  
+            <div class="form-groupi mt-3">
+              <label for="message-text" class="col-form-label  robotoFont smallFont"> {% if useri.langSet == 0 %} Kiasi kilichopo  {% else %} Account Amount {% endif %} :</label>
+             <div class="show_curency_block show_curency  position-absolute text-danger   px-3" style="display: none ;">
+  
+             <label class="mt-1" for=""></label> 
+            <div class="box-pointer d-inline "></div>
+             </div>
+              <input onclick="
+            if($(this).val()!='' ){
+                  $(this).siblings('.show_curency').fadeIn(100)
+                  $(this).siblings('.show_curency').children('label').html(Number($(this).val()).toLocaleString()+'/=' )
+  
+             }
+             "
+             onkeyup="
+             if($(this).val()!=''){
+              $(this).siblings('.show_curency').children('label').html(Number($(this).val()).toLocaleString()+'/=' )
+              $(this).siblings('.show_curency').fadeIn(100)
+              
+             }else{
+                $(this).siblings('.show_curency').fadeOut(100)
+             }
+             "
+             onblur="
+        
+              $(this).siblings('.show_curency').fadeOut(100)
+             "
+             type="number" placeholder="0" class="form-control robotoFont"  id="Akaunt-amount" />
+            </div>
+  
+            <div class="custom-control py-3 custom-checkbox">
+              <input type="checkbox" class="custom-control-input" id="AkauntAllow">
+              <label class="custom-control-label" for="AkauntAllow"> {% if useri.langSet == 0 %}Itumiwe na staff wote   {% else %}For All Members {% endif %}</label>
+            </div>
+  
+            <div class="control-group">
+              <button type="submit" class="btn-primary form-control btn-lg border-0 robotoFont btn">
+                save
+              </button>
+            </div>
+  
+            
+  
+  
+           
+          </form>
+
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- TRANSACTIONS NA MIAMALA SCRIPT IN AKAUNTING.JS ..............................................................-->
+    <div class="modal fade" id="editAkaunting" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog animate" role="document">
+          <div class="modal-content border-0">
+    
+            
+            
+            <div class="modal-body getchu">
+            
+    
+              <div class="classic-tabs mx-1 mx-0 mb-4 bg-primary">
+                <ul class="nav tabs-chili-pepper mx-0 nav-justified tabs-animated border-bottom" id="myClassicTabOrange" role="tablist">
+                <li class="nav-item ">
+                  <a class="nav-link  waves-light active show  tab_show" data-show="#recod_transaction" id="profile-tab-classic-orange" data-toggle="tab" href="#profile-classic-orange"
+                    role="tab" aria-controls="profile-classic-orange" aria-selected="true">
+          
+                    <svg width="1.2em" height="1.2em" viewBox="0 0 16 16" class="bi bi-arrow-left-right mx-2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"/>
+                    </svg>
+        
+                    <span class="p-2"> {% if useri.langSet == 0 %}  Miamala {% else %} Transactions {% endif %}</span>
+                  
+                  </a>
+                </li>
+                <li class="nav-item pb-2">
+                  <a class="nav-link waves-light tab_show" data-show="#Akaunti_setting" id="follow-tab-classic-orange" data-toggle="tab" href="#follow-classic-orange"
+                    role="tab" aria-controls="follow-classic-orange" aria-selected="false">
+        
+    
+                      <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-sliders" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M14 3.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM11.5 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM7 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM4.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm9.5 3.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM11.5 15a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                        <path fill-rule="evenodd" d="M9.5 4H0V3h9.5v1zM16 4h-2.5V3H16v1zM9.5 14H0v-1h9.5v1zm6.5 0h-2.5v-1H16v1zM6.5 9H16V8H6.5v1zM0 9h2.5V8H0v1z"/>
+                      </svg>
+        
+    
+                      <span class="pl-2">
+                        {% if useri.langSet == 0 %}  Marekebisho {% else %} Settings {% endif %}
+                      </span>
+                    </a>
+                </li>
+    
+                </ul>
+    
+                <div class="floor"></div>
+    
+                </div>
+    
+                
+                <div class="row border-bottom" id="Muamala-anywhere" style="display: none;">
+                  <div class="col-4">
+                    <label for="" class="smallFont text-danger">
+                    {% if useri.langSet == 0 %}  Chagua akaunti {% else %} Select account {% endif %}: 
+                    <sup class="text-danger font-weight-bold">*</sup> </label></div>
+                  <div class="col-8">
+                        <select name="" class="form-control smallFont" id="Chagua-Akaunti">
+                          <option value="">--------------</option>
+                        </select>
+                  </div>
+                  <div class="col-12 pt-2">
+                      <h6  style="text-align: right;" >
+                      <span class="smallerFont text-primary">TZS:</span>
+                      <label for="" id="ak_amounti" class="font-weight-bold"></label>
+    
+                      </h6>
+                  </div>
+    
+                  
+                </div>
+          
+    
+    
+            <div class="recod_transaction px-2 tab_div" id="recod_transaction">
+          
+      <div class="row border-bottom mb-3" id="jina-laAkaunti"> 
+        <div class="col-12">
+          <h6 id="jina_la_akaumti" class=" d-inline py-2"></h6>
+          
+          <span  class="float-right font-weight-bold">
+            <span class="text-primary latoFont">TZS.</span>
+            <span id="ac_kiasi"> </span>
+          </span>
+        </div>
+      </div>
+      <!-- <hr> -->
+                
+            
+    
+    
+              <div class="row py-2">
+                <div class="col-4"><label for="" class="smallFont text-danger">
+                  {% if useri.langSet == 0 %}Tafadhari Chagua {% else %} Please select {% endif %}: <sup class="text-danger font-weight-bold">*</sup> </label></div>
+                <div class="col-8 cursor-pointer " >
+                        <div class="custom-control custom-radio custom-control-inline">
+                          <input type="radio" id="customRadioInline1" checked="checked" name="customRadioInline1" class="custom-control-input tab_show" data-show="#saveMuamala">
+                          <label style="cursor: pointer !important;" class="custom-control-label smallFont" for="customRadioInline1">
+                            {% if useri.langSet == 0 %}   Kuweka Pesa{% else %} Cash deposit {% endif %}
+                            
+                          </label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                          <input type="radio" id="customRadioInline2"  name="customRadioInline1" class="custom-control-input tab_show" data-show="#saveKutoa">
+                          <label style="cursor: pointer !important;" class="custom-control-label smallFont" for="customRadioInline2">
+                            {% if useri.langSet == 0 %}  Kutoa Pesa {% else %} Cash Withdraw {% endif %}
+                            </label>
+                        </div>
+                </div>
+              </div>
+    
+    
+              <form action="/accounting/kuwekapesa" class="tab_div" method="POST" id='saveMuamala'> 
+    
+    
+    
+                <div class="row py-3">
+                  <div class="col-4">
+                  <label for="kutoa_pesa" class="smallFont brown"> {% if useri.langSet == 0 %}  Kuweka {% else %} Cash deposit {% endif %} <sup class="text-danger font-weight-bold">*</sup>: </label>
+                  </div>
+                  <div class="col-8">
+                    <select name="" id="kutoa_Pesa" class="form-control machaguo-pesa smallFont">
+    
+                      <option value="" data-value=0 >---{% if useri.langSet == 0 %} Chagua  {% else %} Select {% endif %}---</option>
+                      <!-- <option value="" data-value=1   data-show="#zilizopo_akaunti">kutoka akaunti zilizopo</option> -->
+                      <option value="" data-value=2   data-show="#zilizopo_huduma">{% if useri.langSet == 0 %}  kutoka huduma nyingine {% else %} from other services {% endif %}</option>
+                      <option value="" data-value=3   data-show="#kutoka_nje" > {% if useri.langSet == 0 %}  Mengineyo {% else %} Others {% endif %}</option>
+                    </select>
+                  </div>
+                </div>
+    
+    
+                <div class="row py-3 ">
+                  <div class="col-4">
+                  <label for="" class="smallFont text-danger"> {% if useri.langSet == 0 %}  Kiasi {% else %} Amount {% endif %} <sup class="text-danger font-weight-bold">*</sup>:</label>
+                  </div>
+                  <div class="col-8">
+                    <div class="show_curency_inline show_curency position-absolute text-danger   px-3" style="display: none ;">
+    
+                      <label class="mt-1" for=""></label> 
+                    <div class="box-pointer d-inline "></div>
+                      </div>
+                      <input onclick="
+                      if($(this).val()==0){
+                        $(this).val('')
+          
+                    
+                      }else if($(this).val()!=0 && $(this).val()!=''){
+                          $(this).siblings('.show_curency').fadeIn(100)
+                      }
+                      "
+                      onkeyup="
+                      if($(this).val()!=''){
+                      $(this).siblings('.show_curency').children('label').html( floatValue($(this).val())+'/=' )
+                      $(this).siblings('.show_curency').fadeIn(100)
+                      
+                      }
+                      "
+                      onblur="
+                      if($(this).val()==''){
+                      $(this).val(0)
+                      
+                      }
+          
+                      $(this).siblings('.show_curency').fadeOut(100)
+                      " type="number" placeholder="0" id="kiasiKuweka" class="form-control clear-to-zero smallFont">
+                  </div>
+                </div>
+    
+    
+    
+                <div class="row py-3 C" id="kutoka_nje" style="display: none;">
+                  <div class="col-4">
+                  <label for="" class="smallFont text-danger"> {% if useri.langSet == 0 %}  Kutoka {% else %} From {% endif %}: </label>
+                  </div>
+                  <div class="col-8">
+                      <input type="text" readonly class="form-control  smallFont" value=" {% if useri.langSet == 0 %}  Mengineyo {% else %} Others {% endif %}" id="weka-toka-nje">        
+    
+                </div>
+                </div>
+              
+    
+                <div class="row py-3 to_show" id="zilizopo_huduma" style="display: none;">
+                  <div class="col-4">
+                  <label for="" class="smallFont"> {% if useri.langSet == 0 %}   Huduma {% else %}  Service {% endif %}  <sup><b class="text-danger">*</b></sup>:</label>
+                  </div>
+                  <div class="col-8">
+                    <select name="" class="form-control smallFont" id="kuweka_toka_huduma">
+                      {% if hdm %}
+                        <option  data-value=0>--{% if useri.langSet == 0 %}  Chagua Huduma {% else %} Select service {% endif %}--</option>
+                      {% for h in hdm %}
+                        <option  data-value={{h.id}} >{{h.huduma}}</option>
+                      {% endfor %}
+                      {% else %}
+                        <option  data-value=0>-----</option>
+                      {% endif %}
+    
+                    </select>           
+    
+                </div>
+              </div>
+    
+                <div class="row py-3 ">
+                  <div class="col-4">
+                  <label for="kuweka_maelezo" class="smallFont brown"> {% if useri.langSet == 0 %}  Maelezo {% else %} Descriptions {% endif %} <sup class="text-danger font-weight-bold">*</sup>:</label>
+                  </div>
+                  <div class="col-8">
+                  <textarea  id="kuweka_maelezo" class="form-control smallFont"></textarea>
+                  </div>
+                </div>
+    
+                <div class="row pt-2 ">
+                  <div class="col-4">
+                  </div>
+                  <div class="col-8">
+                  <button class="btn btn-primary robotoFont miamala-btn float-right" id="saveKuweka_Muamala">save</button>
+                  </div>
+                </div>
+    
+    
+              </form>
+    
+    
+    
+              <form action="/accounting/kutoaPesa" style="display:none" class="tab_div" method="POST" id='saveKutoa'> 
+    
+    
+    
+                <div class="row py-2">
+                  <div class="col-4">
+                  <label for="kuweka_Pesa" class="smallFont text-danger brown">{% if useri.langSet == 0 %} Kutoa{% else %} Cash Withdraw{% endif %}<sup class="text-danger font-weight-bold">*</sup>: </label>
+                  </div>
+                  <div class="col-8">
+                    <select name="" id="kuweka_Pesa" class="form-control machaguo-pesa  smallFont">
+    
+                      <option data-value="0" >--- {% if useri.langSet == 0 %}  Chagua {% else %} Select {% endif %}---</option>
+                      <option data-value=1 data-show="#zilizopo_akaunti"> {% if useri.langSet == 0 %}Hamisha Kwenda Akaunti Nyingine {% else %}Transfer To Other Account {% endif %} </option>
+                      
+                      {% if useri.admin %}
+                        <option data-value=3 data-show="#mambo_binafsi"> {% if useri.langSet == 0 %}Mambo Binafsi{% else %} Persanal Issues{% endif %}</option>
+                      {% endif %}
+                    </select>
+                  </div>
+                </div>
+    
+    
+                <div class="row py-2 bg-light">
+                  <div class="col-4">
+                  <label for="" class="smallFont text-danger"> {% if useri.langSet == 0 %}  Kiasi {% else %} Amount {% endif %} <sup class="text-danger font-weight-bold">*</sup>:</label>
+                  </div>
+                  <div class="col-8">
+                    <div class="input-group input-group-sm  ">
+                      <div class="input-group-prepend">
+                        <!-- <span class="input-group-text smallerFont bg-default" >Tzs.</span> -->
+                        <input type="text" value="TZS:"  class="made-input text-primary smallerFont" disabled style="width:50px;border:0">
+                      </div>
+    
+                    <div class="show_curency_inline show_curency position-absolute text-danger   px-3" style="display: none ;">
+    
+                      <label class="mt-1" for="kiasi_Kutoa1"></label> 
+                    <div class="box-pointer d-inline "></div>
+                      </div>
+                      <input 
+                      onkeyup="
+                      if($(this).val()!=''){
+                      $(this).siblings('.show_curency').children('label').html( floatValue($(this).val())+'/=' )
+                      $(this).siblings('.show_curency').fadeIn(100)
+                      
+                      }
+                      "
+                      onblur="
+                      
+                      $(this).siblings('.show_curency').fadeOut(100)
+                      " type="number" id="kiasi_Kutoa1" placeholder="0" class="form-control clear-to-zero smallFont">
+    
+                    </div>
+                    
+                  </div>
+                </div>
+    
+                <div class="row py-2 ">
+                  <div class="col-4">
+                  <label for="kutoa_makato" class="smallFont"> {% if useri.langSet == 0 %}  Makato {% else %} Charges {% endif %}:</label>
+                  </div>
+                  <div class="col-8">
+                    <div class="input-group input-group-sm ">
+                      <div class="input-group-prepend">
+                        <!-- <span class="input-group-text smallerFont" >Tzs</span> -->
+                        <input type="text" value="TZS:"  class="text-primary made-input smallerFont" disabled style="width:50px;border:0">
+                      </div>
+                  <input type="text" readonly placeholder="0" id="kutoa_makato" class="form-control clear-to-zero smallFont">
+                  </div>
+                  </div>
+                </div>
+    
+    
+                <div class="row py-2 ">
+                  <div class="col-4">
+                  <label for="kiasi_Kutoa" class="smallFont"> {% if useri.langSet == 0 %}  Kiasi kilichobaki{% else %} account amount{% endif %}:</label>
+                  </div>
+                  <div class="col-8">
+                  
+    
+                      <div class="input-group input-group-sm ">
+                          <div class="show_curency_inline show_curency position-absolute text-danger   px-3" style="display: none ;">
+    
+                      <label class="mt-1" for=""></label> 
+                    <div class="box-pointer d-inline "></div>
+                      </div>
+    
+                        <div class="input-group-prepend">
+                          <!-- <span class="input-group-text smallerFont" >Tzs</span> -->
+    
+                          <input type="text" value="TZS:"   class="text-primary made-input smallerFont currencii" disabled style="width:50px;border:0">
+    
+                        </div>
+                      <input onclick="
+    
+                      if($(this).hasClass('bgAnimation')){
+                        $(this).removeClass('bgAnimation')
+                      }
+    
+                      if($(this).val()==(Number($('#ac_amaount').val())-Number($('#kiasi_Kutoa1').val()))){
+                      $(this).val('')
+                      }
+                      "
+                      onkeyup="
+                      if($(this).val()!=''){
+                      $(this).siblings('.show_curency').children('label').html(floatValue($(this).val())+'/=' )
+                      $(this).siblings('.show_curency').fadeIn(100)
+                      
+                      }
+                      "
+                      onblur="
+                      if($('#kiasi_Kutoa1').val()=='' || $('#kiasi_Kutoa1').val()=='0'){
+                      $(this).val(0)
+                      
+                      }else if($('#kiasi_Kutoa1').val()>0 && ($(this).val()=='' || $(this).val()=='0')){
+                          $(this).val(Number($('#ac_amaount').val())-Number($('#kiasi_Kutoa1').val()))
+    
+                          $('#kutoa_makato').val(0)
+                      }
+          
+                      $(this).siblings('.show_curency').fadeOut(100)
+                      " type="number" id="kiasi_Kutoa" placeholder="0" class="form-control clear-to-zero smallFont">
+                      </div>
+                  </div>
+                </div>
+    
+       
+    
+                <div class="row py-2 to_show" style="display:none" id="mambo_binafsi" >
+                  <div class="col-4">
+                  <label for="" class="smallFont weight600">{% if useri.langSet == 0 %}  Kwenda {% else %} To {% endif %} </label>
+                  </div>
+                  <div class="col-8">
+                    <input type="text" id="kutoa_kwenda" value=" {% if useri.langSet == 0 %}  Mambo Binafsi {% else %} Personal issues {% endif %}" readonly class="form-control smallFont">
+              
+                  </div>
+                </div>
+    
+    
+                <div class="row py-2 to_show" id="zilizopo_akaunti" style="display: none;">
+                  <div class="col-4">
+                  <label for="kwenda_akaunti_zilizopo" class="smallFont brown weight600"> {% if useri.langSet == 0 %} Kwenda{% else %} To{% endif %}<sup><b class="text-danger">*</b></sup></label>
+                  </div>
+                  <div class="col-8">
+                    <select name="kwenda_akaunti_zilizopo" class="form-control smallFont selectpicker"  data-live-search="true" id="kwenda_akaunti_zilizopo">
+                      <option value=0 data-value=0 >-----</option>
+                      {% for ac in payacc %}
+                         <option value={{ac.id}} data-value={{ac.id}} >{{ac.Akaunt_name}}</option>
+                      {% endfor %}
+    
+                    </select>           
+    
+                </div>
+                </div>
+    
+    
+                <div class="row py-2 ">
+                  <div class="col-4">
+                  <label for="kutoa_maelezo" class="smallFont brown"> {% if useri.langSet == 0 %}  Maelezo {% else %} Descriptions {% endif %} <sup class="text-danger font-weight-bold">*</sup>:</label>
+                  </div>
+                  <div class="col-8">
+                  <textarea value='' id="kutoa_maelezo" class="form-control smallFont"></textarea>
+                  </div>
+                </div>
+                <div class="row pt-2 ">
+                  <div class="col-4">
+                  </div>
+                  <div class="col-8">
+                  <button class="btn btn-primary robotoFont  miamala-btn float-right" id="saveKutoa_Muamala">save</button>
+                  </div>
+                </div>
+    
+              </form>
+            </div>  
+    
+              <div class="px-2 tab_div" style="display: none;" id="Akaunti_setting">
+                 <form action="/accounting/editAkaunt" method="POST" id='saveakaunt_form2'> 
+                {% csrf_token %}
+    
+    
+                  <div class="form-groupi">
+                  <label for="recipient-name" class="col-form-label robotoFont smallFont "> {% if useri.langSet == 0 %}  Jina la Akaunti {% else %} Account name {% endif %}: <sup class="text-danger"><b>*</b></sup> </label>
+                  <input type="text"
+                  onkeyup="
+                  if($(this).val()!=''){
+                    $(this).removeClass('redborder')
+                  }
+                  "
+                  class="form-control lazima_akaunti robotoFont smallFont px-2 py-1" id="Akaunt-name2">
+                </div>
+    
+                <div class="form-groupi mt-3">
+                  <label for="message-text" class="col-form-label robotoFont smallFont smallFont px-2 py-1">{% if useri.langSet == 0 %}  Njia ya Malipo {% else %} Payments Means {% endif %} <sup class="text-danger"><b>*</b></sup>:</label>
+                  <input type="text" 
+                  onkeyup="
+                  if($(this).val()!=''){
+                    $(this).removeClass('redborder')
+                  }
+                  "
+                  id="aina_ya_Akaunt2" class="form-control lazima_akaunti robotoFont smallFont px-2 py-1">
+                </div>
+                          
+    
+                <div class="form-groupi mt-3">
+                  <label for="message-text" class="col-form-label robotoFont smallFont"> {% if useri.langSet == 0 %}  Kiasi kilichopo {% else %} Account Amount  {% endif %}:</label>
+                <div class="show_curency show_curency_block position-absolute text-danger   px-3" style="display: none ;">
+    
+                <label class="mt-1" for="Akaunt-amount2"></label> 
+                <div class="box-pointer d-inline "></div>
+                </div>
+                  <input 
+                        onkeyup="
+                        if($(this).val()!=''){
+                        $(this).siblings('.show_curency').children('label').html(floatValue($(this).val())+'/=' )
+                        $(this).siblings('.show_curency').fadeIn(100)
+                        
+                        }else{
+                            $(this).siblings('.show_curency').fadeOut(100)
+                        }
+                        "
+                        onblur="
+                           $(this).siblings('.show_curency').fadeOut(100)
+                        "
+                type="number" placeholder="0" class="form-control robotoFont smallFont px-2 py-1"  id="Akaunt-amount2" />
+                </div>
+    
+      
+    
+                <!-- <div class="control-groupi mt-3">
+                  <label class="control control-checkbox">
+                      <span class="robotoFont smallFont">Itumiwe na staff wote</span>
+                          <input type="checkbox" id="AkauntAllow2" checked="checked" />
+                      <div class="control_indicator"></div>
+                  </label>
+                </div> -->
+    
+                <div class="custom-control custom-checkbox py-3">
+                  <input type="checkbox" class="custom-control-input" id="customCheck1">
+                  <label class="custom-control-label robotoFont smallFont" for="customCheck1"> {% if useri.langSet == 0 %}  Itumiwe na wanachama wote {% else %} For all staff members {% endif %}</label>
+                </div>
+    
+                <input type="text" id="ac_id"  hidden />
+                <input type="text" id="ac_amaount" hidden  />
+    
+                <div class="control-group">
+                  <button type="submit" class="btn-primary form-control btn-lg border-0 robotoFont btn">
+                    save
+                  </button>
+                </div>
+    
+                
+    
+    
+              
+              </form>
+    
+              <div class="d-flex mt-2">
+                <button type="button" class="btn btn-light text-danger robotoFont  float-left smallFont" id="deleteac">
+                  <svg width=".9em" height=".9em" viewBox="0 0 16 16" class="bi bi-trash" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                  </svg>
+                  {% if useri.langSet == 0 %}  Ondoa {% else %} Remove {% endif %}
+                </button>
+    
+      </div>
+            
+              <input type="number"  hidden id="amountCash">
+              </div>
+            </div>
+            <div class="modal-footer">
+    
+    
+              <button type="button" class="btn btn-light robotoFont smallFont" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+  
+
+{% endblock %}
+
+{% block additionaljs %}
+ <script>
+ 
+ $('#saveakaunt_form').submit(function(e){
+    e.preventDefault();
+
+    const url = $(this).attr("action"),
+    
+             name = $('#Akaunt-name').val(),
+             station= $('#account_station').val(),
+             amount = $('#Akaunt-amount').val(),
+             aina = $('#aina_ya_Akaunt').val(),
+             allow = Number($('#AkauntAllow').prop('checked')),
+
+             data = {data:{
+                name,
+                station,
+                amount,
+                aina,
+                allow
+             },url}
+
+
+             if(name!='',station!=0&aina!=''){
+                $("#addAkaunting").modal('hide');
+                  $("#loadMe").modal('show');
+
+                const sendIt = POSTREQUEST(data)
+                sendIt.then(function(data) {
+
+                        $("#loadMe").modal('hide');
+                        hideLoading()
+
+                        let msg=lang(data.message_swa,data.message_eng)
+                
+                        if(data.success){
+                            
+
+                        toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2000});
+
+                        
+                    
+
+
+                        }else{
+                        toastr.error(msg, lang('Haikufanikiwa','Error'), {timeOut: 2000});
+                    
+                        }
+
+                    
+
+
+
+                    })
+
+             }else {
+                    alert(lang('Tafadhari Jaza sehemu zote','Please fill all requred fields'))
+                    $('.lazima_akaunti').each(function(){
+                    if($(this).val()==''){
+                        $(this).addClass('redborder')
+                    }
+                        
+
+                        
+                        })
+
+                    }
+          
+
+                })
+          
+
+$('#editAkaunting').on('shown.bs.modal', function (e) {
+
+//Resetting all input
+  $('.to_show').hide()
+ 
+  $('#ak_amounti').text('')
+$('#kiasi_Kutoa').removeClass('bgAnimation')
+  $('#Chagua-Akaunti').html($('#Chagua-Akaunti').html())
+  $('#kutoa_Pesa').html($('#kutoa_Pesa').html())
+  $('#kuweka_Pesa').html($('#kuweka_Pesa').html())
+//----------------
+
+  $(".tabs-animated a").removeClass("active")
+  $('#profile-tab-classic-orange').addClass('active')
+  $(".floor").addClass("staybotton")
+  $('#recod_transaction').siblings(".tab_div").hide()
+  $('#recod_transaction').fadeIn(600)
+    
+  
+  })
+
+
+// editing Akaunti
+$('#saveakaunt_form2').submit(function(e){
+    e.preventDefault();
+if($('#Akaunt-name2').val()!='' && $('#aina_ya_Akaunt2').val()!=''){
+
+
+$("#editAkaunting").modal('hide');
+    $("#loadMe").modal('show');
+
+    var post_url = $(this).attr("action");
+    
+    $.ajax({
+        type: "POST",
+        url: post_url,
+         data: {
+             name: $('#Akaunt-name2').val(),
+             amount:$('#Akaunt-amount2').val(),
+             aina:$('#aina_ya_Akaunt2').val(),
+             value:$('#ac_id').val(),
+             allow:Number($('#customCheck1').prop('checked')),
+         
+             csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+         },
+      }).done(function(data) {
+
+        $("#loadMe").modal('hide');
+          hideLoading()
+          let msg=lang(data.message_swa,data.message_eng)
+
+        if(data.success){
+            
+
+           toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2000});
+
+          
+      
+
+
+        }else{
+           toastr.error(msg, lang('Haikufanikiwa','Error'), {timeOut: 2000});
+     
+        }
+
+        location.reload()
+
+
+
+
+      })
+    }else {
+        alert(lang('Tafadhari Jaza sehemu zote',"Please fill all  required fields"))
+        $('.lazima_akaunti').each(function(){
+
+          if($(this).val()==''){
+             $(this).addClass('redborder')
+          }
+          
+
+        })
+          
+         
+    }
+})  
+
+  //miamala tabs
+$('.miamala_nav').click(function(){
+  $(this).siblings('button').removeClass('btn-primary')
+  $(this).siblings('button').addClass('btn-outline-primary')
+
+  $(this).removeClass('btn-outline-primary')
+  $(this).addClass('btn-primary')
+})
+
+$('#deleteac').click(function(){
+  if(Number($('#amountCash').val())<100){
+
+
+    $("#editAkaunting").modal('hide');
+    $("#loadMe").modal('show');
+
+    var csrfToken =   $('input[name=csrfmiddlewaretoken]').val()
+
+    $.ajax({
+        url :"/akaunting/ondoaAkaunt",
+        data:{csrfmiddlewaretoken: csrfToken,
+            value: $('#ac_id').val()
+        },
+        type: "POST",
+
+        success: function(data) {
+
+
+          $("#loadMe").modal('hide');
+          hideLoading()
+
+            if(data.done){
+                toastr.success(lang('Akaunti Imeondolewa ','Account was removed'), lang('Imefanikiwa','success'), {timeOut: 2000});
+
+                location.reload()
+
+            }else{
+                toastr.error(lang('Akaunti Haijaondolewa','Account was not removed'), lang('Haikufanikiwa','error'), {timeOut: 2000});
+      
+            }
+
+        }
+
+    })
+  }else{
+
+    alert(lang('Akaunti ina kiasi cha'+floatValue($('#amountCash').val())+'hivyo haitaondolewa','There is no enough money in the accont for transaction since the account has only '+floatValue($('#amountCash').val())))
+  }
+})
+
+
+//  muamala wa kuweka pesa
+$('#saveMuamala').submit(function(e){
+  e.preventDefault();
+
+  let is = $('#ac_id').val(),
+      kutoka="Mengineyo",
+      post_url = $(this).attr("action"),
+     
+      maelezo = $('#kuweka_maelezo').val(),
+      kiasi=$('#kiasiKuweka').val(),
+      opt= Number($('#kutoa_Pesa').find('option:selected').data('value')),
+      sel,ni,red,valued=0,
+      ac="False",
+      hd=0;
+      mengine=0
+
+      if(opt==0){
+            alert(lang("Tafadhari chagua Unapoweka pesa","Please Choose the account to deposit"))
+            redborder('#kutoa_Pesa')
+      }else{    
+          if(opt==2){
+              hd=1
+              red = '#kuweka_toka_huduma'
+              ni = lang("Tafadhali Chagua Huduma","Please select other service")
+              kutoka=$("#kuweka_toka_huduma").val()
+              sel = Number($('#kuweka_toka_huduma').find('option:selected').data('value'))
+
+          }
+          else if(opt==3){
+              kutoka="Mengineyo"
+              mengine=1
+              
+
+          }
+
+if(Number(kiasi) > 0 ){
+data={
+  is:is,
+  ac:ac,
+  value:valued,
+  hd:hd,
+  kiasi: kiasi ,
+  Maelezo:maelezo,
+  kutoka:kutoka,
+  makato:0,
+  sel:sel,
+  baki:0,
+  csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+}
+
+// if((ac=="True" && sel!=0 )||ac=="False" && Number($('#kuweka_akaunti_zilizopo').find('option:selected').data('amount'))>=kiasi){
+if(((hd && sel!=0)|| mengine) && is!=0){
+  // msg="Muamala wa kuweka fedha umefanikiwa  "
+if($.trim($("#kuweka_maelezo").val())){
+  $('#kutoa_Pesa').html($('#kutoa_Pesa').html())
+  $('#kiasiKuweka').val('')
+  $('.to_show').hide()
+  $('#kuweka_maelezo').val('')
+      miamalaPesa(data,post_url)
+
+}else{
+  redborder("#kuweka_maelezo")
+  alert(lang("Tafadhari andika maelezo","Please write short description"))
+}
+
+}else{
+  alert(lang("Tafadhari chagua Huduma nyingine","Please choose the other sevice"))
+  redborder(red) 
+}
+
+// }else{
+//     alert("Tafadhari chagua akaunti")
+//     redborder(red)
+// }
+
+}else{
+  alert(lang("Tafadhari andika kiasi","Please write the amount"))
+  redborder('#kiasiKuweka')
+
+
+
+
+}
+}
+
+  
+ 
+})
+
+
+//muamanla wa kutoa pesa
+$('#saveKutoa').submit(function(e){
+  e.preventDefault();
+
+  let is = $('#ac_id').val(),ac_val=Number($('#ac_amaount').val()),
+     kutoka="Personal",
+     sel,ni,red,valued=0,ac=0,hd="False"
+
+
+const opt= Number($('#kuweka_Pesa').find('option:selected').data('value')),
+      post_url = $(this).attr("action"),
+      kiasi=Number($('#kiasi_Kutoa1').val()),kilichobaki=$("#kiasi_Kutoa").val(),
+      kwenda = opt==1?'#kwenda_akaunti_zilizopo':'#kutoa_kwenda_Nje',
+      maelezo = $('#kutoa_maelezo').val()
+ 
+
+
+if(opt==0){
+  alert(lang("Tafadhari chagua Unapoweka pesa","please select the account to deposit"))
+  redborder('#kuweka_Pesa')
+}else{
+    if(opt==1 || opt == 2){
+      ac=1
+      valued= Number($(kwenda).find('option:selected').data('value'))
+      red = kwenda
+      ni=lang("Tafadhari Chagua Akaunti","please select the account")
+      kutoka=$(kwenda).val()
+      sel = Number($(kwenda).find('option:selected').data('value'))
+ 
+    }
+     
+
+if((ac && sel!=0 )||!ac ){
+   
+ if(kiasi<=ac_val) {
+
+  if(kiasi>0){
+       if($.trim($("#kutoa_maelezo").val())){
+
+      data={
+
+          is:is,
+          ac:ac,
+          value:valued,
+          kiasi: kiasi ,
+          baki:kilichobaki,
+          Maelezo:maelezo,
+          kutoka:kutoka,
+          opt:opt,
+          makato:$('#kutoa_makato').val(),
+          csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+
+      }
+
+
+if(is!=valued){
+$('#kuweka_Pesa').html($('#kuweka_Pesa').html())
+$(kwenda).html($(kwenda).html())
+$('#kutoa_kwenda_Nje').html($('#kutoa_kwenda_Nje').html())
+$('#kiasi_Kutoa1').val('')
+$('#kutoa_makato').val(0)
+$('#kiasi_Kutoa').val('')
+$('#kutoa_maelezo').val('')
+$('.to_show').hide()
+
+
+
+            miamalaPesa(data,post_url)
+
+          // console.log('valued',valued)
+
+}else{
+  alert(lang("Tafadhari chagua akaunti nyingine","Please Choose another account the transaction can't be done on the same akaunt"))
+  $(kwenda).addClass("redborder")
+}
+
+  }else{
+      alert(lang("haujandika maelezo","please write short description"))
+      redborder('#kutoa_maelezo')
+  }
+  }else{
+      alert(lang("Tafadhari andika kiasi unachohamisha","please write the amount for a transaction"))
+      redborder('#kiasi_Kutoa1')
+  }
+
+ 
+
+
+ }else{
+     alert(lang("kiasi unachokitoa ni kikubwa kuliko kilichopo","The amount is exceeding the present amount"))
+ }
+
+}else{
+   alert(ni)
+   redborder(red)
+}
+
+
+}
+})
+
+
+
+
+
+$(document).ready(function(){
+      $('#all_payAcc').DataTable();
+
+    })
+
+
+ //if user is recording the transaction from akaunting panel
+$('body').on('click','.edit_btn',function(){
+  $('.miamala-btn').prop("disabled",false)
+  $('#follow-tab-classic-orange').prop('disabled',false)
+
+  $('#customCheck1').prop('checked',false)
+$('#Muamala-anywhere').hide()
+$('#jina-laAkaunti').show()
+
+  $('#editAkaunting').modal('show')
+  $(this).siblings('.place').each(function(){
+
+    if($($(this).data('place')).prop('tagName')=="INPUT"){
+          $($(this).data('place')).val($(this).text())    
+
+    }else{
+          $($(this).data('place')).html($(this).html())
+
+    }
+  })
+
+
+  if($(this).siblings('.onesha').text() == "true"){
+$('#customCheck1').prop('checked',true)
+  }else{
+    $('#AkauntAllow2').prop('checked',false)
+ 
+  }
+
+})   
+
+
+  //<!-- select options change -->
+  $('body').on('change','.machaguo-pesa',function(){
+    $($(this).find('option:selected').data('show')).siblings('.to_show').hide()
+    $($(this).find('option:selected').data('show')).fadeIn(600)
+  // console.log($(this).find('option:selected').data('show'))
+  
+  
+  })
+
+
+  //makato workout{}
+$('#kiasi_Kutoa1').keyup(function(){
+  // if($(this).val()>0){
+      if(Number($(this).val())<=Number($('#ac_amaount').val())){
+                  $('#kiasi_Kutoa').val(Number($('#ac_amaount').val())-Number($(this).val()))
+$("#kiasi_Kutoa").addClass("bgAnimation")
+      }else{
+          alert(lang('kiasi kinachotoka kimezidi pesa iliyopo kwenye akaunti',"The amount to  withdraw acceeded the amount present"))
+          $(this).val('')
+      }
+  // }
+})
+
+
+$('#kiasi_Kutoa').keyup(function(){
+  if($(this).val()>0){
+      if((Number($(this).val())<=(Number($('#ac_amaount').val())-(Number($('#kiasi_Kutoa1').val()))))){
+                  $('#kutoa_makato').val((Number(  $('#ac_amaount').val())-(Number($(this).val())+Number($('#kiasi_Kutoa1').val()))).toLocaleString())
+
+      }else{
+          alert(lang('pesa inayobaki  imezidi pesa iliyopo kwenye akaunti na kiasi kinachotolewa','The amount is exceeding the real amount'))
+          $(this).val( Number($('#ac_amaount').val())-Number($('#kiasi_Kutoa1').val()))
+          $('#kutoa_makato').val('')
+      }
+  }
+})
+
+
+// function ya kuweka pesa
+function miamalaPesa(data,post_url){
+
+$("#editAkaunting").modal('hide');
+$("#loadMe").modal('show');
+$('#ac_id').val(0)
+$.ajax({
+    type: "POST",
+    url: post_url,
+     data: data,
+  }).done(function(respo) {
+
+    $("#loadMe").modal('hide');
+      hideLoading()
+    let msg=lang(respo.message_swa,respo.message_eng)
+    if(respo.success){
+            
+            toastr.success(msg, lang('Imefanikiwa','Success Alert'), {timeOut: 2000});
+            location.reload()
+
+
+             }
+      else{
+       toastr.error(msg, lang('Haikufanikwa','error Alert'), {timeOut: 2000});
+ 
+    }
+
+   
+
+
+
+  })
+
+}
+
+
+
+</script>
+{% endblock %}
+
+
+{% block payaccount %} active {% endblock %}

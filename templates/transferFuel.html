@@ -1,0 +1,421 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title ">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Kuhamisha mafuta{% else %} Fuel Tranfer{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+   
+
+
+</div>
+
+<div class="table-data" >
+    <div class="order">
+
+             {% include 'headingfuel.html' %} 
+              
+              
+      <div class="head">
+
+
+        <h5 >
+
+       &pointint;
+
+                {% if useri.langSet == 0 %}Kuhamisha mafuta Kutoka Pampu kwenda Matanki {% else %} Fuel Tranfer From Pump to Tank{% endif %}</h5>
+        
+      </div>
+
+ 
+      <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+              <label class="brown" for="tr_date">
+                {% if useri.langSet == 0 %}Tarehe Muda{% else %}Date Time{% endif %}
+                <sup>*</sup>
+            </label>
+              <input type="datetime-local" class="form-control" name="tr_date" id="tr_date" aria-describedby="helpId" placeholder="">
+            </div>
+
+            <div  class="form-group mb-3 toTankOpt " id="objTest" >
+                <label for="OptBtn"> {% if useri.langSet == 0 %}Hamisha Kwenda{% else %}Transfer To{% endif %}: </label>
+               <div id="OptBtn" >
+                      <span class="border optionbtns " >
+                            <button type="button" id="moveTankAdj"  data-opt="2"  class="btn-default btn-sm btn tank_btn_option active" >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-truck">
+                                        <rect x="1" y="3" width="15" height="13"></rect>
+                                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                    </svg>
+                                {% if useri.langSet == 0 %}Tanki linalotembea{% else %}Moving Tanks{% endif %}
+                            </button>
+
+                            {% if general %}      
+                                <button data-opt="1" disabled   id="StationTankAdj" type="button" class="btn-default btn-sm btn tank_btn_option  " >
+                            {%else%}
+                                <button data-opt="1"    id="StationTankAdj" type="button" class="btn-default btn-sm btn tank_btn_option  " >
+                            
+                            {% endif %}
+                                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor">
+                                        <path d="M160-120q-17 0-28.5-11.5T120-160q0-17 11.5-28.5T160-200h40v-240h-40q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h40v-240h-40q-17 0-28.5-11.5T120-800q0-17 11.5-28.5T160-840h640q17 0 28.5 11.5T840-800q0 17-11.5 28.5T800-760h-40v240h40q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440h-40v240h40q17 0 28.5 11.5T840-160q0 17-11.5 28.5T800-120H160Zm320-200q50 0 85-34.5t35-83.5q0-39-22.5-67T480-620q-75 86-97.5 114.5T360-438q0 49 35 83.5t85 34.5Z"/>
+                                    </svg>
+                                {% if useri.langSet == 0 %}Matanki ya Pampu{% else %}Station Tanks{% endif %}
+                            </button>
+
+                           
+                      </span>
+               </div>
+
+               <script>
+                    $('.tank_btn_option').click(function(){
+                         $('.tank_btn_option').removeClass('active')
+                         $(this).addClass('active')
+                         $('.trOpt').prop('hidden',true)
+                        const opt = $(this).data('opt')
+                        $(`#trOpt${opt}`).prop('hidden',false)
+                             
+                         
+                    })
+               </script>
+  
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="TankSupVisor" class="brown" >
+                    {% if useri.langSet == 0 %}Msimamizi Kuhamisha{% else %}Transfer Supervisor{% endif %} <sup>*</sup>
+                </label>
+                <select class="form-control border selectpicker"
+                onchange="$(this).selectpicker('setStyle', 'bluePrint')"
+                data-live-search="true" name="TankSupVisor" id="TankSupVisor">
+                   <option value=0>-------</option>
+                   {% for u in tanksSup %}
+                           
+                   <option value={{u.id}}>{{u.user.user.first_name|title}}  {{u.user.user.last_name|title}}</option>
+
+                {%endfor%}
+                </select>
+              </div>
+
+           
+        </div>
+      </div>
+
+       <div class="trOpt pb-4 mt-3" hidden id="trOpt1">
+        <h6> {% if useri.langSet == 0 %}Hamisha Kwenda Matanki ya Pampu{% else %}Transfer to Station Tanks{% endif %}</h6>
+             
+        <div class=" table-responsive">
+            <table class="table-sm smallFont">
+                <thead>
+                    <th>#</th>
+                    <th>{% if useri.langSet == 0 %}Tanki{% else %}Tank{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Dispensa{% else %}Dispanser{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Pampu{% else %}Pump{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mhusika/Pampu{% else %}Pump/Attendant{% endif %}</th>
+                    <!-- <th>{% if useri.langSet == 0 %}Mita/Kabla{% else %}Opening/Units{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mita/Baada{% else %}Closing/Units{% endif %}</th> -->
+                    <th>{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">LTRS</span> </th>
+                    <th>{% if useri.langSet == 0 %}Ondoa{% else %}Remove{% endif %}</th>
+                </thead>
+                <tbody id="StationTrRow" >
+                    <tr data-pos=1 >
+                            <td class="IndexNo" data-pos=1 >1</td>
+                            <td class="mx-1" >
+                                <select class="tr_tanks pmp_Tanks form-control btn-sm bluePrint  " 
+                                  data-pos=1
+                                        name="pmp_Tanks1" id="pmp_Tanks1">
+                                        <option value=0 selected>-----------</option>
+                                        {% for t in shell_tanks %}
+                                            <option data-val="{{t.id}}" data-fname="{{t.fuel.name}}" data-qty="{{t.qty}}" data-fuel="{{t.fuel.id}}" value={{t.id}}>{{t.name}}</option>
+                                        {% endfor %}
+                                </select>
+                            </td>
+                            <td  class="mx-1"  >
+                                            
+                            <select data-pos=1 data-filter="tr_pumpSt1" id="dispe12" class=" form-control DispensaSelector  bluePrint btn-sm"  >
+                                <option value=0 selected>-----------</option>
+                                {% for dis in disp %}
+
+                                    <option class="bluePrint" data-disp="{{dis.station.id}}" value={{dis.id}}>{{dis.station.name}}</option>
+
+                                {%endfor%}
+                            
+                            </select>
+
+                            </td>
+
+                            <td  class="mx-1"  >
+                                    <select class="tr_pumpSt form-control pmpSelect  bluePrint btn-sm" 
+                                           
+                                            data-pos=1
+                                            name="tr_pumpSt1" id="tr_pumpSt1"  >
+                                                <option data-station=0 value=0 selected>-----------</option>
+                                                {% for p in tr_pump %}
+
+                                                 <option class="bluePrint" data-fuel="{{p.tank.fuel.id}}" data-fname="{{p.tank.fuel.name}}" data-tank="{{p.tank.id}}" data-station="{{p.station.id}}" data-incharge="{{p.Incharge.user.first_name|title}}  {{p.Incharge.user.last_name|title}}" data-incharger="{{p.Incharge.id}}" value={{p.id}}>{{p.station.name}} {{p.name}}</option>
+
+                                                {%endfor%}
+                                            
+                                            </select> 
+                                            <div class="showError ">
+                                                
+                                            </div>
+                            </td>
+                            <td class="AttendantName text-center text-capitalize bluePrint"  ></td>
+                           
+                        
+                            <td>
+
+                                    <div class="input-group  pt-2" style="width:150px" >
+                                        <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                            <label class="mt-1 text-danger " for="FuelPriceTotal"></label> 
+                                        <div class="box-pointer d-inline "></div>
+                                        </div>
+                                        <input type="number"     step="0.01"  id="stqty1"  class="stqty form-control money-fomat AllAdjTanks weight600">
+                                    </div>                             
+                            </td>
+
+                                <td>
+                                    <a type="button" data-pos=1 class="brown rowRemoveBtn text-danger" >
+                                       <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus-circle">
+                                           <circle cx="12" cy="12" r="10"></circle>
+                                           <line x1="8" y1="12" x2="16" y2="12"></line>
+                                       </svg>
+                                    </a> 
+                               </td> 
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+
+       </div>
+
+
+
+
+       <div class="trOpt pb-4 mt-3" id="trOpt2"  >
+        <h6> {% if useri.langSet == 0 %}Matanki Yanayotembea{% else %}Moving Tanks{% endif %}</h6>
+
+        <div class="row mb-3">
+            <div class="form-group mb-3 col-md-6">
+               
+
+                <div class="row py-0">
+                    <div class="col-6">
+                         <label for="containerTr" class="text-danger" >{% if useri.langSet == 0 %}Kontena{% else %}Container{% endif %}  <sup>*</sup> </label>
+                    </div>
+                    <div class="col-6 text-right">
+                     <div class="custom-control custom-checkbox">
+                       <input type="checkbox" class="custom-control-input" 
+                       onchange="let other = $(this).prop('checked');$('#selectContainer').prop('hidden',other);$('.containerStorage').prop('hidden',other);$('#otherStorageInput').prop('hidden',!other)" 
+                       id="OtherStorage">
+                       <label class="custom-control-label latoFont text-primary cursor-pointer" style="cursor: pointer !important;" for="OtherStorage">
+                         {% if useri.langSet == 0 %}Kibebeo Kingine{% else %}Other Storage{% endif %}
+                       </label>
+                     </div>
+                    </div>
+                  </div>
+                   
+                  <div id="selectContainer">
+                        <select class=" form-control bluePrint border selectpicker tankContainers" 
+                     
+                            data-live-search="true" name="containerTr" id="containerTr">
+                                <option value=0 data-by=0 selected>-----------</option>
+                                {% for t in tankContainer %}
+                                <option data-by="{{t.tank.by.id}}"  value={{t.tank.id}}>{{t.tank.name}}</option>
+                                {% endfor %}
+                    </select>                    
+                  </div>
+
+              <input type="text" name="otherStorageInput" hidden id="otherStorageInput" placeholder="{% if useri.langSet == 0 %}Andika Jina la Kibebeo{% else %}Write storage name{% endif %}" class="form-control bluePrint btn-sm smallFont">
+            </div>    
+            
+        </div>
+
+        <div class="row mb-3">
+            <div class="form-group mb-3 col-md-6">
+                <label class="brown" for="fuelGivenTo">{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %}Given To{% endif %}:</label>
+                <select class="form-control border selectpicker" 
+                onchange="$(this).selectpicker('setStyle', 'bluePrint')"
+                data-live-search="true" name="fuelGivenTo" id="fuelGivenTo">
+                   <option value=0>-------</option>
+                   {% for u in tr_by %}
+                           
+                   <option value={{u.id}} >{{u.user.first_name|title}}  {{u.user.last_name|title}}</option>
+
+                {%endfor%}
+                </select>
+            </div>    
+            
+        </div>
+
+
+
+        <div class=" table-responsive">
+            <table class="table-sm smallFont">
+                <thead>
+                    <th>#</th>
+                    <th class="containerStorage" >{% if useri.langSet == 0 %}Tanki{% else %}Tank{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Dispensa{% else %}Dispanser{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Pampu{% else %}Pampu{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mhusika/Pampu{% else %}Pump/Attendant{% endif %}</th>
+                    <!-- <th>{% if useri.langSet == 0 %}Mita/Kabla{% else %}Opening/Units{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mita/Baada{% else %}Closing/Units{% endif %}</th> -->
+                  
+                    <th>{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">LTRS</span> </th>
+                    <th>{% if useri.langSet == 0 %}Ondoa{% else %}Remove{% endif %}</th>
+                </thead>
+                <tbody id="MovTrRow" >
+                    <tr data-pos=1 id="movTrRow1" >
+                       <td class="IndexNo" data-pos=1 >1</td>
+                            <td class="mx-1 containerStorage" >
+                                <select disabled class="Mv_Tanks tr_tanks form-control btn-sm bluePrint  " 
+                                    data-pos=1
+                                    name="Mv_Tanks1" id="Mv_Tanks1">
+                                    <option value=0 selected>-----------</option>
+                                    {% for t in tr_tank %}
+                                        <option data-val="{{t.id}}" data-fname="{{t.fuel.name}}" data-qty="{{t.qty}}" data-tank="{{t.tank.id}}" data-fuel="{{t.fuel.id}}" value={{t.id}}>{{t.name}}</option>
+                                    {% endfor %}
+                            </select>
+                            </td>
+                            <td  class="mx-1"  >
+                                            
+                            <select data-pos=1 data-filter="tr_pumpM1" id="dispeM1" class=" btn-sm form-control DispensaSelector  bluePrint btn-sm"  >
+                                <option value=0 selected>-----------</option>
+                                {% for dis in disp %}
+
+                                    <option class="bluePrint" data-disp="{{dis.station.id}}" value={{dis.id}}>{{dis.station.name}}</option>
+
+                                {%endfor%}
+                            
+                            </select>
+
+                            </td>
+
+                            <td  class="mx-1"  >
+                                    <select class="tr_pumpM form-control pmpSelect btn-sm bluePrint " 
+                                            data-pos=1
+                                          
+                                            
+                                            name="tr_pumpM1" id="tr_pumpM1">
+                                                <option data-station=0 value=0 selected>-----------</option>
+                                                {% for p in tr_pump %}
+
+                                                <option class="bluePrint" data-fuel="{{p.tank.fuel.id}}" data-fname="{{p.tank.fuel.name}}" data-tank="{{p.tank.id}}" data-station="{{p.station.id}}" data-incharge="{{p.Incharge.user.first_name|title}}  {{p.Incharge.user.last_name|title}}" data-incharger="{{p.Incharge.id}}" value={{p.id}}>{{p.station.name}} {{p.name}}</option>
+
+                                                {%endfor%}
+                                            
+                                            </select> 
+                                            <div class="showError ">
+
+                                            </div>
+                            </td>
+                            <td class="AttendantName text-center text-capitalize blueprint" ></td>
+                           
+                        
+                                <td>    
+                                    <div class="input-group  pt-2" style="width:150px">                   
+                                    <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                        <label class="mt-1 text-danger " for="FuelPriceTotal"></label> 
+                                    <div class="box-pointer d-inline "></div>
+                                    </div>
+                                    <input type="number" data-pos=1   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="mvqty1"  class="mvqty money-fomat form-control AllAdjTanks weight600">
+                                    </div>   
+                                </td>       
+                                <td>
+                                     <a type="button" data-pos=1 class="brown rowRemoveBtn text-danger" >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus-circle">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                                        </svg>
+                                     </a> 
+                                </td>                 
+                    </tr>
+                   
+                </tbody>
+            </table>
+        </div>
+
+       
+                  
+       </div>
+
+       <div id="fuelRed" hidden >
+             <span class="mx-1 brown">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+             </span>
+
+             <span>
+                  {% if useri.langSet == 0 %}
+                     Tanki moja linawekewa <span class="brown">Mafuta tofauti</span> 
+                  {% else %}
+                     One storage tank if filled with  <span class="brown">different fuel</span>
+                  {% endif %}
+             </span>
+
+       </div>
+
+       <p class="text-right">
+          <a type="button" id="AddTransfrow" class="btn-sm text-primary" >+{% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}</a>
+       </p>
+
+
+       <div class="row mt-3">
+        <div class="col-md-6"></div>
+        <div class="col-md-6">
+            <div class="form-group">
+              <label for="TransRemarks">{% if useri.langSet == 0 %}Maelezo{% else %}Remarks{% endif %}</label>
+              <textarea class="form-control" name="TransRemarks" id="TransRemarks" rows="3"></textarea>
+            </div>
+        </div>
+       </div>
+
+       <p class="brown" id="showErrMsg" hidden >
+          {% if useri.langSet == 0 %}Hakikisha sehemu zote muhimu zimejazwa kikamilifu na kwa usahihi{% else %}Make sure all required fields are completely filled and correctly{% endif %}
+       </p>
+
+       <p class="text-right mt-4">
+          <button  id="saveTrBtn" class="btn btn-primary ">
+            Save
+          </button>
+       </p>
+
+  
+
+
+     
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block additionaljs %}
+  <script src="/static/js/fueltransfer.js" ></script>
+
+
+
+{% endblock %}
+{% block fuel %} active {% endblock %}

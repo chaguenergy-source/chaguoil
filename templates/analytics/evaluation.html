@@ -1,0 +1,618 @@
+{% extends 'index.html' %}
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+
+            <li>
+                <a class="active" href="/analytics/analytics">Analytics</a>
+
+            </li>
+
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+
+            <li>
+                <a class="active" href="#">
+                    {% if useri.langSet == 0 %}Uchambuzi na Tathmini {% else %} Analysis and evaluation {% endif %}
+                </a>
+
+            </li>            
+            
+        </ul>
+    </div>
+    
+
+
+</div>
+
+<div class="table-data">
+    <div class="analytical">
+          <h6 class="weight600" > <span class="pr-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather icon-svg feather-filter">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+          </span> {% if useri.langSet == 0 %}Kuchuja{% else %}Filter{% endif %}</h6>       
+
+          <div class="showFilter">
+              <div>
+                 <div class="row" id="staxnFilter">
+                      
+                        <div class="form-group col-md-4">
+                            <div class="input-group " title="{% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}" >
+                               <span class="input-group-prepand rounded-left border py-1 px-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
+							     <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
+                                </svg>
+                            </span>
+                            
+                            <select class="custom-select bluePrint smallerFont filter" name="staxnF" id="staxnF">
+                                {% for st in staxns %}
+
+                                 {% if st.Interprise == shell and  not general %}
+                                   <option value='{{st.Interprise.id}}' selected>{{st.Interprise.name}}</option> 
+                                 {% else %}
+                                  <option value='{{st.Interprise.id}}' >{{st.Interprise.name}}</option> 
+                                 {% endif %}
+                     
+                                {% endfor %}
+
+                                {% if useri.ceo or useri.admin %}
+
+                                    {% if general %}
+                                        <option value=0 selected>{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option>  
+                                    {% else %}    
+                                        <option value=0 >{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option> 
+                                    {% endif %} 
+                                
+                                {% endif %}
+
+                            </select>
+                                <span type="button" onclick="$('#OtherFilterFilter').toggle(300)" class="input-group-append rounded-left d-md-none border py-1 px-2">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-down">
+                                    <polyline points="7 13 12 18 17 13">
+                                    </polyline><polyline points="7 6 12 11 17 6"></polyline>
+                                    </svg>
+                            </span>
+                            </div>
+
+
+
+
+                        </div>    
+
+                                         
+                 </div>
+
+                 <!-- <div id="OtherFilterFilter"  >
+                      
+                        <div class="row">
+                                    <div class="form-group  col-6 col-md-4">
+                                        <div class="input-group" title="{% if useri.langSet == 0 %}Mpango Zamu{% else %}Session Shift{% endif %}" >
+                                        <span class="input-group-prepand border rounded-left py-1 px-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-alarm" viewBox="0 0 16 16">
+                                                        <path d="M8.5 5.5a.5.5 0 0 0-1 0v3.362l-1.429 2.38a.5.5 0 1 0 .858.515l1.5-2.5A.5.5 0 0 0 8.5 9V5.5z"/>
+                                                        <path d="M6.5 0a.5.5 0 0 0 0 1H7v1.07a7.001 7.001 0 0 0-3.273 12.474l-.602.602a.5.5 0 0 0 .707.708l.746-.746A6.97 6.97 0 0 0 8 16a6.97 6.97 0 0 0 3.422-.892l.746.746a.5.5 0 0 0 .707-.708l-.601-.602A7.001 7.001 0 0 0 9 2.07V1h.5a.5.5 0 0 0 0-1h-3zm1.038 3.018a6.093 6.093 0 0 1 .924 0 6 6 0 1 1-.924 0zM0 3.5c0 .753.333 1.429.86 1.887A8.035 8.035 0 0 1 4.387 1.86 2.5 2.5 0 0 0 0 3.5zM13.5 1c-.753 0-1.429.333-1.887.86a8.035 8.035 0 0 1 3.527 3.527A2.5 2.5 0 0 0 13.5 1z"/>
+                                                    </svg>
+                                        </span>
+                                        
+                                        <select class="custom-select bluePrint filter smallerFont" name="SessF" id="SessF">
+                                            {% for s in sexns %}
+
+                                            
+                                            <option value="{{s.name}}"  >{{s.name}}</option> 
+                                        
+                                
+                                            {% endfor %}
+
+                                        
+                                        <option selected value='' >{% if useri.langSet == 0 %}Yote{% else %}All{% endif %}</option> 
+                                                                        
+
+                                        </select>
+                                        </div>
+                                        
+
+                                    </div> 
+                        
+                                    <div class="form-group col-6 col-md-4"  >
+                                        <div class="input-group" title="{% if useri.langSet == 0 %}Aina ya Mauzo{% else %}sales Type{% endif %}" >
+                                        <span class="input-group-prepand rounded-left border px-2 py-1">
+                                            $
+                                        </span>
+                                        
+                                        <select class="custom-select bluePrint smallerFont filter" name="satype" id="satype">
+                                            
+
+                                            
+                                            <option value=1 >{% if useri.langSet == 0 %} Mhusika wa Pampu{% else %} Pump Attendant{% endif %}</option> 
+                                            <option value=2 >{% if useri.langSet == 0 %}Wateja Muhimu{% else %}Credit Orders sales{% endif %}</option> 
+                                        
+                                
+                                        
+
+                                        
+                                            <option value=0 selected >{% if useri.langSet == 0 %}Yote{% else %}All{% endif %}</option> 
+                                                                        
+
+                                        </select>
+                                        </div>
+
+                                        
+                                    </div> 
+                        </div>
+
+                       
+                                         
+                 </div> -->
+
+         
+
+              </div>
+          </div>
+    </div>
+    
+
+
+    <div class="analytical mt-2" id="summaryRiport">
+        <div class="row">
+                    <h6 class="col-md-4 weight600" >
+                        <span class="pr-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather icon-svg feather-bar-chart-2">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                                </svg>
+                        {% if useri.langSet == 0 %}Ufupisho Riport ya Uchambuzi na Tathmini {% else %}Summary Analysis and Evaluation {% endif %}</h6>
+
+                    <div class="col-md-8 my-2 showDt PeriodTableData my-md-1 text-md-right">
+
+                    <div class="table-responsive">
+                        <div  id="mapSelector" class="d-flex d-md-block"  >
+
+                        </div>
+                                            
+                    </div>
+                    </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table nested-table table-sm smallFont" >
+                <thead >
+                    <tr class="table-primary smallFont">
+                            <th  >{% if useri.langSet == 0 %}Muda{% else %}Period{% endif %}</th>
+                            <th  >{% if useri.langSet == 0 %}Kufungua stoku{% else %}Opening Stock{% endif %}</th>
+                            <th   class="allSt" >{% if useri.langSet == 0 %}Manunuzi{% else %}Purchase{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                            <th  >{% if useri.langSet == 0 %}Kupokea{% else %}Receive{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+
+                            <th   class="theSt" >{% if useri.langSet == 0 %}Hamishwa{% else %}Transfered{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                            <th  >{% if useri.langSet == 0 %}Upotevu{% else %}Wastage{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                            <th  >{% if useri.langSet == 0 %}Mauzo{% else %}Sales{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                            <th  >{% if useri.langSet == 0 %}Mapato{% else %}Income{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                           
+                            <th  >{% if useri.langSet == 0 %}Matumizi ya Mafuta{% else %}Fuel Expenses{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                            <th  >{% if useri.langSet == 0 %}Matumizi Mengine{% else %}Other Expenses{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                            <th  >{% if useri.langSet == 0 %}Matumizi Jumla{% else %}Total Expenses{% endif %} <span class="text-primary">{{currencii}}</span></th>
+
+                         
+                            <th  >{% if useri.langSet == 0 %}Faida{% else %}Profit{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                            <th  >{% if useri.langSet == 0 %}Kufunga stoku{% else %}Closing Stock{% endif %}</th>
+
+                            <th  >{% if useri.langSet == 0 %}Onesha{% else %}Show{% endif %} </th>
+
+                            
+                    </tr>
+                  
+                </thead>
+                <tbody id="generalSaleR" >
+
+                </tbody>
+            </table>
+        </div>
+
+    
+            <div class=" showDt  PeriodTableData" >
+                <!-- SET DURATION .................. -->
+                    <div class="row mt-3 pt-2 border-top" id="AnziaHadiTarehe" style="display: none;">
+                            <div class="col-md-9"></div>
+                            <div class="col-md-3">
+
+                                <div class="text-right">
+                                    <button class="btn btn-sm btn-default" onclick="$('#AnziaHadiTarehe').hide(400)">
+                                        &times;
+                                    </button>
+                                </div>
+                                <div class="text-right ">
+                                
+                                    <div class="row mb-2">
+                                            <div class="col-3 ">
+                                                <label   aria-label="">
+                                                    {% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}
+                                                </label>
+                                            </div> 
+                                            <div class="col-9">
+                                                    <input type="text" class="form-control dateRiport smallerFont" name="DateJina1" id="DateJina1"  aria-label="">
+                                            </div>
+                                    </div> 
+                                    <div class="row">
+                                            <div class="col-3 brown">
+                                                <label   aria-label="">
+                                                    {% if useri.langSet == 0 %}Kuanzia{% else %}From{% endif %}
+                                                </label>
+                                            </div> 
+                                            <div class="col-9">
+                                                    <input type="date" class="form-control dateRiport smallerFont" name="DateRipotKuanzia" id="DateRipotKuanzia"  aria-label="">
+                                            </div>
+                                    </div> 
+                                    <div class="row">
+                                            <div class="col-3 brown">
+                                                <label   aria-label="">
+                                                    {% if useri.langSet == 0 %}Hadi{% else %}To{% endif %}
+                                                </label>
+                                            </div> 
+                                            <div class="col-9">
+                                                    <input type="date" class="form-control dateRiport smallerFont" name="DateRipotHadi" id="DateRipotHadi" >
+                                            </div>
+                                    </div> 
+                                </div>
+
+                                <div class="text-right py-2" >
+                                    <button onclick="
+                                    let anza = $('#DateRipotKuanzia').val(),isha=$('#DateRipotHadi').val()
+
+                                            if(moment(anza)<=moment(isha)){
+                                                createArray($('#DateJina1').val(),moment(anza).startOf('day').format(),moment(isha).endOf('day').format())
+                                            }else{
+                                                redborder('#DateRipotKuanzia')
+                                                redborder('#DateRipotHadi')
+                                            }
+
+                                        
+                                        
+                                        " class="btn btn-secondary btn-sm latoFont smallerFont">
+                                        {% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}
+                                    </button>
+                                    </div>
+
+                            </div>
+                    </div>
+
+                    <!-- SET TIME............................ -->
+                    <div class="row mt-3 pt-2 border-top " id="SetDate" style="display: none;">
+                            <div class="col-md-9"></div>
+                            <div class="col-md-3">
+                        <div class="text-right">
+                            <button class="btn btn-sm btn-default" onclick="$('#SetDate').hide(400)">
+                                &times;
+                            </button>
+                        </div>
+
+                                        
+                        <div class="row">
+                            <div class="col-3 ">
+                                    <label   aria-label="">
+                                    {% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}
+                                    </label>
+                            </div> 
+                            <div class="col-9">
+                                    <input type="text" class="form-control smallerFont" name="DateJina" id="DateJina"  >
+                            </div>
+                            <div class="col-3 mt-2 brown">
+                                    <label   aria-label="">
+                                    {% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}
+                                    </label>
+                            </div> 
+                            <div class="col-9 mt-2"   >
+                                    <input type="date" class="form-control smallerFont dateRiport" name="DateRipot" id="DateRipot"  >
+                            </div>
+                            </div> 
+
+                            <div class="text-right py-2" >
+                            <button onclick="createArray($('#DateJina').val(),moment($('#DateRipot').val()).startOf('day').format(),moment($('#DateRipot').val()).endOf('day').format())" class="btn btn-secondary btn-sm latoFont smallerFont">
+                                {% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}
+                            </button>
+                            </div>
+
+                            </div>
+                    </div>
+
+                    <!-- SAVED RIPORTS -->
+                    <div class=" mt-4 pt-2 px-2 py-3 border-top " id="theSavedRiport" style="display: none;max-width:400px">
+                        <div class="text-right">
+                            <button class="btn btn-sm btn-default" onclick="$('#theSavedRiport').hide(400)">
+                                &times;
+                            </button>
+                        </div>
+                    <h6 ><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg> {% if useri.langSet == 0 %}Ripoti zilizohifadhiwa{% else %}Saved Reports{% endif %} </h6>
+                        
+                    
+                            <ul id="placeTheRiport"  class="list-unstyled d-block ">
+
+                            </ul>
+                    
+                        
+                        
+                    <div id="saveR_loader">
+                            <div   style="width: 300px;height: 100;" class="classic_div  d-flex justify-content-center align-items-center  "  >
+                                    <div  class="row classic_div whiteBg pb-2" style="min-width:200px ;"  >
+                                        
+                                    <div class="lds-ring col-3"><div></div><div></div><div></div><div></div></div>
+                                        <div class="col-9 pt-2 smallFont" > 
+                                            
+                                            {% if useri.langSet == 0 %} Tafadhari Subiri...  {% else %} Please Wait.. {% endif %}
+                                        
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+
+
+                    </div>
+            </div>
+        
+            
+            <div class="text-right mt-3 PeriodTableData border-top p-3">
+                <div class="input-group d-inline " >
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-secondary btn-sm latoFont smallFont dropdown-toggle" aria-label="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            {% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}
+                        </button>
+                        <div class="dropdown-menu  smallFont">
+                            <a class="dropdown-item btn btn-default smallFont" type="button" onclick="createArray('{% if useri.langSet == 0 %}Jana{% else %}YesterDay{% endif %}',moment().subtract(1,'days').startOf('day').format(),moment().subtract(1,'days').endOf('day').format())">{% if useri.langSet == 0 %}Jana {% else %}Yesterday{% endif %}</a>
+                            <a class="dropdown-item btn btn-default smallFont" type="button"  onclick="createArray('{% if useri.langSet == 0 %}Wiki ilopita{% else %}Last Week{% endif %}',moment().startOf('isoWeek').subtract(1,'days').startOf('isoWeek').format(),moment().startOf('isoWeek').subtract(1,'days').endOf('isoWeek').format())" > {% if useri.langSet == 0 %}Wiki ilopita{% else %}last Week{% endif %}</a>
+                            <a class="dropdown-item btn btn-default smallFont" type="button"  onclick="createArray('{% if useri.langSet == 0 %}Mwezi ulopita{% else %}Last Month{% endif %}',moment().startOf('month').subtract(1,'days').startOf('month').format(),moment().startOf('month').subtract(1,'days').endOf('month').format())">{% if useri.langSet == 0 %}Mwezi ulopita{% else %}last Month {% endif %}</a>
+                            <a class="dropdown-item btn btn-default smallFont" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwaka huu{% else %}This Year{% endif %}',moment().startOf('Year').format(),moment().format())"> {% if useri.langSet == 0 %}Mwaka huu{% else %}This Year{% endif %}</a>
+                            <div role="separator" class="dropdown-divider"></div>
+                            <a class="dropdown-item btn btn-default smallFont" type="button" onclick="$('#SetDate').show(300)" >{% if useri.langSet == 0 %}Weka Tarehe{% else %}Set Date {% endif %}</a>
+                            <a class="dropdown-item btn btn-default smallFont" type="button" onclick="$('#AnziaHadiTarehe').show(300)" >{% if useri.langSet == 0 %}Weka Muda{% else %}Set Duration {% endif %}</a>
+                            <div role="separator" class="dropdown-divider"></div>
+                            <a class="dropdown-item btn btn-default smallFont" type="button" onclick="roadRiportSave()" >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                                    </svg>
+                                {% if useri.langSet == 0 %}Ripoti zilizohifadhiwa{% else %}Saved Riport {% endif %}
+                            </a>
+
+                        </div>
+                </span>
+                </div>
+            </div>
+
+    </div>
+
+
+    <!-- Sales Analyisis -->
+    <div class="analytical mt-2" id="detailReport" style="display: none;min-height: 60vh;" >
+
+
+
+
+                <h6 class="weight600" id="detailRHeading" >
+                 
+                </h6>   
+                
+
+                
+
+            
+                    <!-- REPORT SWITCH -->
+                                         <!-- REPORT SWITCH -->
+                <div class="panel row classic_div  mt-3" style="min-width: 290px;" >
+                    <div class="col-8">
+                            <div class="btn-group riportSwitch" role="group" id="riportSwitch" aria-label="Basic example">
+                                <button type="button" data-chart="dt" class="btn btn-sm border-secondary  riportOn btn-primary " id="RBydate" data-r="#EvaluateByDate" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Mchanganuo kwa Siku/Mwezi{% else %}Analysis By Date/Month{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1.0em" height="1.0em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list">
+                                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                                    
+                                    </svg>
+                                </button>
+
+                                <button type="button" data-chart="ovr" class="btn border-secondary btn-sm riportOn " data-r="#FuelEvaluate" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Mchanganuo Kwa Mafuta{% else %}Evaluation By Fuel{% endif %}">
+                                   <svg xmlns="http://www.w3.org/2000/svg" height="1.2em" viewBox="0 -960 960 960" width="1.2em" fill="currentColor">
+                                        <path d="M160-120v-640q0-33 23.5-56.5T240-840h240q33 0 56.5 23.5T560-760v280h40q33 0 56.5 23.5T680-400v180q0 17 11.5 28.5T720-180q17 0 28.5-11.5T760-220v-288q-9 5-19 6.5t-21 1.5q-42 0-71-29t-29-71q0-32 17.5-57.5T684-694l-84-84 42-42 148 144q15 15 22.5 35t7.5 41v380q0 42-29 71t-71 29q-42 0-71-29t-29-71v-200h-60v300H160Zm80-440h240v-200H240v200Zm480 0q17 0 28.5-11.5T760-600q0-17-11.5-28.5T720-640q-17 0-28.5 11.5T680-600q0 17 11.5 28.5T720-560ZM240-200h240v-280H240v280Zm240 0H240h240Z"/>
+                                    </svg>
+                                </button>
+
+
+                                <button type="button" data-chart="cust" id="TankEvaluateBtn" class="btn border-secondary btn-sm riportOn " data-r="#TankEvaluate" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Mchanganuo Kwa Matanki ya Mafuta{% else %}Analysis and Evaluation By Tanks{% endif %}">
+                                      <svg xmlns="http://www.w3.org/2000/svg" height="1.2em" viewBox="0 -960 960 960" width="1.2em" fill="currentColor">
+                                           <path d="M160-120q-17 0-28.5-11.5T120-160q0-17 11.5-28.5T160-200h40v-240h-40q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h40v-240h-40q-17 0-28.5-11.5T120-800q0-17 11.5-28.5T160-840h640q17 0 28.5 11.5T840-800q0 17-11.5 28.5T800-760h-40v240h40q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440h-40v240h40q17 0 28.5 11.5T840-160q0 17-11.5 28.5T800-120H160Zm320-200q50 0 85-34.5t35-83.5q0-39-22.5-67T480-620q-75 86-97.5 114.5T360-438q0 49 35 83.5t85 34.5Z"/>
+                                        </svg>
+                                    </button>
+
+                                <button type="button" data-chart="att"  id="saleByAttBtn" class="btn border-secondary btn-sm riportOn " data-r="#stationEvaluate" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Mauzo Kutoka wahusika wa Pampu{% else %}Sales from Pump Attendants{% endif %}">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" style="fill: currentColor;">
+                                        <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
+                                    </svg>
+                                </button>
+
+                                                            
+                                
+
+
+                                <!-- <button type="button" data-chart="delt" class="btn border-secondary btn-sm riportOn " data-r="#saleByStaxn" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Mauzo na Vituo{% else %}Sales By stations{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" style="fill: currentColor;">
+                                        <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
+                                    </svg>
+                                </button>
+
+
+
+                                <button type="button" data-chart="pay" class="btn border-secondary btn-sm riportOn " data-r="#salePay" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Akaunti za malipo{% else %}Payments Accounts{% endif %}">
+                                    <svg width=".95em" height=".95em" viewBox="0 0 16 16" class="bi bi-credit-card-2-back" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M14 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2z"/>
+                                        <path d="M11 5.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1zM1 9h14v2H1V9z"/>
+                                    </svg>
+                                </button> -->
+                            </div>
+                    </div>
+                    
+                    <div class="col-4  text-right">
+                        <div class="btn-group riportChatRist" id="riportChatRist">
+                             
+
+                                <button type="button"  class="btn border btn-sm riportListChatOn  btn-secondary" data-r="0" data-riport="0" data-val="0" title="{% if useri.langSet == 0 %}Orodha{% else %}List{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width=".95em" height=".95em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list">
+                                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                    </svg>
+                                </button>
+
+                                <button type="button"  class="btn border btn-sm riportListChatOn btn-light" data-r="1" data-riport="0" data-val="0" title="{% if useri.langSet == 0 %}Chati{% else %}Chart{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width=".95em" height=".95em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2">
+                                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                                        </svg>
+                                </button>  
+
+                               <button id="printRBtn" data-user="{{useri.user.first_name}}  {{useri.user.last_name}}" class="btn btn-light btn-sm border" title="{% if useri.langSet == 0 %}Chapa{% else %}Print{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer">
+                                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                        <rect x="6" y="14" width="12" height="8"></rect>
+                                        </svg>
+                                </button>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div id="Salecateg" class="DetailsTable" >
+                   
+                  
+
+                        <div id="EvaluateByDate" class="DetailsTable">
+                            <!-- DAILY STOCK ANALYSIS -->
+                            <h6 class="weight600 smallFont mt-3">
+                                {% if useri.langSet == 0 %}Uchambuzi na mwenendo wa stoku kwa siku/miezi/miaka{% else %}Date/Month/Year Stock Analysis and Evaluation{% endif %}
+                            </h6>
+                            <div class="table-responsive" id="EvaluateByDateTable">
+                    
+                            </div>                    
+                        </div>
+
+                         <div id="FuelEvaluate" class="DetailsTable">
+                            <!-- FUEL ANALYSIS -->
+                            <h6 class="weight600 smallFont mt-3">
+                                {% if useri.langSet == 0 %}Mchanganuo wa Mwenendo wa Mafuta kwenye Stoku {% else %} Fuel Stock Trend Analysis and evaluation{% endif %}
+                            </h6>
+                            <div class="table-responsive" id="fuelAnalyzeTable" >
+                            
+                            </div>                    
+                        </div>
+
+                        <div id="stationEvaluate" class="DetailsTable">
+                            <!-- STATION LIST ANALYSIS -->
+                            <h6 class="weight600 smallFont mt-3">
+                                {% if useri.langSet == 0 %}Orodha ya Vituo na Mchananuo{% else %}Station List Analysis{% endif %}
+                            </h6>
+                            
+                            <div class="table-responsive" id="stationAnalyzeTable">
+
+                            </div>
+                        </div>
+
+
+                        <!-- TANK ANALYSIS -->
+                        <div id="TankEvaluate" class="DetailsTable">
+                                <h6 class="weight600 smallFont mt-3">
+                                    {% if useri.langSet == 0 %}Mchanganuo na tathmini ya matanki ya mafuta{% else %}Tanks Fuel Analysis and Evaluation{% endif %}
+                                </h6>
+                                <div class="table-responsive" id="tankAnalyzeTable">
+
+                                </div>    
+                        </div>
+
+
+                     
+                </div>
+
+                <div id="MoreDetails" class="mt-4 DetailsTable" >
+                <h6 class="weight600 d-flex smallFont" id="MoreDetailsRHeading"  >
+                        <a type="button" id="backBtn" data-pay=0 data-payBy=0 data-cust=0 data-att=0 data-val=0 data-st=0 id="moredetailsBack" >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.45em" height="1.45em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                        </a>   
+
+                        <span>
+                            
+                        </span>
+                </h6>
+
+                
+                <div class="SaLDetail row mt-3 classic_div weight500 smallFont" id="SaLDetail" >
+                    <div class="col-md-7  row "></div>
+                </div>    
+               
+
+
+                <!-- <h6 class="mt-3" >{% if useri.langSet == 0 %}Orodha ya Mauzo{% else %}Sales List{% endif %} </h6> -->
+                <div class="table-responsive mt-1" id="MoreDetailsTable">
+                        
+
+                     
+                </div>
+
+
+                </div>
+
+           
+
+
+
+
+
+        <div class="position-fixed shadow"  style="width: 30px;height: 30px;right:20px;top:85vh" >
+            <button class="btn btn-light btn-sm brown" title="{% if useri.langSet == 0 %}Rudi kwenye kalenda{% else %}Back to calender{% endif %}" id="calenderBack"  >
+                 <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+{% block additionaljs %}
+
+
+    <script>
+        document.getElementById('DateRipot').setAttribute("max",moment().format('YYYY-MM-DD')) 
+        document.getElementById('DateRipotKuanzia').setAttribute("max",moment().format('YYYY-MM-DD')) 
+        document.getElementById('DateRipotHadi').setAttribute("max",moment().format('YYYY-MM-DD')) 
+    </script>
+
+
+  <script src="/static/js/riports/evaluation.js" ></script>
+
+{% endblock %}
+{% block analytics %} active  {% endblock %}

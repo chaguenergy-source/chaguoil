@@ -1,0 +1,98 @@
+<div class="text-right tabs_menu">
+
+
+
+    {% if isSalesView or isCustomerView  %}
+
+
+        {% if isCustomerView %}
+ 
+          <a role="button" id="customerStatement" data-station="{% if not general %}{{shell.name}}{%else%} {% if useri.langSet == 0 %}Vituo Vyote{%else%}All Stations {%endif%} {%endif%}" data-user="{{useri.user.first_name}}  {{useri.user.last_name}}" data-prev="{{thereIsPrev}}" data-month="{{thereIsThis}}" class="btn btn-light btn-sm fontColor" title="{% if useri.langSet == 0 %}Chapa{% else %}Print{% endif %}" >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+        </a>
+
+          <a href="#" data-toggle="modal" data-target="#modal_malipo" class="btn btn-light btn-sm fontColor" title="{% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}" >
+              <span style="font-size:1.3em ;" >$</span>  
+          </a>  
+        {%endif%}
+
+
+      {% if isSalesView  %}
+        <div class="btn-group " role="group" aria-label="Button group with nested dropdown">
+            <a type="button" href="/salepurchase/{%if isSalesView %}viewFuelSales{%endif%}?t=1&i={{trf.id}}&lang={{useri.langSet}}" target="_blank" class="btn fontColor btn-light btn-sm smallFont">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16">
+                <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+                <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
+              </svg>
+                    
+                
+            </a>
+          
+            <div class="btn-group" role="group">
+              <button id="btnGroupDrop1" type="button" class="btn btn-light btn-sm smallFont dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              </button>
+              <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                <a class="dropdown-item fontColor" href="/salepurchase/{%if isSalesView %}viewFuelSales{%endif%}?t=1&i={{trf.id}}&lang=0" target="_blank">Swahili</a>
+                <a class="dropdown-item fontColor" href="/salepurchase/{%if isSalesView %}viewFuelSales{%endif%}?t=1&i={{trf.id}}&lang=1" target="_blank">English</a>
+              </div>
+            </div>
+          </div>
+      {% endif %}    
+
+    {% if manager or useri.admin %}    
+    <a href="#" type="button" data-toggle="modal" data-target="#addAttachment" class="border-left pl-1  fontColor " title="{% if useri.langSet == 0 %}Ongeza Kiambatanisho{% else %}Add Attachment{% endif %}" >
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+            <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+        </svg>
+    </a>
+    {% endif %}
+
+    {% endif %}
+
+    <!-- <a href="/salepurchase/fuel" class="border-left pl-1 {% if istank %} activetab {% endif %}" title="{% if useri.langSet == 0 %}Matanki{% else %}Oil tanks{% endif %}" >
+        <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" viewBox="0 -960 960 960" width="1.3em" fill="currentColor">
+            <path d="M160-120q-17 0-28.5-11.5T120-160q0-17 11.5-28.5T160-200h40v-240h-40q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h40v-240h-40q-17 0-28.5-11.5T120-800q0-17 11.5-28.5T160-840h640q17 0 28.5 11.5T840-800q0 17-11.5 28.5T800-760h-40v240h40q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440h-40v240h40q17 0 28.5 11.5T840-160q0 17-11.5 28.5T800-120H160Zm320-200q50 0 85-34.5t35-83.5q0-39-22.5-67T480-620q-75 86-97.5 114.5T360-438q0 49 35 83.5t85 34.5Z"/>
+        </svg>
+    </a>
+
+    <a class="border-left pl-1 {% if ispump %} activetab {% endif %}" href="/salepurchase/pumps"  title="{% if useri.langSet == 0 %}Pampu za mafuta{% else %}Fuel Pumps {% endif %}"  >
+        <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" viewBox="0 -960 960 960" width="1.3em" fill="currentColor">
+            <path d="M160-120v-640q0-33 23.5-56.5T240-840h240q33 0 56.5 23.5T560-760v280h40q33 0 56.5 23.5T680-400v180q0 17 11.5 28.5T720-180q17 0 28.5-11.5T760-220v-288q-9 5-19 6.5t-21 1.5q-42 0-71-29t-29-71q0-32 17.5-57.5T684-694l-84-84 42-42 148 144q15 15 22.5 35t7.5 41v380q0 42-29 71t-71 29q-42 0-71-29t-29-71v-200h-60v300H160Zm80-440h240v-200H240v200Zm480 0q17 0 28.5-11.5T760-600q0-17-11.5-28.5T720-640q-17 0-28.5 11.5T680-600q0 17 11.5 28.5T720-560Z"/>
+            </svg>
+    </a>
+    <a class="border-left pl-1 {% if isShift %} activetab {% endif %}" href="/salepurchase/theshifts"  title="{% if useri.langSet == 0 %}Zamu kwenye pump{% else %} Pump Shifts {% endif %}"  >
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-check">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline>
+            </svg>
+    </a>
+    <a class="border-left pl-1 {% if istransfer %} activetab {% endif %}" href="/salepurchase/fueltransfer"  title="{% if useri.langSet == 0 %}Kusafirisha mafuta{% else %}Fuel Tranfer {% endif %}"  >
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-truck">
+            <rect x="1" y="3" width="15" height="13"></rect>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+    </a>-->
+
+   <a class="border-left pl-1 {% if isCustomer %} activetab {% endif %}" href="/salepurchase/customers"  title="{% if useri.langSet == 0 %}Wateja{% else %}Customers {% endif %}"  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" style="fill: currentColor;">
+        <path d="M9.5 12c2.206 0 4-1.794 4-4s-1.794-4-4-4-4 1.794-4 4 1.794 4 4 4zm1.5 1H8c-3.309 0-6 2.691-6 6v1h15v-1c0-3.309-2.691-6-6-6z"></path>
+        <path d="M16.604 11.048a5.67 5.67 0 0 0 .751-3.44c-.179-1.784-1.175-3.361-2.803-4.44l-1.105 1.666c1.119.742 1.8 1.799 1.918 2.974a3.693 3.693 0 0 1-1.072 2.986l-1.192 1.192 1.618.475C18.951 13.701 19 17.957 19 18h2c0-1.789-.956-5.285-4.396-6.952z"></path></svg>
+      
+
+    </a>  
+
+    <a class="border-left pl-1 {% if isSales %} activetab {% endif %}" href="/salepurchase/soldFuel"  title="{% if useri.langSet == 0 %}Mauzo ya Mauzo{% else %}Fuel Sales{% endif %}"  >
+         <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign">
+              <line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+         </svg>
+    </a>
+
+
+
+</div>  

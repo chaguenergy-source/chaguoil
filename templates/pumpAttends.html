@@ -1,0 +1,143 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Wahuka wa Pampu{% else %} Pump Attendants{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+
+
+
+</div>
+
+
+<div class="table-data">
+    <div class="order">
+        {% include 'headingShifts.html' %}     
+
+      <div class="head">
+        <h5 >
+
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.5em" viewBox="0 -960 960 960" width="1.5em" fill="currentColor">
+                <path d="M160-120v-640q0-33 23.5-56.5T240-840h240q33 0 56.5 23.5T560-760v280h40q33 0 56.5 23.5T680-400v180q0 17 11.5 28.5T720-180q17 0 28.5-11.5T760-220v-288q-9 5-19 6.5t-21 1.5q-42 0-71-29t-29-71q0-32 17.5-57.5T684-694l-84-84 42-42 148 144q15 15 22.5 35t7.5 41v380q0 42-29 71t-71 29q-42 0-71-29t-29-71v-200h-60v300H160Zm80-440h240v-200H240v200Zm480 0q17 0 28.5-11.5T760-600q0-17-11.5-28.5T720-640q-17 0-28.5 11.5T680-600q0 17 11.5 28.5T720-560Z"/>
+                </svg>   
+                {% if useri.langSet == 0 %}Wahusika wa Pampu{% else %} Pump Attendants {% endif %}</h5>
+        
+      </div>
+
+      <div class="table-responsive">
+            <table id="all_tanks" class="table-bordered smallFont"  >
+                <thead>
+                <tr class="text-center" >
+                    <th>#</th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
+                    {% if general  %} 
+                     <th class="p-2">{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %} </th>
+
+                    {% endif %}
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Zamu{% else %}Shift{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Kuanzia{% else %}From{% endif %} </th>
+                      
+                     {% if not general %}
+                      <th class="p-2">{% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %} </th>
+                     {% endif %} 
+                    
+                  
+                </tr>
+                </thead>
+
+
+
+                <tbody>
+                    {% for f in Incharges %}
+                        <tr  >
+                            <td>{{forloop.counter}}</td>
+                            <td>{{f.user.user.user.first_name | title}}  {{f.user.user.user.last_name | title}}</td>
+
+                            {% if general %}
+                             <td class="text-primary" >{{f.user.Interprise.name}}</td>
+                            {% endif %}
+                            <td>
+                                 {% if f.hasShift %}
+                                      <a href="/salepurchase/viewShift?i={{f.hasShift.id}}">SHF-{{f.hasShift.code}}</a>
+                                  {% else %}
+                                    --{% if useri.langSet == 0 %}Hakuna{% else %}Off{% endif %}--
+                                 {% endif %}
+                             </td> 
+                              <td>
+                                {% if f.hasShift %}
+                                <script>
+                                    document.write(moment('{{f.hasShift.From | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                </script> 
+                                {% else %}
+                                   --/--/---- --:--
+                                {% endif %}
+                             </td>
+                             
+                             {% if not general %}
+                            <td>
+                                  {% if f.hasShift %}
+                                    <a  href="/salepurchase/StartEndShift?usr={{f.user.id}}" class="btn btn-sm btn-success">
+                                         <small>
+                                            {% if useri.langSet == 0 %}Onesha{% else %}View{% endif %}
+                                         </small>
+                                    </a>
+                                  {% else %}
+                                    <a href="/salepurchase/StartEndShift?usr={{f.user.id}}" class="btn btn-sm btn-primary">
+                                         <small>
+                                            {% if useri.langSet == 0 %}Anza{% else %}Start{% endif %}
+                                         </small>
+                                    </a>                                  
+                                   {% endif %}
+
+
+                            </td>
+
+                            {% endif %}
+                            </tr>
+                    {% endfor %}
+                   
+                </tbody>
+            </table>
+      </div>
+
+
+     
+    </div>
+</div>
+
+
+
+
+
+{% endblock %}
+
+
+
+{% block additionaljs %} 
+<script>
+      $(document).ready(function(){
+      $('#all_tanks').DataTable();
+  
+    })
+</script>
+{% endblock %}
+
+{% block shifts %} active {% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Notifikesheni{% else %} notification {% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+    
+
+
+
+</div>
+
+
+<div class="table-data">
+    <div class="order">
+          
+<div class="list-group" style="min-height: 60vh;" >
+    {% for n in tr %}
+            <a href="#" class="list-group-item list-group-item-action {% if not n.read %} list-group-item-primary {% endif %}">
+               {% if n.price %}
+                <h6>{% if useri.langSet == 0 %}Bei ya Mafuta{% else %} Fuel Price {% endif %}</h6>   
+                   <div class="smallFont" > 
+                       {% if useri.langSet == 0 %}
+
+                          Bei ya Mafuta ya <span class="brown">{{n.price.fuel.name}}</span> Imebadilishwa kutoka 
+                          <span class="text-primary">{{currencii}}</span>.<span class="brown">{{n.price.Bprice|floatformat:'-2'|intcomma}}</span> na kuwa <span class="text-primary">{{currencii}}</span>.<span class="brown">{{n.price.Aprice|floatformat:'-2'|intcomma}}</span> na
+                          
+                          {% else %} 
+                        <span class="brown">{{n.price.fuel.name}}</span> Fuel Price changed from <span class="text-primary">{{currencii}}</span>.<span class="brown">{{n.price.Bprice|floatformat:'-2'|intcomma}}</span> to  <span class="text-primary">{{currencii}}</span>.<span class="brown">{{n.price.Aprice|floatformat:'-2'|intcomma}}</span> by
+                       
+                     
+                       
+                       {% endif %}
+                       
+                        <span class="bluePrint">{{n.price.by.user.first_name |title}}  {{n.price.by.user.last_name |title}} ({{n.price.by.cheo}})</span> | 
+                    {% if n.price.desc %}{{n.price.desc}} | {% endif %}
+                        <script> 
+                           document.write(moment('{{n.date | date:"r"}}').format('ddd DD/MM/YYYY HH:MM') )
+                        </script>
+                   </div>
+               {% endif %}
+
+               {% if n.temper %}
+                <h6>{% if useri.langSet == 0 %}Madiliko kwenye Mita ya Pampu{% else %}Pump Meter Readings Change {% endif %}</h6>   
+                   <div class="smallFont" > 
+                       {% if useri.langSet == 0 %}
+
+                          Vipimo kwenye mita ya pampu <span class="brown">{{n.temper.pump.station.name}} {{n.tamper.pump.name}}</span> Imebadilishwa kutoka 
+                          <span class="brown">{{n.temper.BRead|floatformat:'-2'|intcomma}}</span> na kuwa <span class="brown">{{n.temper.ARead|floatformat:'-2'|intcomma}}</span> na
+                          
+                          {% else %} 
+                        <span class="brown">{{n.temper.pump.station.name}} {{n.temper.pump.name}}</span> Pump meter changed from <span class="brown">{{n.temper.BRead|floatformat:'-2'|intcomma}}</span> to  <span class="brown">{{n.temper.ARead|floatformat:'-2'|intcomma}}</span> by
+                       
+                     
+                       
+                       {% endif %}
+                       
+                        <span class="bluePrint">{{n.temper.by.user.user.first_name |title}}  {{n.temper.by.user.user.last_name |title}} ({{n.temper.by.user.cheo}})</span> | 
+                    {% if n.temper.desc %} {{n.temper.desc}} | {% endif %}
+                        <script> 
+                           document.write(moment('{{n.date | date:"r"}}').format('ddd DD/MM/YYYY HH:MM') )
+                        </script>
+                   </div>
+               {% endif %}
+            </a>
+
+    {% endfor %}
+   
+</div>
+
+
+
+    <p class=" p-4 border-top">
+        
+        {% if tr.has_previous %}
+            <a href="{% url 'notify' %}?page=1" type="button"  class="btn btn-default border0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
+            </svg>
+            </a>
+        
+            <a href="{% url 'notify' %}?page={{tr.previous_page_number}}" type="button"  class="btn btn-default  border0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                </svg>
+            </a>
+            {% endif %}
+        
+        {% if tr.has_next %}
+            <a href="{% url 'notify' %}?page={{tr.next_page_number}}" type="button" class="btn btn-default border0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                </svg>
+            </a>
+        
+            <a href="{% url 'notify' %}?page={{pages}}" type="button"  class="btn btn-default border0" >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
+                </svg>
+            </a>
+        {% endif %}
+            <label for="">
+                
+                {% if useri.langSet == 0 %} Ukurasa wa {{p_num}} kati ya {{pages}} {% else %} page {{p_num}} of {{pages}} {% endif %}
+        
+            </label>
+    </p>
+    
+
+     
+    </div>
+
+</div>
+
+{% block additionaljs %}
+  {% if unrd %}
+    <script>
+        $(document).ready(function(){
+            const data = {data:{},url:'/markreadNotify'},
+                sendIt = POSTREQUEST(data)
+                sendIt.then(resp=>{})            
+        })
+
+
+    </script>
+  {% endif %}
+{% endblock %}
+
+
+{% endblock %}
+

@@ -1,0 +1,249 @@
+{% load humanize %}
+
+<!-- Modal -->
+<div class="modal fade" id="modal_malipo" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog animate" role="document">
+    <div class="modal-content ">
+
+      <form action="/salepurchase/lipaBill"  id="lipiaBiliForm"   method="post">
+        {% csrf_token %}
+
+       
+       
+      
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">     
+          {% if useri.langSet == 0 %}  Lipa Bili{% else %}Pay Bill {% endif %}
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body px-4">
+        <div class="form-group mb-3" >
+          <label class="text-danger" for="malipo-akaunti"> {% if useri.langSet == 0 %}  Chagua Akaunti{% else %}Select account{% endif %} <sup>*</sup> </label>
+          <select name="malipo-akaunti" id="malipo-akaunti"
+          onchange="if(Number($(this).find('option:selected').data('value'))>0){
+            $('#ac').val($(this).find('option:selected').data('value'))
+
+            let ac_am=Number($(this).find('option:selected').data('amount')),
+
+                am =Number($('#bill-lipwa-amount').data('amount'));
+            if(ac_am>=am){
+              $('#ac-baki-amount').attr('placeholder',(ac_am-am).toLocaleString())
+                  $('#helpinId').prop('hidden',true)
+
+
+               $('#save_pay_btn').prop('disabled',false)
+            }else{
+              $('#helpinId').prop('hidden',false)
+
+              $('#save_pay_btn').prop('disabled',true)
+
+              $('#ac-baki-amount').attr('placeholder',(ac_am-am).toLocaleString())
+
+            }
+
+                  $('#helpinId2').prop('hidden',true)
+
+          }
+          "
+
+
+          class="form-control machaguo-pesa border smallFont selectpicker" data-live-search="true">
+            <option value="0" data-amount=0 data-value=0 >{% if useri.langSet == 0 %}--Chagua Akaunti--{% else %}--Select Account--{% endif %}</option>
+              {% for ac in payacc %}
+               <option value={{ac.id}} data-amount={{ac.Amount}} data-value="{{ac.id}}" >{{ac.Akaunt_name}}</option>
+			        {%endfor%}
+          </select>
+
+          
+
+            <small id="helpinId" hidden class="mt-5 " style="color:rgb(129, 116, 0)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+              {% if useri.langSet == 0 %}Akaunti haina kiasi cha kutosha kulipia bili{% else %}insufficient  Account amount to pay the bill{% endif %}
+            </small>
+
+            <small id="helpinId2" hidden class="mt-5 text-danger" >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+              {% if useri.langSet == 0 %}Tafadhari Chagua Akaunti kulipia bili{% else %}Please select payment account to pay the bill{% endif %}
+            </small>
+
+        </div>
+
+        <div class="form-group mb-3" >
+          <label class="text-danger" for=""> {% if useri.langSet == 0 %}  Kiasi kinacholipwa{% else %}Amount{% endif %}  <sup>*</sup> </label>
+        
+          <div class="show_curency_block show_curency position-absolute    px-3" style="display: none ;">
+            <label class="mt-1 text-danger" for="bill-lipwa-amount"></label> 
+        <div class="box-pointer d-inline "></div>
+        </div>
+
+          <input type="number"
+          onkeyup="if(Number($(this).val())>0 && $(this).val()!='' ){
+            let ac_am=Number($('#malipo-akaunti').find('option:selected').data('amount')),
+                am =Number($(this).data('amount')),
+                paid = Number($(this).val())
+    
+               
+                if($(this).val()!=''){
+                  $('#paid_set').val(1)
+
+                }else{
+                  $('#paid_set').val(0)
+
+                }
+            if(ac_am>=paid){
+              $('#ac-baki-amount').attr('placeholder',(ac_am-am).toLocaleString())
+                  $('#helperId').prop('hidden',true)
+                  $('#save_pay_btn').prop('disabled',true)
+
+                if(am>=paid){
+                  $('#save_pay_btn').prop('disabled',false)
+
+                       $('#helperId2').prop('hidden',true)
+
+                }else{
+                  $('#save_pay_btn').prop('disabled',true)
+                  $('#helperId2').prop('hidden',false)
+               }
+
+               $('#ac-baki-amount').attr('placeholder',(ac_am-paid).toLocaleString()) 
+
+            }else{
+              $('#helperId').prop('hidden',false)
+              $('#save_pay_btn').prop('disabled',true)
+
+
+            }
+
+
+          }
+
+          "
+          name="paid" data-amount={{baki}} id="bill-lipwa-amount" class="input-data form-control money-fomat" placeholder="{{baki|floatformat|intcomma}}" aria-describedby="helpId">
+         <input type="number" hidden value=0 name="paid_set" id="paid_set" class="f_input">
+
+          <small id="helperId" hidden class=" text-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+            </svg> {% if useri.langSet == 0 %}  Kiasi kinacholipwa kimezidi kiasi kilichopo kwenye akaunti iliyochaguliwa{% else %}the amount to be paid exceed Account Balance of the selected account{% endif %}
+          </small>
+
+          <small id="helperId2" hidden class="text-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+            </svg> {% if useri.langSet == 0 %}  Kiasi kinacholipwa kimezidi kiasi halisi cha bili{% else %}the amount to be paid exceed the actual bill amount{% endif %}
+          </small>
+        </div>
+
+        <div class="form-group mb-3" >
+          <label for=""> {% if useri.langSet == 0 %}  Inayobaki kwenye Akaunt{% else %}Account Balance{% endif %}</label>
+         
+          <div class="show_curency_block show_curency position-absolute    px-3" style="display: none ;">
+            <label class="mt-1 text-danger" for="ac-baki-amount"></label> 
+        <div class="box-pointer d-inline "></div>
+        </div>
+          <input type="number" name="bal"
+          onkeyup="if(Number($(this).val())>0 && $(this).val()!='' ){
+            let ac_am=Number($('#malipo-akaunti').find('option:selected').data('amount')),
+                am =Number($('#bill-lipwa-amount').data('amount')),
+                paid = Number($('#bill-lipwa-amount').val()),
+                baki = Number($(this).val())
+
+                if($(this).val()!=''){
+                  $('#bal_set').val(1)
+                }else{
+                   $('#bal_set').val(0)
+                }
+                if($('#bill-lipwa-amount').val()!=''){
+                  am = paid
+                }
+            if((ac_am-am) >=baki){
+                   $('#helpedId').prop('hidden',true)
+                   $('#save_pay_btn').prop('disabled',false)
+
+
+            }else{
+              $('#helpedId').prop('hidden',false)
+              $('#save_pay_btn').prop('disabled',true)
+
+            }
+
+
+          }
+
+          "
+          
+          data-amount=0 id="ac-baki-amount" class="money-fomat form-control input-data" placeholder="" aria-describedby="helpId">
+        <input type="number" hidden value=0 name="bal_set" id="bal_set" class="f_input">
+
+          <small id="helpedId" hidden class=" text-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+            </svg> {% if useri.langSet == 0 %} Kiasi kinachobaki kinazidi kiasi halisi cha akaunti baada ya malipo ya bili{% else %}The account balance exceeds the actual balance after bill payment{% endif %}
+          </small>
+        </div>
+            
+          
+</div>
+      <div class="text-center">
+        <button type="submit" id="save_pay_btn" onclick="$('#lipiaBill').modal('hide')" disabled class="btn btn-primary ">{% if useri.langSet == 0 %} Lipa {% else %}Pay {% endif %}</button>
+      </div>
+
+      <div class="text-center my-3">
+                <button type="button" class="btn btn-light btn-sm smallFont" data-dismiss="modal">Close</button>
+      </div>
+
+       </form> 
+    </div>
+  </div>
+</div>
+
+<script>      
+  $('body').on("submit", "#lipiaBiliForm" ,function(e){
+    e.preventDefault();
+   const acc = Number($('#malipo-akaunti').val()),
+          bill = Number('{{trf.id}}') || 0,
+          ven = Number('{{ven.id}}') || 0,
+          pay = Number($('#bill-lipwa-amount').val()) || Number('{{baki}}'),
+          acc_amo = Number($('#malipo-akaunti').find('option:selected').data('amount')),
+          baki = Number($('#ac-baki-amount').val()) || 0,
+          url = $(this).attr("action"),
+          bal_set = Number($('#ac-baki-amount').val()!=''),
+          pay_set = Number($('#bill-lipwa-amount').val() != '')
+
+        if(acc && pay <= acc_amo ){
+            $("#modal_malipo").modal('hide');
+            $("#loadMe").modal('show');
+
+            const   data = {
+                    data:{acc,pay,acc_amo,baki,bill,bal_set,pay_set,ven},
+                    url
+               },
+               sendIt = POSTREQUEST(data)
+               sendIt.then(resp=>{
+                  $('#loadMe').modal('hide')
+                  hideLoading()
+                  const msg = lang(resp.swa,resp.eng)
+                            if(resp.success){
+                                   toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000})
+                                   location.reload()
+                             }else{
+                                toastr.error(msg, lang('Haikufanikiwa','Error '), {timeOut: 2000})
+                             }
+               })
+        }
+
+   
+
+     
+  
+})
+</script>

@@ -1,0 +1,50 @@
+<div class="text-right tabs_menu">
+
+
+    {% if isViewVend or isPuchView  %}
+     {% if  useri.admin %}   
+
+        
+           <a href="#" data-toggle="modal" data-target="#modal_malipo" class="btn btn-light btn-sm fontColor" title="{% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}" >
+               <span style="font-size:1.3em ;" >$</span>  
+            </a>
+       
+
+       
+
+
+     
+    {% if  isPuchView %}
+     {% if qty != rcvd  and not trf.closed %}
+        <a href="/salepurchase/puReceive?i={{trf.id}}"  class="border-left pl-1 brown weight600 fontColor largeFont" title="{% if useri.langSet == 0 %}Kupokea Mafuta{% else %}Fuel Receive{% endif %}" >
+        &pointint;
+        </a>
+    {% endif %}
+    <a href="#" type="button" data-toggle="modal" data-target="#addAttachment" class="border-left pl-1  fontColor " title="{% if useri.langSet == 0 %}Ongeza Kiambatanisho{% else %}Add Attachment{% endif %}" >
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+            <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+        </svg>
+    </a>
+    {% endif %}
+    {% endif %}
+
+    {% endif %}
+
+   
+
+ 
+
+    <a class="border-left pl-1 {% if isVendor %} activetab {% endif %}" href="/salepurchase/vendors"  title="{% if useri.langSet == 0 %}Mauzo ya Mauzo{% else %}Fuel Sales{% endif %}"  >
+        <svg width="1.3em" height="1.3em" viewBox="0 0 16 17" class="bi bi-compass" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
+            <path d="M6.94 7.44l4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z"/>
+        </svg>
+    </a>
+
+   <a class="border-left pl-1 {% if isPu %} activetab {% endif %}" href="/salepurchase/puchases"  title="{% if useri.langSet == 0 %}Wateja{% else %}Customers {% endif %}"  >
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" width="1.3em" viewBox="0 0 24 24"  fill="currentColor">
+                <path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19.09H5V4.91h14v14.18zM6 15h12v2H6zm0-4h12v2H6zm0-4h12v2H6z"/>
+            </svg>
+    </a> 
+
+</div>  

@@ -1,0 +1,1629 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+
+	<!-- Boxicons -->
+	<!-- <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'> -->
+	<!-- My CSS -->
+	
+
+	<link rel="stylesheet" href="/static/css/mediascreen.css">
+	<link rel="stylesheet" href="/static/css/style.css">
+
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css" >
+	<link rel="stylesheet" href="{% static 'css/datatable.css' %}">
+
+
+
+    <!-- Latest compiled and minified CSS -->
+
+    <!-- Latest compiled and minified JavaScript -->
+    <!-- <script src="{% static 'js/bootstrap-select.min.js' %}"></script> -->
+    
+	<!-- <script src="{% static 'js/validator.min.js' %}"></script> -->
+        <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+
+<link rel='stylesheet prefetch' href="{% static 'css/animate.min.css' %}">
+
+<script src="/static/js/jquery.js" crossorigin="anonymous"></script>
+<script src="/static/js/popper.min.js" ></script>
+<script src="/static/js/bootstrap.min.js" ></script>
+<!-- <script src="/static/js/moment.min.js" ></script> -->
+<script src="/static/js/momentlocale.js" ></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="{% static 'css/bootstrap-select.min.css' %}">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="{% static 'js/bootstrap-select.min.js' %}"></script>
+
+  <script src="{% static 'js/qrcode.min.js' %}"></script>
+<!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
+
+<!-- Latest compiled and minified CSS -->
+ {% block additional_css %}
+ {% endblock %}
+
+	<title>Chagu Oil</title>
+</head>
+<body  class="{% if useri.darkMode  %}dark{% endif %}" >
+
+
+	<!-- SIDEBAR -->
+	<section class="hide" id="sidebar">
+		<a href="#" class="brand">
+			<i class='bx bxs-smile'></i>
+			<span class="text">Chagu Oil</span>
+		</a>
+		<ul class="side-menu top">
+			<li class="{% block home %}  {% endblock %}">
+				<a href="/userdash" title="home" >
+					<i class='bx ' >
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid">
+							<rect x="3" y="3" width="7" height="7"></rect>
+							<rect x="14" y="3" width="7" height="7"></rect>
+							<rect x="14" y="14" width="7" height="7"></rect>
+							<rect x="3" y="14" width="7" height="7"></rect>
+							</svg>
+					</i>
+					<span class="text">Home</span>
+				</a>
+			</li>
+
+			<li class="{% block shifts %}   {% endblock %}" >
+				<a href="/salepurchase/theshiftsAttend" title="Pump Attendants" >
+                           <i class="bx">
+							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
+								<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2">
+								</path><circle cx="12" cy="7" r="4"></circle>
+							</svg>
+						</i>
+
+					<span class="text">Shifts</span>
+				</a>
+			</li>
+
+			<li class="{% block customers %}   {% endblock %}" >
+				<a href="/salepurchase/customers" title="Customers" >
+					<i class="bx">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill: currentColor;">
+							<path d="M9.5 12c2.206 0 4-1.794 4-4s-1.794-4-4-4-4 1.794-4 4 1.794 4 4 4zm1.5 1H8c-3.309 0-6 2.691-6 6v1h15v-1c0-3.309-2.691-6-6-6z"></path>
+							<path d="M16.604 11.048a5.67 5.67 0 0 0 .751-3.44c-.179-1.784-1.175-3.361-2.803-4.44l-1.105 1.666c1.119.742 1.8 1.799 1.918 2.974a3.693 3.693 0 0 1-1.072 2.986l-1.192 1.192 1.618.475C18.951 13.701 19 17.957 19 18h2c0-1.789-.956-5.285-4.396-6.952z"></path></svg>
+						</i>
+
+					<span class="text">Customers</span>
+				</a>
+			</li>
+
+			<li class="{% block fuel %}   {% endblock %}" >
+				<a href="/salepurchase/fuel" title="Fuel" >
+					<!-- <i class='bx bx-gas-pump'></i> -->
+					<!-- <i class='bx bxs-droplet-half'></i> -->
+					 <i class="bx" >
+						<svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor">
+							<path d="M160-120q-17 0-28.5-11.5T120-160q0-17 11.5-28.5T160-200h40v-240h-40q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h40v-240h-40q-17 0-28.5-11.5T120-800q0-17 11.5-28.5T160-840h640q17 0 28.5 11.5T840-800q0 17-11.5 28.5T800-760h-40v240h40q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440h-40v240h40q17 0 28.5 11.5T840-160q0 17-11.5 28.5T800-120H160Zm320-200q50 0 85-34.5t35-83.5q0-39-22.5-67T480-620q-75 86-97.5 114.5T360-438q0 49 35 83.5t85 34.5Z"/>
+							</svg>
+					</i>
+
+					<span class="text">Fuel</span>
+				</a>
+			</li>
+
+
+			
+			<li class="{% block stattions %}   {% endblock %}" >
+				<a href="/stations" title="Stations" >
+					<!-- <i class='bx bx-gas-pump'></i> -->
+					<i class='bx '>
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill: currentColor;">
+							<path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
+						</svg>
+						  
+					</i>
+					<span class="text">Stations</span>
+				</a>
+			</li>
+
+			{% if useri.ceo or useri.admin and useri.pu or useri.admin  %}
+			<li class="{% block vendors %}   {% endblock %}" >
+				<a href="/salepurchase/vendors" title="Vendors" >
+					<i class='bx '>
+						<svg width="18" height="18" viewBox="0 0 16 17" class="bi bi-compass" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<path fill-rule="evenodd" d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
+							<path d="M6.94 7.44l4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z"/>
+						  </svg>
+					</i>
+					<span class="text">Supplier</span>
+				</a>
+			</li>
+
+			{% endif %}
+
+			<li class="{% block analytics %}  {% endblock %}" >
+				<a href="/analytics/analytics" title="Analytics" >
+					<i class='bx ' >
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill: currentColor">
+							<path d="M13 6c2.507.423 4.577 2.493 5 5h4c-.471-4.717-4.283-8.529-9-9v4z"></path>
+							<path d="M18 13c-.478 2.833-2.982 4.949-5.949 4.949-3.309 0-6-2.691-6-6C6.051 8.982 8.167 6.478 11 6V2c-5.046.504-8.949 4.773-8.949 9.949 0 5.514 4.486 10 10 10 5.176 0 9.445-3.903 9.949-8.949h-4z"></path>
+						</svg>
+					</i>
+					<span class="text">Analytics</span>
+				</a>
+			</li>
+			<li class="{% block payaccount %}  {% endblock %}" >
+				<a href="/accounting/payaccounts" title="Payments Accounts" >
+					<i class='bx '>
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill: currentColor">
+							<path d="M20 4H4c-1.103 0-2 .897-2 2v2h20V6c0-1.103-.897-2-2-2zM2 18c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2v-6H2v6zm3-3h6v2H5v-2z"></path>
+						</svg>
+					</i>
+					<span class="text">Accounting</span>
+				</a>
+			</li>
+			<li class="{% block staffs %}  {% endblock %}" >
+				<a href="/staffs/staffs" title="Staff" >
+					
+					<i class='bx bxs-user-detail'>
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill: currentColor">
+							<path d="M15 11h7v2h-7zm1 4h6v2h-6zm-2-8h8v2h-8zM4 19h10v-1c0-2.757-2.243-5-5-5H7c-2.757 0-5 2.243-5 5v1h2zm4-7c1.995 0 3.5-1.505 3.5-3.5S9.995 5 8 5 4.5 6.505 4.5 8.5 6.005 12 8 12z"></path>
+						</svg>
+					</i>
+					<span class="text">
+						Staff
+					</span>
+				</a>
+			</li>
+		</ul>
+		<ul class="side-menu">
+			<li class="{% block settings %}  {% endblock %}" >
+				<a href="/settings" title="Settings" >
+					<i class='bx bxs-cog' >
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings">
+							<circle cx="12" cy="12" r="3"></circle>
+							<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+						</svg>
+					</i>
+					<span class="text">Settings</span>
+				</a>
+			</li>
+			<!-- <li> -->
+				<!-- <a href="#">
+					<i class='bx bxs-cog' ></i>
+					<span class="text">Settings</span>
+				</a> -->
+				
+			<!-- </li> -->
+			<li>
+				<a href="/logout" title="Logout" class="logout">
+					<i class='bx bxs-log-out-circle' >
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" class="feather feather-log-out">
+							<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+							<polyline points="16 17 21 12 16 7"></polyline>
+							<line x1="21" y1="12" x2="9" y2="12"></line>
+							</svg>
+					</i>
+					<span class="text">Logout</span>
+				</a>
+			</li>
+		</ul>
+
+
+	</section>
+	<!-- SIDEBAR -->
+
+
+
+	<!-- CONTENT -->
+	<section id="content">
+		<!-- NAVBAR -->
+		<nav  >
+			<i class='bx bx-menu' >
+				<svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu">
+					<line x1="3" y1="12" x2="21" y2="12"></line>
+					<line x1="3" y1="6" x2="21" y2="6"></line>
+					<line x1="3" y1="18" x2="21" y2="18"></line>
+				</svg>
+			</i>
+
+			<form action="#">
+				<div class="form-input">
+					<input type="search" placeholder="Search...">
+					<button type="submit" class="search-btn">
+						<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search">
+							<circle cx="11" cy="11" r="8"></circle>
+							<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+						</svg>
+					</button>
+				</div>
+			</form>
+
+            <div class="dropdown smallFont">
+					<a href="#" type="button" style="border-radius:30px;" class="btn-sm dropdown-toggle  btn-primary  text-light smallerFont weight200 nav-link" data-toggle="dropdown">
+						<!-- <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" style="fill: currentColor;">
+							<path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2zm2-10h4V7h2v4h4v2h-4v4h-2v-4H7v-2z"></path></svg> -->
+					
+						+{% if useri.langSet == 0 %}Ongeza{% else %} Add  {% endif %}
+				
+						</a>	
+					<ul class="dropdown-menu p-2" style="font-size: 1.01em;"  >
+						{% if useri.admin %}
+						<li>
+							 <a type="button" data-toggle="modal" data-target="#changeprice" href="#">
+								<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather mx-1 feather-activity">
+									<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+									</svg>
+								{% if useri.langSet == 0 %}Bei ya Mafuta{% else %} Fuel Price  {% endif %} 
+							
+							</a>
+						</li>
+						<li class="dropdown-divider"></li>
+						{% endif %}
+
+						<li class="mt-2"  >
+							 <a type="button" data-toggle="modal" data-target="#recodiMatumizi" href="#">
+								<svg id="wine" fill-rule="evenodd" class="wine svgmade mx-1"   width="1.0em" height="1.0em" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 404 497">
+									<path d="M132-228.5v86A131.53,131.53,0,0,1,93.06-48.94,131.53,131.53,0,0,1-.5-10h-99a131.53,131.53,0,0,1-93.56-38.94A131.53,131.53,0,0,1-232-142.5v-86H132m19-20H-251a151.58,151.58,0,0,0-1,17v89C-252-58.62-183.38,10-99.5,10h99C83.38,10,152-58.62,152-142.5v-89a151.58,151.58,0,0,0-1-17Z" transform="translate(252 248.5)"/>
+									<line x1="7.5" y1="90" x2="392.5" y2="90" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="30"/>
+									<line x1="201.5" y1="258" x2="201.5" y2="487" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="30"/>
+									<line x1="69.5" y1="487" x2="326.5" y2="487" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="30"/>
+								</svg>
+								{% if useri.langSet == 0 %}Matumizi{% else %} Expenses  {% endif %} 
+							
+							</a>
+						</li>
+						<li class="dropdown-divider"></li>
+
+						{% if not general %}
+
+						{% if manager or useri.admin %}
+
+						<li class="mt-2" >
+							 <a  href="/salepurchase/theshiftsAttend">
+								<svg xmlns="http://www.w3.org/2000/svg" height="1.3em" viewBox="0 -960 960 960" class="mx-1" width="1.3em" fill="currentColor">
+									<path d="M160-120v-640q0-33 23.5-56.5T240-840h240q33 0 56.5 23.5T560-760v280h40q33 0 56.5 23.5T680-400v180q0 17 11.5 28.5T720-180q17 0 28.5-11.5T760-220v-288q-9 5-19 6.5t-21 1.5q-42 0-71-29t-29-71q0-32 17.5-57.5T684-694l-84-84 42-42 148 144q15 15 22.5 35t7.5 41v380q0 42-29 71t-71 29q-42 0-71-29t-29-71v-200h-60v300H160Zm80-440h240v-200H240v200Zm480 0q17 0 28.5-11.5T760-600q0-17-11.5-28.5T720-640q-17 0-28.5 11.5T680-600q0 17 11.5 28.5T720-560Z"/>
+									</svg>  
+							{% if useri.langSet == 0 %}Husika/Pampu{% else %}Pump/Attend {% endif %}	
+							
+							</a>
+						</li>	
+
+						<li class="dropdown-divider"></li>
+
+						<li class="mt-2" >
+							 <a  href="/salepurchase/TankAdjst">
+								<svg xmlns="http://www.w3.org/2000/svg" height="1.3em" class="mx-1" width="1.3em" viewBox="0 0 24 24"  fill="currentColor">
+									<path d="M0 0h24v24H0zm0 0h24v24H0z" fill="none"/>
+									<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5.5 7.5h2v-2H9v2h2V9H9v2H7.5V9h-2V7.5zM19 19H5L19 5v14zm-2-2v-1.5h-5V17h5z"/>
+								  </svg> 
+							{% if useri.langSet == 0 %}Marekebisho{% else %}Adjustment {% endif %}	
+							
+							</a>
+						</li>	
+
+						<li class="dropdown-divider"></li>
+                         <li class="mt-2" >
+							 <a type="button" data-toggle="modal" title="{% if useri.langSet == 0 %}Chukua Pesa Katika Zamu{% else %} Cash Deposit Before{% endif %}"  data-target="#shiftCash" href="#">
+								<svg width="1.2em" height="1.2em" viewBox="0 0 16 16" class="bi bi-cash-stack mx-1 " fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+									<path d="M14 3H1a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1h-1z"/>
+									<path fill-rule="evenodd" d="M15 5H1v8h14V5zM1 4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H1z"/>
+									<path d="M13 5a2 2 0 0 0 2 2V5h-2zM3 5a2 2 0 0 1-2 2V5h2zm10 8a2 2 0 0 1 2-2v2h-2zM3 13a2 2 0 0 0-2-2v2h2zm7-4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+								  </svg>
+								{% if useri.langSet == 0 %}Pesa/Zamu{% else %} Cash/Shift {% endif %} 
+							
+							</a>
+						</li>
+						<li class="dropdown-divider"></li>
+
+						<!-- <li><hr class="dropdown-divider"></li> -->
+
+
+						<li class="mt-2" >
+							 <a  href="/salepurchase/customers">
+
+									<svg xmlns="http://www.w3.org/2000/svg" class="mx-1" width="1.3em" height="1.3em" viewBox="0 0 24 24" style="fill: currentColor;">
+										<path d="M9.5 12c2.206 0 4-1.794 4-4s-1.794-4-4-4-4 1.794-4 4 1.794 4 4 4zm1.5 1H8c-3.309 0-6 2.691-6 6v1h15v-1c0-3.309-2.691-6-6-6z"></path>
+										<path d="M16.604 11.048a5.67 5.67 0 0 0 .751-3.44c-.179-1.784-1.175-3.361-2.803-4.44l-1.105 1.666c1.119.742 1.8 1.799 1.918 2.974a3.693 3.693 0 0 1-1.072 2.986l-1.192 1.192 1.618.475C18.951 13.701 19 17.957 19 18h2c0-1.789-.956-5.285-4.396-6.952z"></path></svg>
+									  
+								
+									
+								{% if useri.langSet == 0 %}Wateja {% else %} Customers  {% endif %} 
+							
+							</a>
+						</li>
+
+						<li class="dropdown-divider"></li>
+
+						<li class="mt-2" >
+							 <!-- <a type="button" data-toggle="modal" data-target="#recodiTransfer" href="#"> -->
+							 <a  href="/salepurchase/FuelTrans">
+								<!-- <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" class="feather feather-truck mx-1">
+									<rect x="1" y="3" width="15" height="13"></rect>
+									<polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+									<circle cx="5.5" cy="18.5" r="2.5"></circle>
+									<circle cx="18.5" cy="18.5" r="2.5"></circle>
+									</svg> -->
+									    <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" fill="currentColor" class="bi bi-arrow-return-left mx-1" viewBox="0 0 16 16">
+										  <path fill-rule="evenodd" d="M14.5 1.5a.5.5 0 0 1 .5.5v4.8a2.5 2.5 0 0 1-2.5 2.5H2.707l3.347 3.346a.5.5 0 0 1-.708.708l-4.2-4.2a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 8.3H12.5A1.5 1.5 0 0 0 14 6.8V2a.5.5 0 0 1 .5-.5z"/>
+										</svg>
+								{% if useri.langSet == 0 %}Pampu &pointint; Tanki{% else %}Pump &pointint; Tank{% endif %} 
+							
+							</a>
+						</li>
+						<li class="dropdown-divider"></li>
+
+						<li class="mt-2" >
+							 <a  href="/salepurchase/FuelReceive">
+								    <!-- <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-1 feather feather-droplet">
+									   <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+									</svg> -->
+									    <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" fill="currentColor" class="bi bi-arrow-return-right mx-1" viewBox="0 0 16 16">
+											<path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 0 0 1 2v4.8a2.5 2.5 0 0 0 2.5 2.5h9.793l-3.347 3.346a.5.5 0 0 0 .708.708l4.2-4.2a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 8.3H3.5A1.5 1.5 0 0 1 2 6.8V2a.5.5 0 0 0-.5-.5z"/>
+										</svg>
+								{% if useri.langSet == 0 %}Tanki &pointint; Tanki{% else %} Tank &pointint; Tank  {% endif %} 
+							
+							</a>
+						</li>
+						<li class="dropdown-divider"></li>
+
+						<li class="mt-2" >
+							 <a  type="button" data-toggle="modal" data-target="#MeterSetting" >
+
+								<svg width="1.1em" height="1.1em" viewBox="0 0 16 16" class="bi bi-sliders mx-1 " fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+									<path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/>
+								  </svg>
+								
+									
+								{% if useri.langSet == 0 %}Mita/Pampu {% else %} Pump/Meter  {% endif %} 
+							
+							</a>
+						</li>
+
+						{% endif %}
+
+						{% endif %}
+
+					   
+					
+					  </ul>			
+			</div>
+
+
+		
+			<select name="lugha" id="lugha">
+				     {% if useri.langSet == 0 %}
+					<option value=0 >SWA</option>
+					<option value=1 >ENG</option>
+					{% else %}
+					<option value=1 >ENG</option>
+                    <option value=0 >SWA</option>
+					
+					{% endif %}
+			</select>
+
+
+			<a href="/notify" class="notification">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bell">
+					<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+				 </svg>
+				 {% if notify %}
+			     	<span class="num">{{notify}}</span>
+				{% endif %}	
+			</a>
+			<a href="#" title="{{useri.user.first_name | title}}" class="profile">
+				<img src=" {% if useri.picha.url is not null %}{{ useri.picha.url }}{% else %}/static/pics/userlogo.png{% endif %}">
+			</a>
+		</nav>
+		<!-- NAVBAR -->
+
+		<!-- MAIN -->
+		<main  >
+			
+				{% block page_content %}
+
+				{% endblock %}
+
+		</main>
+		<!-- MAIN -->
+	</section>
+	<!-- CONTENT -->
+
+	<!-- Modal  Loader-->
+<div class="modal fade" id="loadMe"  tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="loadMeLabel" aria-hidden="true">
+	<div class="modal-dialog  modal-dialog-centered d-flex justify-content-center" role="document" >
+	  <div class="modal-content" style="width:212px;">
+		<div class="modal-body text-left whiteBg" style="padding:5px 11px;width:211px">
+	  <div  class="row ">
+	  
+	  <div class="lds-ring col-3"><div></div><div></div><div></div><div></div></div>
+	  
+		  
+			<div class="col-9 pt-2" > 
+			  
+			  {% if useri.langSet == 0 %} Tafadhari Subiri...  {% else %} Please Wait.. {% endif %}
+			
+		  </div>
+	  </div>
+		</div>
+	  </div>
+	  </div>
+  </div>
+  <!--End of Modal  Loader-->
+
+  <!-- REKODI MATUMIZI ------------------------------------------------------------------ -->
+<div class="modal fade" id="recodiMatumizi"  tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+	  <div class="modal-content">
+		<div class="modal-header">
+		  <h5 class="modal-title">
+			<svg id="wine" fill-rule="evenodd" class="wine svgmade mx-1"  width="20" height="20" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 404 497">
+			  <path d="M132-228.5v86A131.53,131.53,0,0,1,93.06-48.94,131.53,131.53,0,0,1-.5-10h-99a131.53,131.53,0,0,1-93.56-38.94A131.53,131.53,0,0,1-232-142.5v-86H132m19-20H-251a151.58,151.58,0,0,0-1,17v89C-252-58.62-183.38,10-99.5,10h99C83.38,10,152-58.62,152-142.5v-89a151.58,151.58,0,0,0-1-17Z" transform="translate(252 248.5)"/>
+			  <line x1="7.5" y1="90" x2="392.5" y2="90" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="30"/>
+			  <line x1="201.5" y1="258" x2="201.5" y2="487" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="30"/>
+			  <line x1="69.5" y1="487" x2="326.5" y2="487" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="30"/>
+			</svg> 
+			{% if useri.langSet == 0 %}Kurekodi Matumizi  {% else %} Record expenses{% endif %}</h5>
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			  <span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+		<div class="modal-body">
+  
+		  <div id="member_loader2" class="position-absolute classic_div" style="display:none;z-index:100;left:0;top:90px;height: 100%;width:100%;background:rgba(255, 255, 255, 0.63)">
+			<div class="Vendor_loader">Loading...</div>
+		  </div>
+  
+		  <form class="classic_div px-md-4" data-bill=0 data-with_bil=0  id="matumizi_data" action="/accounting/addExpense" >
+			 <div class="form-group mb-3">
+			   <div class="row py-0">
+				 <div class="col-6">
+					  <label for="choose_matum" class="text-danger" >{% if useri.langSet == 0 %}Matumizi{% else %}Expense{% endif %}  <sup>*</sup> </label>
+				 </div>
+				 <div class="col-6 text-right">
+				  <div class="custom-control custom-checkbox">
+					<input type="checkbox" class="custom-control-input" 
+					onchange="if($(this).prop('checked')){$('#tumia_jina').prop('hidden',false);$('#chagua-matumizi').hide()}else{$('#tumia_jina').prop('hidden',true);$('#chagua-matumizi').show()}" 
+					id="tumizi_jipya">
+					<label class="custom-control-label latoFont text-primary cursor-pointer" style="cursor: pointer !important;" for="tumizi_jipya">
+					  {% if useri.langSet == 0 %}Mpya{% else %}New{% endif %}
+					</label>
+				  </div>
+				 </div>
+			   </div>
+  
+			 <input type="text" name="tumia_jina" hidden id="tumia_jina" class="form-control" placeholder="{% if useri.langSet == 0 %}Andika Matumizi{% else %}Write Expese{% endif %}" aria-describedby="helpId">
+  
+			 <div id="chagua-matumizi" >
+					<select name="chagua-matumizi-manunuzini" onchange="$(this).selectpicker('setStyle','bluePrint')" id="chagua-matumizi-manunuzini"   class="form-control border selectpicker" data-live-search="true">
+					  <option data-value=0>{% if useri.langSet == 0 %}--Chagua Matumizi--   {% else %}--Select Expense--{% endif %}</option>
+					 
+					  {% for m in matumizi %}
+					      <option data-value="{{m.id}}" value="{{m.id}}">{{m.matumizi}}</option>
+                      {% endfor %}
+					</select>       
+			 </div>
+  
+  
+  
+		   </div>
+  
+		   <div class="form-group">
+			<label for="pay_from" class="brown" >{% if useri.langSet == 0 %}Malipo Kutoka {% else %}Payment From{% endif %} <sup>*</sup> </label>
+			<select class="custom-select bluePrint" onchange="
+			   const theOp=Number($(this).val())
+			         $('.theOpt').prop('hidden',1)
+					 $(`.theOpt${theOp}`).prop('hidden',0)
+					 $('.btn_option').removeClass('active')
+					 $('#Withdraw').addClass('active')
+			" name="pay_from" id="pay_from">
+				<option value=0 selected>---------------</option>
+				<option value=1>{% if useri.langSet == 0 %}Pampu {% else %}Pump{% endif %}</option>
+				<option value=2>{% if useri.langSet == 0 %}Akaunti za malipo {% else %}Payment accounts{% endif %}</option>
+
+			</select>
+		   </div>
+
+
+		   <div hidden class="theOpt theOpt1">
+
+			<div class="row">
+				<div class="form-group col-6">
+					<label for="dispe3"  >
+					{% if useri.langSet == 0 %}Dispensa{% else %}   Dispanser{% endif %} 
+					
+					</label>
+			
+					<select data-filter="exp_pump" id="dispe3" class=" form-control DispensaSelector  bluePrint btn-sm"  >
+						<option value=0 selected>-----------</option>
+						{% for dis in disp %}
+
+							<option class="bluePrint" data-disp="{{dis.station.id}}" value={{dis.id}}>{{dis.station.name}}</option>
+
+						{%endfor%}
+					
+					</select>
+				
+
+				</div>
+
+				<div class="form-group col-6">
+					<label for="exp_pump" class="brown" >
+					{% if useri.langSet == 0 %}Pampu{% else %} Pump  {% endif %} 
+					<sup>*</sup>
+					</label>
+			
+					<select class=" form-control border  bluePrint" 
+					onchange="
+						var inc = $(this).find('option:selected').data('incharge'),
+							val  = Boolean(Number($(this).val()))
+							
+									$('#show_incharge3').val(val?inc:'')
+									$('#show_Incharge3').prop('hidden',!val)
+									// $(this).selectpicker('setStyle', val?'bluePrint':'')
+
+						"
+					
+					name="exp_pump" id="exp_pump">
+						<option value=0 data-station=0 selected>-----------</option>
+						{% for p in tr_pump %}
+
+							<option class="bluePrint" data-station="{{p.station.id}}" data-incharge="{{p.Incharge.user.first_name|title}}  {{p.Incharge.user.last_name|title}}" data-incharger="{{p.Incharge.id}}" value={{p.id}}>{{p.station.name}} {{p.name}}</option>
+
+						{%endfor%}
+					
+					</select>
+				
+				
+				</div>
+            </div>
+
+			  <div class="form-group" hidden id="show_Incharge3">
+				<label for="show_incharge3">
+				  {% if useri.langSet == 0 %}Mhusika wa Pampu {% else %} Pump Attendant {% endif %} 
+				</label>
+				<input type="text"  readonly
+				  class="form-control bluePrint" name="show_incharge3" id="show_incharge3" aria-describedby="helpId" placeholder="">
+			  </div>
+		   </div>
+  
+		   
+		   <div hidden class="form-group mb-3 theOpt theOpt2">
+			<label class="text-danger" for="matumizi_malipo-akaunti">{% if useri.langSet == 0 %}Akaunti ya Malipo {% else %}Payment Account{% endif %}  <sup>*</sup> </label>
+			<select name=""
+			onchange="
+			var ac = Number($(this).find('option:selected').data('value')),
+				am = Number($(this).find('option:selected').data('amount')),
+				exp = Number($('#tumia_amount').val())
+  
+				if(ac>0){
+				  if(am>=exp){
+					$('#baki_tumia_amount').attr('placeholder',floatValue(am-exp))
+					$('#account_amount_address').prop('hidden',true)
+				  }else{
+					$('#account_amount_address').prop('hidden',false)
+				  }     
+				}
+		  
+		  "
+			id="matumizi_malipo-akaunti" class="form-control machaguo-pesa border smallFont latoFont selectpicker" data-live-search="true">
+			 <option value=0 data-amount=0 data-value=0 >{% if useri.langSet == 0 %}--Chagua Akaunti--{% else %}--Select Account--{% endif %}</option>
+		      {% for ac in payacc %}
+               <option value={{ac.id}} data-amount={{ac.Amount}} data-value="{{ac.id}}" >{{ac.Akaunt_name}}</option>
+			  {%endfor%}
+			
+			</select>
+		   
+		   <small class="text-danger" hidden id="account_amount_address" >
+			 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
+			   <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+			   <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+			 </svg>
+			 {% if useri.langSet == 0 %}Akaunti haina pesa ya kutosha{% else %}The selected account has inssuffient amount{% endif %}
+		   </small>
+	
+		  </div> 
+  
+		  <div hidden class="form-group mb-3 theOpt theOpt1 ">
+			  <label for="payOpt"> {% if useri.langSet == 0 %}Matumizi kwa{% else %}Cost By{% endif %} </label>
+			 <div>
+					<span class="border optionbtns " id="payOpt" >
+						<button type="button" id="Withdraw" data-opt="1" title="{% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}" class="btn-default btn-sm btn btn_option  active" >
+							$ {% if useri.langSet == 0 %}Pesa Taslimu{% else %}Cash Amount{% endif %}
+						</button>
+						<button data-opt="2" title="{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}" id="UseFuel" type="button" class="btn-default btn-sm btn btn_option " >
+						<svg xmlns="http://www.w3.org/2000/svg" width=".9em" height=".9em" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-droplet">
+							<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+							</svg>
+							 {% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}
+						</button>
+
+					</span>
+			 </div>
+
+			</div>
+  
+		   <div class="form-group mb-3">
+			
+               		
+					    <label class="text-danger" for="tumia_amount"> 
+							<span class="cost_opt cost_opt1 theOpt theOpt1 theOpt2">
+								{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}<sup>*</sup> <span class="text-primary">{{currencii}}</span> 
+							</span>  
+							<span class="cost_opt theOpt cost_opt2" hidden >
+								{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %}<sup>*</sup> <span class="text-primary">(LTRS)</span>
+							</span>  
+
+							</label>
+			
+			
+
+			<script>
+				  $('.btn_option').click(function(){
+					   $('.btn_option').removeClass('active')
+					   $(this).addClass('active')
+					   const opt=Number($(this).data('opt'))
+					   $('.cost_opt').prop('hidden',1)
+					   $(`.cost_opt${opt}`).prop('hidden',0)
+					   if(opt==1)$('#tumia_amount').addClass('money-fomat')
+					   if(opt==2)$('#tumia_amount').removeClass('money-fomat')
+				  })
+			</script>
+
+
+  
+			 <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+				  <label class="mt-1 text-danger " for="tumia_amount"></label> 
+				<div class="box-pointer d-inline "></div>
+			  </div>
+			 <input type="number" step="0.01" name="tumia_amount" id="tumia_amount"
+			 onkeyup="
+			   let ac = Number($('#matumizi_malipo-akaunti').find('option:selected').data('value')),
+				   am = Number($('#matumizi_malipo-akaunti').find('option:selected').data('amount')),
+				   exp = Number($(this).val())
+  
+				 
+  
+				   if(ac>0){
+					 if(am>=exp){
+					   $('#baki_tumia_amount').attr('placeholder',floatValue(am-exp))
+					   $('#account_amount_address').prop('hidden',true)
+					 }else{
+					   
+						  $('#account_amount_address').prop('hidden',false)
+					  
+					  
+					 }     
+				   }
+			 
+			 "
+			 class="form-control money-fomat latoFont" placeholder=0 aria-describedby="helpId">
+			
+		   </div> 
+  
+  
+		   <div hidden class="form-group mb-3 theOpt theOpt2">
+			 <label  for="baki_tumia_amount"> {% if useri.langSet == 0 %}Kiasi kinachobaki{% else %}Remaining amount{% endif %}  </label>
+			 <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+			  <label class="mt-1 text-danger " for="baki_tumia_amount"></label> 
+			<div class="box-pointer d-inline "></div>
+		  </div>
+			 <input type="number" name="baki_tumia_amount"
+			 onkeyup="
+				let ac = Number($('#matumizi_malipo-akaunti').find('option:selected').data('value')),
+				am = Number($('#matumizi_malipo-akaunti').find('option:selected').data('amount')),
+				rem = Number($(this).val()),
+				exp = Number($('#tumia_amount').val())
+  
+			   
+				if(ac>0){
+				  if(am >= (rem+exp)){
+					$('#account_remain_address').prop('hidden',true)
+				  }else{
+					$('#account_remain_address').prop('hidden',false)
+				  }     
+				}
+			 "
+			 id="baki_tumia_amount" class="form-control money-fomat latoFont " placeholder=0 aria-describedby="helpId">
+			 <small class="text-danger" hidden id="account_remain_address" >
+			  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
+				<path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+				<path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+			  </svg>
+			  {% if useri.langSet == 0 %}Kiasi Kilichobaki si sahihi{% else %}Amount remains is incorrect{% endif %}
+			</small>
+		 
+			</div> 
+
+
+		   
+		   <div class="form-group mb-3">
+			 <label for="maelezo_matumizi"  > {% if useri.langSet == 0 %}Aliyekabidhiwa{% else %}Given To{% endif %}</label>
+                  <input type="text" name="given_to" id="given_to" class="form-control">			
+		   </div>
+		   
+		   <div class="form-group mb-3">
+			 <label for="maelezo_matumizi"  > {% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %}</label>
+			   <textarea name="maelezo_matumizi" id="maelezo_matumizi" class="form-control"></textarea>    
+			
+		   </div>
+  
+		   <p class="text-center">
+			  <button type="submit" class="btn btn-primary latoFont">Save</button>
+		   </p>
+  
+		  </form>
+		   
+		   <script>
+			 $('#matumizi_data').submit(function(e){
+				   e.preventDefault() ;
+				  const for_bill=$(this).data('with_bil'),
+					  bill=$(this).data('bill'),
+					  mpya = Number($('#tumizi_jipya').prop('checked')), 
+					  name = $('#tumia_jina').val(),
+					  select = Number($('#chagua-matumizi-manunuzini').find('option:selected').data('value')),
+					  
+					  amo = Number($('#tumia_amount').val())||0,
+					  kwa =  $('#given_to').val(),
+					  ac = $('#matumizi_malipo-akaunti').find('option:selected').data('value'),
+					  ac_amo = Number($('#matumizi_malipo-akaunti').find('option:selected').data('amount')),
+					  bak = Number($('#baki_tumia_amount').val())||0,
+					  maelezo = $('#maelezo_matumizi').val(),
+                      opt = Number($('#pay_from').val()),
+                      pump = Number($('#exp_pump').val()),
+					  fuel = Number($('#UseFuel').hasClass('active')),
+					  bal_set =0
+					  if($('#baki_tumia_amount').val()!=''){
+						bal_set =1
+					  }
+  
+					
+					  if(select > 0 || mpya){
+  
+						if(!mpya || name!=''){
+						  if(amo>0){
+							
+							if((ac>0 && ac_amo>=(amo+bak)) ||opt==1){
+								
+							  if((opt==1 && pump)||opt==2){ 
+								
+  
+								$('#recodiMatumizi').modal('hide')
+								$('#loadMe').modal('show')
+							   
+								const data={
+								  data:{
+									for_bill:for_bill,
+									bill:bill,
+									mpya:mpya,
+									name:name,
+									select:select,
+									amo:amo,
+									ac:ac,
+									ac_amo:ac_amo,
+									bak:bak,
+									bal_set:bal_set,
+									maelezo:maelezo,
+									kwa,
+									opt,
+									pump,
+									fuel
+
+								  },
+								  url:$(this).attr('action')
+								}
+  
+								// $('#member_loader2').fadeIn(100)
+
+								const sendIt = POSTREQUEST(data)
+								sendIt.then(resp=>{
+									
+									$('#loadMe').modal('hide')
+									hideLoading()
+  
+
+								    const msg = lang(resp.message_swa,resp.message_eng)
+									if(resp.success){
+									    toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000});
+                                        location.reload()   
+									}else{
+										toastr.error(msg, lang('Haukufanikiwa','Error '), {timeOut: 2000});
+
+									}
+								})
+  
+							  }else{
+                                 if(!pump)$('#exp_pump').selectpicker('setStyle','redborder')
+								 if(!opt)redborder('#pay_from')
+							  }
+
+
+  
+							}else{
+							  $('#matumizi_malipo-akaunti').selectpicker('setStyle', 'border-danger')
+							}
+  
+						  }else{
+							redborder('#tumia_amount')
+						  }
+  
+						}else{
+						  redborder('#tumia_jina')
+						}
+  
+					  }else{
+						
+							$('#chagua-matumizi-manunuzini').selectpicker('setStyle', 'border-danger')
+						
+						
+					  }
+					   
+					 
+			 })
+		   </script>
+		</div>
+		<div class="text-center pb-4">
+		  <button type="button" class="btn btn-light latoFont btn-sm" data-dismiss="modal">Close</button>
+		</div>
+	  </div>
+	</div>
+  </div>
+
+  <!-- BADILI BEI -->
+   <div class="modal fade" id="changeprice" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+				<div class="modal-header">
+						<h5 class="modal-title">
+							{% if useri.langSet == 0 %}Bei ya Mafuta{% else %} Fuel Price  {% endif %} 
+						</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+					</div>
+			<div class="modal-body">
+				<div class="container-fluid">
+					<form action="/salepurchase/changePrice" id="chabgePriceForm" method="post">
+					   {% csrf_token %}
+						<div class="row " >
+						<div class="col-5">
+							Fuel
+						</div>
+						<div class="col-7">
+							Price
+						</div>
+					</div>
+				
+							{% for f in  fuel_price %}
+								<div class="row mt-2 border py-2">
+
+								
+								<div class="col-5 pt-2 brown">
+									{{f.fuel.name}}
+								</div>
+
+
+								<div class="col-7">
+									<div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+										<label class="mt-1 text-danger " for="priceChange"></label> 
+									  <div class="box-pointer d-inline "></div>
+									</div>
+
+									<input type="number" data-fuel="{{f.fuel.id}}" placeholder="{{f.price|floatformat:'-2'|intcomma}}" style="border:none" class="money-fomat priceChange form-control">
+								</div>
+
+								</div>
+							{% endfor %}
+
+							<div class="form-group mt-2">
+								<label for="chPrDesc">{% if useri.langSet == 0 %}Maelekezo{% else %} Remarks  {% endif %} </label>
+								<textarea class="form-control" name="chPrDesc" id="chPrDesc" rows="3"></textarea>
+							  </div>
+
+							<h6 class="my-2" >
+							 	{% if not general %}
+							      Station:  {{shell.name}}
+								{% else %}   
+                                   General
+								{% endif %}
+							</h6>
+
+							<div class="mb-3">
+								<div class="custom-control custom-checkbox">
+									{% if general  %}
+								    	<input type="checkbox" checked disabled  class="custom-control-input" id="allStations">
+									{% else %}
+                                          <input type="checkbox"  class="custom-control-input" id="allStations">
+									{% endif %}
+									<label class="custom-control-label latoFont text-primary cursor-pointer" style="cursor: pointer !important;" for="allStations">
+									  {% if useri.langSet == 0 %}Stesheni zote {% else %}All Stations{% endif %}
+									</label>
+								  </div>
+							</div>
+
+
+
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+									<button type="submit" class="btn btn-primary">Save</button>
+								</div>
+					</form>
+					
+
+				</div>
+			</div>
+
+		</div>
+	</div>
+   </div>
+   
+
+
+  <!--CASH OUT BEFORE SHIFT  -->
+  <!-- Modal -->
+  <div class="modal fade" id="shiftCash" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+				<div class="modal-header">
+						<h5 class="modal-title"> {% if useri.langSet == 0 %}Chukua Pesa kutoka zamu{% else %}Cash Out From Shift{% endif %}</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+					</div>
+			<div class="modal-body">
+
+				<form id="cashOutForm" action="/salepurchase/cashOut" method="post">
+						<div class="form-group">
+							<label for="pump_attendant" class="brown" >
+							{% if useri.langSet == 0 %}Mhusika wa Pampu {% else %} Pump  Incharge {% endif %} 
+							<sup>*</sup>
+							</label>
+					
+							{% block cashDepoIncharge %}
+							<select class=" form-control selectpicker bluePrint" data-live-search="true"
+							onchange="
+								var inc = $(this).find('option:selected').data('incharge'),
+									val  = Boolean(Number($(this).val()))
+									
+											$('#show_incharge3').val(val?inc:'')
+											$('#show_Incharge3').prop('hidden',!val)
+											$(this).selectpicker('setStyle', val?'bluePrint':'')
+			
+								"
+							
+							name="pump_attendant" id="pump_attendant">
+
+							
+								<option value=0 selected>-----------</option>
+								{% for p in PumpAttend %}
+			
+									<option class="bluePrint"   value={{p.id}}>{{p.by.user.first_name|title}}  {{p.by.user.last_name|title}}</option>
+			
+								{%endfor%}
+							
+
+							</select>
+                     {% endblock %}
+						</div>
+
+								<div  class="form-group mb-3  ">
+									<label class="text-danger" for="cashOutAcc">{% if useri.langSet == 0 %}Akaunti ya Malipo {% else %}Payment Account{% endif %}  <sup>*</sup> </label>
+									<select name="cashOutAcc"
+									onchange="$(this).selectpicker('setStyle','bluePrint')"
+									
+									id="cashOutAcc" class="form-control machaguo-pesa smallFont latoFont selectpicker" data-live-search="true">
+									<option value=0 data-amount=0 data-value=0 >{% if useri.langSet == 0 %}--Chagua Akaunti--{% else %}--Select Account--{% endif %}</option>
+									{% for ac in payacc %}
+									<option value={{ac.id}} data-amount={{ac.Amount}} data-value="{{ac.id}}" >{{ac.Akaunt_name}}</option>
+									{%endfor%}
+									
+									</select>
+								
+								
+							
+								</div> 
+
+								<div class="form-group">
+									<label for="CashOutAmo" class="brown" >{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">{{currencii}}</span> <sup>*</sup> </label>
+									
+									<div class="show_curency_block show_curency position-absolute text-danger   px-3" style="display: none ;">
+										<label class="mt-1 text-danger" for="CashOutAmo" ></label> 
+										<div class="box-pointer d-inline "></div>
+									</div>
+
+									<input type="number"
+									class="form-control money-fomat bluePrint btn-sm" name="CashOutAmo" id="CashOutAmo" aria-describedby="helpId" placeholder="">
+									
+								</div>
+
+								<div class="form-group">
+									<label for="kabidhiwa">{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %}Given To{% endif %}  </label>
+									
+								
+
+									<input type="text"
+									class="form-control money-fomat bluePrint btn-sm" name="kabidhiwa" id="kabidhiwa" aria-describedby="helpId" >
+									
+								</div>
+
+								<div class="form-group">
+									<label for="kabidhiwa">
+										{% if useri.langSet == 0 %}Maelezo{% else %}Remarks{% endif %}  
+									</label>
+									<textarea name="CashBReasons" id="CashBReasons" class="form-control" ></textarea>
+								
+
+												
+								</div>
+
+								
+
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+								<button type="submit" class="btn btn-primary">Save</button>
+							</div>
+				</form>
+
+
+
+
+			</div>
+
+		</div>
+	</div>
+  </div>
+  
+
+
+
+
+ 
+   <!-- PUMP METER READINGS SETTINGS -->
+   <div class="modal fade" id="MeterSetting" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+				<div class="modal-header">
+						<h5 class="modal-title">
+							{% if useri.langSet == 0 %}Marekebisho Kwenye Mita ya Pampu{% else %} Pump Meter setting {% endif %} 
+						</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+					</div>
+			<div class="modal-body">
+				<div class="container-fluid">
+
+					<form method="post" id="pumpReadSett" action="/salepurchase/pumpSetting">
+							<div class="row">
+
+								<div class="form-group col-6">
+								<label for="disp_sett"  >
+									{% if useri.langSet == 0 %}Dispensa{% else %}   Dispanser{% endif %} 
+									
+								</label>
+							
+									<select data-filter="set_pump" id="disp_sett" class=" form-control DispensaSelector  bluePrint btn-sm"  >
+										<option value=0 selected>-----------</option>
+										{% for dis in disp %}
+			
+											<option class="bluePrint" data-disp="{{dis.station.id}}" value={{dis.id}}>{{dis.station.name}}</option>
+			
+										{%endfor%}
+									
+									</select>
+								
+
+								</div>
+								
+			
+								<div class="form-group col-6">
+								<label for="set_pump" class="brown" >
+									{% if useri.langSet == 0 %}Pampu{% else %} Pump  {% endif %} 
+									<sup>*</sup>
+								</label>
+							
+								<select class=" form-control  bluePrint btn-sm" 
+								onchange="
+								   const niSh = Number($(this).find('option:selected').data('incharger')) || 0,
+								         rd = Number($(this).find('option:selected').data('reading')) || 0
+								         
+										 $('#pmpSettSubmitBtn').prop('disabled',niSh)
+										 $('#shiftAlert').prop('hidden',!niSh)
+										
+										 $('#pump_sett_read').attr('placeholder',rd.toFixed(2).toLocaleString())
+
+								"
+								
+								name="set_pump" id="set_pump">
+									<option data-station=0 value=0 selected>-----------</option>
+									{% for p in tr_pump %}
+		
+										<option class="bluePrint" data-station="{{p.station.id}}" data-reading="{{p.readings}}"  data-price="{{p.tank.price}}" data-incharge="{{p.Incharge.user.first_name|title}}  {{p.Incharge.user.last_name|title}}" data-incharger="{{p.Incharge.id}}" value={{p.id}}>{{p.station.name}} {{p.name}}</option>
+		
+									{%endfor%}
+								
+								</select>
+								
+								
+								</div>
+							</div>
+
+							<div id="shiftAlert" hidden  >
+							
+										<p class="d-flex" >
+
+										
+										<span class="mr-2 brown">
+										<svg xmlns="http://www.w3.org/2000/svg" width="2.3em" height="2.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle">
+											<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+											<line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
+										</svg>
+									</span>
+
+										<small class="brown" >
+											{% if useri.langSet == 0 %}
+												Vipimo vya mita haviwezi kubadilishwa ikiwa zamu katika pampuhiyo haijamalizika 
+												<i class="text-info">Vipimo vitabadilishwa iwapo pampu haipo kwenye zamu</i>
+											{% else %} 
+												Pump meter readings can't be change when the pump is in shift 
+												<i class="text-info">Pump meter readings can be changed when the pump is in shift free</i>
+											{% endif %}
+										</small>
+
+									</p>
+
+							</div>
+							
+							<div class="form-group ">
+								<label for="pump_sett_read" class="brown" >
+									{% if useri.langSet == 0 %}Mita Inasoma{% else %} Meter Reading  {% endif %} 
+									<sup>*</sup>
+								</label>
+							
+								<input type="number" step="0.01" id="pump_sett_read" name="pump_sett_read" class="form-control">
+								
+								
+							</div>
+
+							<div class="form-group ">
+								<label for="pump_sett_desc"  >
+									{% if useri.langSet == 0 %}Maelezo{% else %} Remarks {% endif %} 
+									
+								</label>
+							
+								<textarea name="pump_sett_desc" id="pump_sett_desc" class="form-control"></textarea>
+								
+								
+							</div>
+
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+									<button type="submit" id="pmpSettSubmitBtn" class="btn btn-primary">Save</button>
+								</div>
+
+					</form>
+
+				</div>
+			</div>
+
+		</div>
+	</div>
+   </div>
+   
+
+  
+{% include 'companyHeader.html' %}
+
+  <script>
+	// Price Change...............................//
+	$('#pumpReadSett').submit(function(e){
+		e.preventDefault()
+        const pmp = Number($('#set_pump').val()),
+		       isSh =   Number($('#set_pump').find('option:selected').data('Incharger')) || 0,
+			   read = $('#pump_sett_read').val(),
+			   desc = $('#pump_sett_desc').val(),
+			   url = $(this).attr('action'),
+			   data = {
+				data:{pmp,isSh,read,desc},url
+			   }
+			   if(pmp&&!isSh&&read!=''){
+                    $('#MeterSetting').modal('hide')
+                    $('#loadMe').modal('show')
+					const sendIt = POSTREQUEST(data)
+					sendIt.then(resp=>{
+						$('#loadMe').modal('hide')
+						hideLoading()
+						const msg = lang(resp.swa,resp.eng)
+						if(resp.success){
+							toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2000});
+							location.reload()
+						}else{
+							toastr.error(msg, lang('Haikufanikiwa','Error'), {timeOut: 2000});
+						}
+					})
+			   }else{
+				  if(!pmp)redborder('#set_pump')
+				  if(read=='')redborder('#pump_sett_read')
+			   }
+
+
+	})
+
+	// Price Change...............................//
+	$('#chabgePriceForm').submit(function(e){
+          e.preventDefault()
+          let pr = []   
+
+		  $('.priceChange').each(function(){
+			 const dt={
+				'price':Number($(this).val()) || 0,
+				'fuel':Number($(this).data('fuel'))
+			 }
+			 pr.push(dt)
+		  })
+         
+		  $('#changeprice').modal('hide')
+		  $('#loadMe').modal('show')
+
+		  const url = $(this).attr('action'),
+		        all = Number($('#allStations').prop('checked')),
+				desc = $('#chPrDesc').val(),
+		        data = {
+					data:{
+					pr:JSON.stringify(pr),
+					all,
+					desc
+			},url},
+
+			sendIt = POSTREQUEST(data)
+			sendIt.then(resp=>{
+				$('#loadMe').modal('hide')
+				hideLoading()	
+                   const msg = lang(resp.swa,resp.eng)
+				 if(resp.success){
+					toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2000});
+					location.reload()
+				 }else{
+                    toastr.error(msg, lang('Haikufanikiwa','Error'), {timeOut: 2000});
+				 }
+			})
+        
+			
+
+	})
+
+
+	// Record CashOut
+	$('#cashOutForm').submit(function(e){
+		e.preventDefault()
+		const url = $(this).attr('action'),
+		shift = Number($('#pump_attendant').val()),
+		acco = Number($('#cashOutAcc').val()),
+		To = $('#kabidhiwa').val(),
+		desc = $('#CashBReasons').val(),
+		amoC = Number($('#CashOutAmo').val())||0,
+
+		data = {
+			data:{
+			shift,
+			amoC,
+			acco,
+			desc,
+			To
+			
+		},
+			url
+		}
+
+		if(shift&&amoC&&acco){
+            $('#shiftCash').modal('hide')      
+            $('#loadMe').modal('show')      
+			const sendIt=POSTREQUEST(data)
+			sendIt.then(resp=>{
+				$('#loadMe').modal('hide')
+               hideLoading()
+			   const   msg = lang(resp.msg_swa,resp.msg_eng)
+			   if(resp.success){
+                    toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000});
+                    // location.replace(`/salepurchase/viewTransfer?i=${resp.id}`)
+					location.reload()
+                }else{
+                        toastr.error(msg, lang('Haikufanikiwa','Error '), {timeOut: 2000});
+            
+                }
+			})
+
+		}else{
+			if(!shift)$('#pump_attendant').selectpicker('setStyle','redborder')
+			if(!acco)$('#cashOutAcc').selectpicker('setStyle','redborder')
+		
+			if(!amoC)$('#CashOutAmo').addClass('redborder')
+		}
+
+		       
+	})
+   
+	// RECORD RECEIVE......................................//
+	function retreveTr(t){
+        const data = {
+			data:{t:t.vali},
+			url:'/salepurchase/getTr'
+		},
+		sendIt = POSTREQUEST(data)
+		sendIt.then(resp=>{
+			const tr = resp?.trs,
+			tank_qty = Number(t.t_qty)
+			let trd = '',tt_qty = 0,topt='<option value=0 selected>-----------</option>'
+			// console.log(resp);
+			tr.forEach(tt => {
+				const ttqty = Number(tt.qty)-(Number(tt.qty_sales) + Number(tt.qty_used) + Number(tt.qty_trans))
+				
+				if(ttqty>0){
+					  trd += `
+							<div class="row">
+								<div class="col-7" >
+									<small class="d-block"> <span class="text-primary">TR-${tt.code}</span><span class="ml-1 text-capitalize pl-1 border-left">${tt.shell_name} </span></small>
+									<small class="d-block ">Tank: <span class="brown text-capitalize"> ${tt.FRom} </span><span id="tnkqty${tt.id}" class="ml-1 pl-1 border-left">${Number(ttqty).toFixed(2).toLocaleLowerCase()}LTRS</span> </small>
+								</div>
+								<div class="col-5" >
+									<input type="number" data-sa="${t?.sa?1:0}" data-rc='${t?.rc?1:0}' data-qty="${ttqty}" data-tr="${tt.id}"  step="0.01" class=" form-control rcv_qty" />
+								</div>
+							</div>	
+							<hr/>
+					`
+					tt_qty += Number(ttqty)
+				}
+				
+			});
+
+			const resev_qty = tank_qty - tt_qty
+
+			if(resev_qty){
+				trd+=`<div class="row">
+							<div class="col-7" >
+								<small class="d-block"> <span class="text-primary">Tank Reserve</span></small>
+								<small class="d-block">Tank: <span class="brown text-capitalize">${t.tank_to} 
+									</span> <span id="tnkqty0" class="ml-1 pl-1 border-left">${Number(resev_qty).toFixed(2).toLocaleLowerCase()}LTRS</span>  </small>
+							</div>
+							<div class="col-5" >
+								  <input type="number"  data-sa="${t?.sa?1:0}" data-rc='${t?.rc?1:0}' data-qty="${resev_qty}" data-tr=0  step="0.01" class=" form-control rcv_qty" />
+							</div>
+						</div>	
+						<hr/>`
+			}
+
+
+			trd+=`
+			        <div class="row"  >
+			                        <div class="col-7">
+										
+										{% if useri.langSet == 0 %}Jumla{% else %} Total  {% endif %} <span class="text-primary">LTRS</span>
+									</div>
+									<div class="col-5">
+										
+										<input type="text" class="form-control" data-total=0  readonly id="total_qty" >
+									</div>
+									</div>
+									<hr/>
+			`
+
+
+
+			
+				
+			resp.tanks.forEach(tn => {
+				topt+= `<option data-qty="${tn.qty}" data-name="${tn.name}" value=${tn.id}>${tn.name}</option>`
+			});
+
+            
+			if(t?.rc){
+				$("#rcto_tank").html(topt)
+			    $("#rcto_tank").selectpicker('refresh')
+			}
+		
+			let thisIsTo = '',refresh_tanks = ''
+			if(t?.rc){thisIsTo = "#TransferrecordsRc";refresh_tanks = '#safrm_tank'}
+			if(t?.sa){thisIsTo = "#TransferrecordsSa";refresh_tanks = '#rcfrm_tank'}
+            $(refresh_tanks).selectpicker('refresh')
+            $(refresh_tanks).val(0)
+			
+
+            $('.Transferrecords').html('')  
+
+			$(thisIsTo).html(trd)
+
+
+		})
+
+	}
+
+ 	  $('body').on('keyup','.rcv_qty',function(e){
+                //    console.log(sumL());
+                
+				let tot_L = 0,sa=0,rc=0
+				$('.rcv_qty').each(function(){
+					
+                       const val = Number($(this).val()) || 0,
+					         tr = Number($(this).data('tr')),
+							 itsqty = Number($(this).data('qty'))
+							 sa = Number($(this).data('sa'))
+							 rc = Number($(this).data('rc'))
+							 if(itsqty<val){
+								$(this).addClass('redborder')
+								$(`#tnkqty${tr}`).addClass('text-danger')
+							}else{
+                                $(this).removeClass('redborder')
+								$(`#tnkqty${tr}`).removeClass('text-danger')
+								}
+					   tot_L+=val
+
+				})
+
+				$('#total_qty').val(tot_L.toLocaleString());
+				$('#total_qty').data('total',tot_L);
+				if(sa)setPrice(tot_L)
+              
+			})
+
+	$('.priceInput').keyup(function(){
+		const price = Number($(this).val()),
+		      isTot = Number($(this).data('total')) || 0,
+			  opt = Number($('#sale_opt').val()),
+			  qty = opt==1?Number($('#sa_qty').val()):opt==2?Number($('#total_qty').data('total')):0
+			  if(isTot){
+					   $('#FuelPrice').val('')
+			           if(isTot)$('#FuelPrice').attr('placeholder',Number(price/qty).toLocaleString())
+			  }else{
+		         	$('#FuelPriceTotal').val('')
+		         	$('#FuelPriceTotal').attr('placeholder',Number(price*qty).toLocaleString())
+			}
+		
+			  
+	})		  
+	
+	function setPrice(p){
+				const saprice = Number($('#FuelPrice').data('price'))
+					$('#FuelPriceTotal').attr('placeholder',Number(saprice*p).toLocaleString())
+
+	}
+
+ 
+//    Dispenser selector
+$('body').on('change','.DispensaSelector',function(){
+	const disp = Number($(this).find('option:selected').data('disp')),
+	      filter = $(this).data('filter')
+		  if(disp){
+			
+			'{% if  isTrPanel %}'
+
+			     const pos = Number($(this).data('pos')),
+				    {mv,pmp,tr_tank} = trT(),
+					fuel = Number($(`#${tr_tank}${pos}`).find('option:selected').data('fuel'))||0,
+					
+					tank = Number($(`#${tr_tank}${pos}`).val())||0
+					
+					
+
+					if(!mv){
+						$(`#${pmp}${pos} option`).hide()
+						$(`#${pmp}${pos} option[data-fuel=${fuel}]`).show()
+						$(`#${pmp}${pos} option[data-tank=${tank}]`).hide()              
+					}else{
+
+						$(`#${filter} option`).hide()
+						$(`#${filter} option[data-station=0]`).show()
+						$(`#${filter} option[data-station=${disp}]`).show()	
+
+					}
+
+			 '{% else %}'
+						$(`#${filter} option`).hide()
+						$(`#${filter} option[data-station=0]`).show()
+						$(`#${filter} option[data-station=${disp}]`).show()	
+
+			'{% endif %}'
+				
+		  }else{
+			$(`#${filter} option`).show()
+		  }
+
+         $(`#${filter}`).val(0)	
+
+		//   console.log(disp,filter);
+})
+
+// CONTAINER SECTION FILTER
+$('.tankContainers').change(function(){
+	const filt = $(this).find('option:selected').data('filter'),
+	      val = $(this).val()
+		  if(val){
+			$(`${filt} option`).hide()
+			$(`${filt} option[data-cont=${val}]`).show()
+		  }else{
+			$(`${filt} option`).show()
+		  }
+		  $(filt).val(0)	
+		  
+})
+
+ </script>
+
+
+
+  <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+     
+    <input type="text" id="fedha" hidden value="{{currencii}}" >
+	
+	<script src="/static/js/lugha.js" ></script>
+	<script src="/static/js/toastr.min.js" ></script>
+
+	<script src="/static/js/script.js"></script>
+
+	<script src="{% static 'js/dataTables.min.js' %}"></script>
+
+	<script src="{% static 'js/dataTables.bootstrap4.min.js' %}"></script>
+
+
+
+
+	<script>
+		  $('body').on('blur','.form-control,.made-input',function(){
+				if($(this).hasClass("redborder") && $(this).val()!=''){
+				$(this).removeClass("redborder")
+				}
+			})
+			
+	
+			$('#lugha').change(function(){
+				const dt = {lang:$(this).val()}
+				changeLang(dt)
+			})
+
+  function changeLang(data){
+
+	const toSend = GETREQUEST({data:data,url:'/langSet'})
+	toSend.then(resp=>{
+		location.reload()
+	})
+
+
+  }
+
+  $('body').on('keyup','.money-fomat',function(){
+  if( Number($(this).val())>0 && $(this).val()!='' ){
+        $(this).siblings('.show_curency').fadeIn(400)
+
+   $(this).siblings('.show_curency').children('label').text(floatValue($(this).val()))
+ }else{
+  $(this).siblings('.show_curency').fadeOut(400)
+
+ }
+})
+
+$('body').on('focus','.money-fomat',function(){
+  if(Number($(this).val())>0){
+    $(this).siblings('.show_curency').fadeIn(400)
+    $(this).siblings('.show_curency').children('label').text(floatValue($(this).val()))
+
+ }
+})
+
+$('body').on('blur','.money-fomat',function(){
+  $(this).siblings('.show_curency').fadeOut(400)
+
+})
+	</script>
+
+	
+
+  {% block additionaljs %}{% endblock %}
+</body>
+</html>

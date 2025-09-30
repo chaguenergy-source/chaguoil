@@ -1,0 +1,189 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Kuhamisha mafuta{% else %} Fuel Tranfer{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+   
+
+
+</div>
+
+<div class="table-data">
+    <div class="order">
+
+             {% include 'headingfuel.html' %} 
+              
+              
+      <div class="head">
+
+
+        <h5 >
+
+             &pointint;
+
+                {% if useri.langSet == 0 %}Kuhamisha Kutoka Pampu kwenda Tanki{% else %}Fuel Transfer Pump to Tank{% endif %}</h5>
+        
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered"  >
+            <thead>
+                <tr class="text-center" >
+                    <th class="p-2">{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %} </th>
+                    {% if general %}
+                    <th class="p-2">{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %} </th>
+                    {% endif %}
+                   
+                    <th class="p-2">{% if useri.langSet == 0 %}Kusafirisha{% else %}Transfer{% endif %} </th>
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Msimamizi{% else %}Supervisor{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Msafirishaji{% else %}Transfer By{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Kwenda{% else %}To{% endif %} </th>
+
+                    <!-- <th class="p-2">{% if useri.langSet == 0 %}Kutoka Tanki{% else %}From Tank{% endif %} </th>
+
+                    
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">(Liter)</span> </th>
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Thamani{% else %}Worth{% endif %} </th>
+                     -->
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %} </th>
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Imelekodiwa na{% else %}Recorded by{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %} </th>
+
+                  
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for t in tr %}
+                <tr  >
+                      <td>
+                        <script>
+                            document.write(moment('{{t.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                        </script> 
+                      </td>
+
+                      {% if general %}
+                        <td class="bluePrint" ><u>{{t.record_by.Interprise.name}}</u>   </td>
+                      {% endif %}
+
+                      <td>
+                        <a href="/salepurchase/viewTransfer?i={{t.id}}">
+                            PTR-{{t.code}}
+                        </a>
+                    </td>
+
+                      <td>
+                        {{t.trSup.sup.user.first_name|title}} {{t.trSup.sup.user.last_name|title}}
+                      </td>
+                      <td>
+                        {{t.Transfer_by.user.first_name|title}} {{t.Transfer_by.user.last_name|title}}
+                      </td>
+
+                     <td>
+                          {% if t.tr_by %}
+                                {% if useri.langSet == 0 %}Tanki Jingine{% else %}Other Station Tank{% endif %}
+                          {% else %}
+                                {% if useri.langSet == 0 %}Nje ya Kituo{% else %}Out the Station{% endif %}
+
+                          {% endif %}
+                     </td>
+
+                      <!--  <td>{{t.to.name}}</td>
+
+                      <td>{{t.qty   | floatformat:'-3'  | intcomma}}</td>
+
+                      <td>
+                           <script>
+                                var qty = Number('{{t.qty}}'),
+                                    cost = Number('{{t.saprice}}'),
+                                    worth = qty * cost
+                                    document.write(Number(worth).toLocaleString()) 
+                           </script>
+                      </td> -->
+
+                      <td class="px-2" > <small>{{t.desc}}</small> </td>
+                      <td>{{t.record_by.user.user.first_name | title}} {{t.record_by.user.user.last_name | title}}</td>
+                      <td>
+                        <a href="/salepurchase/viewTransfer?i={{t.id}}" class="btn-light btn btn-sm" title="{% if useri.langSet == 0 %}Onesha{% else %}View{% endif %}" >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </a>
+                      </td>  
+                    </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+      </div>
+
+      <p class=" p-4 border-top">
+           
+        {% if tr.has_previous %}
+          <a href="{% url 'fueltransfer' %}?page=1" type="button"  class="btn btn-default border0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
+            </svg>
+            </a>
+      
+            <a href="{% url 'fueltransfer' %}?page={{tr.previous_page_number}}" type="button"  class="btn btn-default  border0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+              </svg>
+            </a>
+          {% endif %}
+      
+        {% if tr.has_next %}
+            <a href="{% url 'fueltransfer' %}?page={{tr.next_page_number}}" type="button" class="btn btn-default border0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+              </svg>
+            </a>
+      
+            <a href="{% url 'fueltransfer' %}?page={{pages}}" type="button"  class="btn btn-default border0" >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
+              </svg>
+            </a>
+      {% endif %}
+            <label for="">
+             
+              {% if useri.langSet == 0 %} Ukurasa wa {{p_num}} kati ya {{pages}} {% else %} page {{p_num}} of {{pages}} {% endif %}
+      
+            </label>
+        </p>
+
+
+     
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block fuel %} active {% endblock %}

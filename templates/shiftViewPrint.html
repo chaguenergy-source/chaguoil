@@ -1,0 +1,815 @@
+{% load humanize %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" >
+
+	
+
+
+
+	<link rel="stylesheet" href="/static/css/mediascreen.css">
+	<link rel="stylesheet" href="/static/css/style.css">
+
+
+
+
+    <!-- Latest compiled and minified CSS -->
+
+    <!-- Latest compiled and minified JavaScript -->
+    <!-- <script src="{% static 'js/bootstrap-select.min.js' %}"></script> -->
+    
+	<!-- <script src="{% static 'js/validator.min.js' %}"></script> -->
+        <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+
+
+<script src="/static/js/jquery.js" crossorigin="anonymous"></script>
+<script src="/static/js/bootstrap.min.js" ></script>
+<!-- <script src="/static/js/moment.min.js" ></script> -->
+<script src="/static/js/momentlocale.js" ></script>
+<script src="{% static 'js/qrcode.min.js' %}"></script>
+
+    <title>
+        SHF-{{trf.code}}
+    </title>
+</head>
+<body>
+
+    <div class="classic_div mt-sm-2 pt-3 pb-2 px-3 the_invo_page" id="the_invo_page" >
+       
+            <h5 class="text-secondary mt-1 pb-3  border-bottom font-weight-bold">
+                {% if useri.langSet == 0 %}NOTISI YA ZAMU KWENYE PAMPU{% else %}PUMP SHIFT NOTE{% endif %}
+             </h5>
+
+              <div class="row mt-3">
+
+            
+
+                 <div class="col-3">
+                    {% if useri.langSet == 0 %}Kituo {% else %}Station{% endif %}
+                 </div>
+                 <div class="col-9">
+                   
+                       {{trf.record_by.Interprise.name|title}}  
+                    
+
+                </div>
+
+                 <div class="col-3">
+                    {% if useri.langSet == 0 %}Zamu {% else %}Shift{% endif %}#
+                 </div>
+                 <div class="col-9 text-primary ">
+                    SHF-{{trf.code}}
+                 </div>
+
+                 <div class="col-3">
+                    {% if useri.langSet == 0 %}Mpango Zamu {% else %}Shift Session{% endif %}
+                 </div>
+                 <div class="col-9 text-primary ">
+                    <a href="/salepurchase/SessionView?i={{trf.session.session.name}}">
+                        <u>{{trf.session.session.name}}</u> 
+                     </a>
+                 </div>
+
+                 
+
+                 <div class="col-3">
+                     {% if useri.langSet == 0 %}Kuanzia {% else %}From{% endif %}
+                 </div>
+                 <div class="col-9">
+                         <script>
+                            document.write(moment('{{trf.From | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                        </script>     
+                 </div>
+
+                 <div class="col-3">
+                    {% if useri.langSet == 0 %}Hadi {% else %}To{% endif %}
+                 </div>
+                 <div class="col-9">
+                      {% if trf.To %}
+                        <script>
+                            document.write(moment('{{trf.To | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                        </script>
+                      {% else %}
+                          {% if useri.langSet == 0 %}Sasa {% else %}Now{% endif %}
+  
+                      {% endif %}
+                  </div>
+                 <div class="col-3">
+                    {% if useri.langSet == 0 %}Mhusika {% else %}Incharge{% endif %}
+                 </div>
+                 <div class="col-9 ">
+                       <span class="bluePrint" > {{trf.by.user.first_name | title}} {{trf.by.user.last_name| title}}</span>  ({{trf.by.cheo}})
+                  </div>
+                 <div class="col-3">
+                    {% if useri.langSet == 0 %}Imerekodiwa na {% else %}Recorded By{% endif %}
+                 </div>
+                 <div class="col-9 ">
+                       <span class="bluePrint" > {{trf.record_by.user.user.first_name | title}} {{trf.record_by.user.user.last_name| title}}</span>  ({{trf.record_by.user.cheo}})
+                  </div>
+
+
+             </div>
+
+             <hr>
+  
+
+             <h6>
+                <strong> {% if useri.langSet == 0 %}Pampu alizosimamia {% else %} Pumps Assigned{% endif %} </strong> 
+
+            </h6>
+                    {% for f in fshp %}
+                    <div class="brown mt-3 weight500 smallFont">
+                        
+                        {% if useri.langSet == 0 %}Pampu za <u>{{f.f.Fuel.name}}</u> 
+                        {% else %}
+                            <u>{{f.f.Fuel.name}}</u> Pumps  
+                        {% endif %}
+                    </div>
+    
+                    <div class="classic_div  table-sm-responsive " >
+                        
+                        <div class="row p-0 classic_div border" style="min-width: 700px;" >
+                            <!-- <div class="col-1 border">#</div> -->
+                            <div class="col-2 col-md-3 mx-0 smallFont weight500 border">
+                                <th>{% if useri.langSet == 0 %}Dispensa {% else %} Dispanser {% endif %}</th>
+                            </div>
+    
+                            <div class="col-10 col-md-9 mx-0 smallFont weight500 row p-0 border">
+                                <div class="col-2 mx-0">
+                                    {% if useri.langSet == 0 %}Pampu  {% else %} Pumps  {% endif %}
+                                </div>
+    
+                                <div class="col-2 smallFont weight500">
+                                    {% if useri.langSet == 0 %}Kufungua  {% else %} Opening  {% endif %}
+                                </div>
+                                <div class="col-2 mx-0 smallFont weight500">
+                                    {% if useri.langSet == 0 %}Kufunga {% else %}Closing  {% endif %}
+    
+                                </div>
+    
+                                <div class="col-2 mx-0 smallFont weight500">
+                                    {% if useri.langSet == 0 %}Bei {% else %}Price  {% endif %}/<span class="text-primary">LTR</span>
+                                </div>      
+    
+                                <div class="col-2 mx-0 smallFont weight500">
+                                    {% if useri.langSet == 0 %}Flow {% else %}Flow  {% endif %} <span class="text-primary">LTRS</span>
+    
+                                </div>
+    
+                                <div class="col-2 mx-0 smallFont weight500">
+                                    {% if useri.langSet == 0 %}Kiasi {% else %}Amount  {% endif %} <span class="text-primary">({{currencii}})</span>
+    
+                                </div>
+                            </div>
+    
+                            
+                            {% for  sp in spancer_shp %}
+                                            
+                            {% if sp.pump.tank.fuel.id == f.f.pump.tank.fuel.id %} 
+                            <!-- <div class="col-1 border">{{forloop.counter}}</div> -->
+                            <div class="col-2 col-md-3 weight600 border mx-0">
+                                {{sp.pump.station.name}}
+                            </div>
+                            <div class="col-10 smallFont col-md-9 p-0 border mx-0 row">
+                                {% for s in shpmp %}
+                                    {% if sp.pump.station == s.pump.station %}  
+                                    <div class="col-2 mx-0 weight600">{{s.pump.name}}</div>
+                                    <div  class="col-2 "  >{{s.initial|floatformat:'-2'|intcomma}}</div>
+                                    <div class="col-2">{{s.final|floatformat:'-2'|intcomma}}</div>
+                                  
+                                    <div class="col-2 mx-0">
+                                        {{s.price|floatformat:'-2'|intcomma}}
+                                    </div>
+    
+                                     <div class="col-2 tot_pump_liter{{s.id}}">{{s.qty|floatformat:'-2'|intcomma}}</div>
+                                    <div class="col-2 tot_pump_Amount{{s.id}}">{{s.amount|floatformat:'-2'|intcomma}}</div>    
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+    
+                            {% endif %}
+                            {% endfor %}
+    
+                            <div class="col-md-3 col-2 border mx-0 weight600">
+                                {% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}
+                            </div>
+                            <div class="col-md-9 col-10 weight600 mx-0 row border">
+                                <div class="col-2"></div>
+                                <div class="col-2"></div>
+                                <div class="col-2"></div>
+                                <div class="col-2"></div>  
+                                <div class="col-2 ">{{f.totQ|floatformat:'-2'|intcomma}}</div>
+                                <div class="col-2 ">{{f.totA|floatformat:'-2'|intcomma}}</div>
+                            </div>
+                        </div>
+                   </div>
+    
+    
+                    {% endfor %}
+                
+                <div id="Shiftdetails"   >
+      
+    
+                    {% if sale %}
+                           
+                         <div class="mt-4 table-responsive">
+                            <strong>{% if useri.langSet == 0 %}Mauzo Wateja Maalum{% else %}Credit Order Sales {% endif %}</strong>
+                            <table class="table table-bordered smallFont table-sm">
+                                <thead>
+                                    <tr class="smallFont" >
+                                        <th>#</th>
+                                        <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+
+                                        <th>{% if useri.langSet == 0 %}Ankara{% else %} Invoice{% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Pampu{% else %} Pampu{% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Mteja{% else %} Customer{% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">Liters</span> </th>
+                                        <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %} <span class="text-primary">(TZS)</span> </th>
+                                        <th>{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">(TZS)</span> </th>
+                                        <!-- <th>{% if useri.langSet == 0 %}Malipo{% else %}Paid{% endif %} <span class="text-primary">(TZS)</span> </th> -->
+                                    </tr>
+                                </thead>
+                        
+                                    <tbody>
+                                        {% for s in sale %}
+                                        <tr>
+                                            <td>{{forloop.counter}}</td>
+                                            <td>
+                                                <script>
+                                                    document.write(moment('{{s.sale.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                                </script>
+                                            </td>
+                                            <td><a href="/salepurchase/viewFuelSales?i={{s.sale.id}}">INVO-{{s.sale.code}}</a></td>
+
+                                            <td class="bluePrint" >{{s.shift.pump.station.name}} {{s.shift.pump.name}}</td>
+                                            <td class="brown" >{{s.shift.Fuel.name}}</td>
+
+                                            <td>{{s.sale.customer.jina | title}}</td>
+                                            <td>{{s.qty_sold|floatformat:'-2'|intcomma}}</td>
+                                            <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                            <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                            
+                                        </tr>
+
+                                        {% endfor %}
+
+                                        <tr class="weight600 smallFont" >
+                                            <td colspan="6" > {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} </td>
+                                            <td>{{exclude.sale | floatformat:'-2'  | intcomma}}</td>
+                                            <td>----</td>
+                                            <td>{{exclude.saleA | floatformat:'-2'  | intcomma}}</td>
+                                        
+                                        </tr>
+                                    
+                                    </tbody>
+                                </table>
+
+
+                        </div>
+            
+                
+            
+                         {% endif %}
+            
+                         {% if trd %}
+                           <hr>
+                        <div class="table-responsive">
+                            <strong>{% if useri.langSet == 0 %}Kuhamisha Mafuta{% else %}Transfered Fuel {% endif %}</strong>
+                            <table class="table table-bordered smallFont table-sm">
+                                <thead>
+                                    <tr class="smallFont" >
+                                        <th>#</th>
+                                        <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+
+                                        <th>{% if useri.langSet == 0 %}Kuhamisha{% else %} Transfer {% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Pampu{% else %} Pump {% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel {% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Kwenda{% else %} To{% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">LTRS</span> </th>
+                                        <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %}/<span class="text-primary">LTRS</span> </th>
+                                        <th>{% if useri.langSet == 0 %}Thamani{% else %} Worth{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                                        
+                                        </tr>
+                                </thead>
+                        
+                                    <tbody>
+                                        {% for s in trd %}
+                                        <tr>
+                                            <td>{{forloop.counter}}</td>
+                                            <td>
+                                                <script>
+                                                    document.write(moment('{{s.transfer.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                                </script>
+                                            </td>
+                                            <td><a href="/salepurchase/viewTransfer?i={{s.transfer.id}}">TR-{{s.transfer.code}}</a></td>
+                                            
+                                            <td class="bluePrint" >{{s.shift.pump.station.name}} {{s.shift.pump.name}}</td>
+
+                                            <td class="brown" >{{s.shift.Fuel.name}}</td>
+
+                                            <td class="bluePrint" >{{s.to.name | title}}</td>
+
+                                            <td>{{s.qty|floatformat:'-2'|intcomma}}</td>
+                                            <td>{{s.saprice|floatformat:'-2'|intcomma}}</td>
+                                            <td>
+                                                <script>
+                                                    var the_q =Number('{{s.qty}}'),
+                                                        the_pr =Number('{{s.saprice}}'),
+                                                        the_tot = Number(the_q*the_pr)
+
+                                                        document.write(the_tot.toLocaleString())
+                                                </script>
+                                            </td>
+
+                                            
+                                        </tr>
+
+                                        {% endfor %}
+
+                                        <tr class="weight600 smallFont" >
+                                            <td colspan="6" >
+                                                {% if useri.langSet == 0 %}Jumla{% else %} Total{% endif %}
+                                            </td>
+                                            <td>{{exclude.tr | floatformat:'-2'  | intcomma}}</td>
+                                            <td>----</td>
+                                            <td>{{exclude.trAmo| floatformat:'-2'  | intcomma}}</td>
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+
+                        </div>
+
+                         {% endif %}
+            
+                         {% if exclude.expf > 0 %}
+                           <hr>
+                         
+                            <div class="table-responsive">
+                                <strong>{% if useri.langSet == 0 %}Matumizi kwa Mafuta{% else %} Fuel  Usage & Wastage {% endif %}</strong>
+                                <table class="table table-bordered smallFont table-sm">
+                                    <thead>
+                                        <tr class="smallFont" >
+                                            <th>#</th>
+                                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+
+                                            <th>{% if useri.langSet == 0 %}Matumizi{% else %} Usage {% endif %} </th>
+                                            <th>{% if useri.langSet == 0 %}Maelezo{% else %} Description{% endif %} </th>
+                                            <th>{% if useri.langSet == 0 %}Pampu{% else %} Pump{% endif %} </th>
+                                            <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %} </th>
+                                            <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">LTRS</span> </th>
+                                            <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %} /<span class="text-primary">LTRS</span> </th>
+                                            <th>{% if useri.langSet == 0 %}Thamani{% else %} Worth{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                                            
+                                            </tr>
+                                    </thead>
+                            
+                                        <tbody>
+                                            {% for s in expF %}
+                                            
+                                            <tr>
+                                                <td>{{forloop.counter}}</td>
+                                                <td>
+                                                    <script>
+                                                        document.write(moment('{{s.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                                    </script>
+                                                </td>
+                                                <td class="brown">{{s.matumizi.matumizi | title}}</td>
+                                                <td >{{s.maelezo}}</td>
+                                                <td class="bluePrint" >{{s.fromShift.pump.station.name}} {{s.fromShift.pump.name}}</td>
+                                                <td class="brown" >{{s.Fuel.name}}</td>
+
+                                                <td>{{s.fuel_qty|floatformat:'-2'|intcomma}}</td>
+                                                <td>{{s.fuel_price|floatformat:'-2'|intcomma}}</td>
+                                                <td>{{s.kiasi|floatformat:'-2'|intcomma}}</td>
+
+                                                <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                                <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                                <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
+                                            </tr>
+                                        
+
+
+
+
+                                            {% endfor %}
+
+                                            <tr>
+                                                <th colspan="6" >
+                                                    {% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}
+                                                </th>
+                                                <th>
+                                                    {{exclude.expf | floatformat:'-2'  | intcomma}}
+                                                
+                                                </th>
+
+                                                <th>
+                                                    ---
+                                                </th>
+                                                <th>
+                                                    {{exclude.expfA | floatformat:'-2'  | intcomma}}
+                                                </th>
+                                            </tr>
+
+                                        </tbody>
+                                    </table>
+
+
+                            </div>
+                      
+            
+                         {% endif %}
+    
+                 {% if exclude.expamo > 0 %}
+                   <hr>
+                 <div class="table-responsive">
+                    <strong>{% if useri.langSet == 0 %}Matumizi ya Pesa{% else %} Expenses By Cash{% endif %}</strong>
+                    <table class="table table-bordered smallFont table-sm">
+                        <thead>
+                            <tr class="smallFont" >
+                                <th>#</th>
+                                <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+    
+                                <th>{% if useri.langSet == 0 %}Matumizi{% else %} Expanses {% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Maelezo{% else %} Description{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
+                                
+                                </tr>
+                        </thead>
+                   
+                            <tbody>
+                                {% for s in expA %}
+                                
+                                <tr>
+                                    <td>{{forloop.counter}}</td>
+                                    <td>
+                                        <script>
+                                            document.write(moment('{{s.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                        </script>
+                                    </td>
+                                    <td class="brown">{{s.matumizi.matumizi | title}}</td>
+                                    <td >{{s.maelezo}}</td>
+    
+                                    <td>{{s.kiasi|floatformat:'-2'|intcomma}}</td>
+    
+                                    <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
+                                </tr>
+                               
+    
+                                {% endfor %}
+    
+                                <tr>
+                                    <th colspan="4" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                     <th>{{exclude.expamo | floatformat:'-2'  | intcomma}}</th>
+                                </tr>
+                            </tbody>
+                          </table>
+    
+    
+                 </div>
+              
+                 {% endif %}
+                 {% if exclude.cashBA > 0 %}
+                   <hr>
+                 <div class="table-responsive">
+                    <strong>{% if useri.langSet == 0 %}Pesa Iliyotoka{% else %} Cash Deposit Before{% endif %}</strong>
+                    <table class="table table-bordered smallFont table-sm">
+                        <thead>
+                            <tr class="smallFont" >
+                                <th>#</th>
+                                <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+    
+                                <th>{% if useri.langSet == 0 %}Akaunti{% else %}Account  {% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %} Given To{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
+                                
+                                </tr>
+                        </thead>
+                   
+                            <tbody>
+                              
+                                {% for cb in exclude.cashB %}
+                                
+                            
+                                <tr>
+                                    <td>{{forloop.counter}}</td>
+                                    <td>
+                                        <script>
+                                            document.write(moment('{{cb.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                        </script>
+                                    </td>
+                                    <td class="brown">{{cb.Akaunt.Akaunt_name | title}}</td>
+                                    <td >{{cb.giveTo}}</td>
+                                    <td >{{cb.maelezo}}</td>
+    
+                                    <td>{{cb.Amount|floatformat:'-2'|intcomma}}</td>
+    
+                                    <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
+                                </tr>
+                                
+    
+                                {% endfor %}
+    
+                                <tr>
+                                    <th colspan="5" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                     <th>{{exclude.cashBA | floatformat:'-2'  | intcomma}}</th>
+                                </tr>
+                            </tbody>
+                          </table>
+    
+    
+                 </div>
+              
+                 {% endif %}
+    
+                </div>
+    
+                
+                    <div class="row mt-4 ">
+                        <div class="col-7">
+                                            <strong>{% if useri.langSet == 0 %}Ufupisho wa Zamu{% else %}Shift Summary Report {% endif %}</strong>
+    
+                        </div>
+                        <div class="col-5 smallFont text-right">
+                              <!-- <a type="button" onclick="$('#Shiftdetails').toggle(500)" href="#" >
+                                   {% if useri.langSet == 0 %}Maelezo ya Kina{% else %}Shift Details  {% endif %}
+                               
+                                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+                                    <polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
+                            </a> -->
+                        </div>
+                    </div>
+                    
+                     <div class="table-responsive">
+                    <table class="table table-bordered smallFont table-sm">
+                        <thead>
+                            <tr class="smallFont" >
+                              
+                                <td class="pl-1">{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %}</td>
+    
+                               
+                                <td class="pl-1">{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">LTRS</span> </td>
+                                <td class="pl-1">{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </td>
+                              </tr>
+                        </thead>
+                   
+                             <tbody>  
+                              
+                                <tr  class="grey"  >
+                                   
+                                    <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Mafuta yaliyotoka{% else %} Fuel Flow{% endif %}</th>
+                                    <th style="font-size: 15px;" id="tot_ltr" >{{calcA.shQ|floatformat:'-2'|intcomma}}</th>
+                                    <th style="font-size: 15px;" id="tot_amo" >{{calcA.shA|floatformat:'-2'|intcomma}}</th>
+                                </tr>
+                                
+                                 {% if exclude.sale > 0 %} 
+                                <tr >
+                                    <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Mauzo Wateja Maalum{% else %} Credit Oder Sales{% endif %}</td>
+                                    <td style="font-size: 15px;"  >{{exclude.sale|floatformat:'-2'|intcomma}}</td>
+                                    <td style="font-size: 15px;"  >{{exclude.saleA|floatformat:'-2'|intcomma}}</td>
+                                </tr>
+                                {% endif %}
+    
+                                {% if exclude.tr > 0  %}
+                                <tr >
+                                   
+                                    <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Mafuta yaliyosafirishwa{% else %} Transfered Fuel{% endif %}</td>
+                                    <td style="font-size: 15px;"  >{{exclude.tr|floatformat:'-2'|intcomma}}</td>
+                                    <td style="font-size: 15px;"  >{{exclude.trAmo|floatformat:'-2'|intcomma}}</td>
+                                </tr>
+                                {% endif %}
+       
+                                {% if exclude.expf > 0  %}
+                                <tr >
+                                   
+                                    <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Mafuta Yaliyotumika{% else %} Fuel Usage{% endif %}</td>
+                                    <td style="font-size: 15px;"  >{{exclude.expf|floatformat:'-2'|intcomma}}</td>
+                                    <td style="font-size: 15px;"  >{{exclude.expfA|floatformat:'-2'|intcomma}}</td>
+                                </tr>
+                                {% endif %}
+    
+                                {% if exp or trd or sale %}
+                                    <tr class="grey"  >
+                                    
+                                        <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Mauzo ya Pampu{% else %} Pump Sales{% endif %}</th>
+                                        <th style="font-size: 15px;"  id="pump_sales_qty" >{{calcA.PmpSQ|floatformat:'-2'|intcomma}}</th>
+                                        <th style="font-size: 15px;" id="pump_sales_amo"  >{{calcA.PmpSA|floatformat:'-2'|intcomma}}</th>
+                                    </tr>
+                                {% endif %}
+    
+                                {% if exclude.expamo > 0 %}
+                                <tr >
+                                   
+                                    <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Matumizi ya Pesa{% else %}Expenses by Cash{% endif %}</td>
+                                    <td style="font-size: 15px;"  ></td>
+                                    <td style="font-size: 15px;"  >{{exclude.expamo|floatformat:'-2'|intcomma}}</td>
+                                </tr>
+                                {% endif %}
+    
+                                {% if exclude.cashB %}
+                                <tr >
+                                   
+                                    <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Iliyotoka{% else %}Cash Out Before{% endif %}</td>
+                                    <td style="font-size: 15px;"  ></td>
+                                    <td style="font-size: 15px;"  >{{exclude.cashBA|floatformat:'-2'|intcomma}}</td>
+                                </tr>
+    
+                                {% endif %}
+    
+                              
+                              
+                                <tr class="grey" >
+                                   
+                                    <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Inayotakiwa {% else %}Net Required Amount{% endif %}</td>
+                                    <th style="font-size: 15px;"  ></th>
+                                    <th style="font-size: 15px;" data-net=0 id="net_required"  >{{trf.amount|floatformat:'-2'|intcomma}}</th>
+                                </tr>
+
+                                <tr class="grey" >
+                                   
+                                    <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Iliyolipwa {% else %}Paid Amount{% endif %}</td>
+                                    <th style="font-size: 15px;"  ></th>
+                                    <th style="font-size: 15px;" data-net=0 id="net_required"  >{{trf.paid|floatformat:'-2'|intcomma}}</th>
+                                </tr>
+                                {% if trf.amount > trf.paid %}
+                                <tr class="grey brown" >
+                                   
+                                    <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Hasara {% else %}Loss{% endif %}</td>
+                                    <th style="font-size: 15px;"  ></th>
+                                    <th style="font-size: 15px;" data-net=0 id="net_required"  >{{calcA.lossProf|floatformat:'-2'|intcomma}}</th>
+                                </tr>
+                                {% endif %}
+
+                                {% if trf.amount < trf.paid %}
+                                <tr class="grey green" >
+                                   
+                                    <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Faida {% else %}Profit{% endif %}</td>
+                                    <th style="font-size: 15px;"  ></th>
+                                    <th style="font-size: 15px;" data-net=0 id="net_required"  >{{calcA.lossProf|floatformat:'-2'|intcomma}}</th>
+                                </tr>
+                                {% endif %}
+
+                                {% if trf.amount == trf.paid %}
+                                <tr class="grey" >
+                                   
+                                    <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Faida/Hasara {% else %}Profit/Loss{% endif %}</td>
+                                    <th style="font-size: 15px;"  ></th>
+                                    <th style="font-size: 15px;" data-net=0 id="net_required"  >{{calcA.lossProf|floatformat:'-2'|intcomma}}</th>
+                                </tr>
+                                {% endif %}
+    
+                            
+                             </tbody>
+                             </table>
+                 </div>
+          
+
+             <hr>
+              <div><strong>{% if useri.langSet == 0 %}Viambatanisho{% else %}Attachments{% endif %}:</strong></div>
+              {% if attach%}
+              <ul class="list-unstyled" >
+
+                 {% for at in attach %}
+                   <li>
+                       <a href="{{at.file.url}}" target="_blank" >
+                           <div class="d-flex" >
+                               <div class="p-2">
+                                <span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                                      <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+                                  </svg>
+                                </span>
+                                  
+                               </div>
+
+                               <div>
+                                   
+                                    <small class="d-block" >date: 
+
+                                      <script>
+                                        document.write(moment('{{at.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                    </script> 
+                                    | {% if at.printedDocu %} {% if useri.langSet == 0 %}Dokument iliyoprintiwa na kusainiwa {% else %}Printed and signed document{% endif %} {% else %} {{at.attach_name}} {%endif%}
+                                    </small>
+
+                                    <small class="d-block" >
+                                        By: {{at.by.user.first_name|title}} {{at.by.user.last_name|title}}
+
+                                    </small>
+                                   
+                               </div>
+
+                           </div>
+                       </a>
+                   </li>
+                  {% endfor %} 
+               </ul> 
+
+               {% else %}
+                    <p class="btn-sm" >{% if useri.langSet == 0 %}Hakuna Viambatanisho{% else %}No Attachments{% endif %} </p>  
+               {% endif %}
+
+
+
+          
+      
+
+          <div class="mt-3" >
+            <strong>
+                {% if langSet == 0 %}Uhakiki{% else %}Approval{% endif %}
+            </strong>
+        </div>
+        <table class="table table-bordered table-sm" >
+              <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{% if langSet == 0 %}Jina{% else %}Name{% endif %}</th>
+                    <th>{% if langSet == 0 %}Nafasi{% else %}Position{% endif %}</th>
+                    <th>{% if langSet == 0 %}TareheMuda{% else %}DateTime{% endif %}</th>
+                    <th>{% if langSet == 0 %}Sahihi{% else %}Signature{% endif %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>{{trf.record_by.user.user.first_name | title}} {{trf.record_by.user.user.last_name | title}} </td>
+                    <td>{{trf.record_by.user.cheo | title}} </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>{{trf.by.user.first_name | title}} {{trf.by.user.last_name | title}}
+                    </td>
+                    <td>{% if useri.langSet == 0 %}Mhusika Pampu {% else %} Pump Incharge {% endif %} </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+    
+                <tr>
+                    <td>3</td>
+                    <td>
+                        
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>
+                        
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+              </tbody>
+        </table>
+
+
+           <h6 class="row ">
+            <div class="col-5">
+     
+             <div class="col-12">
+                 <div id="imgBox">
+                     <img src="" alt="" id="qrImage">
+                 </div>
+               </div>
+     
+     
+               <script>
+                  $(document).ready(function(){
+                     const url = window.location.host;
+                     const imgBox= document.getElementById("imgBox")
+     
+                       qrcode = new QRCode('imgBox',{
+                         text:`${url}/salepurchase/viewShift?i={{trf.id}}`,
+                         height:200,
+                         width:200,
+                       
+                     })
+                  })
+               </script>
+     
+            </div>
+            </h6>
+      
+
+      
+
+
+        </div>
+
+</body>    

@@ -1,0 +1,156 @@
+.register1{
+    background: #fff;
+    padding:0;
+    max-width:800px;
+    -webkit-box-shadow: 3px 2px 5px -4px rgba(0,0,0,0.75);
+    -moz-box-shadow: 3px 2px 5px -4px rgba(0,0,0,0.75);
+    box-shadow: 3px 2px 5px -4px rgba(0,0,0,0.75);
+    overflow: hidden;
+}
+
+.side_panel{
+ 
+    -webkit-box-shadow: 4px 1px 7px -8px rgba(0,0,0,1);
+    -moz-box-shadow: 4px 1px 7px -8px rgba(0,0,0,1);
+    box-shadow: 4px 1px 7px -8px rgba(0,0,0,1);
+
+    background: #feffff;
+}
+
+.side_panel ul{
+    list-style-type: none;
+    color:#000;
+    padding: 0;
+    margin: 0;
+}
+
+.side_panel ul li{
+    padding:18px;
+    border-bottom: 1px solid rgb(212, 212, 212);
+    
+}
+.side_panel ul li p{
+    font-family: 'Assistant';
+    font-size: 14px;
+}
+.circle{
+    height: 50px;
+    width: 50px;
+    background: rgb(0, 114, 0);
+    padding:5px 10px;
+    font-size: 14px;
+    color:#fff;
+
+    
+}
+.activel{
+    height: 15px;
+    width: 15px;
+    background: rgb(255, 255, 255);
+    border-bottom:1px solid #ccc;
+    border-left:1px solid #ccc;
+    
+    margin-right:-27px;
+    transform: rotate(45deg);
+    margin-top:10px;
+
+}
+
+.form-style-7{
+	background:#fff;
+	border-radius:2px;
+	font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+.form-style-7 ul{
+    list-style:none;
+   
+}
+.form-style-7 ul li,.form-style-7 .row .names{
+	display: block;
+	padding: 7px 0;
+	border:1px solid #bcc0c9;
+	margin-bottom: 35px;
+	border-radius: 3px;
+	height:42px;
+}
+
+.form-style-7 li span, .nameVerify{
+  font-size :12px;
+  display:block;
+  font-family: 'Assistant';
+  color:#777;
+  margin-top: 5px;
+  text-align: right;
+}
+.form-style-7 li input,.form-style-7 .row .names input{
+    width: 100%;
+    border:0;
+    font-family: 'Assistant';
+    font-size: 15px;
+    padding-left: 7px;
+
+}
+.form-style-7 li input:focus,.form-style-7 .row .names input:focus {
+    outline: none;
+}
+
+/* .form-style-7 li:last-child{
+	border:none;
+	margin-bottom: 0px;
+	text-align: center;
+} */
+.form-style-7 li > label,.form-style-7 .row .names >label{
+	display: block;
+	float: left;
+	margin-top: -17px;
+	background: #FFFFFF;
+	height: 13px;
+	color: #1361c7;
+	font-size: 13px;
+    font-family: 'Roboto', sans-serif;
+    margin-left: 9px;
+}
+
+.form-style-7 .submit:hover,
+.form-style-7 input[type="button"]:hover{
+	color:#fff;
+}
+.form-style-7  input:focus ~span{
+	color:#800040;
+
+	transition:1.1s;
+}
+
+.form-style-7 .submit, #fisi,
+.containert .submit{
+padding:0 14px;	
+	
+}
+
+.div-loader{
+    height: 2px;
+    background: #6699ff;
+    width: 0%;
+    animation-name: load;
+  animation-duration: 1.2s;
+  animation-iteration-count: infinite;
+  display: none;
+}
+
+
+@keyframes load {
+    0%   {width: 0%;margin-left:-45px;}
+   
+    50%  {width: 80%; margin-left:-45px;}
+
+    100% {width: 60%;margin-left: 120%;}
+  }
+.side_panel{
+    padding: 0;
+}
+  @media screen and (max-width:800px){
+ .side_panel{
+display: none;
+ }
+  }

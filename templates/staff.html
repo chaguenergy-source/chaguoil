@@ -1,0 +1,112 @@
+
+
+  
+{% extends 'index.html' %}
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Stafu{% else %} Staffs{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+{% if useri.admin %}
+<button data-toggle="modal" data-target="#addStaff" class="btn btn-default btn-download">
+    <!-- <i class='bx bxs-cloud-download' ></i> -->
+    <span class="text"> {% if useri.langSet == 0 %} Ongeza Stafu{% else %}Add Member{% endif %}</span>
+</button>
+{% endif %}
+
+</div>
+
+
+<div class="table-data">
+    <div class="order">
+      <div class="head">
+        <h4>
+            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="fill: currentColor">
+                <path d="M15 11h7v2h-7zm1 4h6v2h-6zm-2-8h8v2h-8zM4 19h10v-1c0-2.757-2.243-5-5-5H7c-2.757 0-5 2.243-5 5v1h2zm4-7c1.995 0 3.5-1.505 3.5-3.5S9.995 5 8 5 4.5 6.505 4.5 8.5 6.005 12 8 12z"></path>
+            </svg>
+            {% if useri.langSet == 0 %}Wahusika{% else %}Staff{% endif %}</h4>
+        <!-- <i class='bx bx-search' ></i>
+        <i class='bx bx-filter' ></i> -->
+      </div>
+      <div class="table-responsive">
+                <table id="all_staffs" class=" smallFont"  >
+                    <thead>
+                    <tr>
+                        <th>{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
+                        <th>{% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Simu{% else %}Phone{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Cheo{% else %}Position{% endif %}</th>
+                        {% if useri.admin and not general %}
+                          <th>Action</th>
+                        {% endif %}
+                    </tr>
+                    </thead>
+
+                
+
+
+                    <tbody>
+                        {% for s in staffs %}
+                            <tr>
+                                <td>{{s.user.user.first_name |title }} {{s.user.user.last_name |title }}</td>
+                                <td> {% if s.user.admin %}--{% else %}{{s.user.address | title }} {%endif%} </td>
+                                <td> {% if s.user.admin %}--{% else %}{{s.user.phone}}{% endif %} </td>
+                                <td> {{s.user.cheo}} </td>
+                                {% if useri.admin and not general %}
+                                <td>
+                                    <a href="{% if s.user.admin %}#{% else %}/staffs/viewStaff?usr={{s.id}}{% endif %}" title="{% if useri.langSet == 0 %}Onesha{% else %}View{%endif%}" class="btn btn-light btn-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                    </a>
+                                </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+      </div>
+
+
+     
+    </div>
+</div>
+
+
+
+{% if useri.admin %}
+
+  {% include 'staffregister.html' %}
+
+{% endif %}
+
+{% endblock %}
+
+
+
+
+{% block staffs %} active {% endblock %}

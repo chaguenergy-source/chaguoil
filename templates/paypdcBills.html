@@ -1,0 +1,371 @@
+{% extends 'index.html' %}
+
+{% load humanize %}
+
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Malipo{% else %} Payment{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+{% if useri.admin %}
+<button data-toggle="modal" data-target="#addBill" class="btn btn-default btn-download">
+    <!-- <i class='bx bxs-cloud-download' ></i> -->
+    <span class="text"> {% if useri.langSet == 0 %} Ongeza Malipo{% else %}Add bill{% endif %}</span>
+</button>
+{% endif %}
+
+</div>
+
+
+
+<div class="table-data">
+    <div class="order">
+               {% include 'headingPayments.html' %}  
+      <div class="head">
+
+
+        <h5 >
+
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.4em" viewBox="0 -960 960 960" width="1.4em" fill="currentColor">
+                        <path d="M360-840v-80h240v80H360Zm80 440h80v-240h-80v240Zm40 320q-74 0-139.5-28.5T226-186q-49-49-77.5-114.5T120-440q0-74 28.5-139.5T226-694q49-49 114.5-77.5T480-800q62 0 119 20t107 58l56-56 56 56-56 56q38 50 58 107t20 119q0 74-28.5 139.5T734-186q-49 49-114.5 77.5T480-80Zm0-80q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-280Z"/>
+             </svg>
+       
+                {% if useri.langSet == 0 %}Malipo na Muda{% else %}Piriodic Bills{% endif %}</h5>
+        
+      </div>
+
+   
+
+      <div class="table-responsive">
+            <table id="all_payAcc" class=" smallFont"  >
+                <thead>
+                <tr>
+                    <th># </th>
+                    <th>{% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %} </th>
+                    <th>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %} </th>
+                    <th>{% if useri.langSet == 0 %}Muda{% else %}Period{% endif %} </th>
+                    <th>{% if useri.langSet == 0 %}Idadi{% else %}Duration{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">(TZS)</span> </th>
+                    <td> {% if useri.langSet == 0 %}Malipo/Mwisho{% else %}last Paid{% endif %}</td>
+                    <td> {% if useri.langSet == 0 %}Malipo/Yajayo{% else %}Next Payment{% endif %}</td>
+                   
+                    <td> {% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %}</td>
+                </tr>
+                </thead>
+
+
+
+                <tbody>
+                    {% for s in pbills %}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td><u class="brown" >{{s.matumizi  }}</u>  </td>
+                            <td> {% if s.shell %}<u class="bluePrint" > {{s.shell.name  }} </u> {%else%} General {% endif %} </td>
+                             <td class="text-primary">  {{s.Interprise.name}}
+                                 {% if s.period_type == 1 %}
+                                    {% if useri.langSet == 0 %} Siku {% else %} Day(s) {% endif %}
+                                 {% endif %}
+                                 {% if s.period_type == 2 %}
+                                    {% if useri.langSet == 0 %} Wiki {% else %} Week(s) {% endif %}
+                                 {% endif %}
+                                 {% if s.period_type == 3 %}
+                                    {% if useri.langSet == 0 %} Mwezi/Miezi {% else %} Month(s) {% endif %}
+                                 {% endif %}
+                                 {% if s.period_type == 4 %}
+                                    {% if useri.langSet == 0 %} Mwaka/Miaka {% else %} Year(s) {% endif %}
+                                 {% endif %}
+                            </td>
+                            <td>  {{s.duration}}  </td>
+                           
+                            <td> {% if s.depends %} <span class="brown weight400">{% if useri.langSet == 0 %} Inategemea {% else %} It Depends {% endif %}</span> {% else %} {{s.amount  | floatformat:'-2' | intcomma}} {% endif %} </td>
+                            <td> {% if s.last_paid %} {{s.last_paid|date:'d-m-Y'}} {%else%} --- {% endif %} </td>
+                            <td>{{s.next_pay|date:'d-m-Y'}}</td>
+                           
+                            <td>
+                                <a href="/accounting/pdcBillsView?i={{s.id}}" class="btn btn-light">
+                                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                   
+                </tbody>
+            </table>
+      </div>
+
+
+     
+    </div>
+</div>
+
+
+
+<!-- aDD PYMENT ACCOUNT.... -->
+<div class="modal fade" id="addBill" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog animate" role="document">
+      <div class="modal-content border-0">
+        <div class="modal-header ">
+          <h6 class="modal-title  text-light" id="exampleModalLabel"> {% if useri.langSet == 0 %} Ongeza Bili {% else %} Add Periodic Bill {% endif %}</h6>
+         
+          
+         
+        </div>
+          <!-- <div class="d-flex mt-0  p-0"  >
+            <img  width="100%"  src="{{baseUrl}}/{{'top1.svg'}}" alt="pic">
+          </div>
+         -->
+        <div class="modal-body px-4">
+         
+  
+          <form action="/accounting/addPBill" method="POST" id='savePBill'> 
+            {% csrf_token %}
+  
+
+              <div class="form-groupi mt-3">
+             
+           
+            <div class="row py-0">
+				 <div class="col-6">
+					   <label for="message-text" class="col-form-label robotoFont brown smallFont "> {% if useri.langSet == 0 %}  Kituo {% else %} Station {% endif %} <sup class="text-danger"><b>*</b></sup></label>
+				 </div>
+				 <div class="col-6 text-right">
+				  <div class="custom-control custom-checkbox">
+					<input type="checkbox" class="custom-control-input" 
+					
+					id="payGeneral">
+					<label class="custom-control-label latoFont text-primary cursor-pointer" style="cursor: pointer !important;" for="payGeneral">
+					  General
+					</label>
+				  </div>
+				 </div>
+			   </div>
+
+              <select
+              
+              id="bill_station" class="form-control machaguo-pesa border smallFont latoFont selectpicker" data-live-search="true">
+               {% if general %}
+               <option value=0  >{% if useri.langSet == 0 %}--Chagua Kituo--{% else %}--Select Station--{% endif %}</option>
+                {% for s in stations %}
+                   <option value={{s.id}}  >{{s.name}}</option>
+                {% endfor %}
+               {% else %}
+                  <option value={{shell.id}}  >{{shell.name}}</option>
+
+               {% endif %}
+            </select>
+             </div>
+  
+              <div class="form-groupi">
+                <label for="recipient-name" class="col-form-label robotoFont brown smallFont "> {% if useri.langSet == 0 %} Jina la Billi  {% else %} Bill Name {% endif %} <sup class="text-danger"><b>*</b></sup> </label>
+              <input type="text"
+              onkeyup="
+              if($(this).val()!=''){
+                $(this).removeClass('redborder')
+              }
+              "
+              class="form-control lazima_akaunti robotoFont" id="Bill_name">
+            </div>
+  
+            <div class="form-groupi mt-3">
+              <label for="pay_period" class="col-form-label brown robotoFont smallFont "> {% if useri.langSet == 0 %}  Muda wa Malipo {% else %} Payment Period {% endif %} <sup class="text-danger"><b>*</b></sup>:</label>
+               <select name="pay_period"
+                 onchange="const theDura=$(this).find('option:selected').data('val');$('#duraName').text(`(${theDura})`)"
+               id="pay_period" class="form-control">
+                 <option value="0"  data-val="---" >------</option>
+                 <option value="1"  data-val="{% if useri.langSet == 0 %}Siku {% else %} Day(s) {% endif %}" >{% if useri.langSet == 0 %}Siku {% else %} Day {% endif %}</option>
+                 <option value="2"  data-val="{% if useri.langSet == 0 %}Wiki {% else %} Week(s) {% endif %}" >{% if useri.langSet == 0 %}Wiki {% else %} Week {% endif %}</option>
+                 <option value="3"  data-val="{% if useri.langSet == 0 %}Miezi{% else %}Month(s)  {% endif %}" >{% if useri.langSet == 0 %} Mwezi{% else %}Month  {% endif %}</option>
+                 <option value="4"  data-val="{% if useri.langSet == 0 %}Miaka {% else %} Year(s){% endif %}" >{% if useri.langSet == 0 %}Mwaka {% else %} Year{% endif %}</option>
+               </select>
+             </div>
+
+            <div class="form-groupi mt-3">
+              <label for="payDura" class="col-form-label brown robotoFont smallFont ">
+                 {% if useri.langSet == 0 %} Idadi {% else %} Duration {% endif %} <sup class="text-danger"><b>*</b></sup>
+                <span class="text-primary" id="duraName">(---)</span>
+                </label>
+              <input type="number" name="payDura" id="payDura" class="form-control">
+             </div>
+
+            <div class="form-groupi mt-3">
+              <label for="NextPay" class="col-form-label brown robotoFont smallFont "> {% if useri.langSet == 0 %}Malipo Yanayofuata {% else %} Next Payment {% endif %} <sup class="text-danger"><b>*</b></sup></label>
+              <input type="date" name="NextPay" id="NextPay" class="form-control">
+             </div>
+
+
+
+
+
+                      
+  
+            <div class="form-groupi mt-3">
+            <div class="row py-0">
+				 <div class="col-6">
+					  <label for="choose_matum"  >{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}   </label>
+				 </div>
+				 <div class="col-6 text-right">
+				  <div class="custom-control custom-checkbox">
+					<input type="checkbox" class="custom-control-input" 
+					
+					id="payDepends">
+					<label class="custom-control-label latoFont text-primary cursor-pointer" style="cursor: pointer !important;" for="payDepends">
+					  {% if useri.langSet == 0 %}Inategemeana{% else %}It Depends{% endif %}
+					</label>
+				  </div>
+				 </div>
+			   </div>
+             <div class="show_curency_block show_curency  position-absolute text-danger   px-3" style="display: none ;">
+  
+                    <label class="mt-1 brown" for="payAmount"></label> 
+                    <div class="box-pointer d-inline"></div>
+             </div>
+              <input 
+           
+                  type="number" placeholder="0" class="form-control money-fomat robotoFont"  id="payAmount" />
+            </div>
+  
+            <!-- <div class="custom-control py-3 custom-checkbox">
+              <input type="checkbox" class="custom-control-input" id="AkauntAllow">
+              <label class="custom-control-label" for="AkauntAllow"> {% if useri.langSet == 0 %}Itumiwe na staff wote   {% else %}For All Members {% endif %}</label>
+            </div> -->
+  
+            <p class="control-group text-right mt-3">
+              <button type="submit" class="btn-primary  btn-sm border-0  btn">
+                save
+              </button>
+            </p>
+  
+            
+  
+  
+           
+          </form>
+
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+   
+    
+
+  
+
+{% endblock %}
+
+{% block additionaljs %}
+ <script>
+ 
+ $('#savePBill').submit(function(e){
+    e.preventDefault();
+
+    const url = $(this).attr("action"),
+    
+             name = $('#Bill_name').val(),
+             station= Number($('#bill_station').val()),
+             amount = Number($('#payAmount').val()) || 0,
+             payDura = Number($('#payDura').val()),
+             payPiriod = Number($('#pay_period').val()),
+             general = Number($('#payGeneral').prop('checked')),
+             nextPay = $('#NextPay').val(),
+             depends = Number($('#payDepends').prop('checked')),
+
+             data = {data:{
+                name,
+                station,
+                amount,
+                payDura,
+                payPiriod,
+                general,
+                nextPay,
+                depends
+             },url}
+
+
+             if(name!='' && (station||general) && payDura && payPiriod && nextPay !=''  && (amount||depends) ){
+                $("#addBill").modal('hide');
+                  $("#loadMe").modal('show');
+
+                const sendIt = POSTREQUEST(data)
+                sendIt.then(function(data) {
+
+                        $("#loadMe").modal('hide');
+                        hideLoading()
+
+                        const msg=lang(data.swa,data.eng)
+
+                        location.reload()
+                
+                        if(data.success){
+                            
+
+                        toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2000});
+
+
+                        }else{
+                        toastr.error(msg, lang('Haikufanikiwa','Error'), {timeOut: 2000});
+                    
+                        }
+
+                    
+
+
+
+                    })
+
+             }else {
+                    alert(lang('Tafadhari Jaza sehemu zote','Please fill all requred fields'))
+                    if(!name)redborder('#Bill_name')
+                    if(!station||!general)$('#bill_station').selectPicker('setStyle','redborder')
+                    if(!payDura)redborder('#payDura')
+                    if(!payPiriod)redborder('#pay_period')
+                    if(!nextPay)redborder('#NextPay')
+                    if(!amount&&!depends)redborder('#payAmount')
+
+                    }
+          
+
+                })
+
+                
+        $(document).ready(function(){
+            $('#all_payAcc').DataTable();
+
+            })
+
+          
+</script>
+{% endblock %}
+
+
+{% block payaccount %} active {% endblock %}

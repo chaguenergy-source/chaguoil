@@ -1,0 +1,483 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+
+{% if useri.admin and not general %}
+    <button data-toggle="modal" data-target="#addTank" id="addCustombtn" class="btn btn-default btn-download">
+        <!-- <i class='bx bxs-cloud-download' ></i> -->
+        <span class="text"> 
+            {% if useri.langSet == 0 %} Ongeza Tank{% else %}Add Oil Tank{% endif %}
+        </span>
+    </button>
+{% endif %}
+
+
+</div>
+
+
+<div class="table-data">
+    <div class="order">
+
+             {% include 'headingfuel.html' %} 
+              
+              
+      <div class="head">
+
+
+        <h5 >
+
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.5em" viewBox="0 -960 960 960" width="1.5em" fill="currentColor">
+                <path d="M160-120q-17 0-28.5-11.5T120-160q0-17 11.5-28.5T160-200h40v-240h-40q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h40v-240h-40q-17 0-28.5-11.5T120-800q0-17 11.5-28.5T160-840h640q17 0 28.5 11.5T840-800q0 17-11.5 28.5T800-760h-40v240h40q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440h-40v240h40q17 0 28.5 11.5T840-160q0 17-11.5 28.5T800-120H160Zm320-200q50 0 85-34.5t35-83.5q0-39-22.5-67T480-620q-75 86-97.5 114.5T360-438q0 49 35 83.5t85 34.5Z"/>
+            </svg>    
+                {% if useri.langSet == 0 %}Matanki ya Mafuta{% else %}Storage Tanks{% endif %}</h5>
+        
+      </div>
+        
+       
+      <div class="row">
+            <div class="col-lg-7">
+               <div class="row">
+                <h5 class="col-7">
+                    {% if useri.langSet == 0 %}Ufupisho{% else %}Summary{% endif %}  
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                    <a href="#">
+                        {% if not st and not mv  %} {% if useri.langSet == 0 %}Matanki Yote{% else %}All Tanks{% endif %}{% endif %}
+                        {% if st  %} {% if useri.langSet == 0 %}Matanki ya Kituo/Vituo{% else %}Station(s) Tanks{% endif %}{% endif %}
+                        {% if mv  %} {% if useri.langSet == 0 %}Matanki yanayotembea{% else %}Station(s) Moving{% endif %}{% endif %}
+                    </a>
+                </h5>
+                <div class="col-5 text-right smallFont">
+                    <a href="/salepurchase/fuel">{% if useri.langSet == 0 %}Yote{% else %}All{% endif %} </a> |
+                    <a href="/salepurchase/fuel?st=1">{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</a> |
+                    <a href="/salepurchase/fuel?mv=1">{% if useri.langSet == 0 %}Tembea{% else %}Moving{% endif %}</a>
+                </div>
+                
+            </div>
+                
+                <div class="table-responsive mb-3 ">
+                    
+                <table class="table border">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Bei{% else %}Price{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                            <th>{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">LTRS</span> </th>
+                            <th>{% if useri.langSet == 0 %}Ghalama{% else %}Cost{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                            <th>{% if useri.langSet == 0 %}Thamani{% else %}Worth{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                            <th>{% if useri.langSet == 0 %}Tegemeo/Faida{% else %}Expected/profit{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in Fsum %}
+                        <tr>
+                        <td class="pl-1" >{{forloop.counter}}</td>
+                        <td class="brown" >{{f.Fuel.fuel.name}} </td>
+                        <td>{{f.Fuel.price|floatformat:'-2'|intcomma}}</td>
+                        <td>{{f.qty|floatformat:'-2'|intcomma}}</td>
+                        <td>{{f.cost|floatformat:'-2'|intcomma}}</td>
+                        <td>{{f.price|floatformat:'-2'|intcomma}}</td>
+                        <td class="text-success" >{{f.prof|floatformat:'-2'|intcomma}}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="weight600 smallFont" > 
+                            <td class="pl-1" colspan="3" >{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} </td>
+                            <td>{{Tqty|floatformat:'-2'|intcomma}}</td>
+                            <td>{{Tcost|floatformat:'-2'|intcomma}}</td>
+                            <td>{{Tprice|floatformat:'-2'|intcomma}}</td>
+                            <td class="text-success" >{{Tprof|floatformat:'-2'|intcomma}}</td>
+                        </tr>
+                    </tbody>
+                </table>      
+                </div>
+            </div>
+
+      </div>
+
+      <div class="table-responsive">
+            <table id="all_tanks" class="table-bordered smallFont"  >
+                <thead>
+                <tr class="text-center" >
+                    <th>#</th>
+                    {% if general %}
+                    <th class="p-2">{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %} </th>
+                    {% endif %}
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %} </th>
+
+                    <!-- <th class="p-2">{% if useri.langSet == 0 %}vipimo{% else %}Units{% endif %} </th> -->
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Bei/Kipimo{% else %}Cost/Unit{% endif %} <span class="text-primary">(TZS)</span> </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Kuuza/Kipimo{% else %}Price/Unit{% endif %} <span class="text-primary">(TZS)</span> </th>
+                                       
+                    <th class="px-3" >{% if useri.langSet == 0 %}Kiasi{% else %}qty{% endif %} <span class="text-primary">LTRS</span> </th>
+
+                   
+                    <th class="p-2">{% if useri.langSet == 0 %}Thamani{% else %}Worth{% endif %} <span class="text-primary">(TZS)</span> </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Thamani Mauzo{% else %}Total Sales{% endif %} <span class="text-primary">(TZS)</span> </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Tegemeo Faida{% else %}Exp Profit{% endif %} <span class="text-primary">(TZS)</span> </th>
+                {% if useri.admin and not general %}
+                  <!-- <th class="p-2" >Action</th> -->
+                  
+                {% endif %}
+
+                </tr>
+                </thead>
+
+
+
+                <tbody>
+                    {% for f in fuel %}
+                        <tr class="" >
+                            <td>{{forloop.counter}}</td>
+
+                            {% if general %}
+                            <td><a href="#" >{{ f.shell.name  }}</a>  </td>
+                            {% endif %}
+
+                            <td><u class="bluePrint" >{% if f.tank.tank %} {{f.tank.tank.name}} {% endif %} {{f.name}}</u>  </td>
+                           
+                            <td><u class="brown" >{{f.fuel}}</u>  </td>
+
+                             <!-- <td class="text-primary">  {{f.units}} </td> -->
+                            
+                           
+                            <td> {{f.cost  | floatformat:'-2' | intcomma}} </td>
+                            <td> {{f.price  | floatformat:'-2' | intcomma}} </td>
+
+                             <td> {{f.qty| floatformat:'-3' | intcomma}} </td>
+                             
+                              <td> {{f.totcost  | floatformat:'-2' | intcomma}} </td>
+                             <td> {{f.totpr  | floatformat:'-2' | intcomma}} </td>
+                             <td class="text-success" > {{f.totprof  | floatformat:'-2' | intcomma}} </td>
+                             {% if useri.admin and not general %}
+                             <!-- <td>
+                                    <button class="btn btn-sm btn-default" title="Marekebisho" >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-plus">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line>
+                                                </svg>
+                                    </button>
+                            </td> -->
+                            {% endif %}
+
+                            </tr>
+                    {% endfor %}
+                    <!-- <tr class="weight600 border-top ">
+                    
+
+                      <td colspan="{% if general %}8{%else%}7{%endif%}" > {% if useri.langSet == 0 %}Jumla{% else %}Total{%endif%}</td>
+                      
+                     
+                      <td>{{Tcost | floatformat:'-2' | intcomma}}</td>
+                      <td>{{Tprice | floatformat:'-2' | intcomma}}</td>
+                      <td class="text-success" >{{Tprof | floatformat:'-2' | intcomma}}</td>
+                    
+                       {% if useri.admin and not general %}
+                        <td></td>
+                      {%endif%}   -->
+
+                    <!-- </tr>  -->
+                </tbody>
+            </table>
+      </div>
+
+
+     
+    </div>
+</div>
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="addTank" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+                <div class="modal-header">
+                        <h5 class="modal-title">
+                            {% if useri.langSet == 0 %} Kuongeza Tank ya Mafuta{% else %}Add Oil Tank{% endif %}
+                        </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                    </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <form action="/salepurchase/addTank" id="addtankform">
+                        {% csrf_token %}
+
+
+                            <div class="form-group">
+                                <label for="tank_name" class="brown">
+                                    {% if useri.langSet == 0 %}Aina ya Tanki{% else %}Tank Type{% endif %} <sup>*</sup>
+                                </label>
+                                     <select name="tank_type" onchange="var val = Number($(this).val());$('#tank_container').prop('hidden',!(val==2))" id="tank_type" class="form-control btn-sm bluePrint">
+                                          <option value=0>------------</option>
+                                          <option value=1>{% if useri.langSet == 0 %}Tanki la Pampu{% else %}Pump connected Tank{% endif %}</option>
+                                          <option value=2>{% if useri.langSet == 0 %}Tanki la Kuhamishia{% else %}Moving Tank{% endif %}</option>
+
+                                     </select>                                
+                            </div>
+
+                            <div class="form-group mb-3" hidden id="tank_container" >
+                                <div class="row py-0">
+                                <div class="col-6">
+                                    <label for="choose_matum" class="text-danger" >{% if useri.langSet == 0 %}Kontena{% else %}Container{% endif %}  <sup>*</sup> </label>
+                                </div>
+                                <div class="col-6 text-right">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" 
+                                    onchange="if($(this).prop('checked')){$('#newContainer').prop('hidden',false);$('#chagua_container').hide()}else{$('#newContainer').prop('hidden',true);$('#chagua_container').show()}" 
+                                    id="container_mpya">
+                                    <label class="custom-control-label latoFont text-primary cursor-pointer" style="cursor: pointer !important;" for="container_mpya">
+                                    {% if useri.langSet == 0 %}Mpya{% else %}New{% endif %}
+                                    </label>
+                                </div>
+                                </div>
+                                </div>
+                
+                              <div id="newContainer" hidden>
+                                    <input type="text" name="contena_jina"  id="contena_jina" class="form-control btn-sm" placeholder="{% if useri.langSet == 0 %}Andika Jina la Kontena{% else %}Write Container Name{% endif %}" aria-describedby="helpId">
+                                    
+                                    <div class="form-group my-3 ">
+                                            <label for="fuelGivenTo">{% if useri.langSet == 0 %}Mhusika{% else %}Incharge{% endif %}:</label>
+                                            <select class="form-control border selectpicker" 
+                                            onchange="$(this).selectpicker('setStyle', 'bluePrint')"
+                                            data-live-search="true" name="fuelGivenTo" id="fuelGivenTo">
+                                            <option value=0 >-------</option>
+                                            {% for u in tr_by %}
+                                                    
+                                            <option value={{u.id}}>{{u.user.first_name|title}}  {{u.user.last_name|title}}</option>
+
+                                            {%endfor%}
+                                            </select>
+                                        </div>                                
+                              </div>  
+ 
+
+
+
+                            <div id="chagua_container" >
+                                    <select name="container_chaguo"  id="container_chaguo"   class="form-control btn-sm" >
+                                    <option data-value=0 value=0 > {% if useri.langSet == 0 %}--Chagua Kontena--   {% else %}--Select Container--{% endif %}</option>
+                                    
+                                    {% for s in contain %}
+                                        <option data-value="{{s.id}}" value="{{s.id}}">{{s.name}}</option>
+                                    {% endfor %}
+                                    </select>       
+                            </div>
+                
+                            </div>
+                            
+                            <div class="form-group">
+                            <label for="tank_name" class="brown">
+                                {% if useri.langSet == 0 %}Jina la Tanki{% else %}Tank Name{% endif %} <sup>*</sup>
+                            </label>
+                            <input type="text" name="tank_name" id="tank_name" class="form-control btn-sm bluePrint" placeholder="" aria-describedby="helpId">
+                            
+                            </div>
+
+                           
+
+
+
+
+                            <div class="form-group">
+                            <label for="fuel_type" class="brown">
+                                {% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %} <sup>*</sup>
+                            </label>
+
+                            <select name="fuel_type" class="form-control btn-sm" id="fuel_type">
+                                <option value=0 >------</option>
+                                {% for f in fuels %}
+                                <option value={{f.id}} >{{f.name}}</option>
+                                {% endfor %}  
+                            </select>
+                            
+                            </div>
+
+
+
+                            <div class="form-group">
+                            <label for="tankCapacity" class="brown">
+                                {% if useri.langSet == 0 %}Uwezo wa Tanki{% else %}Tank Capacity{% endif %} <sup>*</sup>
+                                <span class="text-primary">(LTRS)</span>
+                            </label>
+                            <input type="number" step="0.001" name="tankCapacity" id="tankCapacity" class="form-control btn-sm" placeholder="0" aria-describedby="helpId">
+                            
+                            </div>
+
+                            <div class="form-group">
+                            <label for="tankMinAmo" >
+                                {% if useri.langSet == 0 %}Kiasi cha Chini Kutumika{% else %}Minimum Amount To Consider{% endif %} 
+                                <span class="text-primary">(LTRS)</span>
+                            </label>
+
+                            <input type="number" step="0.001" name="tankMinAmo" id="tankMinAmo" class="form-control btn-sm" placeholder="0" aria-describedby="helpId">
+                            
+                            </div>
+
+                            <div class="form-group">
+                            <label for="tankqty" class="brown">
+                                {% if useri.langSet == 0 %}Kiasi Kilichopo{% else %}Tank Qty{% endif %} <sup>*</sup>
+                                <span class="text-primary">(LTRS)</span>
+                            </label>
+                            <input type="number" step="0.001" name="tankqty" id="tankqty" class="form-control btn-sm" placeholder="0" aria-describedby="helpId">
+                            
+                            </div>
+
+                            <div class="form-group">
+                            <label for="fuelcost" class="brown">
+                                {% if useri.langSet == 0 %}Bei ya kununulia{% else %}Purchase Price{% endif %} <sup>*</sup>
+                                <span class="text-primary">(TZS)</span>
+                            </label>
+
+                            <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                <label class="mt-1 text-danger " for=""></label> 
+                              <div class="box-pointer d-inline "></div>
+                            </div>
+
+                            <input type="number" name="fuelcost" id="fuelcost" class="form-control btn-sm money-fomat" placeholder="0" aria-describedby="helpId">
+                            
+                            </div>
+
+
+                            <div class="form-group">
+                            <label for="fuelprice" class="brown">
+                                {% if useri.langSet == 0 %}Bei ya Kuuzia{% else %}Sales Price{% endif %} <sup>*</sup>
+                                <span class="text-primary">(TZS)</span>
+                            </label>
+                            <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                <label class="mt-1 text-danger " for=""></label> 
+                              <div class="box-pointer d-inline "></div>
+                            </div>
+                            <input type="number" name="fuelprice" id="fuelprice" class="form-control btn-sm money-fomat" placeholder="0" aria-describedby="helpId">
+                            
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </div>
+
+                     </form>
+                </div>
+
+
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#addtankform').submit(function(e){
+      e.preventDefault()
+      const name = $('#tank_name').val(),
+            fuel = Number($('#fuel_type').val()),
+            qty = Number($('#tankqty').val()) || 0,
+            tankCapacity = Number($('#tankCapacity').val()) || 0,
+            minAmo = Number($('#tankMinAmo').val()) || 0,
+            cost = Number($('#fuelcost').val()) || 0,
+            price = Number($('#fuelprice').val()) || 0,
+            url = $(this).attr('action'),
+            type = Number($('#tank_type').val()),
+            Cont = Number($('#container_chaguo').val()),
+            newCont = Number($('#container_mpya').prop('checked')),
+            Cont_name = $('#contena_jina').val(),
+            incharge = Number($('#fuelGivenTo').val()),
+            moving = Number(type == 2)
+            data = {
+              data:{
+                  name,
+                  fuel,
+                  qty,
+                  cost,
+                  price,
+                  type,
+                  newCont,
+                  moving,
+                  Cont,
+                  Cont_name,
+                  tankCapacity,
+                  incharge,
+                  minAmo
+              },
+              url
+            }
+           
+  
+            if(name!=''&& fuel && cost && price && type && tankCapacity && ((newCont&&Cont_name!='')||(!newCont&&Cont) || type == 1 ) ){
+              $('#addTank').modal('hide')
+              $('#loadMe').modal('show')
+  
+              const sendIt = POSTREQUEST(data)
+              sendIt.then(resp=>{
+                  $('#loadMe').modal('hide')
+                  hideLoading()
+  
+                      if(resp.success){
+                          toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success '), {timeOut: 2000});
+                          location.reload()
+                      }else{
+                              toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});
+  
+                      }
+              })
+  
+            }else{
+              if(name=='')redborder('#tank_name')           
+              if(!fuel)redborder('#fuel_type')           
+              if(!cost)redborder('#fuelcost')           
+              if(!price)redborder('#fuelprice')           
+              if(Cont_name==''&&!newCont)redborder('#contena_jina')           
+              if(!Cont&&newCont)redborder('#container_chaguo')           
+              if(!tankCapacity)redborder('#tankCapacity')           
+            }
+    })
+  
+  
+  $(document).ready(function(){
+      $('#all_tanks').DataTable();
+  
+    })
+  
+</script>
+
+
+
+{% endblock %}
+
+{% block fuel %} active {% endblock %}

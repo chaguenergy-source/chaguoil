@@ -1,0 +1,63 @@
+body{
+    
+        
+        font-family: "Segoe UI", "Arial", "Helvetica Neue", Helvetica, sans-serif;
+      }
+
+      .letterhead {
+        border-top: 2px solid #007bff;
+        border-bottom: 2px solid #007bff;
+        padding: 20px 0 10px 0;
+        margin-bottom: 20px;
+        position: relative;
+      }
+      .company-name {
+        font-size: 40px;
+        font-weight: bold;
+        color: #007bff;
+        text-transform: uppercase;
+        text-align: center;
+        letter-spacing: 2px;
+        margin-bottom: 0;
+        
+      }
+      .logo-center {
+        display: flex;
+        justify-content: center;
+        
+        /* margin: 10px 0 10px 0; */
+      }
+      .company-logo {
+        max-height: 70px;
+      }
+        .smallFont {font-size:.94em; }
+        .smallerFont { font-size: smaller; } 
+        .largerFont { font-size: larger; }
+        .weight100 { font-weight: 100; }
+        .weight200 { font-weight: 200; }
+        .weight300 { font-weight: 300; }
+
+        .weight400 { font-weight: 400; }
+        .weight500 { font-weight: 500; }
+        .weight600 { font-weight: 600; }
+        .weight700 { font-weight: 700; }
+        .weight800 { font-weight: 800; }
+        .weight900 { font-weight: 900; }
+        .brown{color:brown}
+        a {
+          text-decoration: none;
+        }
+
+      .contact-info {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #333;
+      }
+      .contact-left {
+        text-align: left;
+      }
+     
+      @media (max-width: 768px) {
+        .company-name { font-size: 28px; }
+        .contact-info { font-size: 13px; }
+      }

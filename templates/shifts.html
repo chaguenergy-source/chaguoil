@@ -1,0 +1,170 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Zamu kwenye Pampu{% else %}Pump Shifts{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+   
+
+
+</div>
+
+<div class="table-data">
+    <div class="order">
+
+             {% include 'headingShifts.html' %} 
+              
+              
+      <div class="head">
+
+
+        <h5 >
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-check">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline>
+            </svg>
+
+                {% if useri.langSet == 0 %}Zamu kwenye pampu{% else %} Pump Shifts{% endif %}</h5>
+        
+      </div>
+
+      <div class="table-responsive">
+        <table  class="table  table-sm" >
+            <thead>
+                <tr class="text-center" >
+                    <th class="p-2">{% if useri.langSet == 0 %}Zamu{% else %}Shift{% endif %} </th>
+                   {% if general %} 
+                   <th class="p-2">{% if useri.langSet == 0 %}Stesheni{% else %}Station{% endif %} </th> 
+                   {% endif %}
+                    <th class="p-2">{% if useri.langSet == 0 %}Kuanzia{% else %}From{% endif %} </th>
+                   
+                    <th class="p-2">{% if useri.langSet == 0 %}Hadi{% else %}To{% endif %} </th>
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Mhusika{% else %}Incharge{% endif %} </th>
+                   
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Imelekodiwa na{% else %}Recorded by{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %} </th>
+
+                  
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for t in tr %}
+                <tr  >
+                     <td>
+                        <a href="/salepurchase/viewShift?i={{t.id}}">
+                            SHF-{{t.code}}
+                        </a>
+                    </td>
+
+                    {% if general %}
+                      <td class="bluePrint">
+                          {{t.record_by.Interprise.name}}
+                      </td>
+                    {% endif %}
+                      <td>
+                        <script>
+                            document.write(moment('{{t.From | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                        </script> 
+                      </td>
+
+                      <td>
+                        {% if t.To %}
+                        <script>
+                            document.write(moment('{{t.To | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                        </script> 
+                        {% else %}
+                             --:--:---- --:--    
+                        {% endif %}
+                      </td>
+
+
+
+                      <td>
+                        {{t.by.user.first_name|title}} {{t.by.user.last_name|title}}
+                      </td>
+
+
+
+                      <td>{{t.record_by.user.user.first_name | title}} {{t.record_by.user.user.last_name | title}}</td>
+                      <td>
+                        <a href="/salepurchase/viewShift?i={{t.id}}" class="btn-light btn btn-sm" title="{% if useri.langSet == 0 %}Onesha{% else %}View{% endif %}" >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </a>
+                      </td>  
+                    </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+      </div>
+
+      <p class=" pt-4 ">
+           
+        {% if tr.has_previous %}
+          <a href="{% url 'theshifts' %}?page=1" type="button"  class="btn btn-default border0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
+            </svg>
+            </a>
+      
+            <a href="{% url 'theshifts' %}?page={{tr.previous_page_number}}" type="button"  class="btn btn-default  border0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+              </svg>
+            </a>
+          {% endif %}
+      
+        {% if tr.has_next %}
+            <a href="{% url 'theshifts' %}?page={{tr.next_page_number}}" type="button" class="btn btn-default border0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+              </svg>
+            </a>
+      
+            <a href="{% url 'theshifts' %}?page={{pages}}" type="button"  class="btn btn-default border0" >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
+              </svg>
+            </a>
+      {% endif %}
+            <label for="">
+             
+              {% if useri.langSet == 0 %} Ukurasa wa {{p_num}} kati ya {{pages}} {% else %} page {{p_num}} of {{pages}} {% endif %}
+      
+            </label>
+        </p>
+
+
+     
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block shifts %} active {% endblock %}

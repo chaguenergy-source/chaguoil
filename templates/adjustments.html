@@ -1,0 +1,314 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title ">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Kupima mafuta Kwenye Tanki{% else %} Tank Adjustments{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+   
+
+
+</div>
+
+<div class="table-data" >
+    <div class="order">
+
+             {% include 'headingfuel.html' %} 
+              
+              
+      <div class="head">
+
+
+        <h5 >
+
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.4em" width="1.4em" viewBox="0 0 24 24"  fill="currentColor">
+                <path d="M0 0h24v24H0zm0 0h24v24H0z" fill="none"/>
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5.5 7.5h2v-2H9v2h2V9H9v2H7.5V9h-2V7.5zM19 19H5L19 5v14zm-2-2v-1.5h-5V17h5z"/>
+              </svg>
+
+                {% if useri.langSet == 0 %}Marekebisho kwenye Tanki{% else %}Tank Fuel Adjustment{% endif %}</h5>
+        
+      </div>
+
+ 
+      <div class="row">
+        <div class="col-md-6">
+            <div  class="form-group mb-3 toTankOpt ">
+                <label for="payOpt"> {% if useri.langSet == 0 %}Aina ya Matanki{% else %}Tanks Type{% endif %}: </label>
+               <div>
+                      <span class="border optionbtns " >
+                      
+                          {% if general %}      
+                             <button data-opt="1" disabled   id="StationTankAdj" type="button" class="btn-default btn-sm btn tank_btn_option {% if not general %} active {% endif %} " >
+                          {%else%}
+                             <button data-opt="1"    id="StationTankAdj" type="button" class="btn-default btn-sm btn tank_btn_option {% if not general %} active {% endif %} " >
+                          
+                          {% endif %}
+                            <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor">
+                                    <path d="M160-120q-17 0-28.5-11.5T120-160q0-17 11.5-28.5T160-200h40v-240h-40q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h40v-240h-40q-17 0-28.5-11.5T120-800q0-17 11.5-28.5T160-840h640q17 0 28.5 11.5T840-800q0 17-11.5 28.5T800-760h-40v240h40q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440h-40v240h40q17 0 28.5 11.5T840-160q0 17-11.5 28.5T800-120H160Zm320-200q50 0 85-34.5t35-83.5q0-39-22.5-67T480-620q-75 86-97.5 114.5T360-438q0 49 35 83.5t85 34.5Z"/>
+                                </svg>
+                               {% if useri.langSet == 0 %}Matanki ya Pampu{% else %}Station Tanks{% endif %}
+                          </button>
+
+                          <button type="button" id="moveTankAdj"  data-opt="2"  class="btn-default btn-sm btn tank_btn_option {% if  general %} active {% endif %} " >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-truck">
+                                    <rect x="1" y="3" width="15" height="13"></rect>
+                                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                    <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                    <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                </svg>
+                             {% if useri.langSet == 0 %}Tanki linalotembea{% else %}Moving Tanks{% endif %}
+                          </button>  
+                      </span>
+               </div>
+
+               <script>
+                    $('.tank_btn_option').click(function(){
+                         $('.tank_btn_option').removeClass('active')
+                         $(this).addClass('active')
+                         $('.AdjOpt').prop('hidden',true)
+                        const opt = $(this).data('opt')
+                        $(`#AdjOpt${opt}`).prop('hidden',false)
+                             
+                         
+                    })
+               </script>
+  
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="brown" for="TankOpAdj">{% if useri.langSet == 0 %}Msimamizi{% else %}Supervisor{% endif %}*</label>
+                <select class="form-control border selectpicker"
+                onchange="$(this).selectpicker('setStyle', 'bluePrint')"
+                data-live-search="true" name="TankOpAdj" id="TankOpAdj">
+                   <option value=0>-------</option>
+                   {% for u in tanksSup %}
+                           
+                   <option value={{u.user.id}}>{{u.user.user.first_name|title}}  {{u.user.user.last_name|title}}</option>
+
+                {%endfor%}
+                </select>
+              </div>
+
+           
+        </div>
+      </div>
+
+       <div class="AdjOpt pb-4 mt-3" id="AdjOpt1">
+        <h6> {% if useri.langSet == 0 %}Matanki ya Pampu{% else %}Station Tanks{% endif %}</h6>
+             
+        <div class=" table-sm-responsive">
+             <div class="row" style="min-width: 600px;">
+                <div class="col-1">#</div>
+                <div class="col-2">{% if useri.langSet == 0 %}Tanki{% else %}Tank{% endif %}</div>
+                <div class="col-2">{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</div>
+                <div class="col-2">{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">LTRS</span> </div>
+                <div class="col-3">{% if useri.langSet == 0 %}Kipimo{% else %}Stick{% endif %} <span class="text-primary">LTRS</span> </div>
+                <div class="col-2">{% if useri.langSet == 0 %}Tofauti{% else %}Difference{% endif %} <span class="text-primary">LTRS</span> </div>
+               <div class="col-12 my-2 border-bottom"></div>
+                {% for t in shell_tanks %}
+                <div class="col-1">{{forloop.counter}}</div>
+                <div class="col-2">{{t.name}}</div>
+                <div class="col-2">{{t.fuel.name}}</div>
+                <div class="col-2">{{t.qty|floatformat:'-2'|intcomma}}  </div>
+                <div class="col-3"> 
+                    <input type="number"   data-initial="{{t.qty}}" style="width: 100%;background-color: var(--whiteBg);color:var(--inputColor)" data-tank="{{t.id}}" step="0.01"  id="tank{{t.id}}"  class="StationTank AllAdjTanks weight600">
+
+                </div>
+                <div class="col-2 weight600" id="stickDiff{{t.id}}" >---  </div>
+               {% endfor %}
+                
+             
+                
+             </div>
+        </div>
+
+       </div>
+
+
+
+
+       <div class="AdjOpt pb-4 mt-3" id="AdjOpt2" hidden >
+        <h6> {% if useri.langSet == 0 %}Matanki Yanayotembea{% else %}Moving Tanks{% endif %}</h6>
+
+        <div class="row mb-3">
+            <div class="form-group mb-3 col-md-6">
+                <label class="brown" for="containerAdj">{% if useri.langSet == 0 %}Kontena{% else %}Container{% endif %} <sup>*</sup> </label>
+                <select class=" form-control bluePrint border selectpicker tankContainers" 
+                    onchange="const cont =$(this).val();
+                            $('.containerTank').prop('hidden',true)
+                            $(`.container${cont}`).prop('hidden',false)
+                    $(this).selectpicker('setStyle', 'bluePrint')"
+                    data-live-search="true" name="containerAdj" id="containerAdj">
+                        <option value=0 selected>-----------</option>
+                        {% for t in tankContainer %}
+                        <option  value={{t.tank.id}}>{{t.tank.name}}</option>
+                        {% endfor %}
+            </select>
+            </div>    
+            
+            
+        </div>
+
+        <div class=" table-sm-responsive">
+            <div class="row" style="min-width: 600px;">
+             <div class="col-12 row">
+
+                
+               <!-- <div class="col-1">#</div> -->
+               <div class="col-2">{% if useri.langSet == 0 %}Tanki{% else %}Tank{% endif %}</div>
+               <div class="col-2">{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</div>
+               <div class="col-2">{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">LTRS</span> </div>
+               <div class="col-3">{% if useri.langSet == 0 %}Kipimo{% else %}Stick{% endif %} <span class="text-primary">LTRS</span> </div>
+               <div class="col-2">{% if useri.langSet == 0 %}Tofauti{% else %}Difference{% endif %} <span class="text-primary">LTRS</span> </div>
+             </div> 
+             <div class="col-12 my-2 border-bottom"></div>
+              
+              {% for t in tr_tank %}
+               <div hidden class="row col-12 containerTank container{{t.tank.id}}">
+                    <!-- <div class="col-1">{{forloop.counter}}</div> -->
+                    <div class="col-2">{{t.name}}</div>
+                    <div class="col-2">{{t.fuel.name}}</div>
+                    <div class="col-2">{{t.qty|floatformat:'-2'|intcomma}}  </div>
+                    <div class="col-3"> 
+                        <input type="number"   data-initial="{{t.qty}}" style="width: 100%;background-color: var(--whiteBg);color:var(--inputColor)" data-tank="{{t.id}}" step="0.01"  id="tank{{t.id}}"  class="tankCont{{t.tank.id}} AllAdjTanks weight600">
+
+                    </div>
+                    <div class="col-2 weight600" id="stickDiff{{t.id}}" >--- </div>                
+               </div>
+               
+              {% endfor %}
+               
+            
+               
+            </div>
+       </div>
+
+                  
+       </div>
+
+
+       <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="form-group">
+              <label for="AdjstRemarks">{% if useri.langSet == 0 %}Maelezo{% else %}Remarks{% endif %}</label>
+              <textarea class="form-control" name="AdjstRemarks" id="AdjstRemarks" rows="3"></textarea>
+            </div>
+        </div>
+       </div>
+
+       <p class="brown" id="showMsg" hidden >
+          {% if useri.langSet == 0 %}Hakikisha sehemu zote muhimu zimejazwa kikamilifu{% else %}Make sure all required fields are filled correctly{% endif %}
+       </p>
+
+       <p class="text-right">
+          <button id="Adjsubmitbtn" class="btn btn-primary btn-sm">
+            Save
+          </button>
+       </p>
+
+  
+
+
+     
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block additionaljs %}
+  <script>
+
+    $('.AllAdjTanks').keyup(function(){
+        const stick = Number($(this).val()),
+              tankval = Number($(this).data('initial')),
+              diff = stick - tankval,
+              tank = Number($(this).data('tank')),
+              show = `<span class="${diff>=0?'green':'brown'}">${$(this).val()!=''?Number(diff.toFixed(2)).toLocaleString():'---'}</span>`
+              $(`#stickDiff${tank}`).html(show)
+             
+
+    })
+
+    $('#Adjsubmitbtn').click(function(){
+               
+        const url = '/salepurchase/savaAdjst',
+              move = Number($('#moveTankAdj').hasClass('active')),
+              op = Number($('#TankOpAdj').val()),
+              cont = Number($('#containerAdj').val()),
+              tanks = [],
+              desc = $('#AdjstRemarks').val(),
+              theTanks = `${move?`.tankCont${cont}`:'.StationTank'}`
+
+          
+                   $(theTanks).each(function(){
+                         const stick = $(this).val(),
+                               val = $(this).data('tank')
+                        if(val!=''){
+                           tanks.push(
+                            {val,stick}
+                           )
+                        }
+                   })
+  
+              if(tanks.length&&op){
+                $('#loadMe').modal('show')
+                    const data = {
+                        data:{move,desc,op,cont,tanks:JSON.stringify(tanks),desc},
+                        url
+                    },
+                    sendIt = POSTREQUEST(data)  
+                    sendIt.then(resp=>{
+                        const msg = lang(resp.swa,resp.eng)
+                        $('#loadMe').modal('hide')
+                
+                                if(resp.success){
+                                      hideLoading()
+                                    toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000});
+                                    location.replace(`/salepurchase/adjView?i=${resp.id}`)
+                                }else{
+
+                                    
+                                        toastr.error(msg, lang('Haikufanikiwa','Error '), {timeOut: 2000});
+            
+                                }
+                            
+                    })    
+
+              }else{
+                $('#showMsg').prop('hidden',false)
+                 if(!tanks.length){
+                    if(move && !cont)$('#containerAdj').selectpicker('setStyle','redborder')
+                    redborder('.Adjsubmitbtn')
+                 }
+
+                 if(!op)$('#TankOpAdj').selectpicker('setStyle','redborder')
+              }     
+
+             
+      
+
+    })
+       
+  </script>
+
+{% endblock %}
+{% block fuel %} active {% endblock %}

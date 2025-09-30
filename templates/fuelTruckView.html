@@ -1,0 +1,279 @@
+  
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title pb-md-5">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Magari{% else %} Fuel Truck{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+
+</div>  
+
+<div class="table-data" id="invoice_wrapper" style="min-height: 85vh;overflow-y: auto;overflow-x: hidden;" >
+    
+    <div class="order fontColor ">
+
+        {% include 'headingfuel.html' %} 
+
+    <div>    
+        <div class="row">
+            <div class="col-md-5 row">
+                <div class="col-12">
+                    <strong> {% if useri.langSet == 0 %}Taarifa za Gari{% else %}Truck Details{% endif %}</strong>
+                </div>
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}
+                </div>
+                <div class="col-9">
+                    {{cont.name | title}}  
+                </div>
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Matanki{% else %}Tanks{% endif %}
+                </div>
+                <div class="col-9">
+                    {{tanks.count}} 
+                </div>
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Mhusika{% else %}Incharge{% endif %}
+                </div>
+                <div class="col-9">
+                    {% if cont.by %}
+                     <span class="bluePrint">{{cont.by.user.first_name | title}}  {{cont.by.user.last_name | title}}</span>   
+                    {% else %}  
+                       ----
+                    {% endif %}
+                     {% if useri.admin %}
+                    | <a class=" smallerFont" data-toggle="modal" data-target="#Change_Incharge" type="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-refresh-ccw">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <polyline points="23 20 23 14 17 14"></polyline>
+                            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                        </svg>
+                        {% if useri.langSet == 0 %}Badili{% else %}Change{% endif %} </a>
+                     {% endif %}
+                </div>
+
+
+
+              
+
+        
+
+            </div>
+
+
+        
+
+
+        
+
+        </div>
+  
+
+ <h6 class="mt-5 weight600" >{% if useri.langSet == 0 %}Matanki{% else %}Fuel Tanks{% endif %}</h6>
+        <div class="table-responsive">
+                <div class="table-responsive">
+            <table id="all_tanks" class="table-bordered smallFont"  >
+                <thead>
+                <tr class="text-center" >
+                    <th>#</th>
+                 
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %} </th>
+
+              
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Galama/LTR{% else %}Cost/LTR{% endif %} <span class="text-primary">(TZS)</span> </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Bei/LTR{% else %}Price/LTR{% endif %} <span class="text-primary">(TZS)</span> </th>
+                                       
+                    <th class="px-3" >{% if useri.langSet == 0 %}Kiasi{% else %}qty{% endif %} <span class="text-primary">LTRS</span> </th>
+
+                   
+                    <th class="p-2">{% if useri.langSet == 0 %}Ghalama{% else %}Cost{% endif %} <span class="text-primary">(TZS)</span> </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Thamani{% else %}Woth{% endif %} <span class="text-primary">(TZS)</span> </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Tegemeo/Faida{% else %}Exp/Profit{% endif %} <span class="text-primary">(TZS)</span> </th>
+                {% if useri.admin and not general %}
+                  <!-- <th class="p-2" >Action</th> -->
+                  
+                {% endif %}
+
+                </tr>
+                </thead>
+
+
+
+                <tbody>
+                    {% for f in tanks %}
+                        <tr class="" >
+                            <td>{{forloop.counter}}</td>
+
+                        
+
+                            <td  >{% if f.tank.tank %} {{f.tank.tank.name}} {% endif %} {{f.name}} </td>
+                           
+                            <td class="brown" >{{f.fuel.name}} </td>
+
+                           
+                            
+                           
+                            <td> {{f.cost  | floatformat:'-2' | intcomma}} </td>
+                            <td> {{f.price  | floatformat:'-2' | intcomma}} </td>
+
+                             <td> {{f.qty| floatformat:'-3' | intcomma}} </td>
+                             
+                              <td> {{f.Tcost  | floatformat:'-2' | intcomma}} </td>
+                             <td> {{f.Tprice  | floatformat:'-2' | intcomma}} </td>
+                             <td class="text-success" > {{f.Tprof  | floatformat:'-2' | intcomma}} </td>
+     
+
+                            </tr>
+                    {% endfor %}
+
+                    <tr class="weight600 smallFont" > 
+                         <td colspan="5" >{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} </td>
+                         <td> {{Tqty  | floatformat:'-2' | intcomma}}</td>
+                         <td> {{Tcost  | floatformat:'-2' | intcomma}}</td>
+                         <td> {{Tprice  | floatformat:'-2' | intcomma}}</td>
+                         <td class="text-success" > {{Tprof  | floatformat:'-2' | intcomma}}</td>
+
+                    </tr>
+
+                </tbody>
+            </table>
+      </div>
+        </div>
+
+
+
+        </div>
+    </div>
+
+  
+  </div>    
+
+
+
+      <!-- Modal Payments -->
+      <div class="modal fade" id="Change_Incharge" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog animate" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">  
+                        {{cont.name | title}} |                           
+                        {% if useri.langSet == 0 %}Kubadili Mhusika {% else %}Change Incharge{% endif %}  
+                    </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <div class="modal-body ">
+                    <form action="{% url 'ChangeTruckIncharge'  %}"  class="px-2" id="ChangeIncharge" method="POST">
+                        {% csrf_token %}
+
+                        
+            <div class="form-group mb-3 ">
+                <label class="brown" for="fuelGivenTo">{% if useri.langSet == 0 %}Mhusika{% else %}Incharge{% endif %}:</label>
+                <select class="form-control border selectpicker" 
+                onchange="$(this).selectpicker('setStyle', 'bluePrint')"
+                data-live-search="true" name="fuelGivenTo" id="fuelGivenTo">
+                   <option value=0>-------</option>
+                   {% for u in tr_by %}
+                           
+                   <option value={{u.id}} >{{u.user.first_name|title}}  {{u.user.last_name|title}}</option>
+
+                {%endfor%}
+                </select>
+            </div> 
+
+           
+
+                        
+
+                     <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary latoFont" data-dismiss="modal">
+                        close
+                    </button>
+
+                    <button type="submit"    class="btn btn-primary latoFont">Save</button>
+                </div>
+                    </form>
+   
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+
+
+{% block additionaljs %}
+<script>
+
+     $('body').on("submit", "#ChangeIncharge" ,function(e){
+                    e.preventDefault();
+                    const cont = Number('{{cont.id}}'),
+                          url = $(this).attr("action"),
+                          inc = Number($('#fuelGivenTo').val()),
+
+                          data = {
+                            data:{ 
+                             inc,cont
+                            },
+                            url
+                          }
+
+                       
+
+                          if(inc){
+                          
+                                    $("#Change_Incharge").modal('hide');
+                                    $("#loadMe").modal('show');
+                                    const sendIt = POSTREQUEST(data)
+                                    sendIt.then(resp=>{
+                                      $('#loadMe').modal('hide')
+                                            hideLoading()
+                                            const msg = lang(resp.swa,resp.eng)
+                                            if(resp.success){
+                                            toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000});
+                                            // location.replace(`/salepurchase/viewFuelSales?i=${resp.id}`)
+                                               location.reload()
+                                          }else{
+                                              toastr.error(msg, lang('Haikufanikiwa','Error '), {timeOut: 2000});
+                                        
+                                          }
+
+
+                                    })
+                          }
+
+                  
+                })
+  
+
+
+
+</script>
+
+{% endblock %}
+
+{% block fuel %} active  {% endblock %}

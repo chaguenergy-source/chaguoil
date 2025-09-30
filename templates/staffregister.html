@@ -1,0 +1,102 @@
+<!-- Modal -->
+<div class="modal fade" id="addStaff" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+                <div class="modal-header">
+                        <h5 class="modal-title">
+                            {% if useri.langSet == 0 %} Ongeza Stafu{% else %}Add Member{% endif %}
+                        </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                    </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <form action="/staffs/addStaff" class="p-2 p-md-3  " id="reg1Form"  method="POST" >
+                        {% csrf_token %}
+            
+                      
+                        <div class="form-group pb-2">
+                          <label class="weight500 brown" id="for_fname" for="f_name">{% if langSet == 0 %} Jina la Kwanza {% else %}  First Name{% endif %} <sup>*</sup></label>
+                          <input type="text" name="f_name" id="f_name" value="{{regi.user.first_name}}"  class="form-control smallFont darkblue" placeholder="{% if lang == 0 %}Andika Jina la Kwanza {% else %} Write First Name{% endif %}" aria-describedby="helpId">
+                         
+                        </div>
+            
+                        <div class="form-group pb-2" id="lastName" >
+                            <label class="weight500 brown" for="l_name">{% if langSet == 0 %} Jina la Mwisho{% else %}  Last Name{% endif %} <sup>*</sup> </label>
+                          <input type="text" name="l_name" value="{{regi.user.last_name}}"  id="l_name"  class="form-control smallFont darkblue" placeholder="{% if langSet == 0 %}Jina la Mwisho{% else %} Write last Name{% endif %}" aria-describedby="helpId">
+                         
+                        </div>
+            
+                     
+                         <div class="form-group pb-2 ">
+                        
+                           
+                            <label class="weight500 brown" for="Phone">{% if langSet == 0 %}Namba ya simu{% else %} Phone Number{% endif %} <sup>*</sup> </label>
+                           <input type="Phone" data-valu=0 name="Phone" id="Phone"  value="+255"  class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Barua Pepe{% else %} Write Email {% endif %}" aria-describedby="helpId">
+                         
+                        </div>  
+
+                         <div class="form-group pb-2 ">
+                        
+                           
+                            <label class="weight500 brown" for="email">{% if langSet == 0 %}Barua Pepe{% else %} Email{% endif %} <sup>*</sup> </label>
+                           <input type="email" data-valu=0 name="email" id="email" value="{{regi.user.email}}"  class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Barua Pepe{% else %} Write Email {% endif %}" aria-describedby="helpId">
+                         
+                        </div>    
+            <div class="form-group pb-2 ">
+            
+                <label class="weight500 brown" for="cheo">{% if lang == 0 %}Cheo{% else %} Position{% endif %} <sup>*</sup> </label>
+               <input type="text" data-valu=0 name="cheo" id="cheo"   class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Cheo{% else %} Member Position {% endif %}" aria-describedby="helpId">
+             
+            </div>                        
+                        
+            <div class="form-group pb-2 ">
+            
+               
+                <label class="weight500 brown" for="city">{% if lang == 0 %}Mji{% else %} City{% endif %} <sup>*</sup> </label>
+               <input type="text" data-valu=0 name="city" id="city"   class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Mji{% else %} Write City {% endif %}" aria-describedby="helpId">
+             
+            </div>
+
+
+
+            <div class="form-group pb-2 ">
+            
+                <label class="weight500 brown" for="address">{% if lang == 0 %}Anwani{% else %} Address{% endif %} <sup>*</sup> </label>
+               <input type="text" data-valu=0 name="address" id="address"   class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Anwani{% else %} Write Address {% endif %}" aria-describedby="helpId">
+             
+            </div>
+
+           
+
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="ceo_member" name="ceo_member">
+                <label class="custom-control-label" for="ceo_member">
+                    {% if lang == 0 %}Ruhusu matawi yote{% else %} Allowed to all branches{% endif %} 
+                </label>
+              </div>
+
+                        <div class="modal-footer mt-3">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    
+                    </form>
+                    </div>
+            </div>
+           
+        </div>
+    </div>
+</div>
+
+
+{% block additionaljs %}
+ <script src="/static/js/staffs.js"></script>
+ <script>
+    $(document).ready(function(){
+      $('#all_staffs').DataTable();
+
+    })
+</script>
+{% endblock %}

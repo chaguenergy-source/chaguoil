@@ -1,0 +1,146 @@
+  
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title pb-md-5">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Wateja{% else %} Customers{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+
+</div>  
+
+<div class="table-data" id="invoice_wrapper" style="min-height: 85vh;overflow-y: auto;overflow-x: hidden;" >
+    
+    <div class="order fontColor ">
+
+        {% include 'headingPayments.html' %} 
+
+    <div>    
+        <div class="row">
+            <div class="col-md-5 row">
+                <div class="col-12">
+                    <strong> {% if useri.langSet == 0 %}Malipo ya Bili{% else %}Periodic Bill{% endif %}</strong>
+                </div>
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Jina la Bili{% else %}Bill Name{% endif %}
+                </div>
+                <div class="col-7">
+                    {{exp.matumizi }} | <button class="btn btn-light btn-sm text-primary edit_btn"  data-toggle="modal" data-target="#wateja-modal"
+                                          title="Edit" >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                      </svg>                                   
+                                     </button> 
+                </div>
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}
+                </div>
+                <div class="col-7">
+                    {% if exp.shell %}<u class="bluePrint" > {{exp.shell.name  }} </u> {%else%} General {% endif %}  
+                </div>
+
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}
+                </div>
+                <div class="col-7">
+                                {{exp.duration}}
+                                {% if exp.period_type == 1 %}
+                                  {% if useri.langSet is not 0 %}{{exp.duration}} {% endif %}  {% if useri.langSet == 0 %} Siku {% else %} Day(s) {% endif %}
+                                 {% endif %}
+                                 {% if exp.period_type == 2 %}
+                                    {% if useri.langSet == 0 %} Wiki {% else %} Week(s) {% endif %}
+                                 {% endif %}
+                                 {% if exp.period_type == 3 %}
+                                    {% if useri.langSet == 0 %} Mwezi/Miezi {% else %} Month(s) {% endif %}
+                                 {% endif %}
+                                 {% if exp.period_type == 4 %}
+                                    {% if useri.langSet == 0 %} Mwaka/Miaka {% else %} Year(s) {% endif %}
+                                 {% endif %}
+                                 {% if useri.langSet == 0 %}{{exp.duration}} {% endif %}
+                </div>
+                
+                
+                 <div class="col-5">
+                    {% if useri.langSet == 0 %} Kiasi {% else %} Amount {% endif %}
+                </div>
+                <div class="col-7">
+                    {% if exp.depends %} <span class="brown weight400">{% if useri.langSet == 0 %} Inategemea {% else %} It Depends {% endif %}</span> {% else %} <span class="text-primary">{{currencii}}</span>.{{exp.amount  | floatformat:'-2' | intcomma}} {% endif %}
+                
+                </div>
+
+                 <div class="col-5">
+                    {% if useri.langSet == 0 %} Malipo ya Mwisho {% else %} Last Paid {% endif %}
+                </div>
+                <div class="col-7">
+                    {% if exp.last_paid %} {{exp.last_paid|date:'d-m-Y'}} {%else%} --- {% endif %}
+                
+                </div>
+                 <div class="col-5">
+                    {% if useri.langSet == 0 %} Malipo yajayo {% else %} Next Payments {% endif %}
+                </div>
+                <div class="col-7">
+                   {{exp.next_pay|date:'d-m-Y'}}
+                
+                </div>
+                
+
+        
+
+            </div>
+
+
+        
+
+
+        
+
+        </div>
+          
+
+           
+
+
+
+     
+
+
+
+        </div>
+    </div>
+
+  
+  </div>    
+
+
+
+
+
+
+
+
+{% endblock %}
+
+
+
+{% block additionaljs %}
+
+
+{% endblock %}
+
+{% block payaccount %} active {% endblock %}

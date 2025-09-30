@@ -1,0 +1,531 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+    
+{% if useri.admin and not general %}
+<button data-toggle="modal" data-target="#addTank" id="addCustombtn" class="btn btn-default btn-download">
+    <!-- <i class='bx bxs-cloud-download' ></i> -->
+    <span class="text"> 
+        {% if useri.langSet == 0 %} Ongeza Pump{% else %}Add Pump{% endif %}
+    </span>
+</button>
+{% endif %}
+
+
+</div>
+
+
+<div class="table-data">
+    <div class="order">
+        {% include 'headingfuel.html' %}     
+
+      <div class="head">
+        <h5 >
+
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.5em" viewBox="0 -960 960 960" width="1.5em" fill="currentColor">
+                <path d="M160-120v-640q0-33 23.5-56.5T240-840h240q33 0 56.5 23.5T560-760v280h40q33 0 56.5 23.5T680-400v180q0 17 11.5 28.5T720-180q17 0 28.5-11.5T760-220v-288q-9 5-19 6.5t-21 1.5q-42 0-71-29t-29-71q0-32 17.5-57.5T684-694l-84-84 42-42 148 144q15 15 22.5 35t7.5 41v380q0 42-29 71t-71 29q-42 0-71-29t-29-71v-200h-60v300H160Zm80-440h240v-200H240v200Zm480 0q17 0 28.5-11.5T760-600q0-17-11.5-28.5T720-640q-17 0-28.5 11.5T680-600q0 17 11.5 28.5T720-560Z"/>
+                </svg>   
+                {% if useri.langSet == 0 %}Pump za Mafuta{% else %}Fuel Pump {% endif %}</h5>
+        
+      </div>
+
+      <div class="table-responsive">
+            <table id="all_tanks" class="table-bordered smallFont"  >
+                <thead>
+                <tr class="text-center" >
+                    <th>#</th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Dispensa{% else %}Dispenser{% endif %} </th>
+                    <th class="p-2">{% if useri.langSet == 0 %}Pampu{% else %}Pump{% endif %} </th>
+                      
+                    {% if general %}
+                      <th class="p-2">{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %} </th>
+                    {% endif %}
+                    
+                    <th class="p-2">{% if useri.langSet == 0 %}Tanki{% else %}Tank{% endif %} </th>
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %} </th>
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Aliyepo{% else %}Incharge{% endif %} </th>
+                    
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Kuanzia{% else %}From{% endif %} </th>
+
+                    <th class="p-2">{% if useri.langSet == 0 %}Inasoma{% else %}Reading{% endif %} </th>
+              
+                  
+                </tr>
+                </thead>
+
+
+
+                <tbody>
+                    {% for f in pumps %}
+                        <tr  >
+                            <td>{{forloop.counter}}</td>
+                            <td class="weight600">{{f.station.name}}  </td>
+                            <td class="weight600" >{{f.name}} </td>
+                             
+                            {% if general %}
+                               <td><a href="#" >{{ f.tank.Interprise.name  }}</a>  </td>
+                            {% endif %}
+                            
+                            <td><u class="text-primary" >{{f.tank.name}}</u>  </td>
+
+                            <td><u class="text-primary" >{{f.tank.fuel.name}}</u>  </td>
+
+                             <td class="text-capitalize"> 
+                                {% if f.Incharge is not null %}
+                                   {{f.Incharge.user.first_name}}   {{f.Incharge.user.last_name}}
+                                 {% else %}  
+                                   -------
+                                 {% endif %}
+                                </td>
+                            
+                             <td class="text-capitalize">
+                                {% if f.fromi is not null %}  
+                                <script>
+                                    document.write(moment('{{f.fromi | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                  </script>
+                                {% else %}  
+                                 --/--/---- --:--
+                                {% endif %}
+
+                             </td>
+
+                             <td>
+                               
+                                {{f.readings  | floatformat:'-3' | intcomma }}
+                             </td>
+
+                            
+                              
+                             
+                           
+                            </tr>
+                    {% endfor %}
+                   
+                </tbody>
+            </table>
+      </div>
+
+
+     
+    </div>
+</div>
+
+{% if useri.admin and not general %}
+<!--Add Pump Modal -->
+<div class="modal fade" id="addTank" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+                <div class="modal-header">
+                        <h5 class="modal-title">
+                            {% if useri.langSet == 0 %} Kuongeza Pampu ya Mafuta{% else %}Add Fuel Pump{% endif %}
+
+                        </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                    </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    
+
+                     <form action="/salepurchase/addpump" id="addpumpform">
+                        {% csrf_token %}
+
+                        <div class="form-group mb-3">
+                            <div class="row py-0">
+                              <div class="col-6">
+                                   <label for="choose_matum" class="text-danger" >{% if useri.langSet == 0 %}Dispensa ya mafuta{% else %}Fuel Dispenser{% endif %}  <sup>*</sup> </label>
+                              </div>
+                              <div class="col-6 text-right">
+                               <div class="custom-control custom-checkbox">
+                                 <input type="checkbox" class="custom-control-input" 
+                                 onchange="if($(this).prop('checked')){$('#pampu_jina').prop('hidden',false);$('#chagua_pampu').hide()}else{$('#pampu_jina').prop('hidden',true);$('#chagua_pampu').show()}" 
+                                 id="pump_mpya">
+                                 <label class="custom-control-label latoFont text-primary cursor-pointer" style="cursor: pointer !important;" for="pump_mpya">
+                                   {% if useri.langSet == 0 %}Mpya{% else %}New{% endif %}
+                                 </label>
+                               </div>
+                              </div>
+                            </div>
+               
+                          <input type="text" name="pampu_jina" hidden id="pampu_jina" class="form-control" placeholder="{% if useri.langSet == 0 %}Andika Jina la Dispensa{% else %}Write Dispensa Name{% endif %}" aria-describedby="helpId">
+               
+                          <div id="chagua_pampu" >
+                                 <select name="pampu_chaguo"  id="pampu_chaguo"   class="form-control " >
+                                   <option data-value=0 value=0 > {% if useri.langSet == 0 %}--Chagua Dispensa--   {% else %}--Select Dispenser--{% endif %}</option>
+                                  
+                                   {% for s in station %}
+                                       <option data-value="{{s.id}}" value="{{s.id}}">{{s.name}}</option>
+                                   {% endfor %}
+                                 </select>       
+                          </div>
+               
+                        </div>
+
+                            <div class="form-group">
+                                <label for="pump_name" class="brown">
+                                    {% if useri.langSet == 0 %} Pampu ya mafuta{% else %}Gasoline Pump {% endif %} <sup>*</sup>
+                                </label>
+                                <input type="text" name="pump_name" id="pump_name" class="form-control" placeholder="" aria-describedby="helpId">
+                                
+                            </div>
+
+                            <div class="form-group">
+                                <label for="pump_counter" class="brown">
+                                    {% if useri.langSet == 0 %}Namba za Kipimo {% else %}Counter Readings{% endif %} <sup>*</sup>
+                                </label>
+                                <input type="number" name="pump_counter" step="0.01" id="pump_counter" class="form-control" placeholder="" aria-describedby="helpId">
+                                
+                            </div>
+
+
+                            <div class="form-group">
+                            <label for="tank_value" class="brown">
+                                {% if useri.langSet == 0 %}Tanki{% else %}Tank{% endif %} <sup>*</sup>
+                            </label>
+
+                            <select name="tank_value" class="form-control" id="tank_value">
+                                <option value=0 >------</option>
+                                {% for t in tanks %}
+                                {% if not t.moving %}
+                                <option value={{t.id}} >{{t.name}}</option>
+                                {% endif %}
+                                {% endfor %}  
+                            </select>
+                            
+                            </div>
+
+                            
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </div>
+
+                     </form>
+                </div>
+
+
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#addpumpform').submit(function(e){
+      e.preventDefault()
+      const name = $('#pump_name').val(),
+            fuel = Number($('#tank_value').val()),
+            isNew =  Number($('#pump_mpya').prop('checked')),
+            pumpval = Number($('#pampu_chaguo').val()),
+            NewPump = $('#pampu_jina').val(),
+            cnt = Number($('#pump_counter').val()) || 0 ,
+          
+            url = $(this).attr('action'),
+            data = {
+              data:{
+                  isNew,
+                  pumpval,
+                  NewPump,
+                  name,
+                  fuel,
+                  cnt
+                 
+              },
+              url
+            }
+  
+            if(name!=''&& fuel && ((isNew&& NewPump!='')||(!isNew&&pumpval)) ){
+              $('#addTank').modal('hide')
+              $('#loadMe').modal('show')
+  
+              const sendIt = POSTREQUEST(data)
+              sendIt.then(resp=>{
+                  $('#loadMe').modal('hide')
+                  hideLoading()
+  
+                      if(resp.success){
+                          toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success '), {timeOut: 2000});
+                          location.reload()
+                      }else{
+
+                          
+                            toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});
+  
+                      }
+              })
+  
+            }else{
+              if(name=='')redborder('#pump_name')           
+              if(!fuel)redborder('#tank_value')        
+              if(!isNew && !pumpval)redborder('#pampu_chaguo')        
+              if(isNew && NewPump=="")redborder('#pump_name')        
+
+              
+            }
+    })
+  
+  
+
+  </script>
+
+
+{% endif %}
+
+
+<script>
+      $(document).ready(function(){
+         $('#all_tanks').DataTable();
+
+       })
+  
+</script>
+
+{% if manager or useri.admin %}
+
+
+
+
+
+
+<!-- Modal End shift -->
+<div class="modal fade" id="endshift_modal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    <div class="modal-dialog " role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {% if useri.langSet == 0 %}Maliza Zamu{% else %}End shift{% endif %}
+                </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+            </div>
+            <div class="modal-body">
+                <!-- <h6 id="pump_nameheading2" class="pb-3" style="color:rgb(0, 0, 196)" ></h6> -->
+
+                <form action="/salepurchase/endshift" data-incharge=0 data-pump=0 id="endshiftform" >
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-4">
+                              Pump:
+                        </div>
+                        <div class="col-6">
+                             <h6 id="pump_nameheading2" class="pb-3 bluePrint"  ></h6>
+                        </div>
+
+                        <div class="col-4">
+                            {% if useri.langSet == 0 %}Mhusika{% else %}Incharge{% endif %} 
+                        </div>
+                        <div class="col-6">
+                            <select class="form-control bluePrint btn-sm" disabled  name="pump_inchargeS" id="pump_inchargeS">
+                               
+                                {% for in in Incharges %}
+                                 <option value={{in.user.id}}>{{in.user.user.first_name|title}}   {{in.user.user.last_name|title}}</option>
+                                {% endfor %}
+                           </select>
+                        </div>
+                       <hr class="col-12">
+
+                       <div class="col-6">
+                            <div class="form-group mb-3">
+                                <label for="tFromSft" >
+                                    {% if useri.langSet == 0 %}Shift Ilianza{% else %}Shift Started{% endif %} 
+                                </label>
+
+                                <input type="text" class="form-control btn-sm" readonly name="tFromSft" id="tFromSft">
+                            </div>
+                       </div>
+                       <div class="col-6">
+                        <div class="form-group mb-3">
+                            <label for="tToshift" class="brown">
+                                {% if useri.langSet == 0 %}Shift Inaisha{% else %}Shift End{% endif %} <sup>*</sup>
+                            </label>
+        
+                                <input type="datetime-local" class="form-control btn-sm"  name="tToshift" id="tToshift">
+                            </div>
+                       </div>
+
+                       <div class="col-6">
+                            <div class="form-group mb-3">
+                                    <label for="initreadingS">
+                                    {% if useri.langSet == 0 %}Mita ilisoma{% else %}Openining Units{% endif %} <span class="text-primary">(Litre)</span>
+                                </label>
+                                <input class="form-control btn-sm" data-read=0 readonly type="text" name="initreadingS" id="initreadingS">
+                            </div>     
+                       </div>
+
+                       
+                       <div class="col-6">
+                                <div class="form-group mb-3">
+                                        <label for="finalreading" class="brown" >
+                                        {% if useri.langSet == 0 %}Mita inasoma{% else %}Closing Units{% endif %} <sup>*</sup> <span class="text-primary">(Litre)</span>
+                                    </label>
+                                    <input class="form-control btn-sm"  type="number" step="0.001" name="finalreading" id="finalreading">
+                                </div>  
+                       </div>
+
+                       <hr class="col-12">
+
+                       <div class="col-6 d-block text-right">{% if useri.langSet == 0 %}Mafuta yaliyotoka{% else %}Total Fuel{% endif %} <span class="text-primary">(Liter)</span> </div>
+                       <div class="col-6 d-block text-right">
+                        <!-- <input class="form-control bluePrint btn-sm" readonly  type="text"  name="soldreading" id="soldreading"> -->
+                         <strong class="brown" id="totol_fuel">
+                            0.00
+                         </strong>
+                       </div>
+
+                       <input type="hidden" data-price=0 name="salesPrice" id="salesPrice" >
+
+                       <hr class="col-12">
+
+                    </div>
+
+                    <div class="row" id="shift_tr">
+
+                    </div>
+
+
+
+
+                    <!-- <div class="form-group mb-3">
+                        <label for="pump_inchargeS" >
+                            {% if useri.langSet == 0 %}Mhusika{% else %}Incharge{% endif %} 
+                        </label>
+
+                           <select class="form-control " disabled  name="pump_inchargeS" id="pump_inchargeS">
+                               
+                                {% for in in Incharges %}
+                                 <option value={{in.user.id}}>{{in.user.user.first_name|title}}   {{in.user.user.last_name|title}}</option>
+                                {% endfor %}
+                           </select>
+                        </div> -->
+
+
+                    <!-- <div class="row">
+                        <div class="col-6">
+                            <div class="form-group mb-3">
+                                    <label for="soldreading">
+                                    {% if useri.langSet == 0 %}Mafufa yaliyouzwa{% else %}Sold fuel{% endif %} <span class="text-primary">(Litre)</span>
+                                </label>
+                                <input class="form-control" readonly  type="text" style="color:rgb(0, 0, 196)" name="soldreading" id="soldreading">
+                            </div> 
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group mb-3">
+                                <label for="salesPrice">
+                                {% if useri.langSet == 0 %}Bei{% else %}Price{% endif %} <span class="text-primary">(TZS)</span>
+                            </label>
+                            <input class="form-control" readonly data-price=0  type="number" step="0.001" name="salesPrice" id="salesPrice">
+                        </div> 
+                        </div>
+                    </div>
+
+
+                    <div class="form-group mb-3">
+                            <label for="totalSales" class="brown" >
+                            {% if useri.langSet == 0 %}Malipo Jumla{% else %}Total Sales Amount{% endif %} <sup>*</sup> <span class="text-primary">(TZS)</span>
+                        </label>
+                        <input class="form-control"  type="text" placeholder="0" style="color:rgb(0, 0, 196);font-size: x-large;" readonly  name="totalSales" id="totalSales">
+                    </div>  -->
+
+                 
+ 
+                  <h6 class="mt-3" >
+                    {% if useri.langSet == 0 %}Malipo {% else %}Payments{% endif %}
+                  </h6>
+
+                  <div class="border p-2">
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    {% if useri.langSet == 0 %}Akaunti{% else %}Account{% endif %}
+                                </div>
+                                <div class="col-6">
+                                    {% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %} <span class="text-primary">(TZS)</span>
+                                </div>
+
+                                
+                            </div>
+
+                            {% for p in payacc %}
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <a href="#" class="smallFont" >{{p.Akaunt_name}}</a>
+
+                                    
+                                </div>
+                                <div class="col-6">
+                                    <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                        <label class="mt-1 text-danger " for="payacc"></label> 
+                                    <div class="box-pointer d-inline "></div>
+                                    </div>
+                                    <input type="number" data-val={{p.id}}  class="money-fomat btn-sm form-control payacc">
+                                </div>
+                            </div>
+
+                            {% endfor %}      
+                            
+                            <hr>
+                            <h6 class="row" > 
+                               <div class="col-6">{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %}</div>
+                               <div class="col-6"  id="showtotpay" >0</div>
+                            </h6>
+                      
+                  </div>
+
+
+                <div class="form-group mt-3">
+                  <label for="shiftRemarks">{% if useri.langSet == 0 %}Maelekezo{% else %}Remarks{% endif %}</label>
+                  <textarea class="form-control" name="shiftRemarks" id="shiftRemarks" rows="3"></textarea>
+                </div>
+
+                      
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+
+
+                </form>
+
+
+            </div>
+           
+        </div>
+    </div>
+</div>
+
+
+
+{% endif %}
+
+
+
+{% endblock %}
+
+{% block fuel %} active {% endblock %}

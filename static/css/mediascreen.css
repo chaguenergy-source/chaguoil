@@ -1,0 +1,71 @@
+@media screen and (max-width: 766px) {
+    #sidebar.hide {
+        width: 0px;
+    }
+    #content{
+        width: 100%;
+	    left: 0;
+    }
+
+    
+    #sidebar.hide ~ #content {
+        width: 100%;
+        left: 0;
+    }
+
+    .the_invo_page{
+        width:100%;
+      }
+
+       #OtherFilterFilter{
+        display: none;
+    }
+}
+
+
+
+/* lg screen */
+/* @media screen and (max-width: 992px) {
+    #OtherFilterFilter{
+        display: none;
+    }
+} */
+
+
+@media screen and (min-width: 766px) {
+    #sidebar.hide {
+        width: 60px;
+    }
+
+    #content{
+        width: calc(100% - 280px);
+	    left: 280px;
+    }
+
+    #sidebar.hide ~ #content {
+        width: calc(100% - 60px);
+        left: 60px;
+    }
+
+    #invoice_wrapper{
+        position: fixed;
+        top: 60px;
+        width:95vw;
+        /* margin-left:-10px; */ 
+        height: 80vh;
+      }
+
+      .the_invo_page{
+        /* max-width: 770px; */
+        min-width:700px;
+      }
+
+      #invo_box{
+        overflow-y:auto;
+        height: 100vh;
+        padding-bottom:250px;
+        margin-bottom:150px;
+      }
+
+
+}

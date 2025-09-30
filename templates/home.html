@@ -1,0 +1,308 @@
+{% extends 'index.html' %}
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        {% include 'heading.html' %}
+        <!-- <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#">Home</a>
+            </li>
+        </ul> -->
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+</div>
+
+<!-- this is a user dashboard homepage -->
+
+
+  <div class="dashboard-header">
+    <!-- <h5> {% if useri.langSet == 0 %} Karibu {%else%} Welcome {% endif %}, <span id="title">{{useri.user.first_name|title}} {{useri.user.last_name|title}}</span>!</h5> -->
+    <p class="dashboard-date" id="dashboardDate">
+        <!-- Buttons for today this week and this month -->
+        <button class="btn-date active_date" data-range="today"> {% if useri.langSet == 0 %}Leo{% else %}Today {% endif %}</button>
+        <button class="btn-date" data-range="this_week"> {% if useri.langSet == 0 %}Wiki Hii{% else %}This Week{% endif %} </button>
+        <button class="btn-date" data-range="this_month"> {% if useri.langSet == 0 %}Mwezi Huu{% else %}This Month{% endif %}</button>
+    </p>
+  </div>
+
+
+  <div class="dashboard-grid">
+
+        <div class="card" id="shift-card">
+            <a href="/salepurchase/shiftsDate" class="card-header">
+                <div style="display: flex; align-items: center;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <h3>
+                        {% if useri.langSet == 0 %} Mpango Zamu {% else %} Shift Session {% endif %}
+                    </h3>
+                </div>
+            </a>
+            <div id="shift-info">
+                </div>
+        </div>
+
+        <div class="card" id="fuel-card">
+            <div class="card-header">
+                <div style="display: flex; align-items: center;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                    <h3>
+                        {% if useri.langSet == 0 %} Bei za Mafuta {% else %} Fuel Sales Price {% endif %}
+                        ( <span class="text-primary">{{currencii}}/LTR</span> )</h3>
+                </div>
+            </div>
+
+            <div id="fuelPriceData">
+                   <div class="detail-item">
+                        <span>Petroli:</span>
+                        <span class="fuel-price">0</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span>{% if useri.langSet == 0 %} Mwenendo {% else %} Trend {% endif %}:</span>
+                        <span class="fuel-trend trend-up">
+                            0% <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 12 5 19 12"></polyline><line x1="12" y1="5" x2="12" y2="19"></line></svg>
+                        </span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span>Diesel:</span>
+                        <span class="fuel-price">0</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span>{% if useri.langSet == 0 %} Mwenendo {% else %} Trend {% endif %}:</span>
+                        <span class="fuel-trend trend-down">
+                            0% 
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 2px;">
+                                <polyline points="19 12 12 19 5 12"></polyline>
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                            </svg>
+
+                            
+                        </span>
+                    </div>                
+            </div>
+            
+
+            
+        </div>
+
+        <div class="card">
+            <a class="card-header" href="/analytics/salesr">
+                <div  style="display: flex; align-items: center;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <h3>
+                        {% if useri.langSet == 0 %} Mauzo kwa Ujumla {% else %} Total Sales {% endif %}
+                    </h3>
+                </div>
+                <span class="metric-label text-primary">{{currencii}}</span>
+            </a>
+            <div id="totalSaledata">
+                <div class="metric-value">0</div>
+                
+                <div class="sales-metrics">
+                    <div class="sales-metric">
+                        <span class="metric-label">{% if useri.langSet == 0 %} Pesa Ilolipwa {% else %} Paid Amount {% endif %}</span>
+                        <div style="font-weight: bold;"><span class="text-primary weight200">{{currencii}}.</span>0 <span class="smallerFont"></span></div>
+                    </div>
+                    <div class="sales-metric">
+                        <span class="metric-label">{% if useri.langSet == 0 %} Deni {% else %} Outstanding{% endif %}</span>
+                        <div style="font-weight: bold;"><span class="text-primary weight200">{{currencii}}.</span>0 <span class="smallerFont"></span></div>
+                    </div>
+                </div>
+           </div>
+        </div>
+
+        <div class="card">
+            <a href="/analytics/salesr" class="card-header">
+                <div style="display: flex; align-items: center;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 20.72V19a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M12 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path><path d="M12 13V2"></path><path d="M16 6l-4-4-4 4"></path></svg>
+                    <h3>
+                        {% if useri.langSet == 0 %} Kiasi cha Mafuta Kiliouzwa {% else %} Qty of sold Fuel {% endif %}
+                        (LTRS)</h3>
+                </div>
+            </a>
+            <div id="qtySaledata">
+                <div class="detail-item">
+                    <span>Petroli:</span>
+                    <span style="font-weight: bold;">0 LTRS</span>
+                </div>
+                <div class="detail-item">
+                    <span>Diesel:</span>
+                    <span style="font-weight: bold;">0LTRS</span>
+                </div>
+                <div class="detail-item">
+                    <span>
+                        {% if useri.langSet == 0 %} Jumla {% else %} Total {% endif %}
+                        :</span>
+                    <span style="font-weight: bold;">0LTRS </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <a href="/analytics/expensesr" class="card-header">
+                <div style="display: flex; align-items: center;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    <h3>
+                        {% if useri.langSet == 0 %} Matumizi {% else %} Expenses {% endif %}
+                    </h3>
+                </div>
+            </a>
+
+            <div id="ExpensesData">
+                <div class="detail-item">
+                        <span>
+                        {%if useri.langSet == 0 %} Matumizi ya Mafuta {% else %} Fuel Usage {% endif %} :</span>
+                        <span class="smallerFont">0 {% if useri.langSet == 0 %} Rek {% else %} Recs {% endif %} </span> | <span style="font-weight: bold;"> <span class="text-primary weight200">{{currencii}}</span>. 0</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span> {% if useri.langSet == 0 %}Matumizi Mengine{% else %}Other Expenses {% endif %}:</span>
+                        <span class="smallerFont">0 {% if useri.langSet == 0 %} Rek {% else %} Recs {% endif %} </span> | <span style="font-weight: bold;"><span class="text-primary weight200">{{currencii}}</span>.0</span>
+                    </div>
+
+                    <div class="detail-item" style="border-top: 2px solid var(--border-color);">
+                        <span style="font-weight: bold;">Jumla ya Matumizi:</span>
+                        <span class="smallerFont">0 {% if useri.langSet == 0 %} Rek {% else %} Recs {% endif %} </span> |
+                        <span style="font-weight: bold; color: var(--danger-color);"><span class="text-primary weight200">{{currencii}}</span>. 0</span>
+                    </div>         
+            </div>
+          
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div style="display: flex; align-items: center;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                    <h3> 
+                        {% if useri.langSet == 0 %} Wadai na Wadaiwa {% else %} Creditors and Debtors {% endif %}
+                    </h3>
+                </div>
+            </div>
+
+            <div id="creditorsDebtorsData">
+                    <a href="/salepurchase/customers" class="detail-item">
+                        <span> {% if useri.langSet == 0 %} Wadaiwa {% else %} Debtors {% endif %} :</span>
+                        <span class="smallerFont"> {% if useri.langSet == 0 %} Wateja 0 {% else %} 0 Customers {% endif %} </span> |
+                        <span style="font-weight: bold;"> <span class="text-primary weight200">{{currencii}}.</span> 0</span>
+                    </a>
+
+                    <a href="/salepurchase/vendors" class="detail-item">
+                        <span> {% if useri.langSet == 0 %} Wadai {% else %} Creditors {% endif %} :</span>
+                        <span class="smallerFont"> {% if useri.langSet == 0 %} Wasambazaji 0 {% else %} 0 Suppliers {% endif %} </span> |
+                        <span style="font-weight: bold; color: var(--danger-color);"><span class="text-primary weight200">{{currencii}}.</span> 0</span>
+                    </a>
+
+                    <div class="detail-item">
+                        <span style="font-style: italic;">  {% if useri.langSet == 0 %}Salio Unalodai Jumla{% else %} Net Credit Balance{% endif %} :</span>
+                        <span style="font-weight: bold; color: var(--danger-color);"><span class="text-primary weight200">{{currencii}}.</span> 0</span>
+                    </div>
+            </div>
+            
+        </div>
+
+        <div class="card" id="stockMovementCard">
+            <a href="/analytics/evaluationr" class="card-header">
+                <div style="display: flex; align-items: center;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <h3>Stock & Upotevu (Wastage)</h3>
+                </div>
+            </a>
+            <div class="table-responsive">
+              <div style="min-width: 400px;" id="stockData"  >
+                    <div class="detail-item">
+                            <span>Kufungua:</span>
+                            <span >0 LTRS <span class="bluePrint">Disel</span> | 0 LTRS <span class="bluePrint">Petrol</span> </span>  
+                        </div>
+                        <div class="detail-item">
+                            <span>Kupokea:</span>
+                            <span >0 LTRS <span class="bluePrint">Disel</span> | 0 LTRS <span class="bluePrint">Petrol</span> </span>  
+
+                        </div>
+                        <div class="detail-item">
+                            <span>Uhamishaji:</span>
+                            <span >0 LTRS <span class="bluePrint">Disel</span> | 0 LTRS <span class="bluePrint">Petrol</span> </span>  
+
+                        </div>
+                        <div class="detail-item">
+                            <span>Mauzo :</span>
+                            <span >0 LTRS <span class="bluePrint">Disel</span> | 0 LTRS <span class="bluePrint">Petrol</span> </span>  
+
+                        </div>
+                        <div class="detail-item">
+                            <span>Upotevu :</span>
+                            <span style="font-weight: bold; color: var(--danger-color);">55 LTRS <span class="bluePrint">Disel</span> | 25 LTRS <span class="bluePrint">Petrol</span> </span>
+                        </div>
+
+                        <div class="detail-item" style="border-top: 2px solid var(--border-color);">
+                            <span style="font-weight: bold;">Stock Ilipo:</span>
+                            <span style="font-weight: bold;">0 LTRS <span class="bluePrint">Disel</span> | 25,000 LTRS <span class="bluePrint">Petrol</span> </span>
+                        </div>
+
+                       
+             </div>
+
+                
+            </div>
+
+          
+        </div>
+
+        <!-- <div class="card">
+            <div class="card-header">
+                <div style="display: flex; align-items: center;">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <h3>Faida na Tahadhari</h3>
+                </div>
+            </div>
+            <div class="detail-item">
+                <span>Faida (Gros Profit) ya Siku:</span>
+                <span style="font-weight: bold; color: var(--secondary-color);">{{currencii}} 15,340,000</span>
+            </div>
+            <div class="detail-item" style="border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">
+                <span>Faida ya Net (Baada ya Gharama):</span>
+                <span style="font-weight: bold; color: var(--secondary-color);">{{currencii}} 15,100,000</span>
+            </div>
+            <div class="alert-item">
+                TAHADHARI! Stock ya Petroli iko chini ya 30%
+            </div>
+        </div> -->
+
+    </div>
+
+    <!-- Add a refresh button that floats to the bottom right with such svg icon -->
+     <div class="text-right" style="position: fixed; bottom: 20px; right: 20px;">
+             <button id="refresh-button" title="Refresh Data">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </button>
+     </div>
+
+
+{% endblock %}
+
+{% block additionaljs %}
+<script src="/static/js/home.js"></script>
+{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="/static/css/home.css">
+{% endblock %}
+
+{% block home %} active  {% endblock %}

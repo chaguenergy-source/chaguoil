@@ -1,0 +1,1275 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Zamu{% else %} Shifts{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+
+</div>
+
+
+<div class="table-data"  >
+    <div class="order">
+        {% include 'headingShifts.html' %}     
+
+      <div class="head">
+        <h5 >
+
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.5em" viewBox="0 -960 960 960" width="1.5em" fill="currentColor">
+                <path d="M160-120v-640q0-33 23.5-56.5T240-840h240q33 0 56.5 23.5T560-760v280h40q33 0 56.5 23.5T680-400v180q0 17 11.5 28.5T720-180q17 0 28.5-11.5T760-220v-288q-9 5-19 6.5t-21 1.5q-42 0-71-29t-29-71q0-32 17.5-57.5T684-694l-84-84 42-42 148 144q15 15 22.5 35t7.5 41v380q0 42-29 71t-71 29q-42 0-71-29t-29-71v-200h-60v300H160Zm80-440h240v-200H240v200Zm480 0q17 0 28.5-11.5T760-600q0-17-11.5-28.5T720-640q-17 0-28.5 11.5T680-600q0 17 11.5 28.5T720-560Z"/>
+                </svg>   
+                {% if shpmp %}
+                  {% if useri.langSet == 0 %}Zamu kwenye Pampu{% else %}Pump Shift {% endif %}
+                {%else%}
+                  {% if useri.langSet == 0 %}Anzisha Zamu{% else %} Start shift {% endif %}
+                
+                {% endif %}    
+              </h5>
+      </div>
+
+        <div class="row mb-3">
+            <div class="col-md-5 col-lg-4  ">
+
+                {% if shift %}
+                 <div class="row mb-2">
+                    <div class="col-5">
+                         <label for="form_attendant"  > {% if useri.langSet == 0 %}Zamu{% else %} Shift {% endif %}:</label>
+
+                    </div>
+                    <div class="col-7 text-primary">
+                            SH-{{shift.code}}
+                    </div>
+                
+
+                </div>
+               {% endif %} 
+                <div class="row mb-2">
+                  <div class="col-5">
+                     <label for="form_attendant" class=" brown " > {% if useri.langSet == 0 %}Zamu Kuanzia{% else %} Shift From {% endif %}:</label>
+                  </div>  
+                 <div class="col-7">
+                    {% if shift %}
+
+                    <script>
+                        document.write(moment('{{shift.From | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                    </script> 
+        
+                    {% else %}
+                      <input class="p-2  form-control" type="datetime-local" id="tFrom" >
+                    {% endif %}
+                </div>
+                
+                </div>
+
+                 <div class="row mb-2">
+                    <div class="col-5">
+                         <label for="form_attendant" class=" brown " > {% if useri.langSet == 0 %}Mhusika{% else %} Attendant {% endif %}:</label>
+
+                    </div>
+                    <div class="col-7">
+                            <select class=" p-2 bluePrint form-control" name="form_attendant" id="form_attendant">
+                                <option value={{trf.id}} >{{trf.user.user.first_name | title}} {{trf.user.user.last_name | title}}</option>
+                            </select>
+                    </div>
+                
+
+                </div>
+
+                 <div class="row mb-2">
+                    <div class="col-5">
+                         <label for="session_" class=" brown " > 
+                            {% if useri.langSet == 0 %}Mpango{% else %} Session {% endif %}:
+                        </label>
+
+                    </div>
+                    <div class="col-7">
+                            <select class=" p-2 bluePrint form-control" name="session_" id="session_">
+                                {% if shift %}
+                                   <option value="{{shift.session.session.id}}"  >{{shift.session.session.name}}</option>
+                                {% else %}
+                                <option value=0  >------</option>
+
+                                {% for s in sessions %}
+                                   <option value={{s.id}} data-from="{{s.shFrom|date:'H:i'}}" data-to="{{s.shTo|date:'H:i'}}" >{{s.name}}</option>
+                                {% endfor %}
+                                {% endif %}
+                            
+                            </select>
+                    </div>
+                
+
+                </div>
+
+
+
+            </div>
+        </div>   
+      {% if not shift %}
+        <script>
+            let ses = []
+            '{% for s in sessions %}'
+                 ses.push({
+                    id:Number('{{s.id}}'),
+                    sfrom:"{{s.shFrom|date:'H:i'}}",
+                    sTo:"{{s.shTo|date:'H:i'}}"
+                 })
+            '{% endfor %}'
+
+           
+            sesdt = ses.map(s=>getTmDate(s))
+           
+
+           function getTmDate(s){
+                const now = moment().format('YYYY-MM-DD'),
+                      tom = moment().clone().add(1,'days').format('YYYY-MM-DD')
+                      return {
+                        id:s.id,
+                        sfrom:moment(`${now}T${s.sfrom}`),
+                        sTo:moment(s.sTo>s.sfrom?`${now} ${s.sTo}`:`${tom}T${s.sTo}`)
+                      }
+                      
+            }
+
+            getSes(1)
+
+           
+ 
+            function getSes(df){
+                const now=moment(),
+                      nowses = sesdt.filter(s=>Math.abs(s.sfrom.diff(now,'hours'))<=df)
+                      if(nowses.length){
+                        const theses = nowses[0]
+                        $('#session_').val(theses.id)
+                      }else{
+                        getSes(df+1)
+                      }
+            }
+
+
+             
+        </script>
+      {% endif %}  
+        
+    {% if shift %}    
+       <form action="/salepurchase/startshift" class="mt-4" style="display: none;" id="startshiftform" >
+    {%else%}
+       <form action="/salepurchase/startshift"  id="startshiftform" >
+    {% endif %}
+
+                <h6><strong>
+                    {% if useri.langSet == 0 %}Pampu Zisizo na Mhusika {% else %}Free Pumps  {% endif %}
+                </strong></h6> 
+
+                {% for f in fuel %}
+                <div class="brown mt-3 weight500 smallFont">
+                    
+                    {% if useri.langSet == 0 %}Pampu za <u>{{f.tank.fuel.name}}</u> 
+                    {% else %}
+                        <u>{{f.tank.fuel.name}}</u> Pumps  
+                    {% endif %}
+                </div>
+       
+                <div class="mx-md-3 table-sm-responsive" >
+                    
+                    <div class="row p-0 border" style="min-width: 400px;" >
+                        <!-- <div class="col-1 border">#</div> -->
+                        <div class="col-3 mx-0 smallFont weight500 border">
+                            <th>{% if useri.langSet == 0 %}Dispensa {% else %} Dispanser {% endif %}</th>
+                        </div>
+
+                        <div class="col-9 mx-0 smallFont weight500 row p-0 border">
+                            <div class="col-4 mx-0">
+                                {% if useri.langSet == 0 %}Pampu  {% else %} Pumps  {% endif %}
+                            </div>
+
+                            <div class="col-4 smallFont weight500">
+                                {% if useri.langSet == 0 %}Mita/Inasoma  {% else %} Reading  {% endif %}
+                            </div>
+                            <div class="col-4 mx-0 smallFont weight500">{% if useri.langSet == 0 %}Anzisha {% else %}Start  {% endif %}</div>
+                        </div>
+
+                        
+                        {% for  sp in spancer %}
+                                        
+                        {% if sp.tank.fuel.id == f.tank.fuel.id %} 
+                        <!-- <div class="col-1 border">{{forloop.counter}}</div> -->
+                        <div class="col-3 mx-0 weight600 border ">
+                            {{sp.station.name}}
+                        </div>
+                        <div class="col-9 p-0 border mx-0 row">
+                            {% for s in pumps %}
+                                {% if sp.station == s.station %}  
+                                <div class="col-4 mx-0 weight600">{{s.name}}</div>
+                                <div data-initial="{{s.readings|floatformat:'-3'}}" class="col-4">{{s.readings|floatformat:'-2'|intcomma}}</div>
+                                <div class="col-4 mx-0">
+                                    <label class="switch">
+                                        <input type="checkbox" class="shiftStart" data-pump={{s.id}} >
+                                    <span class="slider"></span>
+                                    </label>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+               </div>
+
+                
+                {% endfor %}
+       
+      
+      
+
+
+           <div class="px-5 mt-3 text-right">
+         
+                <button type="submit" class="btn btn-primary btn-sm">
+                    {% if shift %}
+                      {% if useri.langSet == 0 %}Ongeza Pampu{% else %} Add Pump {% endif %}
+
+                    {%else%}
+                      {% if useri.langSet == 0 %}Anzisha Zamu{% else %} Start shift {% endif %}
+                    {% endif %}
+                </button>
+          
+           </div>
+
+    </form>
+
+
+  <form action="/salepurchase/endshift" class="mt-4" id="endShiftForm" >
+    {% if shpmp %}
+          
+          <h6>
+            <strong> {% if useri.langSet == 0 %}Pampu anazosimamia {% else %}Assigned Pumps {% endif %} </strong> |
+            <a href="#"  type="button" onclick="$('#startshiftform').toggle(300)"  class="btn-sm text-primary ">
+                <small>
+                 + {% if useri.langSet == 0 %}Ongeza Pampu {% else %}Add Pump  {% endif %}
+                </small>
+            </a>
+        </h6>
+                {% for f in fshp %}
+                <div class="brown mt-3 weight500 smallFont">
+                    
+                    {% if useri.langSet == 0 %}Pampu za <u>{{f.Fuel.name}}</u> 
+                    {% else %}
+                        <u>{{f.Fuel.name}}</u> Pumps  
+                    {% endif %}
+                </div>
+
+                <div class="classic_div mx-md-3 table-sm-responsive " >
+                    
+                    <div class="row p-0 classic_div border" style="min-width: 700px;" >
+                        <!-- <div class="col-1 border">#</div> -->
+                        <div class="col-2 col-md-3 mx-0 smallFont weight500 border">
+                            <th>{% if useri.langSet == 0 %}Dispensa {% else %} Dispanser {% endif %}</th>
+                        </div>
+
+                        <div class="col-10 col-md-9 mx-0 smallFont weight500 row p-0 border">
+                            <div class="col-2 mx-0">
+                                {% if useri.langSet == 0 %}Pampu  {% else %} Pumps  {% endif %}
+                            </div>
+
+                            <div class="col-2 smallFont weight500">
+                                {% if useri.langSet == 0 %}Kufungua  {% else %} Opening  {% endif %}
+                            </div>
+                            <div class="col-2 mx-0 smallFont weight500">
+                                {% if useri.langSet == 0 %}Kufunga {% else %}Closing  {% endif %}
+
+                            </div>
+
+                            <div class="col-2 mx-0 smallFont weight500">
+                                {% if useri.langSet == 0 %}Bei {% else %}Price  {% endif %}/<span class="text-primary">LTR</span>
+                            </div>      
+
+                            <div class="col-2 mx-0 smallFont weight500">
+                                {% if useri.langSet == 0 %}Flow {% else %}Flow  {% endif %} <span class="text-primary">LTRS</span>
+
+                            </div>
+
+                            <div class="col-2 mx-0 smallFont weight500">
+                                 {% if useri.langSet == 0 %}Kiasi {% else %}Amount  {% endif %} <span class="text-primary">({{currencii}})</span>
+
+                            </div>
+                        </div>
+
+                        
+                        {% for  sp in spancer_shp %}
+                                        
+                        {% if sp.pump.tank.fuel.id == f.pump.tank.fuel.id %} 
+                        <!-- <div class="col-1 border">{{forloop.counter}}</div> -->
+                        <div class="col-2 col-md-3 weight600 border mx-0">
+                            {{sp.pump.station.name}}
+                        </div>
+                        <div class="col-10 col-md-9 p-0 border mx-0 row">
+                            {% for s in shpmp %}
+                                {% if sp.pump.station == s.pump.station %}  
+                                <div class="col-2 mx-0 weight600">{{s.pump.name}}</div>
+                                <div data-initial="{{s.pump.readings|floatformat:'-3'}}" class="col-2 dispensa{{sp.pump.station.id}} initial_read{{s.id}}"  >{{s.pump.readings|floatformat:'2'|intcomma}}</div>
+                                <div class="col-2 mx-0">
+                                   <input type="number" data-price="{{s.pump.tank.price}}"  data-initial="{{s.pump.readings|floatformat:'-3'}}" data-fuel="{{f.Fuel.id}}" style="width: 100%;background-color: var(--whiteBg);color:var(--inputColor)" data-pump="{{s.id}}" step="0.01" name="pump{{s.id}}" id="pump{{s.id}}"  class="dispensa{{sp.pump.station.id}} fuel{{f.Fuel.id}} final_read final_read{{s.id}}  weight600">
+                                </div>
+                                <div class="col-2">{{s.pump.tank.price|floatformat:'2'|intcomma}}</div>
+
+                                 <div class="col-2 tot_pump_liter{{s.id}}"></div>
+                                <div class="col-2 tot_pump_Amount{{s.id}}"></div>    
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {% endif %}
+                        {% endfor %}
+
+                        <div class="col-md-3 col-2 border mx-0 weight600">
+                            {% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}
+                        </div>
+                        <div class="col-md-9 col-10 weight600 mx-0 row border">
+                            <div class="col-2"></div>
+                            <div class="col-2"></div>
+                            <div class="col-2"></div>
+                            <div class="col-2"></div>  
+                            <div class="col-2 tot_fuel_ltr{{f.Fuel.id}}">0</div>
+                            <div class="col-2 tot_fuel_Amo{{f.Fuel.id}}">0</div>
+                        </div>
+                    </div>
+               </div>
+
+
+                {% endfor %}
+            
+            <div id="Shiftdetails" style="display: none;"  >
+  
+
+              {% if sale %}
+               
+             <div class="mt-4 table-responsive">
+                <strong>{% if useri.langSet == 0 %}Mauzo Wateja Maalum{% else %}Credit Order Sales {% endif %}</strong>
+                <table class="table table-bordered smallFont table-sm">
+                    <thead>
+                        <tr class="smallFont" >
+                            <th>#</th>
+                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+
+                            <th>{% if useri.langSet == 0 %}Mauzo{% else %} Sales{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Pampu{% else %} Pampu{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Mteja{% else %} Customer{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %} <span class="text-primary">(TZS)</span> </th>
+
+                            <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">Liters</span> </th>
+                            <th>{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">(TZS)</span> </th>
+                            <!-- <th>{% if useri.langSet == 0 %}Malipo{% else %}Paid{% endif %} <span class="text-primary">(TZS)</span> </th> -->
+                        </tr>
+                    </thead>
+               
+                        <tbody>
+                            {% for s in sale %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>
+                                    <script>
+                                        document.write(moment('{{s.sale.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                    </script>
+                                </td>
+                                <td><a href="/salepurchase/viewFuelSales?i={{s.sale.id}}">SA-{{s.sale.code}}</a></td>
+
+                                <td class="bluePrint" >{{s.shift.pump.station.name}} {{s.shift.pump.name}}</td>
+                                <td class="brown" >{{s.shift.Fuel.name}}</td>
+
+                                <td>{{s.sale.customer.jina | title}}</td>
+                                
+
+                                <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.qty_sold|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                
+                            </tr>
+
+                            {% endfor %}
+
+                            <tr class="weight600 smallFont" >
+                                <td colspan="7" > {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} </td>
+                               
+                                 <td>{{exclude.sale | floatformat:'-2'  | intcomma}}</td>
+                                 
+                                 <td>{{exclude.saleA | floatformat:'-2'  | intcomma}}</td>
+                              
+                            </tr>
+                           
+                        </tbody>
+                      </table>
+
+
+             </div>
+
+    
+
+             {% endif %}
+
+             {% if trd %}
+               <hr>
+             <div class="table-responsive">
+                <strong>{% if useri.langSet == 0 %}Kuhamisha Mafuta{% else %}Transfered Fuel {% endif %}</strong>
+                <table class="table table-bordered smallFont table-sm">
+                    <thead>
+                        <tr class="smallFont" >
+                            <th>#</th>
+                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+
+                            <th>{% if useri.langSet == 0 %}Kuhamisha{% else %} Transfer {% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Pampu{% else %} Pump {% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel {% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Kwenda{% else %} To{% endif %} </th>
+                             <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %}/<span class="text-primary">LTRS</span> </th>
+                           
+                            <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">LTRS</span> </th>
+                            <th>{% if useri.langSet == 0 %}Thamani{% else %} Worth{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                            
+                            </tr>
+                    </thead>
+               
+                        <tbody>
+                            {% for s in trd %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>
+                                    <script>
+                                        document.write(moment('{{s.transfer.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                    </script>
+                                </td>
+                                <td><a href="/salepurchase/viewTransfer?i={{s.transfer.id}}">TR-{{s.transfer.code}}</a></td>
+                                
+                                <td class="bluePrint" >{{s.shift.pump.station.name}} {{s.shift.pump.name}}</td>
+
+                                <td class="brown" >{{s.shift.Fuel.name}}</td>
+
+                                <td class="bluePrint" >{{s.to.name | title}}</td>
+
+                                <td>{{s.qty|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.saprice|floatformat:'-2'|intcomma}}</td>
+                                <td>
+                                    <script>
+                                        var the_q =Number('{{s.qty}}'),
+                                            the_pr =Number('{{s.saprice}}'),
+                                            the_tot = Number(the_q*the_pr)
+
+                                            document.write(the_tot.toLocaleString())
+                                    </script>
+                                </td>
+
+                                
+                            </tr>
+
+                            {% endfor %}
+
+                            <tr class="weight600 smallFont" >
+                                <td colspan="7" >
+                                    {% if useri.langSet == 0 %}Jumla{% else %} Total{% endif %}
+                                </td>
+                                <td>{{exclude.tr | floatformat:'-2'  | intcomma}}</td>
+                              
+                                <td>{{exclude.trAmo| floatformat:'-2'  | intcomma}}</td>
+
+                            </tr>
+                        </tbody>
+                      </table>
+
+
+             </div>
+
+             {% endif %}
+
+             {% if exclude.expf > 0 %}
+               <hr>
+             <div class="table-responsive">
+                <strong>{% if useri.langSet == 0 %}Matumizi kwa Mafuta{% else %} Fuel  Usage & Wastage {% endif %}</strong>
+                <table class="table table-bordered smallFont table-sm">
+                    <thead>
+                        <tr class="smallFont" >
+                            <th>#</th>
+                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+
+                            <th>{% if useri.langSet == 0 %}Matumizi{% else %} Usage {% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Maelezo{% else %} Description{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Pampu{% else %} Pump{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %} /<span class="text-primary">LTRS</span> </th>
+
+                            <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">LTRS</span> </th>
+                            <th>{% if useri.langSet == 0 %}Thamani{% else %} Worth{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                            
+                            </tr>
+                    </thead>
+               
+                        <tbody>
+                            {% for s in expF %}
+                            
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>
+                                    <script>
+                                        document.write(moment('{{s.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                    </script>
+                                </td>
+                                <td class="brown">{{s.matumizi.matumizi | title}}</td>
+                                <td >{{s.maelezo}}</td>
+                                <td class="bluePrint" >{{s.fromShift.pump.station.name}} {{s.fromShift.pump.name}}</td>
+                                <td class="brown" >{{s.Fuel.name}}</td>
+                                
+                                <td>{{s.fuel_price|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.fuel_qty|floatformat:'-2'|intcomma}}</td>
+                                
+                                <td>{{s.kiasi|floatformat:'-2'|intcomma}}</td>
+
+                                <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
+                            </tr>
+                           
+
+
+
+
+                            {% endfor %}
+
+                            <tr>
+                                <th colspan="7" >
+                                    {% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}
+                                </th>
+                                <th>
+                                       {{exclude.expf | floatformat:'-2'  | intcomma}}
+                                
+                                </th>
+
+                              
+                                <th>
+                                    {{exclude.expfA | floatformat:'-2'  | intcomma}}
+                                </th>
+                            </tr>
+
+                        </tbody>
+                      </table>
+
+
+             </div>
+
+          
+
+             {% endif %}
+
+             {% if exclude.expamo > 0 %}
+               <hr>
+             <div class="table-responsive">
+                <strong>{% if useri.langSet == 0 %}Matumizi ya Pesa{% else %} Expenses By Cash{% endif %}</strong>
+                <table class="table table-bordered smallFont table-sm">
+                    <thead>
+                        <tr class="smallFont" >
+                            <th>#</th>
+                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+
+                            <th>{% if useri.langSet == 0 %}Matumizi{% else %} Expanses {% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Maelezo{% else %} Description{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
+                            
+                            </tr>
+                    </thead>
+               
+                        <tbody>
+                            {% for s in expA %}
+                         
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>
+                                    <script>
+                                        document.write(moment('{{s.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                    </script>
+                                </td>
+                                <td class="brown">{{s.matumizi.matumizi | title}}</td>
+                                <td >{{s.maelezo}}</td>
+
+                                <td>{{s.kiasi|floatformat:'-2'|intcomma}}</td>
+
+                                <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
+                            </tr>
+                           
+
+                            {% endfor %}
+
+                            <tr>
+                                <th colspan="4" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                 <th>{{exclude.expamo | floatformat:'-2'  | intcomma}}</th>
+                            </tr>
+                        </tbody>
+                      </table>
+
+
+             </div>
+          
+             {% endif %}
+             {% if exclude.cashBA > 0 %}
+               <hr>
+             <div class="table-responsive">
+                <strong>{% if useri.langSet == 0 %}Pesa Iliyotoka{% else %} Cash Deposit Before{% endif %}</strong>
+                <table class="table table-bordered smallFont table-sm">
+                    <thead>
+                        <tr class="smallFont" >
+                            <th>#</th>
+                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+
+                            <th>{% if useri.langSet == 0 %}Akaunti{% else %}Account  {% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %} Given To{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
+                            
+                            </tr>
+                    </thead>
+               
+                        <tbody>
+                          
+                            {% for cb in exclude.cashB %}
+                            
+                        
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>
+                                    <script>
+                                        document.write(moment('{{cb.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                    </script>
+                                </td>
+                                <td class="brown">{{cb.Akaunt.Akaunt_name | title}}</td>
+                                <td >{{cb.giveTo}}</td>
+                                <td >{{cb.maelezo}}</td>
+
+                                <td>{{cb.Amount|floatformat:'-2'|intcomma}}</td>
+
+                                <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
+                            </tr>
+                            
+
+                            {% endfor %}
+
+                            <tr>
+                                <th colspan="5" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                 <th>{{exclude.cashBA | floatformat:'-2'  | intcomma}}</th>
+                            </tr>
+                        </tbody>
+                      </table>
+
+
+             </div>
+          
+             {% endif %}
+
+            </div>
+
+             <div class="mt-5 table-responsive">
+                <div class="row">
+                    <div class="col-7">
+                                        <strong>{% if useri.langSet == 0 %}Ufupisho wa Zamu{% else %}Shift Summary Report {% endif %}</strong>
+
+                    </div>
+                    <div class="col-5 smallFont text-right">
+                          <a type="button" onclick="$('#Shiftdetails').toggle(500)" href="#" >
+                               {% if useri.langSet == 0 %}Maelezo ya Kina{% else %}Shift Details  {% endif %}
+                           
+                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+                                <polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
+                        </a>
+                    </div>
+                </div>
+                
+                
+                <table class="table table-bordered smallFont table-sm">
+                    <thead>
+                        <tr class="smallFont" >
+                          
+                            <td class="pl-1">{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %}</td>
+
+                           
+                            <td class="pl-1">{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">Liters</span> </td>
+                            <td class="pl-1">{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">(TZS)</span> </td>
+                          </tr>
+                    </thead>
+               
+                         <tbody>  
+                          
+                            <tr  class="grey"  >
+                               
+                                <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Mafuta yaliyotoka{% else %} Fuel Flow{% endif %}</th>
+                                <th style="font-size: 15px;" id="tot_ltr" >0</th>
+                                <th style="font-size: 15px;" id="tot_amo" >0</th>
+                            </tr>
+                            
+                             {% if exclude.sale > 0 %} 
+                            <tr >
+                                <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Mafuta yaliyouzwa{% else %} Credit Oder Sales{% endif %}</td>
+                                <td style="font-size: 15px;"  >{{exclude.sale|floatformat:'-2'|intcomma}}</td>
+                                <td style="font-size: 15px;"  >{{exclude.saleA|floatformat:'-2'|intcomma}}</td>
+                            </tr>
+                            {% endif %}
+
+                            {% if exclude.tr > 0  %}
+                            <tr >
+                               
+                                <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Mafuta yaliyosafirishwa{% else %} Transfered Fuel{% endif %}</td>
+                                <td style="font-size: 15px;"  >{{exclude.tr|floatformat:'-2'|intcomma}}</td>
+                                <td style="font-size: 15px;"  >{{exclude.trAmo|floatformat:'-2'|intcomma}}</td>
+                            </tr>
+                            {% endif %}
+   
+                            {% if exclude.expf > 0  %}
+                            <tr >
+                               
+                                <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Mafuta Yaliyotumika{% else %} Fuel Usage{% endif %}</td>
+                                <td style="font-size: 15px;"  >{{exclude.expf|floatformat:'-2'|intcomma}}</td>
+                                <td style="font-size: 15px;"  >{{exclude.expfA|floatformat:'-2'|intcomma}}</td>
+                            </tr>
+                            {% endif %}
+
+                            {% if exp or trd or sale %}
+                                <tr class="grey"  >
+                                
+                                    <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Mauzo ya Pampu{% else %} Pump Sales{% endif %}</th>
+                                    <th style="font-size: 15px;"  id="pump_sales_qty" >0</th>
+                                    <th style="font-size: 15px;" id="pump_sales_amo"  >0</th>
+                                </tr>
+                            {% endif %}
+
+                            {% if exclude.expamo > 0 %}
+                            <tr >
+                               
+                                <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Matumizi ya Pesa{% else %}Expenses by Cash{% endif %}</td>
+                                <td style="font-size: 15px;"  ></td>
+                                <td style="font-size: 15px;"  >{{exclude.expamo|floatformat:'-2'|intcomma}}</td>
+                            </tr>
+                            {% endif %}
+
+                            {% if exclude.cashB %}
+                            <tr >
+                               
+                                <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Iliyotoka{% else %}Cash Out Before{% endif %}</td>
+                                <td style="font-size: 15px;"  ></td>
+                                <td style="font-size: 15px;"  >{{exclude.cashBA|floatformat:'-2'|intcomma}}</td>
+                            </tr>
+
+                            {% endif %}
+
+                            <!-- {% if cashB or trd or sale or exp  %}
+
+                            <tr >
+                               
+                                <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Kiasi cha Kutoa{% else %}Amount to Exclude{% endif %}</td>
+                                <td style="font-size: 15px;" > </td>
+                                <td class="brown weight600" style="font-size: 15px;"  > 
+                                    <script>
+                                            const sale = Number('{{exclude.saleA}}'),
+                                            tr = Number('{{exclude.trAmo}}'),
+                                            cashB = Number('{{exclude.cashBA}}'),
+                                            expfA = Number('{{exclude.expfA}}'),
+                                            expamo = Number('{{exclude.expamo}}'),
+                                            exctot = sale + tr + cashB + expfA + expamo
+                                          
+                                        document.write(Number(exctot).toLocaleString())
+                                    </script>
+                                </td>
+                            </tr>
+
+                            {% endif %} -->
+                          
+                            <tr class="grey" >
+                               
+                                <th style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Inayotakiwa {% else %}Net Required Amount{% endif %}</td>
+                                <th style="font-size: 15px;"  ></th>
+                                <th style="font-size: 15px;" data-net=0 id="net_required"  >0</th>
+                            </tr>
+
+                        
+                         </tbody>
+                         </table>
+             </div>
+
+
+
+             <div class="row">
+                <div class="col-lg-6"> </div>
+                <div class="col-lg-6">
+                    <h6 class="mt-3" >
+                        {% if useri.langSet == 0 %}Malipo {% else %}Payments{% endif %}
+                      </h6>
+    
+                      <div class="border p-2">
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        {% if useri.langSet == 0 %}Akaunti{% else %}Account{% endif %}
+                                    </div>
+                                    <div class="col-6">
+                                        {% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %} <span class="text-primary">(TZS)</span>
+                                    </div>
+    
+                                    
+                                </div>
+    
+                                {% for p in payacc %}
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <a href="#" class="smallFont" >{{p.Akaunt_name}}</a>
+    
+                                        
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                            <label class="mt-1 text-danger " for="payacc"></label> 
+                                        <div class="box-pointer d-inline "></div>
+                                        </div>
+                                        <input type="number" data-val={{p.id}}  class="money-fomat btn-sm form-control payacc">
+                                    </div>
+                                </div>
+    
+                                {% endfor %}      
+                                
+                                <hr>
+                                <h6 class="row" > 
+                                   <div class="col-6">{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %}</div>
+                                   <div class="col-6"  id="showtotpay" >0</div>
+                                </h6>
+                          
+                      </div>
+
+                      <div class="form-group mt-3">
+                        <label class="brown" for="tToshift ">
+                            {% if useri.langSet == 0 %}Muda wa Kumaliza{% else %}Shift End {% endif %}
+                            <sup>*</sup>
+                        </label>
+                        <input type="datetime-local"
+                          class="form-control" name="tToshift" id="tToshift" aria-describedby="helpId" placeholder="">
+                       
+                      </div>
+
+                     
+                        <div id="profitLoss" class="row classic_div mx-0 mt-3 weight600 border ">
+                          
+                        </div>                        
+                    
+
+    
+                    <div class="form-group mt-3">
+                      <label for="shiftRemarks">{% if useri.langSet == 0 %}Maelekezo{% else %}Remarks{% endif %}</label>
+                      <textarea class="form-control" name="shiftRemarks" id="shiftRemarks" rows="3"></textarea>
+                    </div>
+
+                    <p class="text-danger" style="display: none;" id="errorAret" >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            {% if useri.langSet == 0 %} 
+                               Hakikisha sehemu zote zimejazwa kikamilifu
+                            {% else %}
+                               Make sure all requred fields are filled correctly
+                            {% endif %}
+                    </p>                    
+
+                </div>
+             </div>
+
+
+
+                <p class="text-right mt-3" >
+                    
+
+                    <button type="submit" class="btn btn-success btn-sm">
+                        {% if useri.langSet == 0 %}maliza Zamu{% else %} End shift {% endif %}
+                    </button>
+                </p>
+
+
+
+        {% endif %}
+  </form>
+        
+
+
+
+
+
+
+     
+    </div>
+</div>
+
+
+
+
+
+{% endblock %}
+
+
+{% block cashDepoIncharge %}
+  <select class="form-control bluePrint" name="pump_attendant" id="pump_attendant">
+      <option class="bluePrint"   value={{shift.id}}>{{shift.by.user.first_name|title}}  {{shift.by.user.last_name|title}}</option>
+  </select>
+{% endblock %}
+
+
+{% block additionaljs %} 
+<script>
+
+
+    $('.final_read').keyup(function(){
+         const final = Number($(this).val()),
+                f =  Number($(this).data('fuel')),
+                pmp =  Number($(this).data('pump')),
+                pr =  Number($(this).data('price')),
+                init =  Number($(this).data('initial')),
+
+                tot_lt = final>init?(final - init):0,
+                tot_amo = final>init?(tot_lt*pr):0,
+
+                fuelTot = totreport($(`.fuel${f}`)),
+                totrep = totreport($(`.final_read`))
+
+                $(`.tot_pump_liter${pmp}`).text(tot_lt.toLocaleString())
+                $(`.tot_pump_Amount${pmp}`).text(tot_amo.toLocaleString())
+
+                $(`.tot_fuel_ltr${f}`).text(fuelTot.tot_lt.toLocaleString())
+                $(`.tot_fuel_Amo${f}`).text(fuelTot.tot_amo.toLocaleString())
+
+                $(`#tot_ltr`).text(totrep.tot_lt.toLocaleString())
+                $(`#tot_amo`).text(totrep.tot_amo.toLocaleString())
+
+
+                const totf = totrep.tot_amo,
+                      totexcl = totrep.exctot 
+
+                $(`#pump_sales_qty`).text(Number(totrep.tot_lt-totrep.notpsaleL).toLocaleString())
+                $(`#pump_sales_amo`).text(Number(totf-totrep.notpsaleA).toLocaleString())
+
+                $(`#net_required`).text(totf>totexcl?Number(totf-totexcl).toLocaleString():0)
+                $(`#net_required`).data('net',Number(totf-totexcl))
+
+                
+                
+                lossprofshow()
+
+                    
+    })
+
+    const totreport = el =>{
+               let tot_amo=0, tot_lt = 0,pumps=[],unfilled = false 
+
+
+               el.each(function(){
+                const final = Number($(this).val()),
+                        
+                        pr =  Number($(this).data('price')),
+                        pmp =  Number($(this).data('pump')),
+                        init =  Number($(this).data('initial')) ,
+                        pdiff = Number(Number(final - init).toFixed(3)),
+                        pmp_lt = pdiff>0?(pdiff):0,
+                        P_amo = pdiff?(pmp_lt*pr):0
+
+                        if($(this).val()=='')unfilled = true 
+
+                        tot_amo+=P_amo
+                        tot_lt+=pmp_lt
+
+                        
+
+                        pumps.push({
+                            final,
+                            pmp
+                        })
+
+
+
+
+               })
+
+               const  ext = totexlude()
+
+
+               return {unfilled,pumps,tot_amo,tot_lt,exctot:ext.exctotA,notpsaleA:ext.notpsaleA,notpsaleL:ext.notpsaleL}
+
+    }
+
+    const totexlude = () => {
+                       const sale = Number('{{exclude.saleA}}'),
+                     tr = Number('{{exclude.trAmo}}'),
+                     cashB = Number('{{exclude.cashBA}}'),
+                     expfA = Number('{{exclude.expfA}}'),
+                     expamo = Number('{{exclude.expamo}}'),
+
+                     trq = Number('{{exclude.tr}}'),
+                     saleq = Number('{{exclude.sale}}'),
+                     expfq = Number('{{exclude.expf}}'),
+                     
+                     notpsaleL= trq+saleq+expfq,
+                     notpsaleA = tr + sale + expfA,
+                     exctotA = sale + tr + cashB + expfA + expamo
+
+
+                     return {exctotA,notpsaleA,notpsaleL}
+    }
+
+
+
+    let payac = [],totpay=0
+    const netreq = () =>{
+        return Number($('#net_required').data('net'))
+    }
+
+    $('.payacc').keyup(function(){
+        const netrequred = Number($('#net_required').data('net'))
+        let tot = 0
+        
+        payac = []
+            $('.payacc').each(val => {
+                    
+                const amo = Number($(this).val()) || 0
+                tot+=amo
+            
+                
+                if(amo>0){
+                    payac.push({
+                        amo,
+                        ac:Number($(this).data('val'))
+                    })
+                }
+            
+       });
+
+       totpay = tot
+
+       // Represent loss or profit.................................//
+       
+       lossprofshow()
+    
+
+       $('#showtotpay').html( `
+       <span class="text-primary">{{currencii}}.</span>
+        <span class="brown"> ${tot.toLocaleString()} </span>`)
+    })
+
+
+    const lossprofshow = () =>{
+        const netrequred = netreq()
+        
+        if(netrequred!=totpay){
+                  const diff = totpay-netrequred ,
+                prof =  diff > 0,
+             lossprof = `
+              <div class="col-6 ${prof?'green':'brown'} py-2">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="lossOrProfit">
+                        <label class="custom-control-label latoFont ${prof?'green':'brown'} cursor-pointer" style="cursor: pointer !important;" for="lossOrProfit">
+                          ${prof?lang('Faida','Profit'):lang('Hasara','Loss')}
+                        </label>
+                    </div>  
+                </div>
+                <div class="col-6 py-2 ${prof?'green':'brown'} text-right">${Number(diff).toLocaleString()}</div>
+
+          `
+          $('#profitLoss').html(lossprof)
+
+        } else{
+         $('#profitLoss').html('')
+       }
+    }
+
+  
+
+
+  
+
+    $('#startshiftform').submit(function(e){
+        e.preventDefault(e)
+        const pumps = [],
+               TheTime= $('#tFrom').val(),
+              tFrom = moment(TheTime).format(),
+              FrShift = Number('{% if shift %}{{shift.id}}{% else %}0{%endif%}'),
+              ses = Number($('#session_').val()),
+              
+              incharge = Number('{{trf.id}}')
+
+        $('.shiftStart').each(function(){
+             const pump = $(this).data('pump'),
+                   start = Number($(this).prop('checked'))
+                   if(start)pumps.push({
+                     pump,
+                     
+                   })
+        })
+        
+        
+        // Number($(this).data('.shiftStart')),
+
+
+
+            //   read = Number($('#pumpReadings').val()) || Number($('#pumpReadings').data('read')),
+              
+             const url = $(this).attr('action'),
+              data = {
+                data:{
+                  pumps:JSON.stringify(pumps),
+                  tFrom,
+                  incharge,
+                  FrShift,
+                  ses
+                
+                },
+                url
+              }
+
+              if(pumps.length&&TheTime!=''&&incharge&&ses){
+                    $('#loadMe').modal('show')
+
+                   
+        
+                    const sendIt = POSTREQUEST(data)
+                    sendIt.then(resp=>{
+                        $('#loadMe').modal('hide')
+                        hideLoading()
+        
+                            if(resp.success){
+                                toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success '), {timeOut: 2000});
+                                location.reload()
+                            }else{
+
+                              
+                                    toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});
+        
+                            }
+                      
+                            
+                    })
+              }
+               else{
+                if(TheTime=='')redborder('#tFrom')
+                if(!incharge)redborder('#pump_incharge')
+                if(!pumps.length)toastr.info(lang('Tafadhari wezesha kitufe cha kuanzisha pampu ','Please check on one of the pumps'))
+                if(!ses)redborder('#session_')
+            }
+                      
+            
+    })
+
+    // $('#lossOrProfit').click(function(){
+
+    $('body').on('change','#lossOrProfit',function(){
+        if($(this).prop('checked'))$('#profitLoss').removeClass('border-danger')
+        
+    })
+   
+    $('#endShiftForm').submit(function(e){
+        e.preventDefault()
+        const usr = Number('{{trf.id}}'),
+              shift = Number('{{shift.id}}'),
+            //   pump = $(this).data('pump'),
+            //   freading = Number($('#finalreading').val()) || 0,
+              
+              lossprof = Number($('#lossOrProfit').prop('checked')) || 0,
+              remarks = $('#shiftRemarks').val(),
+              shiftTo = moment($('#tToshift').val()).format(),
+              url = $(this).attr('action'),
+             
+              totrep = totreport($(`.final_read`)),
+
+              pumps = totrep.pumps,
+              unfilled = totrep.unfilled
+
+              const totf = totrep.tot_amo,
+              totexcl = totrep.exctot,
+
+              netreqAmo = totf - totexcl
+
+
+           
+            const data = {
+                data:{
+                    usr,
+                    shift,
+                    pumps:JSON.stringify(pumps),
+                   
+                    acc:JSON.stringify(payac),
+                    remarks,
+                    shiftTo,
+                    totpay,
+                    netreqAmo,
+                    lossprof
+                },
+                url
+            }
+
+          if(shiftTo<=moment().format() && shiftTo!='' && ((totpay==netreqAmo) || lossprof) && !unfilled ){
+
+            $('#endshift_modal').modal('hide')
+                    $('#loadMe').modal('show')
+        
+                    const sendIt = POSTREQUEST(data)
+                    sendIt.then(resp=>{
+                        $('#loadMe').modal('hide')
+                        hideLoading()
+        
+                            if(resp.success){
+                                toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success '), {timeOut: 2000});
+                                location.replace(`/salepurchase/viewShift?i=${resp.id}`)
+                            }else{
+
+                              
+                                    toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});
+        
+                            }
+                     
+                            
+                    })
+
+          }else{
+            $('#errorAret').fadeIn(500)
+            if(unfilled){
+                $('.final_read').each(function(){
+                    if($(this).val()==''){
+                        $(this).addClass('redborder')
+                    }
+                })
+            }
+            
+            if(shiftTo>moment().format() || shiftTo=='')redborder('#tToshift')
+            if(totpay!=netreqAmo)$('#profitLoss').addClass('border-danger')
+        }
+
+    })
+
+
+   
+
+
+
+
+
+</script>
+{% endblock %}
+
+{% block shifts %} active {% endblock %}

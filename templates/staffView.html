@@ -1,0 +1,371 @@
+
+{% extends 'index.html' %}
+
+{% block page_content %}
+
+<div class="head-title ">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Onesha Stafu{% else %}View Staffs{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+
+</div>    
+
+
+<div class="table-data">
+    <div class="order">
+
+            <div   class="row mb-3">
+
+
+                <div class="col-6">
+                    <div class="btn-group float-end" role="group" aria-label="Staff Actions">
+                        <a href="#staff-details" class="btn btn-outline-primary btn-sm me-2">
+                            {% if useri.langSet == 0 %}Taarifa za Stafu{% else %}Staff Details{% endif %}
+                        </a>
+                        <a href="#payroll" class="btn btn-outline-secondary btn-sm">
+                            {% if useri.langSet == 0 %}Malipo ya Stafu{% else %}Payroll{% endif %}
+                        </a>
+                  </div>
+                </div>
+
+                <div class="col-6 text-right">
+                    <div class="btn-group float-end" role="group" aria-label="Staff Actions">
+                        <a role="button" data-toggle="modal" data-target="#addStaff" class="btn text-light btn-primary btn-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
+                                <path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 8v-1c0-2.21 3.58-3.5 8-3.5s8 1.29 8 3.5v1H8zm-2-7V9H3V7h3V4h2v3h3v2H8v3H6z"/>
+                            </svg>
+                            {% if useri.langSet == 0 %}Ongeza Stafu{% else %}Add Staff{% endif %}
+                        </a>
+                        <a href="/staffs/staffs" class="btn btn-secondary btn-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
+                                <circle cx="5" cy="7" r="2"/>
+                                <circle cx="5" cy="17" r="2"/>
+                                <circle cx="5" cy="12" r="2"/>
+                                <rect x="9" y="6" width="12" height="2" rx="1"/>
+                                <rect x="9" y="11" width="12" height="2" rx="1"/>
+                                <rect x="9" y="16" width="12" height="2" rx="1"/>
+                            </svg>
+                            {% if useri.langSet == 0 %}Stafu Wote{% else %}All Staffs{% endif %}
+                        </a>
+                    </div>
+                </div>
+
+
+            </div>        
+      <div class="head">
+
+            
+
+
+        <!-- <i class='bx bx-search' ></i>
+        <i class='bx bx-filter' ></i> -->
+      </div>
+
+
+
+
+      {% csrf_token %}
+
+
+      <div class=" mx-1  border card">
+            <!-- <h5 >
+          
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1.8em" height="1.8em" viewBox="0 0 24 24" style="fill: currentColor">
+                    <path d="M15 11h7v2h-7zm1 4h6v2h-6zm-2-8h8v2h-8zM4 19h10v-1c0-2.757-2.243-5-5-5H7c-2.757 0-5 2.243-5 5v1h2zm4-7c1.995 0 3.5-1.505 3.5-3.5S9.995 5 8 5 4.5 6.505 4.5 8.5 6.005 12 8 12z"></path></svg>
+            
+                 {% if useri.langSet == 0 %}Taarifa za Mhusika na Ruhusa {% else %}Staff Details & Permisions{% endif %}
+            
+
+
+            </h5> -->
+
+        <div class="card-header  text-light">
+            <h5 class="mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
+                    <path d="M12 22c5.421 0 10-4.579 10-10S17.421 2 12 2 2 6.579 2 12s4.579 10 10 10zm0-2c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                </svg>
+
+
+               {% if useri.langSet == 0 %}Taarifa za Mhusika na Ruhusa {% else %}Staff Details & Permisions{% endif %}
+            </h5>
+        </div>
+
+
+        <div class="row mt-3">
+            <div class="col-md-3">
+                <div class="user-img  ">
+                    
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12em" height="12em" viewBox="0 0 24 24" style="fill: currentColor">
+                        <path d="M15 11h7v2h-7zm1 4h6v2h-6zm-2-8h8v2h-8zM4 19h10v-1c0-2.757-2.243-5-5-5H7c-2.757 0-5 2.243-5 5v1h2zm4-7c1.995 0 3.5-1.505 3.5-3.5S9.995 5 8 5 4.5 6.505 4.5 8.5 6.005 12 8 12z"></path></svg>
+                    
+                </div>
+            </div>
+            <div class="col-md-9">
+                <ul class="list-unstyled ">
+                    <li class="row py-1" >
+                        <div class="col-3">{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}:</div>
+                        <div class="col-8">
+                        <u class="bluePrint">{{s.user.user.first_name |title }} {{s.user.user.last_name |title }}</u> 
+                        </div>
+                    </li>
+                    <li class="row py-1" >
+                        <div class="col-3">{% if useri.langSet == 0 %}Cheo{% else %}Position{% endif %}:</div>
+                        <div class="col-8">{{s.cheo |title }}</div>
+                    </li>
+                    <li class="row py-1" >
+                        <div class="col-3">{% if useri.langSet == 0 %}Anaruhusa{% else %}Allow{% endif %}:</div>
+                        <div class="col-8">
+                            
+                            <label class="switch">
+                                {% if s.Allow %}
+                                <input type="checkbox" checked data-allow=1 >
+                                {% else %}
+                                <input type="checkbox" data-allow=1 >
+                                {% endif %}
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
+                    <li class="row py-1" >
+                        <div class="col-3">{% if useri.langSet == 0 %}Usimamizi{% else %}Manage{% endif %}:</div>
+                        <div class="col-8">
+                            
+                            <label class="switch">
+                                {% if s.fullcontrol %}
+                                <input type="checkbox" checked data-manage=1 >
+                                {% else %}  
+                                    <input type="checkbox" data-manage=1 >
+                                {% endif %}    
+
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
+                    <li class="row py-1" >
+                        <div class="col-3">{% if useri.langSet == 0 %}Muhusika wa pampu{% else %}Pump Attendant{% endif %}:</div>
+                        <div class="col-8">
+                            
+                            <label class="switch">
+                                {% if s.pumpIncharge %}
+                                <input type="checkbox" checked data-incharge=1 >
+                                {% else %}  
+                                    <input type="checkbox" data-incharge=1 >
+                                {% endif %}    
+
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
+
+                    <li class="row py-1" >
+                        <div class="col-3">{% if useri.langSet == 0 %}Ruhusa General{% else %}General Allowed{% endif %}:</div>
+                        <div class="col-8">
+                            
+                            <label class="switch">
+                                {% if s.user.ceo %}
+                                <input type="checkbox" checked data-ceo=1 >
+                                {% else %}
+                                <input type="checkbox" data-ceo=1 >
+                                {% endif %}
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
+                    <li class="row py-1" >
+                        <div class="col-3">{% if useri.langSet == 0 %}Onesha Manunuzi{% else %}View Purchases{% endif %}:</div>
+                        <div class="col-8">
+                            
+                            <label class="switch">
+                                {% if s.user.pu and s.user.ceo %}
+                                <input type="checkbox" checked data-pu=1 >
+                                {% else %}
+                                {% if s.user.ceo %}
+                                    <input type="checkbox" data-pu=1 >
+                                {% else %}  
+                                    <input type="checkbox" data-pu=1 disabled >
+                                {% endif %}
+                                {% endif %}
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
+
+                    <li class="row py-1" >
+                        <div class="col-3">{% if useri.langSet == 0 %}Usafirishaji Mafuta{% else %}Fuel Tranfer{% endif %}:</div>
+                        <div class="col-8">
+                            
+                            <label class="switch">
+                                {% if s.user.op %}
+                                <input type="checkbox" checked data-op=1 >
+                                {% else %}
+                                <input type="checkbox" data-op=1 >
+                                {% endif %}
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
+
+                    <li class="row py-1" >
+                        <div class="col-3">{% if useri.langSet == 0 %}Usimamizi Matanki{% else %}Tanks Supervisor{% endif %}:</div>
+                        <div class="col-8">
+                            
+                            <label class="switch">
+                                {% if s.user.tankSup %}
+                                <input type="checkbox" checked data-sup=1 >
+                                {% else %}
+                                <input type="checkbox" data-sup=1 >
+                                {% endif %}
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
+
+
+                    <script>
+                        $('.switch input').change(function(){
+                            $('#loadMe').modal('show')
+                            const check = Number($(this).is(':checked')),
+                                allow = Number($(this).data('allow')) || 0,
+                                manager = Number($(this).data('manage')) || 0,
+                                incharge = Number($(this).data('incharge')) || 0,
+                                ceo = Number($(this).data('ceo')) || 0,
+                                op = Number($(this).data('op')) || 0,
+                                user = Number('{{s.id}}'),
+                                sup = Number($(this).data('sup')) || 0,
+                                pu = Number($(this).data('pu')) || 0,
+
+                                data = {
+                                    data:{
+                                        check,
+                                        allow,
+                                        manager,
+                                        incharge,
+                                        ceo,
+                                        op,
+                                        sup,
+                                        pu,
+                                    user},
+                                    url:'/staffs/permit'
+                                }
+                                
+                                sendIt = POSTREQUEST(data)
+                                sendIt.then(resp=>{
+                                    $('#loadMe').modal('hide')
+                                    hideLoading()
+
+                                        if(resp.success){
+                                            toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success '), {timeOut: 2000});
+                                            if(ceo)location.reload()
+                                        }else{
+                                                $('#loadMe').modal('hide')   
+                                                toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});
+
+                                        }
+                                })
+
+
+                        })
+                    </script>
+
+
+                </ul>
+            </div>            
+        </div>
+
+      </div>
+
+
+    <!-- <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
+                    <path d="M12 22c5.421 0 10-4.579 10-10S17.421 2 12 2 2 6.579 2 12s4.579 10 10 10zm0-2c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                </svg>
+                {% if useri.langSet == 0 %}Ongeza Malipo ya Stafu{% else %}Add Staff Payroll{% endif %}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form id="payrollForm" method="post" action="/staffs/add_payroll/">
+                {% csrf_token %}
+                <input type="hidden" name="staff_id" value="{{ s.id }}">
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Mwezi{% else %}Month{% endif %}</label>
+                    <div class="col-sm-9">
+                        <input type="month" class="form-control" name="pay_month" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Kiasi Kilicholipwa{% else %}Total Paid Amount{% endif %}</label>
+                    <div class="col-sm-9">
+                        <input type="number" class="form-control" name="total_paid" min="0" step="0.01" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Makato Mengine{% else %}Other Deductions{% endif %}</label>
+                    <div class="col-sm-9">
+                        <input type="number" class="form-control" name="other_deductions" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Maelezo ya Makato{% else %}Deductions Description{% endif %}</label>
+                    <div class="col-sm-9">
+                        <textarea class="form-control" name="deductions_desc" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Maelezo ya Malipo{% else %}Payment Description{% endif %}</label>
+                    <div class="col-sm-9">
+                        <textarea class="form-control" name="payment_desc" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
+                            <path d="M5 13l4 4L19 7"/>
+                        </svg>
+                        {% if useri.langSet == 0 %}Hifadhi{% else %}Save{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div> -->
+
+   </div>
+   </div>  
+   
+   
+{% if useri.admin %}
+
+  {% include 'staffregister.html' %}
+
+{% endif %}   
+
+
+
+{% endblock %}
+
+
+
+{% block staffs %} active {% endblock %}

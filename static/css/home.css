@@ -1,0 +1,207 @@
+/* --- Dashboard Section Headers --- */
+.dashboard-section {
+  margin-bottom: 1.5rem;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #007bff;
+  margin-bottom: 0.7rem;
+}
+
+/* Dashboard Date Buttons Styling */
+.dashboard-date {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.btn-date {
+  background: var(--whiteBg);
+  color: #333;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 0.4rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.btn-date:hover, .btn-date.active {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+}
+.btn-date:focus {
+  outline: 2px solid #007bff;
+}
+
+.btn-date.active_date {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+}
+
+
+.dashboard-date {
+  color: #888;
+  font-size: 1rem;
+}
+
+#refresh-button{
+    background: #f5f6fa;
+    color: #333;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    padding: 0.4rem 1.2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+       :root {
+            /* --text-primary: #007BFF; */
+            --secondary-color: #28a745;
+            --background-color: #f8f9fa;
+            /* --card-bg: #ffffff; */
+            /* --dark: #343a40; */
+            /* --borderColor: #e9ecef; */
+            --danger-color: #dc3545;
+        }
+
+        /* body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--dark);
+        } */
+
+        h2 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(335px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--whiteBg);
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        /* at larger media screen */
+        @media (min-width: 768px) {
+            #stockMovementCard {
+            /* make this card 2 * wider than other cards */
+            grid-column: span 3;
+        }
+        }
+        
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--borderColor);
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--dark);
+        }
+
+        .icon-svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-primary);
+            margin-right: 10px;
+        }
+
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-top: 1px dashed #e9ecef;
+            font-size: 0.95rem;
+        }
+        
+        .detail-item:first-of-type {
+            border-top: none;
+        }
+
+        .fuel-trend {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .trend-up { color: var(--secondary-color); }
+        .trend-down { color: var(--danger-color); }
+
+        .fuel-price { font-size: 1.5rem; font-weight: bold; }
+
+        .sales-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        a {
+            color: var(--dark);
+        }
+        a:hover {
+            text-decoration: none;
+        }
+
+        .sales-metric {
+            padding: 20px 10px;
+            /* background-color: #f1f8ff; */
+            background-color: var(--light-blue);
+            border-radius: 5px;
+        }
+
+        .alert-item {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }

@@ -1,0 +1,296 @@
+{% load humanize %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" >
+
+	
+
+
+
+	<link rel="stylesheet" href="/static/css/mediascreen.css">
+	<link rel="stylesheet" href="/static/css/style.css">
+
+
+
+
+    <!-- Latest compiled and minified CSS -->
+
+    <!-- Latest compiled and minified JavaScript -->
+    <!-- <script src="{% static 'js/bootstrap-select.min.js' %}"></script> -->
+    
+	<!-- <script src="{% static 'js/validator.min.js' %}"></script> -->
+        <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+
+
+<script src="/static/js/jquery.js" crossorigin="anonymous"></script>
+<script src="/static/js/bootstrap.min.js" ></script>
+<!-- <script src="/static/js/moment.min.js" ></script> -->
+<script src="/static/js/momentlocale.js" ></script>
+<script src="{% static 'js/qrcode.min.js' %}"></script>
+
+    <title>
+        PTR-{{trf.code}}
+    </title>
+</head>
+<body>
+
+    <div class="classic_div mt-sm-2 pt-3 pb-2 px-3 the_invo_page" id="the_invo_page" >
+        <h5 class="text-secondary mt-1 pb-3  border-bottom font-weight-bold">
+            {% if langSet == 0 %}NOTISI YA KUHAMISHA MAFUTA {% else %}FUEL TRANSFER NOTE{% endif %}
+         </h5>
+
+                     <div class="row classic_div mt-3">
+
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Tarehe {% else %}Date{% endif %}
+                         </div>
+                         <div class="col-9">
+                            <script>
+                                document.write(moment('{{trf.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                            </script>                         
+                        </div>
+
+                        
+
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Kituo {% else %}Station{% endif %}
+                         </div>
+                         <div class="col-9">
+                            {{trf.record_by.Interprise.name|title}}                       
+                        </div>
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Kuhamisha {% else %}Tranfer{% endif %}#
+                         </div>
+                         <div class="col-9 bluePrint">
+                            PTR-{{trf.code}}
+                         </div>
+
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Kwenda {% else %}To{% endif %}
+                         </div>
+                         <div class="col-9">
+                                   {% if trf.Transfer_by %}
+                                        {% if useri.langSet == 0 %}Nje ya Kituo{% else %}Out the Station{% endif %}
+                                  {% else %}
+                                       
+                                        {% if useri.langSet == 0 %}Tanki Jingine{% else %}Other Station Tank{% endif %}
+                                  {% endif %}                      
+                        </div>
+
+
+
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Aliyerekodi {% else %}Recorded by{% endif %}
+                         </div>
+                         <div class="col-9">
+                            {{trf.record_by.user.user.first_name| title}} {{trf.record_by.user.user.last_name| title}}
+                         </div>
+
+                          <div class="col-3">
+                            {% if useri.langSet == 0 %}Kurekodi {% else %}Recorded{% endif %}
+                         </div>
+                         <div class="col-9">
+                            <script>
+                                document.write(moment('{{trf.recDate | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                            </script>                         
+                        </div>
+
+
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Msimamizi {% else %}Supervisor by{% endif %}
+                         </div>
+                         <div class="col-9">
+                            {{trf.trSup.sup.user.first_name| title}} {{trf.trSup.sup.user.last_name| title}}
+                         </div>
+
+                        <hr class="col-12 " />
+
+                         {% if trf.Transfer_by %}
+
+                           
+                         <div class="col-3">
+                            {% if useri.langSet == 0 %}Aliyekabidhiwa {% else %}Given To{% endif %}
+                         </div>
+                         <div class="col-9 bluePrint">
+                            {{trf.Transfer_by.user.first_name| title}} {{trf.Transfer_by.user.last_name| title}}
+                         </div>
+                             <div class="col-3">
+                            {% if useri.langSet == 0 %}Kontena {% else %}Container{% endif %}
+                         </div>
+                         <div class="col-9 ">
+                             {% if trf.container %}  {{trf.container.name}} {%else%} {{trf.otherCont}} {% endif %}
+                            
+                         </div>
+                         <hr class="col-12 " />
+                         {% endif %}
+
+
+                     </div>  
+                                        
+                       <div><strong>{% if useri.langSet == 0 %}Rekodi za Kuhamisha{% else %}Transfer Records{% endif %}:</strong></div>
+                       <div class="table-responsive">
+                           <table class="table table-bordered table-sm">
+                            <thead>
+                                <tr class="smallFont" >
+                                    <th>#</th>
+                                    <th>{% if useri.langSet == 0 %}Pampu{% else %}Pump{% endif %}</th>
+
+                                    <th>{% if useri.langSet == 0 %}Zamu{% else %}Shift{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Muhisika/Zamu{% else %}Shift/Attendand{% endif %}</th>
+                                    
+                                    
+                                    <th>{% if useri.langSet == 0 %}Kwenda{% else %}To{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Bei{% else %}Price{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+
+                                    <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">(LTRS)</span> </th>
+                                    <th>{% if useri.langSet == 0 %}Thamani{% else %}Worth{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                                    <!-- <th>{% if useri.langSet == 0 %}Kiambatanisho{% else %}Attachment{% endif %}</th> -->
+                                    
+                                  </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in tr_rec %}
+                                <tr>
+                                    <td scope="row">{{forloop.counter}}</td>
+                                     <td>
+                                        {{t.pump.station.name}} {{t.pump.name}}
+                                     </td>
+                                     <td> {% if t.shift %}
+                                             <a href="/salepurchase/viewShift?i={{t.shift.shift.id}}">SH-{{t.shift.shift.code}}</a>
+                                          {% else %}----
+                                          {% endif %}  
+                                      </td> 
+
+                                      <td>{% if t.shift %}{{t.shift.shift.by.user.first_name|title}}  {{t.shift.shift.by.user.first_name|title}}{% else %}----{%endif%}</td>
+                                      
+                                      <td>{% if t.to %} {{t.to.name}} {%else%} {{t.transfer.otherCont}} {%endif%}</td>
+                                      <td>{{t.Fuel.name}}</td>
+                                      <td>{{t.saprice|floatformat:'-2'|intcomma}}</td>
+                                      <td>{{t.qty|floatformat:'-2'|intcomma}}</td>
+                                      <td>{{t.worth|floatformat:'-2'|intcomma}}</td>
+
+                                </tr>
+                                {% endfor %}
+
+                                <tr>
+                                  <th colspan=7 class="grey" >Jumla </th>
+                                  <th>{{totqty|floatformat:'-2'|intcomma}}</th>
+                                  <th>{{totAmo|floatformat:'-2'|intcomma}}</th>
+                                </tr>
+
+                            </tbody>
+                           </table>
+                       </div>
+    
+         <hr>
+            <div><strong>
+                {% if langSet == 0 %}Maelezo{% else %}Remaks{% endif %}:</strong></div>
+            <div>{{trf.desc}}</div>
+
+            <div class="mt-3" >
+                <strong>
+                    {% if langSet == 0 %}Uhakiki{% else %}Approval{% endif %}
+                </strong>
+            </div>
+            <table class="table table-bordered table-sm" >
+                  <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{% if langSet == 0 %}Jina{% else %}Name{% endif %}</th>
+                        <th>{% if langSet == 0 %}Nafasi{% else %}Position{% endif %}</th>
+                        <th>{% if langSet == 0 %}TareheMuda{% else %}DateTime{% endif %}</th>
+                        <th>{% if langSet == 0 %}Sahihi{% else %}Signature{% endif %}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>{{trf.record_by.user.user.first_name | title}} {{trf.record_by.user.user.last_name | title}} </td>
+                        <td>{{trf.record_by.user.cheo | title}} </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                 
+
+                    <tr>
+                        <td>2</td>
+                        <td>
+                            {{trf.Transfer_by.user.first_name | title}}  {{trf.Transfer_by.user.last_name | title}} 
+                        </td>
+                        <td>{{trf.Transfer_by.cheo | title}}  </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td>3</td>
+                        <td>
+                             {{trf.trSup.sup.user.first_name | title}}  {{trf.trSup.sup.user.last_name | title}} 
+
+                        </td>
+                        <td>{{trf.trSup.sup.cheo | title}}</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                    {% for tr in tr_rec %}
+                     {% if tr.shift %}
+                      <tr>
+                          <td> 
+                            <script>
+                                var lp = Number('{{forloop.counter}}'),
+                                ind = lp+3
+                                document.write(ind)
+                          </script> 
+                          </td>
+                          <td>
+                                {{tr.shift.shift.by.user.first_name | title}} {{tr.shift.shift.by.user.last_name | title}}
+                          </td>
+                          
+                          <td>{{tr.shift.shift.by.cheo}}</td>
+                          <td></td>
+                          <td></td>
+                      </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </tbody>
+            </table>
+
+
+               <h6 class="row ">
+                <div class="col-5">
+         
+                 <div class="col-12">
+                     <div id="imgBox">
+                         <img src="" alt="" id="qrImage">
+                     </div>
+                   </div>
+         
+         
+                   <script>
+                      $(document).ready(function(){
+                         const url = window.location.host;
+                         const imgBox= document.getElementById("imgBox")
+         
+                           qrcode = new QRCode('imgBox',{
+                             text:`${url}/salepurchase/viewTransfer?i={{trf.id}}`,
+                             height:200,
+                             width:200,
+                           
+                         })
+                      })
+                   </script>
+         
+                </div>
+                </h6>
+
+        </div>
+    
+</body>
+</html>
