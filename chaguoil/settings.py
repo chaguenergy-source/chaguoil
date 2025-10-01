@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i'
 
 # USALAMA: Zima DEBUG katika Production
-DEBUG = True 
+DEBUG = False 
 
 # Badilisha na IP Address au Domain Name yako halisi
 ALLOWED_HOSTS = ['*', '136.114.40.162']
@@ -123,39 +123,29 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # --- GCS (Google Cloud Storage) SETTINGS ---
-# Hifadhi jina la Bucket
+
+# Jina la Bucket yako ya GCS
 GS_BUCKET_NAME = 'chaguoil' 
+GS_DEFAULT_ACL = 'publicRead' # Hii inaruhusu ulimwengu kusoma files
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Inahitajika kwa collectstatic
 
-# Path to GCP credentials file
-GOOGLE_APPLICATION_CREDENTIALS = os.path.join(BASE_DIR, 'credidentials.json')
-
-# Hii HAKUNA HAJA KUITUMIA KWENYE VM YAKO kwa sababu Service Account inasimamia ruhusa
-# GOOGLE_APPLICATION_CREDENTIALS = os.path.join(BASE_DIR, 'credidentials.json') 
-
-# Ruhusa (ACL)
-GS_DEFAULT_ACL = 'publicRead' 
-
-
-# SANIDI MEDIA FILES (User Uploaded Files)
-
-# Use GCS for media files
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_MEDIA_LOCATION = 'media'
-MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_MEDIA_LOCATION}/'
+# ZIMA DEBUG (MUHIMU SANA KWA PRODUCTION)
+# Unapo-deploy, Debug lazima iwe FALSE ili static files ziende GCS
 
 
 # SANIDI STATIC FILES (CSS, JS, Fonts)
-
-# Use GCS for static files
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_STATIC_LOCATION = 'static'
-STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
+GS_STATIC_LOCATION = 'static' # Files zitahifadhiwa kwenye folder la 'static/' ndani ya bucket
+STATIC_URL = f'/{GS_STATIC_LOCATION}/'
 
-# STATIC_ROOT is not needed for production GCS, comment out for production
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# SANIDI MEDIA FILES (User Uploaded Files)
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_MEDIA_LOCATION = 'media' # Files zitaenda kwenye folder la 'media/' ndani ya bucket
+MEDIA_URL = f'/{GS_MEDIA_LOCATION}/' 
 
+# RAHALISA: VM yako inatumia Service Account, kwa hiyo huweki JSON Key:
+# HAKUNA HAJA YA GOOGLE_APPLICATION_CREDENTIALS
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
