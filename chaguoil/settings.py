@@ -162,6 +162,12 @@ MEDIA_LOCATION = 'media'
 # URL ya GCS sasa itakuwa 'storage.googleapis.com/[JINA_LA_BUCKET]/'
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{MEDIA_LOCATION}/'
 
+# Sanidi GCS kwa STATIC FILES (CSS, JS, nk.) kama unataka
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+STATIC_LOCATION = 'static'
+STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{STATIC_LOCATION}/'
+
+
 # Optionally, keep local static files for collectstatic
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
