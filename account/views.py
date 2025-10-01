@@ -507,7 +507,13 @@ def upload_company_logo(request):
           'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
         }
         return JsonResponse(data)
-
+          # Hakikisha settings.py imepangwa kutumia Google Cloud Storage backend (k.m. django-storages na google-cloud-storage)
+      if useri.company.logo:
+         try:
+            default_storage.delete(useri.company.logo.name)
+         except:
+            pass
+         
       filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
       path = default_storage.save(filename, ContentFile(logo.read()))
       useri.company.logo = path

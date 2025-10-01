@@ -13,7 +13,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# BASE_DIR = Path(__file__).resolve().parent.parent
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+# If you want to reference a directory in Google Cloud Storage, you can't use BASE_DIR directly,
+# since BASE_DIR is for local filesystem paths. For GCS, use the bucket and object paths as URLs.
 
 
 # Quick-start development settings - unsuitable for production
@@ -38,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.humanize' 
+    'django.contrib.humanize' ,
+    'storages',
 
 ]
 
@@ -83,14 +88,25 @@ WSGI_APPLICATION = 'chaguoil.wsgi.application'
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         # 'NAME': 'chaguoil',
+#         'NAME': 'mafuta',
+#         'USER': 'postgres',
+#         'PASSWORD' : '1152',
+#         'HOST' : 'localhost'
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        # 'NAME': 'chaguoil',
-        'NAME': 'mafuta',
-        'USER': 'postgres',
-        'PASSWORD' : '1152',
-        'HOST' : 'localhost'
+        'NAME': 'mafuta', 
+        'USER': 'chaguoil',       
+        'PASSWORD': 'Chagu@me12', 
+        'HOST': '34.71.9.5', # Public IP ya Cloud SQL
+        'PORT': '5432',
     }
 }
 
@@ -126,19 +142,37 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+# Hifadhi jina la Bucket
+GS_BUCKET_NAME = 'chaguoil' 
 
+# Weka njia ya Key file (Bora kutumia environment variables)
+import os
+# Badilisha 'path/to/your/keyfile.json' na njia yako halisi
+GOOGLE_APPLICATION_CREDENTIALS = os.path.join(BASE_DIR, 'credidentials.json') 
+
+# Weka jina la PROJECT ID
+# GS_PROJECT_ID = 'your-gcp-project-id' # Hii si ya lazima mara nyingi
+
+# Sanidi GCS kwa MEDIA FILES (Picha, Video, nk.)
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_DEFAULT_BUCKET_NAME = GS_BUCKET_NAME # Tunatumia bucket kuu kwa media files
+MEDIA_LOCATION = 'media'
+
+# URL ya GCS sasa itakuwa 'storage.googleapis.com/[JINA_LA_BUCKET]/'
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{MEDIA_LOCATION}/'
+
+# Optionally, keep local static files for collectstatic
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
 
     os.path.join(BASE_DIR, 'static')
 ]
 
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

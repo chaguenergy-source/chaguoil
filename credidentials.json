@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "prime-micron-473718-h1",
+  "private_key_id": "8242ba5ade290fa9f8fce062de7eb58a21727f52",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC70FZ6j0XgC5OA\nua1aAMe+IN4kh3Z8iNvP+XjssW9bnar79RkWBe9SXf1MyYrSyzUrmJzJ6/rbZCDY\nZ/3pEpg52/j3FOezQQQFR1iQqGep5Pc4esmMK1a9/ODaH6bOZd2m2X0cSdAvkkrF\nIx2v3vZFL0a8cp0L8bUo6xquv0DuVa0sumNjDzUO8HFb7FrJIgaa8sVBfvjSfROf\nJlJdzrb4Kov12hNvy2GLgOtAoM9fh4H9/XnicoQ/jwz5d5s3xRkdschV529DsmhR\nRE9h8ld+zJcAF5u9tI+c4peBOHGrN31DBmr+mtMkJ63wPFvKI4kohlVv6JKB80GE\nFLfZgfHrAgMBAAECggEADf0f3n5lZKFNbz0P3bBJMFl1B6DUq8SV0BEeIfhlTvGY\nwVjUHCvSU37kqvTSqONce87Lfs6wyekp+R8Qbm0QIYnHgBUdMjYZfTsp1uce3Cyj\nAqCX+nS6lT63O104KLoK9FkmqcC7B5AMjvplRQAvtPTR0/TFdb+fEAPS4kkke5vi\nqAQSo7PcimxS20pSTWYh+CHIV8IpHEEGhlMyynEcYifn3c2T94OHhz2Zt/GgydIC\nKC9AJAK8kLW5lnCBWVq5n4I9feFrWdEhK9qayk6cC5vfuBo0lKiJtT8PU5mFyWsB\nSJC6dAiMuFCPeoVuKFmxTt2GJsdI09UBu568vgHrgQKBgQDosrb6kIiFFvI1C4CA\nG+ThGdBLzp1dM9wMeeyqI8vor9CNACGZ+diOK8RLF+AGH1sCoPaYCl9T48PHuexZ\nY4L120tY+Lrk7/P0t1WIfAykTOVkiT2HZT4j+74FaRQMlk4Ch1E2H1qMAD+hRgyx\ny9e1BpjVj78kMX3utI+VKwvE0QKBgQDOnwBDbHFG9aPkyWbgNy43JZ09cO6RkECG\nGHprlZ6X2Tk7/FuW6ZAj2om9KuKXj+IG+ahlEH6Qvvgc0n02ixySL2MqevMi4Fcn\nVIH5DqkpC07c8hnQ/wnFUjnMV97QwPWBQkfA5Penqb+Ayl/gpvdXNwlqrA+3/jLh\noxecqeqp+wKBgFFAtivf9Auk64YiMgiJtO30+Yq+5qv4w8mHeWAfh8AERCo39YOy\nfi+GkNA30f3RTRIp6nFEjezZBy/id+jumngGztSOZZQzRVgZ/D/gMPnd7+ufEGEK\ntRwTd1KkUl/iy/KOFYl0gUWJgK5rq1sZ9oQ7fXp06yVUMsj7O3e2xDFBAoGAbZBi\n013ts3MONYOWyc5480U+3BXGa+nSTUktoV71eg/2CZkH+D5h8KEx6N2UyknB0XER\nmoXkl1ystJvpScL6o4n9S8lmpFfR30kwoqDjkqAscXzvs6OJytiPTYxK2ud3R9Od\nuOuxZ3bb1a96p+Xhwp2soKQcsbRZxsx0+N4hUYECgYEA0TfOTvZQfef1RR2dHupZ\nwS6S2BqIUHYquN1eMe+JyrQmHWGaJURZsd808FUKWsk3FXjoQTpiaCwHOnw4C4/u\nvMBHDa7Nt2Nj7fUoSCqpEgVmeKbClStjOP1jeEnSXERWLOi3/SgGviLBWEdlEjjg\nwezfZAVJ42qVKOT5o4XpPGY=\n-----END PRIVATE KEY-----\n",
+  "client_email": "django-gcs-connector@prime-micron-473718-h1.iam.gserviceaccount.com",
+  "client_id": "104125235557668064878",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/django-gcs-connector%40prime-micron-473718-h1.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
