@@ -146,8 +146,13 @@ GS_BUCKET_NAME = 'chaguoil'
 GS_DEFAULT_ACL = 'publicRead' # Hii inaruhusu ulimwengu kusoma files
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Inahitajika kwa collectstatic
 
-# ZIMA DEBUG (MUHIMU SANA KWA PRODUCTION)
-# Unapo-deploy, Debug lazima iwe FALSE ili static files ziende GCS
+# STATICFILES_FINDERS ni muhimu kuzuia migogoro
+STATICFILES_FINDERS = [
+    # Hii inahitajika kutafuta static files ndani ya app folders
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder', 
+    # Hii inahitajika kutafuta static files katika STATICFILES_DIRS
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+]
 
 
 # SANIDI STATIC FILES (CSS, JS, Fonts)
