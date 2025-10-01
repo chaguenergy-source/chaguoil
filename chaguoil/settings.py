@@ -125,6 +125,22 @@ USE_TZ = True
 
 # --- GCS (Google Cloud Storage) SETTINGS ---
 
+
+# RAHALISA: VM yako inatumia Service Account, kwa hiyo huweki JSON Key:
+# HAKUNA HAJA YA GOOGLE_APPLICATION_CREDENTIALS
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'fanyabiasharaapp@gmail.com'
+EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
+
+
 # Jina la Bucket yako ya GCS
 GS_BUCKET_NAME = 'chaguoil' 
 GS_DEFAULT_ACL = 'publicRead' # Hii inaruhusu ulimwengu kusoma files
@@ -143,17 +159,3 @@ STATIC_URL = f'/{GS_STATIC_LOCATION}/'
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_MEDIA_LOCATION = 'media' # Files zitaenda kwenye folder la 'media/' ndani ya bucket
 MEDIA_URL = f'/{GS_MEDIA_LOCATION}/' 
-
-# RAHALISA: VM yako inatumia Service Account, kwa hiyo huweki JSON Key:
-# HAKUNA HAJA YA GOOGLE_APPLICATION_CREDENTIALS
-
-# Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'fanyabiasharaapp@gmail.com'
-EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
