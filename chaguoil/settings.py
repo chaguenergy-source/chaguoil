@@ -69,30 +69,30 @@ WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
 
 # Database - CLOUD SQL SETTINGS
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'mafuta', # [JINA_LA_DATABASE]
-#         'USER': 'chaguoil', # [USER_WA_CLOUDSQL]
-#         'PASSWORD': 'Chagu@me12', # [PASSWORD_YA_CLOUDSQL]
-#         'HOST': '34.71.9.5', # [PUBLIC_IP_YA_CLOUDSQL]
-#         'PORT': '5432',
-#     }
-# }
-
 DATABASES = {
-
-        'default': {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        # 'NAME': 'chaguoil',
-        'NAME': 'mafuta',
-        'USER': 'postgres',
-        'PASSWORD' : '1152',
-        'HOST' : 'localhost'
-
- }
-
+        'NAME': 'mafuta', # [JINA_LA_DATABASE]
+        'USER': 'chaguoil', # [USER_WA_CLOUDSQL]
+        'PASSWORD': 'Chagu@me12', # [PASSWORD_YA_CLOUDSQL]
+        'HOST': '34.71.9.5', # [PUBLIC_IP_YA_CLOUDSQL]
+        'PORT': '5432',
+    }
 }
+
+# DATABASES = {
+
+#         'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         # 'NAME': 'chaguoil',
+#         'NAME': 'mafuta',
+#         'USER': 'postgres',
+#         'PASSWORD' : '1152',
+#         'HOST' : 'localhost'
+
+#  }
+
+# }
 
 
 # Password validation
