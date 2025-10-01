@@ -1,5 +1,8 @@
 """
 Django settings for chaguoil project.
+
+Configuration file for Production environment using Google Cloud Storage (GCS)
+for Static and Media files.
 """
 
 from pathlib import Path
@@ -9,13 +12,9 @@ import os
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-# **Hili linapaswa kutolewa nje ya msimbo (kwa kutumia environment variables) kwa usalama zaidi!**
 SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i'
 
-# USALAMA: Zima DEBUG katika Production
+# USALAMA: Zima DEBUG katika Production (Inalazimisha kutumia STATICFILES_STORAGE)
 DEBUG = False 
 
 # Badilisha na IP Address au Domain Name yako halisi
@@ -25,7 +24,8 @@ ALLOWED_HOSTS = ['*', '136.114.40.162']
 # Application definition
 
 INSTALLED_APPS = [
-    'storages', # Imethibitishwa
+    # Kosa limekuwa hapa: Weka 'storages' HAPA MWANZO ili i-override tabia za static files
+    'storages', 
     'account.apps.AccountConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize' ,
-    
 ]
 
 MIDDLEWARE = [
@@ -68,36 +67,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
 
-# Database - CLOUD SQL SETTINGS
+# Database - CLOUD SQL SETTINGS (Tumetumia settings zako ulizopenda)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mafuta', # [JINA_LA_DATABASE]
-        'USER': 'chaguoil', # [USER_WA_CLOUDSQL]
-        'PASSWORD': 'Chagu@me12', # [PASSWORD_YA_CLOUDSQL]
-        'HOST': '34.71.9.5', # [PUBLIC_IP_YA_CLOUDSQL]
+        'NAME': 'mafuta', 
+        'USER': 'chaguoil', 
+        'PASSWORD': 'Chagu@me12', 
+        'HOST': '34.71.9.5', # PUBLIC_IP_YA_CLOUDSQL
         'PORT': '5432',
     }
 }
 
-# DATABASES = {
-
-#         'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         # 'NAME': 'chaguoil',
-#         'NAME': 'mafuta',
-#         'USER': 'postgres',
-#         'PASSWORD' : '1152',
-#         'HOST' : 'localhost'
-
-#  }
-
-# }
-
 
 # Password validation
-# ... (Hakuna mabadiliko hapa) ...
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -116,18 +99,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-# --- GCS (Google Cloud Storage) SETTINGS ---
-
-
-# RAHALISA: VM yako inatumia Service Account, kwa hiyo huweki JSON Key:
-# HAKUNA HAJA YA GOOGLE_APPLICATION_CREDENTIALS
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -141,26 +116,28 @@ EMAIL_HOST_USER = 'fanyabiasharaapp@gmail.com'
 EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 
 
+# --- STATIC FILES AND MEDIA (GOOGLE CLOUD STORAGE) ---
+
 # Jina la Bucket yako ya GCS
 GS_BUCKET_NAME = 'chaguoil' 
-GS_DEFAULT_ACL = 'publicRead' # Hii inaruhusu ulimwengu kusoma files
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Inahitajika kwa collectstatic
+GS_DEFAULT_ACL = 'publicRead' 
 
-# STATICFILES_FINDERS ni muhimu kuzuia migogoro
+# Njia ya kukusanya files (Inabaki hivi)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
+STATICFILES_DIRS = [] # Acha hivi ili kuepuka migogoro ya local storage
+
+# STATICFILES_FINDERS ni nzuri kwa uwazi
 STATICFILES_FINDERS = [
-    # Hii inahitajika kutafuta static files ndani ya app folders
     'django.contrib.staticfiles.finders.AppDirectoriesFinder', 
-    # Hii inahitajika kutafuta static files katika STATICFILES_DIRS
     'django.contrib.staticfiles.finders.FileSystemFinder',
 ]
 
-
 # SANIDI STATIC FILES (CSS, JS, Fonts)
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_STATIC_LOCATION = 'static' # Files zitahifadhiwa kwenye folder la 'static/' ndani ya bucket
+GS_STATIC_LOCATION = 'static' # Files zitaenda kwenye folder la 'static/'
 STATIC_URL = f'/{GS_STATIC_LOCATION}/'
 
 # SANIDI MEDIA FILES (User Uploaded Files)
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_MEDIA_LOCATION = 'media' # Files zitaenda kwenye folder la 'media/' ndani ya bucket
+GS_MEDIA_LOCATION = 'media' # Files zitaenda kwenye folder la 'media/'
 MEDIA_URL = f'/{GS_MEDIA_LOCATION}/' 
