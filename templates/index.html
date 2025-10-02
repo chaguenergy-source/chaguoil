@@ -36,6 +36,7 @@
 <script src="{% static 'js/popper.min.js' %}" ></script>
 <script src="{% static 'js/bootstrap.min.js' %}" ></script>
 <!-- <script src="{% static 'js/moment.min.js' %}" ></script> -->
+
 <script src="{% static 'js/momentlocale.js' %}" ></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -44,6 +45,8 @@
 
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="{% static 'js/bootstrap-select.min.js' %}"></script>
+
+
 
 	<script src="{% static 'js/qrcode.min.js' %}"></script>
 <!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
@@ -1562,10 +1565,9 @@ $('.tankContainers').change(function(){
      
     <input type="text" id="fedha" hidden value="{{currencii}}" >
 	
-	<script src="/static/js/lugha.js" ></script>
-	<script src="/static/js/toastr.min.js" ></script>
-
-	<script src="/static/js/script.js"></script>
+	<script src="{% static 'js/lugha.js' %}"></script>
+	<script src="{% static 'js/toastr.min.js' %}"></script>
+	<script src="{% static 'js/script.js' %}"></script>
 
 	<script src="{% static 'js/dataTables.min.js' %}"></script>
 

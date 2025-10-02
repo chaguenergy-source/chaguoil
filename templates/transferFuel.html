@@ -1,6 +1,7 @@
 {% extends 'index.html' %}
 {% load humanize %}
 {% block page_content %}
+{% load static %}
 
 <div class="head-title ">
     <div class="left">
@@ -413,7 +414,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-  <script src="/static/js/fueltransfer.js" ></script>
+  <script src="{% static 'js/fueltransfer.js' %}" ></script>
 
 
 

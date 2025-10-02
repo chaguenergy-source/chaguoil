@@ -1,3 +1,4 @@
+{% load static %}
 {% extends 'index.html' %}
 {% load humanize %}
 {% block page_content %}
@@ -83,8 +84,8 @@
 {% endblock %}
 
 {% block additionaljs %}
- <script src="/static/js/settings.js"></script>
-
+ 
+ <script src="{% static 'js/settings.js' %}"></script>
 {% endblock %}
 
 {% block settings %} active  {% endblock %}

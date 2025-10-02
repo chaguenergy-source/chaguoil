@@ -2,6 +2,7 @@
 {% extends 'index.html' %}
 {% load humanize %}
 {% block page_content %}
+{% load static %}
 
 <div class="head-title pb-md-5">
     <div class="left">
@@ -702,9 +703,11 @@
 
 
 {% block additionaljs %}
-<script src="/static/js/vendors.js" ></script>
+<script src="{% static 'js/vendors.js' %}"></script>
 
-  <script src="/static/js/purchases.js"></script>
+  <script src="{% static 'js/purchases.js' %}"></script>
+
+  
 
 {% endblock %}
 

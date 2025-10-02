@@ -1,3 +1,4 @@
+{% load static %}
 {% extends 'index.html' %}
 {% load humanize %}
 {% block page_content %}
@@ -360,7 +361,8 @@
 {% endblock %}
 
 {% block additionaljs %}
- <script src="/static/js/fuelreceive.js"></script>
+ <script src="{% static 'js/fuelreceive.js' %}"></script>
+
 {% endblock %}
 
 {% block fuel %} active {% endblock %}

@@ -1,3 +1,4 @@
+{% load static %}
 {% extends 'index.html' %}
 
 {% block page_content %}
@@ -298,11 +299,11 @@
 {% endblock %}
 
 {% block additionaljs %}
-<script src="/static/js/home.js"></script>
+<script src="{% static 'js/home.js' %}"></script>
 {% endblock %}
 
 {% block additional_css %}
-<link rel="stylesheet" href="/static/css/home.css">
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock %}
 
 {% block home %} active  {% endblock %}

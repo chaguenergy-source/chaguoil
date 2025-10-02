@@ -1,3 +1,4 @@
+{% load static %}
 {% extends 'index.html' %}
 
 {% block page_content %}
@@ -612,7 +613,7 @@
     </script>
 
 
-  <script src="/static/js/riports/evaluation.js" ></script>
+  <script src="{% static 'js/riports/evaluation.js' %}"></script>
 
 {% endblock %}
 {% block analytics %} active  {% endblock %}
