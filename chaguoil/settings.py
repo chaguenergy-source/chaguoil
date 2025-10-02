@@ -1,3 +1,4 @@
+
 """
 Django settings for chaguoil project.
 
@@ -17,14 +18,14 @@ SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i
 # USALAMA: Zima DEBUG katika Production (Inalazimisha kutumia STATICFILES_STORAGE)
 DEBUG = False 
 
-# Badilisha na IP Address au Domain Name yako halisi
-ALLOWED_HOSTS = ['*', '136.114.40.162']
+# Badilisha na IP Address mpya ya VM, na nimeacha '*'
+ALLOWED_HOSTS = ['*', '136.114.40.162', '34.61.173.58']
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    # Kosa limekuwa hapa: Weka 'storages' HAPA MWANZO ili i-override tabia za static files
+    # Weka 'storages' HAPA MWANZO
     'storages', 
     'account.apps.AccountConfig',
     'django.contrib.admin',
@@ -67,7 +68,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
 
-# Database - CLOUD SQL SETTINGS (Tumetumia settings zako ulizopenda)
+# Database - CLOUD SQL SETTINGS (Inabaki vilevile)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -80,7 +81,7 @@ DATABASES = {
 }
 
 
-# Password validation
+# Password validation (Hakuna mabadiliko hapa)
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -122,22 +123,24 @@ EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 GS_BUCKET_NAME = 'chaguoil' 
 GS_DEFAULT_ACL = 'publicRead' 
 
-# Njia ya kukusanya files (Inabaki hivi)
-STATIC_ROOT = os.path.join(BASE_DIR, 'static') 
-STATICFILES_DIRS = [] # Acha hivi ili kuepuka migogoro ya local storage
+# STATIC_ROOT inahakikisha files zinakusanywa hapa kabla ya gsutil kuzichukua
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
+STATICFILES_DIRS = [] 
 
-# STATICFILES_FINDERS ni nzuri kwa uwazi
+# Nimekurekebishia hapa (kutoka .static.finders kwenda .staticfiles.finders)
 STATICFILES_FINDERS = [
-    'django.contrib.static.finders.AppDirectoriesFinder', 
-    'django.contrib.static.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder', 
+    'django.contrib.staticfiles.finders.FileSystemFinder',
 ]
 
 # SANIDI STATIC FILES (CSS, JS, Fonts)
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_STATIC_LOCATION = 'static' # Files zitaenda kwenye folder la 'static/'
-STATIC_URL = f'/{GS_STATIC_LOCATION}/'
+# MUHIMU: Hii inalazimisha Django kutumia URL kamili ya GCS!
+STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
 
 # SANIDI MEDIA FILES (User Uploaded Files)
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_MEDIA_LOCATION = 'media' # Files zitaenda kwenye folder la 'media/'
-MEDIA_URL = f'/{GS_MEDIA_LOCATION}/' 
+# MUHIMU: Hii inalazimisha Django kutumia URL kamili ya GCS!
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_MEDIA_LOCATION}/' 
