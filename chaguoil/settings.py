@@ -125,6 +125,8 @@ GS_DEFAULT_ACL = 'publicRead'
 
 # HAPA NDIPO TUNAPOONGEZA MSTARI HUU! (Mbinu ya 1)
 GS_CREDENTIALS = None
+GS_ACL = 'public-read' # Hii inahakikisha kila picha inapakiwa ikiwa na ruhusa ya kusomwa na umma
+GS_FILE_OVERWRITE = False # Hii inasaidia kuzuia 'silent failure'
 
 # STATIC_ROOT inahakikisha files zinakusanywa hapa kabla ya gsutil kuzichukua
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
