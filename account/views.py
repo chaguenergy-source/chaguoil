@@ -404,15 +404,15 @@ def passWordResset(request):
 
 @login_required(login_url='login')
 def userdash(request):
-       try:
+      #  try:
         todo = todoFunct(request)
         useri = todo['useri']
         
 
         return render(request, 'home.html',todo)
 
-       except:
-          return render(request, 'pagenotFound.html')
+      #  except:
+      #     return render(request, 'pagenotFound.html')
 
 @login_required(login_url='login')
 def enterstation(request):
