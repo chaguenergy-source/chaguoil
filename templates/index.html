@@ -421,7 +421,7 @@
 				{% endif %}	
 			</a>
 			<a href="#" title="{{useri.user.first_name | title}}" class="profile">
-				<img src=" {% if useri.picha.url is not null %}{{ useri.picha.url }}{% else %}/static/pics/userlogo.png{% endif %}">
+				<img src=" {% if useri.picha.url is not null %}{{ useri.picha.url }}{% else %}{% static 'pics/userlogo.png' %}{% endif %}">
 			</a>
 		</nav>
 		<!-- NAVBAR -->
