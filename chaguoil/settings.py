@@ -123,6 +123,9 @@ EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 GS_BUCKET_NAME = 'chaguoil' 
 GS_DEFAULT_ACL = 'publicRead' 
 
+# HAPA NDIPO TUNAPOONGEZA MSTARI HUU! (Mbinu ya 1)
+GS_CREDENTIALS = None
+
 # STATIC_ROOT inahakikisha files zinakusanywa hapa kabla ya gsutil kuzichukua
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
 STATICFILES_DIRS = [] 
