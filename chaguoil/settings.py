@@ -19,7 +19,7 @@ SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i
 DEBUG = False 
 
 # Badilisha na IP Address mpya ya VM, na nimeacha '*'
-ALLOWED_HOSTS = ['*', '136.114.40.162', '34.61.173.58']
+ALLOWED_HOSTS = ['*','34.61.173.58']
 
 
 # Application definition
