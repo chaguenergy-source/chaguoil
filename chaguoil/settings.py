@@ -123,13 +123,13 @@ GS_BUCKET_NAME = 'chaguoil'
 GS_DEFAULT_ACL = 'publicRead' 
 
 # Njia ya kukusanya files (Inabaki hivi)
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static') 
 STATICFILES_DIRS = [] # Acha hivi ili kuepuka migogoro ya local storage
 
 # STATICFILES_FINDERS ni nzuri kwa uwazi
 STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder', 
-    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.static.finders.AppDirectoriesFinder', 
+    'django.contrib.static.finders.FileSystemFinder',
 ]
 
 # SANIDI STATIC FILES (CSS, JS, Fonts)
