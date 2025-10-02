@@ -51,3 +51,5 @@ __pycache__/
 *.orig
 *.rej
 credentials.js
+# FAILU ZA SIRI ZA PRODUCTION (ONGEZA HAPA)
+gcs-key.json

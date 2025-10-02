@@ -124,7 +124,7 @@ GS_BUCKET_NAME = 'chaguoil'
 GS_DEFAULT_ACL = 'publicRead' 
 
 # HAPA NDIPO TUNAPOONGEZA MSTARI HUU! (Mbinu ya 1)
-GS_CREDENTIALS = os.path.join(BASE_DIR, 'credidentials.json') 
+GS_CREDENTIALS = os.path.join(BASE_DIR, 'gcs-key.json.json') 
 
 GS_ACL = 'public-read' # Hii inahakikisha kila picha inapakiwa ikiwa na ruhusa ya kusomwa na umma
 GS_FILE_OVERWRITE = False # Hii inasaidia kuzuia 'silent failure'
