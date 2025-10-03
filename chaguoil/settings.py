@@ -120,25 +120,30 @@ EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
 # =======================================================
 
-# 1. Jina la Bucket MPYA tuliyounda
-GS_BUCKET_NAME = 'chagufilling' 
+#
+# 1. Kutumia Environment Variable iliyo kwenye gunicorn.service
+GCS_KEY_JSON_CONTENT = os.environ.get('GCS_KEY_JSON_CONTENT')
 
-# 2. Tumia GCS kwa files za media na static
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+if GCS_KEY_JSON_CONTENT:
+    try:
+        # Parsi (parse) JSON string kwenda kwenye Python Dictionary
+        # Hii ndiyo GS_CREDENTIALS inavyotakiwa kuwa kwa google-auth
+        GS_CREDENTIALS = json.loads(GCS_KEY_JSON_CONTENT)
+        
+        # Thibitisha settings nyingine ziko sawa
+        STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+        DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+        GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'chagufilling')
+        GS_PROJECT_ID = 'prime-micron-473718-h1' # Kutoka kwenye JSON key yako
 
-# 3. Uthibitishaji (Authentication)
-# Huu unachukua JSON Key Contents kutoka kwenye Gunicorn Environment Variable
-GS_CREDENTIALS = os.environ.get('GCS_KEY_JSON_CONTENT') 
+        # Unaweza kuondoa au kutoa maoni (comment out) GS_CREDENTIALS_FILE
+        # ili kuzuia migogoro na GS_CREDENTIALS
+        GS_CREDENTIALS_FILE = None 
 
-# 4. Signed URLs (Njia ya Usalama na Uniform Access)
-GS_QUERYSTRING_AUTH = True
-GS_QUERYSTRING_EXPIRE = 3600 # Muda wa kuisha kwa link (sekunde 3600 = saa 1)
+        print("GCS Credentials loaded successfully from Environment Variable.")
 
-# 5. Mipangilio ya URL (Static na Media)
-STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
-MEDIA_ROOT = '/media/'
-
-# REKEBISHO: Tumia directory ndani ya project ambayo user anayo ruhusa
-STATIC_ROOT = BASE_DIR / 'staticfiles_collected' 
+    except json.JSONDecodeError:
+        # Hii inatokea ikiwa JSON Key imepasuka au imeharibika
+        print("ERROR: Failed to decode GCS_KEY_JSON_CONTENT. Check JSON formatting.")
+        # Fanya iendelee kutumia default credentials au ifeli kabisa
+        pass
