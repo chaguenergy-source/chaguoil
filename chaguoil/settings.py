@@ -116,37 +116,30 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'fanyabiasharaapp@gmail.com'
 EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 
+# =======================================================
+# --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
+# =======================================================
 
-# --- STATIC FILES AND MEDIA (GOOGLE CLOUD STORAGE) ---
+# 1. Jina la Bucket MPYA tuliyounda
+GS_BUCKET_NAME = 'chagufilling' 
 
-# Jina la Bucket yako ya GCS
-GS_BUCKET_NAME = 'chaguoil' 
-GS_DEFAULT_ACL = 'publicRead' 
-
-# HAPA NDIPO TUNAPOONGEZA MSTARI HUU! (Mbinu ya 1)
-GS_CREDENTIALS = os.path.join(BASE_DIR, 'gcs-key.json.json') 
-
-GS_ACL = 'public-read' # Hii inahakikisha kila picha inapakiwa ikiwa na ruhusa ya kusomwa na umma
-GS_FILE_OVERWRITE = False # Hii inasaidia kuzuia 'silent failure'
-
-# STATIC_ROOT inahakikisha files zinakusanywa hapa kabla ya gsutil kuzichukua
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
-STATICFILES_DIRS = [] 
-
-# Nimekurekebishia hapa (kutoka .static.finders kwenda .staticfiles.finders)
-STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder', 
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-]
-
-# SANIDI STATIC FILES (CSS, JS, Fonts)
-STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_STATIC_LOCATION = 'static' # Files zitaenda kwenye folder la 'static/'
-# MUHIMU: Hii inalazimisha Django kutumia URL kamili ya GCS!
-STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
-
-# SANIDI MEDIA FILES (User Uploaded Files)
+# 2. Tumia GCS kwa files za media na static
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_MEDIA_LOCATION = 'media' # Files zitaenda kwenye folder la 'media/'
-# MUHIMU: Hii inalazimisha Django kutumia URL kamili ya GCS!
-MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_MEDIA_LOCATION}/' 
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+
+# 3. Uthibitishaji (Authentication)
+# Hii inachukua JSON Key Contents kutoka kwenye Gunicorn Environment Variable
+GS_CREDENTIALS = os.environ.get('GCS_KEY_JSON_CONTENT') 
+
+# 4. Signed URLs (Njia ya Usalama na Uniform Access)
+# Hii inalazimisha Django kutengeneza link za muda (kama saa 1)
+# Hii ndiyo njia pekee ya kupita vizuizi vya "Public Access Prevention"
+GS_QUERYSTRING_AUTH = True
+GS_QUERYSTRING_EXPIRE = 3600 # muda wa kuisha kwa link (sekunde 3600 = saa 1)
+
+# 5. Mipangilio ya URL (Static na Media)
+# Inabidi hizi ziendane na bucket yako.
+STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
+MEDIA_ROOT = '/media/'
+STATIC_ROOT = '/static/'
