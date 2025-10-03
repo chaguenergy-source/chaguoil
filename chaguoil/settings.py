@@ -128,18 +128,17 @@ DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 # 3. Uthibitishaji (Authentication)
-# Hii inachukua JSON Key Contents kutoka kwenye Gunicorn Environment Variable
+# Huu unachukua JSON Key Contents kutoka kwenye Gunicorn Environment Variable
 GS_CREDENTIALS = os.environ.get('GCS_KEY_JSON_CONTENT') 
 
 # 4. Signed URLs (Njia ya Usalama na Uniform Access)
-# Hii inalazimisha Django kutengeneza link za muda (kama saa 1)
-# Hii ndiyo njia pekee ya kupita vizuizi vya "Public Access Prevention"
 GS_QUERYSTRING_AUTH = True
-GS_QUERYSTRING_EXPIRE = 3600 # muda wa kuisha kwa link (sekunde 3600 = saa 1)
+GS_QUERYSTRING_EXPIRE = 3600 # Muda wa kuisha kwa link (sekunde 3600 = saa 1)
 
 # 5. Mipangilio ya URL (Static na Media)
-# Inabidi hizi ziendane na bucket yako.
 STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
 MEDIA_ROOT = '/media/'
-STATIC_ROOT = '/static/'
+
+# REKEBISHO: Tumia directory ndani ya project ambayo user anayo ruhusa
+STATIC_ROOT = BASE_DIR / 'staticfiles_collected' 
