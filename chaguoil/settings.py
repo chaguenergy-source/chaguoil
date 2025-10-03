@@ -1,4 +1,3 @@
-
 """
 Django settings for chaguoil project.
 
@@ -6,18 +5,19 @@ Configuration file for Production environment using Google Cloud Storage (GCS)
 for Static and Media files.
 """
 
-from pathlib import Path
 import os
 import json
+from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+# Define BASE_DIR
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i'
 
 # USALAMA: Zima DEBUG katika Production (Inalazimisha kutumia STATICFILES_STORAGE)
-DEBUG = True 
+DEBUG = False 
 
 # Badilisha na IP Address mpya ya VM, na nimeacha '*'
 ALLOWED_HOSTS = ['*','34.61.173.58']
@@ -120,37 +120,60 @@ EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
 # =======================================================
+
+# STATIC FILES SETTINGS (Local)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
 # Hili ni jina la folder la ndani la VM ambapo faili hukusanywa kabla ya kutumwa Cloud.
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_gcs') # Tumia jina jipya, tofauti na 'staticfiles_collected'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_gcs') 
 
-# Msimbo mwingine wa settings.py ...
+# TUMEONDOA MEDIA_ROOT KULAZIMISHA GCS kwa Media files (user uploads)
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
 
-# ...
+# Sasa tunasoma key moja kwa moja kutoka kwenye faili la ndani la VM.
+GCS_KEY_FILE_PATH = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
-# --- SETTINGS ZA GOOGLE CLOUD STORAGE (GCS) ---
+if os.path.exists(GCS_KEY_FILE_PATH):
+    try:
+        # Soma (read) JSON key moja kwa moja kutoka kwenye faili
+        with open(GCS_KEY_FILE_PATH, 'r') as f:
+            GS_CREDENTIALS = json.load(f)
+        
+        # Thibitisha settings nyingine ziko sawa
+        STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+        DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+        
+        # Jina la bucket na Project ID
+        GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'chagufilling')
+        GS_PROJECT_ID = 'prime-micron-473718-h1' 
 
-# 1. Kutumia Environment Variable iliyo kwenye gunicorn.service
-GCS_KEY_JSON_CONTENT = os.environ.get('GCS_KEY_JSON_CONTENT')
+        # VIPIELEZO KWA AJILI YA PUBLIC ACCESS NA OVERWRITE
+        GS_DEFAULT_ACL = 'publicRead' 
+        GS_FILE_OVERWRITE = True
 
-# if GCS_KEY_JSON_CONTENT:
-#     try:
-        # Parsi (parse) JSON string kwenda kwenye Python Dictionary
-GS_CREDENTIALS = json.loads(GCS_KEY_JSON_CONTENT)
+        # URL za STATIC/MEDIA zikielekeza GCS
+        STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
+        MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
+        
+        # GS_CREDENTIALS_FILE inahitajika kuwa None kwa GCS_CREDENTIALS
+        GS_CREDENTIALS_FILE = None 
 
-# Thibitisha settings nyingine ziko sawa
-STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'chagufilling')
-GS_PROJECT_ID = 'prime-micron-473718-h1' 
+        print("GCS Credentials loaded successfully from dedicated JSON file.")
 
-# URL mpya za STATIC/MEDIA
-STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
+    except Exception as e:
+        # Hii itaonyesha Gunicorn logini iwapo faili la JSON lina makosa (corrupted)
+        print(f"ERROR: Failed to load GCS credentials from file: {e}")
+        
+        # Weka hizi kwa default iwapo kuna hitilafu ya JSON au file access
+        STATIC_URL = '/static/'
+        MEDIA_URL = '/media/'
+        pass
+else:
+    # Hali ya default ikiwa JSON Key haipatikani
+    print("WARNING: GCS Credentials file not found. Using local files.")
+    STATIC_URL = '/static/'
+    MEDIA_URL = '/media/'
 
-GS_CREDENTIALS_FILE = None 
-
-print("GCS Credentials loaded successfully from Environment Variable.")
-
-    # except json.JSONDecodeError:
-    #     print("ERROR: Failed to decode GCS_KEY_JSON_CONTENT. Check JSON formatting.")
-    #     pass
+# ... Msimbo mwingine wa settings.py ...
