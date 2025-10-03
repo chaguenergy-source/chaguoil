@@ -132,25 +132,25 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_gcs') # Tumia jina jipya, tofa
 # 1. Kutumia Environment Variable iliyo kwenye gunicorn.service
 GCS_KEY_JSON_CONTENT = os.environ.get('GCS_KEY_JSON_CONTENT')
 
-if GCS_KEY_JSON_CONTENT:
-    try:
+# if GCS_KEY_JSON_CONTENT:
+#     try:
         # Parsi (parse) JSON string kwenda kwenye Python Dictionary
-        GS_CREDENTIALS = json.loads(GCS_KEY_JSON_CONTENT)
-        
-        # Thibitisha settings nyingine ziko sawa
-        STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-        DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-        GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'chagufilling')
-        GS_PROJECT_ID = 'prime-micron-473718-h1' 
+GS_CREDENTIALS = json.loads(GCS_KEY_JSON_CONTENT)
 
-        # URL mpya za STATIC/MEDIA
-        STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-        MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
-        
-        GS_CREDENTIALS_FILE = None 
+# Thibitisha settings nyingine ziko sawa
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'chagufilling')
+GS_PROJECT_ID = 'prime-micron-473718-h1' 
 
-        print("GCS Credentials loaded successfully from Environment Variable.")
+# URL mpya za STATIC/MEDIA
+STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
 
-    except json.JSONDecodeError:
-        print("ERROR: Failed to decode GCS_KEY_JSON_CONTENT. Check JSON formatting.")
-        pass
+GS_CREDENTIALS_FILE = None 
+
+print("GCS Credentials loaded successfully from Environment Variable.")
+
+    # except json.JSONDecodeError:
+    #     print("ERROR: Failed to decode GCS_KEY_JSON_CONTENT. Check JSON formatting.")
+    #     pass
