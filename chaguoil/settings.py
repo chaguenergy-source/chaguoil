@@ -124,9 +124,7 @@ EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_gcs') # Tumia jina jipya, tofauti na 'staticfiles_collected'
 
 # Msimbo mwingine wa settings.py ...
-# Weka MEDIA_ROOT (Lazima iwe defined, hata kama haitatumika moja kwa moja kwa uploads)
-# Inatakiwa kupewa ruhusa ya kuandika, au iwe tupu. Hapa tunaiacha kwa default.
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
+
 # ...
 
 # --- SETTINGS ZA GOOGLE CLOUD STORAGE (GCS) ---
