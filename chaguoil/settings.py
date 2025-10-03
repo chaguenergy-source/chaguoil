@@ -120,36 +120,37 @@ EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
 # =======================================================
+# Hili ni jina la folder la ndani la VM ambapo faili hukusanywa kabla ya kutumwa Cloud.
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_gcs') # Tumia jina jipya, tofauti na 'staticfiles_collected'
 
-#
+# Msimbo mwingine wa settings.py ...
+
+# ...
+
+# --- SETTINGS ZA GOOGLE CLOUD STORAGE (GCS) ---
+
 # 1. Kutumia Environment Variable iliyo kwenye gunicorn.service
 GCS_KEY_JSON_CONTENT = os.environ.get('GCS_KEY_JSON_CONTENT')
 
 if GCS_KEY_JSON_CONTENT:
     try:
         # Parsi (parse) JSON string kwenda kwenye Python Dictionary
-        # Hii ndiyo GS_CREDENTIALS inavyotakiwa kuwa kwa google-auth
         GS_CREDENTIALS = json.loads(GCS_KEY_JSON_CONTENT)
         
         # Thibitisha settings nyingine ziko sawa
         STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
         DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
         GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'chagufilling')
-        GS_PROJECT_ID = 'prime-micron-473718-h1' # Kutoka kwenye JSON key yako
+        GS_PROJECT_ID = 'prime-micron-473718-h1' 
 
-        # URL mpya za STATIC/MEDIA zinazoonyesha GCS Bucket
-        # Hii inarekebisha ImproperlyConfigured error
+        # URL mpya za STATIC/MEDIA
         STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
         MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
         
-        # Unaweza kuondoa au kutoa maoni (comment out) GS_CREDENTIALS_FILE
-        # ili kuzuia migogoro na GS_CREDENTIALS
         GS_CREDENTIALS_FILE = None 
 
         print("GCS Credentials loaded successfully from Environment Variable.")
 
     except json.JSONDecodeError:
-        # Hii inatokea ikiwa JSON Key imepasuka au imeharibika
         print("ERROR: Failed to decode GCS_KEY_JSON_CONTENT. Check JSON formatting.")
-        # Fanya iendelee kutumia default credentials au ifeli kabisa
         pass
