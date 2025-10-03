@@ -137,6 +137,11 @@ if GCS_KEY_JSON_CONTENT:
         GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'chagufilling')
         GS_PROJECT_ID = 'prime-micron-473718-h1' # Kutoka kwenye JSON key yako
 
+        # URL mpya za STATIC/MEDIA zinazoonyesha GCS Bucket
+        # Hii inarekebisha ImproperlyConfigured error
+        STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
+        MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
+        
         # Unaweza kuondoa au kutoa maoni (comment out) GS_CREDENTIALS_FILE
         # ili kuzuia migogoro na GS_CREDENTIALS
         GS_CREDENTIALS_FILE = None 
