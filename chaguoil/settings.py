@@ -121,59 +121,43 @@ EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
 # =======================================================
 
-# STATIC FILES SETTINGS (Local)
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/3.1/howto/static-files/
+
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # other finders..
+    # 'django_scss.finders.SCSSFinder',
+)
+
+STATIC_URL = '/static/'
+
+
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+
+    os.path.join(BASE_DIR, 'static')
 ]
 
-# Hili ni jina la folder la ndani la VM ambapo faili hukusanywa kabla ya kutumwa Cloud.
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_gcs') 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# TUMEONDOA MEDIA_ROOT KULAZIMISHA GCS kwa Media files (user uploads)
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Sasa tunasoma key moja kwa moja kutoka kwenye faili la ndani la VM.
-GCS_KEY_FILE_PATH = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
-if os.path.exists(GCS_KEY_FILE_PATH):
-    try:
-        # Soma (read) JSON key moja kwa moja kutoka kwenye faili
-        with open(GCS_KEY_FILE_PATH, 'r') as f:
-            GS_CREDENTIALS = json.load(f)
-        
-        # Thibitisha settings nyingine ziko sawa
-        STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-        DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-        
-        # Jina la bucket na Project ID
-        GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'chagufilling')
-        GS_PROJECT_ID = 'prime-micron-473718-h1' 
 
-        # VIPIELEZO KWA AJILI YA PUBLIC ACCESS NA OVERWRITE
-        GS_DEFAULT_ACL = 'publicRead' 
-        GS_FILE_OVERWRITE = True
+from google.oauth2 import service_account
+# Set "media" folder
+DEFAULT_FILE_STORAGE = 'chaguoil.gcsUtils.Media'
 
-        # URL za STATIC/MEDIA zikielekeza GCS
-        STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-        MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
-        
-        # GS_CREDENTIALS_FILE inahitajika kuwa None kwa GCS_CREDENTIALS
-        GS_CREDENTIALS_FILE = None 
+GS_BUCKET_NAME = 'chagufilling'
 
-        print("GCS Credentials loaded successfully from dedicated JSON file.")
+# Add an unique ID to a file name if same file name exists
+GS_FILE_OVERWRITE = False
 
-    except Exception as e:
-        # Hii itaonyesha Gunicorn logini iwapo faili la JSON lina makosa (corrupted)
-        print(f"ERROR: Failed to load GCS credentials from file: {e}")
-        
-        # Weka hizi kwa default iwapo kuna hitilafu ya JSON au file access
-        STATIC_URL = '/static/'
-        MEDIA_URL = '/media/'
-        pass
-else:
-    # Hali ya default ikiwa JSON Key haipatikani
-    print("WARNING: GCS Credentials file not found. Using local files.")
-    STATIC_URL = '/static/'
-    MEDIA_URL = '/media/'
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    os.path.join(BASE_DIR,'gcs_service_account.json')
+)
 
-# ... Msimbo mwingine wa settings.py ...
