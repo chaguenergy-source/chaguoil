@@ -121,9 +121,9 @@ EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
 # =======================================================
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -132,7 +132,8 @@ STATICFILES_FINDERS = (
     # 'django_scss.finders.SCSSFinder',
 )
 
-
+# STATICFILES_DIRS is not needed for GCS-only static serving
+STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
