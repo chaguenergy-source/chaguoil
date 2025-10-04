@@ -132,14 +132,7 @@ STATICFILES_FINDERS = (
     # 'django_scss.finders.SCSSFinder',
 )
 
-STATIC_URL = '/static/'
 
-
-
-STATICFILES_DIRS = [
-
-    os.path.join(BASE_DIR, 'static')
-]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -149,15 +142,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 from google.oauth2 import service_account
-# Set "media" folder
+# Serve both static and media files from GCS
 DEFAULT_FILE_STORAGE = 'chaguoil.gcsUtils.Media'
+STATICFILES_STORAGE = 'chaguoil.gcsUtils.Static'
 
 GS_BUCKET_NAME = 'chagufilling'
-
-# Add an unique ID to a file name if same file name exists
 GS_FILE_OVERWRITE = False
-
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(BASE_DIR,'gcs_service_account.json')
+    os.path.join(BASE_DIR, 'gcs_service_account.json')
 )
 
