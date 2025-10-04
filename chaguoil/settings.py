@@ -122,6 +122,7 @@ EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 # =======================================================
 
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
@@ -133,8 +134,12 @@ STATICFILES_FINDERS = (
 )
 
 # STATICFILES_DIRS is not needed for GCS-only static serving
-STATIC_URL = '/static/'
+# STATICFILES_DIRS = []
 
+# Point STATIC_URL to your GCS bucket static folder
+STATIC_URL = 'https://storage.googleapis.com/chagufilling/static/'
+
+# STATIC_ROOT is required for collectstatic, but not used in production
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
