@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from django.shortcuts import render,redirect
 from .models import UserExtend,PhoneMailConfirm,company,notifications,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
 # Create your views here.
@@ -545,9 +546,10 @@ def companyDetails(request):
 from google.oauth2 import service_account
 from google.cloud import storage # Hii inahitajika kwa GCS direct client
 
-# Chukua BASE_DIR kutoka settings
-BASE_DIR = settings.BASE_DIR
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+@login_required(login_url='login')
 def upload_company_logo(request):
     if request.method == 'POST':
         # ----------------------------------------------------
