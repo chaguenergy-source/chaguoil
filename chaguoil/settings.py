@@ -9,6 +9,7 @@ import os
 import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
+from google.oauth2 import service_account
 
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,6 +22,35 @@ DEBUG = False
 
 # Badilisha na IP Address mpya ya VM, na nimeacha '*'
 ALLOWED_HOSTS = ['*','34.61.173.58']
+
+
+# =======================================================
+# --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
+# Hizi LAZIMA ziwe hapa kabla ya kurejelewa na DEFAULT_FILE_STORAGE/STATICFILES_STORAGE
+# =======================================================
+
+GS_BUCKET_NAME = 'chagufilling'
+GS_FILE_OVERWRITE = False
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    os.path.join(BASE_DIR, 'gcs_service_account.json')
+)
+print("GCS Credentials loaded successfully from dedicated JSON file in settings.py.") # Ujumbe wa uthibitisho
+
+# Serve both static and media files from GCS
+# Sasa chaguoil.gcsUtils.Media/Static inaweza kusoma GS_BUCKET_NAME/GS_CREDENTIALS
+DEFAULT_FILE_STORAGE = 'chaguoil.gcsUtils.Media'
+STATICFILES_STORAGE = 'chaguoil.gcsUtils.Static'
+
+# Media files (uploads)
+MEDIA_URL = 'https://storage.googleapis.com/chagufilling/media/'
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = 'https://storage.googleapis.com/chagufilling/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
+
+# =======================================================
+# --- END GOOGLE CLOUD STORAGE SETTINGS ---
+# =======================================================
 
 
 # Application definition
@@ -117,50 +147,10 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'fanyabiasharaapp@gmail.com'
 EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
 
-# =======================================================
-# --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
-# =======================================================
-
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    # other finders..
-    # 'django_scss.finders.SCSSFinder',
 )
-
-# STATICFILES_DIRS is not needed for GCS-only static serving
-# STATICFILES_DIRS = []
-
-# Point STATIC_URL to your GCS bucket static folder
-STATIC_URL = 'https://storage.googleapis.com/chagufilling/static/'
-
-# STATIC_ROOT is required for collectstatic, but not used in production
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-
-
-from google.oauth2 import service_account
-
-# Serve both static and media files from GCS
-DEFAULT_FILE_STORAGE = 'chaguoil.gcsUtils.Media'
-STATICFILES_STORAGE = 'chaguoil.gcsUtils.Static'
-
-# Media files (uploads)
-
-MEDIA_URL = 'https://storage.googleapis.com/chagufilling/media/'
-
-
-GS_BUCKET_NAME = 'chagufilling'
-GS_FILE_OVERWRITE = False
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(BASE_DIR, 'gcs_service_account.json')
-)
-
