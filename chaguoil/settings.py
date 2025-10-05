@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i'
 
 # USALAMA: Zima DEBUG katika Production (Inalazimisha kutumia STATICFILES_STORAGE)
-DEBUG = False 
+DEBUG = True 
 
 # Badilisha na IP Address mpya ya VM, na nimeacha '*'
 ALLOWED_HOSTS = ['*','34.61.173.58']
