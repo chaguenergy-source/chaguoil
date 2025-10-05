@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render,redirect
 from .models import UserExtend,PhoneMailConfirm,company,notifications,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
 # Create your views here.
@@ -491,55 +492,128 @@ def companyDetails(request):
    return render(request,'settingCompanyDetails.html',todo)
 
 
-@login_required(login_url='login')
-def upload_company_logo(request):
-    if request.method == 'POST' and request.FILES.get('companyLogo'):
-        todo = todoFunct(request)
-        useri = todo['useri']
-        logo = request.FILES['companyLogo']
-        ext = logo.name.split('.')[-1].lower()
-        allowed = ['jpg', 'jpeg', 'png', 'gif']
-        data = {}
+# @login_required(login_url='login')
+# def upload_company_logo(request):
+#     if request.method == 'POST' and request.FILES.get('companyLogo'):
+#         todo = todoFunct(request)
+#         useri = todo['useri']
+#         logo = request.FILES['companyLogo']
+#         ext = logo.name.split('.')[-1].lower()
+#         allowed = ['jpg', 'jpeg', 'png', 'gif']
+#         data = {}
 
-        if ext not in allowed:
-            data = {
-                'success': False,
-                'eng': 'Invalid file type. Only images are allowed.',
-                'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
-            }
-            return JsonResponse(data)
+#         if ext not in allowed:
+#             data = {
+#                 'success': False,
+#                 'eng': 'Invalid file type. Only images are allowed.',
+#                 'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
+#             }
+#             return JsonResponse(data)
             
-        # 1. DELETE KAMA IPO
-        if useri.company.logo:
-            try:
-                # Hakikisha unatumia default_storage kwa ajili ya kufuta GCS
-                default_storage.delete(useri.company.logo.name)
-            except Exception as e:
-                # Log kosa la kufuta, lakini usiache lizuie upload
-                print(f"Error deleting old logo: {e}")
-                pass
+#         # 1. DELETE KAMA IPO
+#         if useri.company.logo:
+#             try:
+#                 # Hakikisha unatumia default_storage kwa ajili ya kufuta GCS
+#                 default_storage.delete(useri.company.logo.name)
+#             except Exception as e:
+#                 # Log kosa la kufuta, lakini usiache lizuie upload
+#                 print(f"Error deleting old logo: {e}")
+#                 pass
             
-        # 2. UPAKIAJI SAHIHI KWA GCS:
-        filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
+#         # 2. UPAKIAJI SAHIHI KWA GCS:
+#         filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
         
-        # BADILISHA HAPA: Tumia LOGO moja kwa moja badala ya ContentFile(logo.read())
-        # Hii inamruhusu django-storages kushughulikia file handle vizuri zaidi
-        path = default_storage.save(filename, logo) 
+#         # BADILISHA HAPA: Tumia LOGO moja kwa moja badala ya ContentFile(logo.read())
+#         # Hii inamruhusu django-storages kushughulikia file handle vizuri zaidi
+#         path = default_storage.save(filename, logo) 
         
-        # 3. Hifadhi Model
-        useri.company.logo = path
-        useri.company.save()
+#         # 3. Hifadhi Model
+#         useri.company.logo = path
+#         useri.company.save()
+
+#         data = {
+#             'success': True,
+#             'eng': 'Logo uploaded successfully.',
+#             'swa': 'Nembo imepakiwa kikamilifu.',
+#             'logo_url': default_storage.url(path)
+#         }
+#         return JsonResponse(data)
+#     else:
+#         # Ikiwa sio POST, bado unaweza kutaka kurudisha ukurasa wa logo
+#         return render(request, 'pagenotFound.html')
+
+from google.oauth2 import service_account
+from google.cloud import storage # Hii inahitajika kwa GCS direct client
+
+# Chukua BASE_DIR kutoka settings
+BASE_DIR = settings.BASE_DIR
+
+def upload_company_logo(request):
+    if request.method == 'POST':
+        # ----------------------------------------------------
+        # KUSUDI: JARIBIO LA UPAKIAJI WA MOJA KWA MOJA KWENYE GCS
+        # Hili litapita DEFAUL_FILE_STORAGE na kulazimisha GCS
+        # ----------------------------------------------------
 
         data = {
-            'success': True,
-            'eng': 'Logo uploaded successfully.',
-            'swa': 'Nembo imepakiwa kikamilifu.',
-            'logo_url': default_storage.url(path)
+            'success': False,
+            'eng': 'Upload failed. See server logs for details.',
+            'swa': 'Upakiaji umeshindwa. Angalia maelezo ya seva kwa undani.'
         }
-        return JsonResponse(data)
-    else:
-        # Ikiwa sio POST, bado unaweza kutaka kurudisha ukurasa wa logo
-        return render(request, 'pagenotFound.html')
+        try:
+            uploaded_file = request.FILES.get('company_logo')
+            if not uploaded_file:
+                # Hakuna faili, rudi
+                return render(request, 'companyDetails.html', {'message': 'No file selected'})
+            
+            # --- HATUA A: Pakia Credentials ---
+            credentials_path = os.path.join(BASE_DIR, 'gcs_service_account.json')
+            if not os.path.exists(credentials_path):
+                raise FileNotFoundError(f"Service Account file not found at: {credentials_path}")
+
+            credentials = service_account.Credentials.from_service_account_file(credentials_path)
+            
+            # --- HATUA B: Anzisha GCS Client ---
+            storage_client = storage.Client(
+                credentials=credentials, 
+                project=credentials.project_id
+            )
+            bucket = storage_client.bucket('chagufilling') # Jina la bucket yako
+
+            # --- HATUA C: Jina la faili na upakiaji ---
+            file_name = f'media/logos/{uploaded_file.name}' # Path ndani ya bucket
+            blob = bucket.blob(file_name)
+            
+            # Piga upload (Tumia uploaded_file.read() kwa utendakazi bora)
+            blob.upload_from_file(uploaded_file, rewind=True, content_type=uploaded_file.content_type)
+            
+            # --- HATUA D: Msimbo wako wa Model Update unaweza kuja hapa ---
+            # Hii inahitaji `account/models.py` yako
+            # current_user.company.logo_url = blob.public_url 
+            # current_user.company.save()
+
+            data={
+                'success': True,
+                'eng': 'Logo uploaded successfully.',
+                'swa': 'Nembo imepakiwa kikamilifu.',
+                
+            }
+            
+            print(f"SUCCESS: File uploaded directly to GCS: {blob.public_url}")
+            return JsonResponse(data)
+          
+        except Exception as e:
+            # HII NDIO TRACEBACK TUNAYOHITAJI
+            print("="*50)
+            print("!!! GCS DIRECT UPLOAD ERROR !!!")
+            import traceback
+            traceback.print_exc()
+            print("="*50)
+            return JsonResponse(data)
+
+    return redirect('companyDetails')
+
+
 
 
 def darkMode(request):
