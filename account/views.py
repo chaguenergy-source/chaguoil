@@ -563,10 +563,14 @@ def upload_company_logo(request):
             'swa': 'Upakiaji umeshindwa. Angalia maelezo ya seva kwa undani.'
         }
         try:
-            uploaded_file = request.FILES.get('company_logo')
+            uploaded_file = request.FILES['companyLogo']
             if not uploaded_file:
                 # Hakuna faili, rudi
-                return render(request, 'companyDetails.html', {'message': 'No file selected'})
+                data = {
+                   'success':False,
+                   'eng':'there is an error to load',
+                   'swa':'Kuna hitilafu katika kupakia'
+                }
             
             # --- HATUA A: Pakia Credentials ---
             credentials_path = os.path.join(BASE_DIR, 'gcs_service_account.json')
