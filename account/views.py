@@ -495,62 +495,155 @@ def companyDetails(request):
    return render(request,'settingCompanyDetails.html',todo)
 
 
+# @login_required(login_url='login')
+# def upload_company_logo(request):
+#     if request.method == 'POST' and request.FILES.get('companyLogo'):
+#         try:
+#           todo = todoFunct(request)
+#           useri = todo['useri']
+#           logo = request.FILES['companyLogo']
+#           ext = logo.name.split('.')[-1].lower()
+#           allowed = ['jpg', 'jpeg', 'png', 'gif']
+#           data = {}
+
+#           if ext not in allowed:
+#               data = {
+#                   'success': False,
+#                   'eng': 'Invalid file type. Only images are allowed.',
+#                   'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
+#               }
+#               return JsonResponse(data)
+              
+#           # 1. DELETE KAMA IPO
+#           if useri.company.logo:
+#               try:
+#                   # Hakikisha unatumia default_storage kwa ajili ya kufuta GCS
+#                   default_storage.delete(useri.company.logo.name)
+#               except Exception as e:
+#                   # Log kosa la kufuta, lakini usiache lizuie upload
+#                   print(f"Error deleting old logo: {e}")
+                  
+#                   pass
+              
+#           # 2. UPAKIAJI SAHIHI KWA GCS:
+#           filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
+
+#           path = default_storage.save(filename, logo)
+
+#           # 3. Hifadhi Model
+#           useri.company.logo = path
+#           useri.company.save()
+
+#           data = {
+#               'success': True,
+#               'eng': 'Logo uploaded successfully.',
+#               'swa': 'Nembo imepakiwa kikamilifu.',
+#               'logo_url': default_storage.url(path)
+#           }
+#           return JsonResponse(data)
+#         except Exception as e:
+#           data = {
+#               'success': False,
+#               'eng': f'Error uploading logo: {e}',
+#               'swa': f'Hitilafu katika kupakia nembo: {e}'
+#           }
+#           return JsonResponse(data)
+#     else:
+#         # Ikiwa sio POST, bado unaweza kutaka kurudisha ukurasa wa logo
+#         return render(request, 'pagenotFound.html')
+
+from google.oauth2 import service_account
+from google.cloud import storage # Hii inahitajika kwa GCS direct client
+from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
+
+
+# Chukua BASE_DIR kutoka settings (kwa sababu ya msimbo wa GCS)
+BASE_DIR = settings.BASE_DIR
+
+
 @login_required(login_url='login')
 def upload_company_logo(request):
     if request.method == 'POST' and request.FILES.get('companyLogo'):
+        todo = todoFunct(request)
+        useri = todo['useri']
+        logo = request.FILES['companyLogo']
+        ext = logo.name.split('.')[-1].lower()
+        allowed = ['jpg', 'jpeg', 'png', 'gif']
+        data = {}
+
+        if ext not in allowed:
+            data = {
+                'success': False,
+                'eng': 'Invalid file type. Only images are allowed.',
+                'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
+            }
+            return JsonResponse(data)
+            
+        # 1. DELETE KAMA IPO (Kwa kutumia default_storage)
+        if useri.company.logo:
+            try:
+                default_storage.delete(useri.company.logo.name)
+            except Exception as e:
+                print(f"Error deleting old logo (via default_storage): {e}")
+                pass
+            
+        # ------------------------------------------------------------------
+        # HATUA 2: KULAZIMISHA UPAKIAJI WA MOJA KWA MOJA KWENYE GCS
+        # Hili litatoa 403 Forbidden Error ikiwa ruhusa za GCP haziko sawa.
+        # ------------------------------------------------------------------
         try:
-          todo = todoFunct(request)
-          useri = todo['useri']
-          logo = request.FILES['companyLogo']
-          ext = logo.name.split('.')[-1].lower()
-          allowed = ['jpg', 'jpeg', 'png', 'gif']
-          data = {}
+            # Panga jina la faili
+            filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
+            
+            # --- HATUA A: Pakia Credentials Moja kwa Moja ---
+            # Hii inatumia faili la JSON moja kwa moja bila kutegemea environment vars (kama faili linaweza kusomwa)
+            credentials_path = os.path.join(BASE_DIR, 'gcs_service_account.json')
+            credentials = service_account.Credentials.from_service_account_file(credentials_path)
+            
+            # --- HATUA B: Anzisha GCS Client ---
+            storage_client = storage.Client(
+                credentials=credentials, 
+                project=credentials.project_id
+            )
+            bucket = storage_client.bucket('chagufilling') 
+            blob = bucket.blob(filename)
+            
+            # --- HATUA C: Piga Upload ---
+            # Tunatumia logo (UploadedFile) moja kwa moja
+            blob.upload_from_file(logo, rewind=True, content_type=logo.content_type)
+            
+            # 3. Hifadhi Model (kwa kutumia URL kamili)
+            useri.company.logo = filename # Tunaweka jina tu, si URL kamili
+            useri.company.save()
 
-          if ext not in allowed:
-              data = {
-                  'success': False,
-                  'eng': 'Invalid file type. Only images are allowed.',
-                  'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
-              }
-              return JsonResponse(data)
-              
-          # 1. DELETE KAMA IPO
-          if useri.company.logo:
-              try:
-                  # Hakikisha unatumia default_storage kwa ajili ya kufuta GCS
-                  default_storage.delete(useri.company.logo.name)
-              except Exception as e:
-                  # Log kosa la kufuta, lakini usiache lizuie upload
-                  print(f"Error deleting old logo: {e}")
-                  
-                  pass
-              
-          # 2. UPAKIAJI SAHIHI KWA GCS:
-          filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
+            print(f"!!! SUCCESS: FILE FORCED TO GCS AT {blob.public_url} !!!")
+            
+            data = {
+                'success': True,
+                'eng': 'Logo forced uploaded successfully to GCS.',
+                'swa': 'Nembo imepakiwa kikamilifu GCS.',
+                'logo_url': blob.public_url # Tunapata URL moja kwa moja kutoka kwa blob
+            }
+            return JsonResponse(data)
 
-          path = default_storage.save(filename, logo)
-
-          # 3. Hifadhi Model
-          useri.company.logo = path
-          useri.company.save()
-
-          data = {
-              'success': True,
-              'eng': 'Logo uploaded successfully.',
-              'swa': 'Nembo imepakiwa kikamilifu.',
-              'logo_url': default_storage.url(path)
-          }
-          return JsonResponse(data)
         except Exception as e:
-          data = {
-              'success': False,
-              'eng': f'Error uploading logo: {e}',
-              'swa': f'Hitilafu katika kupakia nembo: {e}'
-          }
-          return JsonResponse(data)
+            # HII NDIYO TRACEBACK TUNAYOHITAJI KUONA KOSA KAMILI LA GCS API!
+            print("="*80)
+            print("!!! CRITICAL GCS UPLOAD FAILURE TRACEBACK !!!")
+            import traceback
+            traceback.print_exc()
+            print("="*80)
+            data = {
+                'success': False,
+                'eng': 'CRITICAL UPLOAD ERROR. Check Gunicorn logs immediately!',
+                'swa': 'Kosa kubwa la upakiaji. Angalia logi za Gunicorn haraka!',
+            }
+            return JsonResponse(data)
+            
     else:
-        # Ikiwa sio POST, bado unaweza kutaka kurudisha ukurasa wa logo
+        # Ikiwa sio POST, bado unaweza kutaka kurudisha ukurasa
         return render(request, 'pagenotFound.html')
+
 
 
 def darkMode(request):
