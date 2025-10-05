@@ -29,19 +29,43 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 # --- FILE STORAGE SETTINGS (PRODUCTION) ---
 # Tunaita MediaStorage na StaticStorage kutoka chaguoil.storage
 # =======================================================
+GS_BUCKET_NAME = 'chagufilling'
+GS_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
-GS_BUCKET_NAME = 'chagufilling' # Tunaiacha hapa kwa ajili ya URL
+try:
+    with open(GS_CREDENTIALS_PATH) as f:
+        # Pata data zote za JSON
+        credentials_data = json.load(f)
+
+    # 1. Weka project ID kwenye environment
+    os.environ['GOOGLE_CLOUD_PROJECT'] = credentials_data['project_id']
+    
+    # 2. Weka content ya JSON yote kama string kwenye environment variable
+    # Hii ndiyo njia ambayo google-cloud-storage na django-storages hupenda kutumia
+    os.environ['GS_SERVICE_ACCOUNT_JSON'] = json.dumps(credentials_data)
+    
+    # Tumia print() kwa ajili ya debugging tu
+    print(">>> GCS ENVIRONMENT VARIABLES SET SUCCESSFULLY.")
+    
+except FileNotFoundError:
+    print(f"!!! CRITICAL ERROR: GCS Service Account file not found at {GS_CREDENTIALS_PATH} !!!")
+except Exception as e:
+    print(f"!!! CRITICAL ERROR: Failed to load GCS credentials: {e} !!!")
+
 
 # 1. Rejelea Storage Classes zilizofafanuliwa kwenye chaguoil/storage.py
+# Sasa hii inapaswa kufanya kazi vizuri kwa sababu environment variables zimejaa.
 DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage'
 STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'
 
+
 # Media files (uploads)
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
+# Hatuweki MEDIA_ROOT ili tuilazimishe GCS kutumika
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
 
 # =======================================================
 # --- END FILE STORAGE SETTINGS ---
