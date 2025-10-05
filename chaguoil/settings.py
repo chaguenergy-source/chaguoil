@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from google.oauth2 import service_account
+from storages.backends.gcloud import GoogleCloudStorage # Import mpya
 
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
-# Hizi LAZIMA ziwe hapa kabla ya kurejelewa na DEFAULT_FILE_STORAGE/STATICFILES_STORAGE
+# Hizi LAZIMA ziwe hapa kabla ya kurejelewa na Storage Classes
 # =======================================================
 
 GS_BUCKET_NAME = 'chagufilling'
@@ -34,18 +35,32 @@ GS_FILE_OVERWRITE = False
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
     os.path.join(BASE_DIR, 'gcs_service_account.json')
 )
-print("GCS Credentials loaded successfully from dedicated JSON file in settings.py.") # Ujumbe wa uthibitisho
+print("GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
 
-# Serve both static and media files from GCS
-# Sasa chaguoil.gcsUtils.Media/Static inaweza kusoma GS_BUCKET_NAME/GS_CREDENTIALS
-DEFAULT_FILE_STORAGE = 'chaguoil.gcsUtils.Media'
-STATICFILES_STORAGE = 'chaguoil.gcsUtils.Static'
+# 1. Kufafanua Storage Classes NDANI ya settings.py ili kuhakikisha mpangilio sahihi wa upakiaji
+class MediaStorage(GoogleCloudStorage):
+    # Hizi parameters zinapatikana kwa urahisi kwa sababu zimetajwa hapo juu
+    bucket_name = GS_BUCKET_NAME
+    file_overwrite = GS_FILE_OVERWRITE
+    credentials = GS_CREDENTIALS
+    location = 'media' # Weka picha zote ndani ya folder la 'media'
+
+class StaticStorage(GoogleCloudStorage):
+    bucket_name = GS_BUCKET_NAME
+    file_overwrite = GS_FILE_OVERWRITE
+    credentials = GS_CREDENTIALS
+    location = 'static' # Weka static files zote ndani ya folder la 'static'
+
+
+# 2. Rejelea Storage Classes zilizofafanuliwa hivi punde
+DEFAULT_FILE_STORAGE = 'chaguoil.settings.MediaStorage'
+STATICFILES_STORAGE = 'chaguoil.settings.StaticStorage'
 
 # Media files (uploads)
-MEDIA_URL = 'https://storage.googleapis.com/chagufilling/media/'
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'https://storage.googleapis.com/chagufilling/static/'
+STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
 
 # =======================================================
@@ -69,6 +84,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+# ... (Middleware haina mabadiliko)
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -81,6 +97,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'chaguoil.urls'
 
 TEMPLATES = [
+# ... (Templates haina mabadiliko)
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
@@ -101,6 +118,7 @@ WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
 # Database - CLOUD SQL SETTINGS (Inabaki vilevile)
 DATABASES = {
+# ... (Database haina mabadiliko)
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'mafuta', 
@@ -114,6 +132,7 @@ DATABASES = {
 
 # Password validation (Hakuna mabadiliko hapa)
 AUTH_PASSWORD_VALIDATORS = [
+# ... (Validators haina mabadiliko)
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
