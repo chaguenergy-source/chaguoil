@@ -32,6 +32,7 @@ import re
 from django.db.models import Sum
 import random 
 import os
+from django.conf import settings
 
 
 from account.todos import Todos,confirmMailF,invoCode,TCode

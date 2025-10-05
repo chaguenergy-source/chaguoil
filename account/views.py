@@ -33,6 +33,8 @@ import random
 from .todos import Todos,confirmMailF
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.conf import settings
+
 
 def todoFunct(request):
   usr = Todos(request)
@@ -482,7 +484,7 @@ def markreadNotify(request):
       return render(request,'pagenotFound.html')
    
 @login_required(login_url='login')
-def settings(request):
+def kuseti(request):
    todo = todoFunct(request)
    return render(request,'setting.html',todo)
 

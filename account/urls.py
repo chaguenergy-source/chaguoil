@@ -25,7 +25,7 @@ urlpatterns=[
     path('notify',views.notify, name='notify'),
     path('markreadNotify',views.markreadNotify, name='markreadNotify'),
     path('darkMode',views.darkMode, name='darkMode'),
-    path('settings',views.settings, name='settings'),
+    path('settings',views.kuseti, name='settings'),
     path('companyDetails',views.companyDetails, name='companyDetails'),
     path('upload_company_logo',views.upload_company_logo, name='upload_company_logo'),
 
