@@ -497,7 +497,6 @@ def upload_company_logo(request):
         todo = todoFunct(request)
         useri = todo['useri']
         logo = request.FILES['companyLogo']
-        kampuni = todo['kampuni']
         ext = logo.name.split('.')[-1].lower()
         allowed = ['jpg', 'jpeg', 'png', 'gif']
         data = {}
@@ -510,34 +509,32 @@ def upload_company_logo(request):
             }
             return JsonResponse(data)
             
-        # # 1. DELETE KAMA IPO
-        # if useri.company.logo:
-        #     try:
-        #         # Hakikisha unatumia default_storage kwa ajili ya kufuta GCS
-        #         default_storage.delete(useri.company.logo.name)
-        #     except Exception as e:
-        #         # Log kosa la kufuta, lakini usiache lizuie upload
-        #         print(f"Error deleting old logo: {e}")
-        #         pass
+        # 1. DELETE KAMA IPO
+        if useri.company.logo:
+            try:
+                # Hakikisha unatumia default_storage kwa ajili ya kufuta GCS
+                default_storage.delete(useri.company.logo.name)
+            except Exception as e:
+                # Log kosa la kufuta, lakini usiache lizuie upload
+                print(f"Error deleting old logo: {e}")
+                pass
             
-        # # 2. UPAKIAJI SAHIHI KWA GCS:
-        # filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
+        # 2. UPAKIAJI SAHIHI KWA GCS:
+        filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
         
-        # # BADILISHA HAPA: Tumia LOGO moja kwa moja badala ya ContentFile(logo.read())
-        # # Hii inamruhusu django-storages kushughulikia file handle vizuri zaidi
-        # path = default_storage.save(filename, logo) 
+        # BADILISHA HAPA: Tumia LOGO moja kwa moja badala ya ContentFile(logo.read())
+        # Hii inamruhusu django-storages kushughulikia file handle vizuri zaidi
+        path = default_storage.save(filename, logo) 
         
-        # # 3. Hifadhi Model
-        # useri.company.logo = path
-
-        kampuni.logo = logo 
-        kampuni.save()
+        # 3. Hifadhi Model
+        useri.company.logo = path
+        useri.company.save()
 
         data = {
             'success': True,
             'eng': 'Logo uploaded successfully.',
             'swa': 'Nembo imepakiwa kikamilifu.',
-            # 'logo_url': default_storage.url(path)
+            'logo_url': default_storage.url(path)
         }
         return JsonResponse(data)
     else:

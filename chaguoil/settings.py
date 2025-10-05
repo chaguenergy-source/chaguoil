@@ -39,6 +39,11 @@ print("GCS Credentials loaded successfully from dedicated JSON file in settings.
 
 # 1. Kufafanua Storage Classes NDANI ya settings.py ili kuhakikisha mpangilio sahihi wa upakiaji
 class MediaStorage(GoogleCloudStorage):
+    # **IMEONGEZWA KWA AJILI YA DEBUGGING:** Inathibitisha kuwa hii class inatumiwa
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        print(">>> SUCCESS: MediaStorage (GCS) has been initialized as DEFAULT_FILE_STORAGE.")
+        
     # Hizi parameters zinapatikana kwa urahisi kwa sababu zimetajwa hapo juu
     bucket_name = GS_BUCKET_NAME
     file_overwrite = GS_FILE_OVERWRITE
