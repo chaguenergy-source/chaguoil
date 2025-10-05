@@ -1,1 +1,29 @@
 GCS_KEY_FILE_PATH = os.path.join(BASE_DIR, 'gcs_service_account.json')
+
+
+
+import json
+service_account_path = '/home/chaguenergy/chaguoil/gcs_service_account.json'
+
+with open(service_account_path, 'r') as f:
+     data = json.load(f)
+ 
+     print("Service Account inatumiwa na faili la JSON:")
+     print(data['client_email'])
+
+
+
+from google.cloud import storage
+# Path to your service account file
+service_account_path = '/home/chaguenergy/chaguoil/gcs_service_account.json'
+bucket_name = 'chagufilling'
+destination_blob_name = 'media/test_image.jpg'  # Folder/object name in bucket
+source_file_name = '/home/chaguenergy/chaguoil/company_logos/1_1759316586.png'  # Local file to upload
+
+client = storage.Client.from_service_account_json(service_account_path)
+bucket = client.get_bucket(bucket_name)
+blob = bucket.blob(destination_blob_name)
+
+blob.upload_from_filename(source_file_name)
+
+print(f"File {source_file_name} uploaded to {destination_blob_name}.")

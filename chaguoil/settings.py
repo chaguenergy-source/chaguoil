@@ -154,8 +154,9 @@ DEFAULT_FILE_STORAGE = 'chaguoil.gcsUtils.Media'
 STATICFILES_STORAGE = 'chaguoil.gcsUtils.Static'
 
 # Media files (uploads)
+
 MEDIA_URL = 'https://storage.googleapis.com/chagufilling/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Not used in production, but required by Django
+
 
 GS_BUCKET_NAME = 'chagufilling'
 GS_FILE_OVERWRITE = False
