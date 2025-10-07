@@ -1,3 +1,5 @@
 
 sudo systemctl restart gunicorn.service
 sudo journalctl -u gunicorn.service -f
+sudo nano /etc/systemd/system/gunicorn.service
+source venv/bin/activate

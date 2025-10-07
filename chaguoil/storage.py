@@ -1,8 +1,7 @@
 import os
 import json
 from django.conf import settings
-from storages.backends.gcloud import GoogleCloudStorage
-from storages.backends.gcloud import GoogleCloudStaticStorage
+from storages.backends.gcloud import GoogleCloudStorage # Hili ndilo darasa kuu tunalotumia
 from django.core.exceptions import ImproperlyConfigured
 
 # =======================================================
@@ -11,15 +10,13 @@ from django.core.exceptions import ImproperlyConfigured
 def get_gcs_credentials():
     """
     Ina-retrieve GCS credentials dictionary kutoka settings.
-    Hii inalinda dhidi ya makosa ya settings wakati wa startup.
     """
     try:
-        # Tunategemea settings.py kupakia GCS_CREDENTIALS_DICT vizuri
+        # Tunafikia GCS_CREDENTIALS_DICT ambayo tuliiongeza kwenye settings.py
         return settings.GCS_CREDENTIALS_DICT
     except AttributeError:
-        # Hili litatokea kama settings.py haikupakia vizuri.
         raise ImproperlyConfigured(
-            "CRITICAL: GCS_CREDENTIALS_DICT not found in settings. Check settings.py configuration for GCS setup."
+            "CRITICAL: GCS_CREDENTIALS_DICT not found in settings. Check settings.py configuration."
         )
 
 # =======================================================
@@ -29,15 +26,14 @@ class MediaStorage(GoogleCloudStorage):
     """
     Hutumiwa kwa ajili ya Model Files (mfano: Company Logo)
     """
-    # Mipangilio ya darasa
     bucket_name = settings.GS_BUCKET_NAME
-    location = 'media'
-    default_acl = settings.GS_DEFAULT_ACL
+    location = 'media' # Eneo files za Media zitakavyokaa
+    # Setti nyingine za GCS
+    default_acl = None
     querystring_auth = False
     
-    # REKEBISHO MUHIMU: Tunalazimisha credentials kupitia __init__
+    # Tunalazimisha credentials kupitishwa kupitia __init__
     def __init__(self, *args, **kwargs):
-        # Tutaweka credentials kwa nguvu kama kwargs
         kwargs['credentials'] = get_gcs_credentials()
         super().__init__(*args, **kwargs)
 
@@ -45,13 +41,14 @@ class MediaStorage(GoogleCloudStorage):
 # =======================================================
 # STORAGE CLASS YA STATIC FILES (CSS, JS)
 # =======================================================
-class StaticStorage(GoogleCloudStaticStorage):
+class StaticStorage(GoogleCloudStorage): # Sasa inatumia GoogleCloudStorage
     """
-    Hutumiwa kwa ajili ya Static Files (CSS, JS)
+    Hutumiwa kwa ajili ya Static Files (CSS, JS).
     """
     bucket_name = settings.GS_BUCKET_NAME
-    location = 'static'
-    default_acl = settings.GS_DEFAULT_ACL
+    location = 'static' # Eneo files za Static zitakavyokaa
+    # Setti nyingine za GCS
+    default_acl = None
     querystring_auth = False
     
     def __init__(self, *args, **kwargs):
