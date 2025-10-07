@@ -49,7 +49,7 @@ if GS_BUCKET_NAME:
     STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'
     
     # URL ya MEDIA files
-    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
     
     # URL ya STATIC files
     STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"

@@ -577,16 +577,16 @@ def upload_company_logo(request):
         # 1. DELETE KAMA IPO (Kwa kutumia default_storage)
         if kampuni.logo:
             try:
+                # Delete the old logo file from storage if it exists
+                if default_storage.exists(kampuni.logo.name):
+                    default_storage.delete(kampuni.logo.name)
                 kampuni.logo.delete(save=True)
-                print(f"Error deleting old logo (via default_storage): Success")
+                print(f"Old logo deleted successfully.")
             except Exception as e:
-                print(f"Error deleting old logo (via default_storage): {e}")
+                print(f"Error deleting old logo: {e}")
                 pass
             
-        # ------------------------------------------------------------------
-        # HATUA 2: KULAZIMISHA UPAKIAJI WA MOJA KWA MOJA KWENYE GCS
-        # Hili litatoa 403 Forbidden Error ikiwa ruhusa za GCP haziko sawa.
-        # ------------------------------------------------------------------
+  
         try:
 
             if ext not in allowed:
@@ -597,28 +597,9 @@ def upload_company_logo(request):
               }
             else:  
                   
-                  # # Panga jina la faili
-                  # filename = f"pics/{useri.company.id}_{int(time.time())}.{ext}"
-                  # uploadname = f"media/{filename}"
+                  # 2. UPAKIAJI SAHIHI KWA GCS (Kwa kutumia GCS Client API)
                   
-                  # # --- HATUA A: Pakia Credentials Moja kwa Moja ---
-                  # # Hii inatumia faili la JSON moja kwa moja bila kutegemea environment vars (kama faili linaweza kusomwa)
-                  # credentials_path = os.path.join(BASE_DIR, 'gcs_service_account.json')
-                  # credentials = service_account.Credentials.from_service_account_file(credentials_path)
-                  
-                  # # --- HATUA B: Anzisha GCS Client ---
-                  # storage_client = storage.Client(
-                  #     credentials=credentials, 
-                  #     project=credentials.project_id
-                  # )
-                  # bucket = storage_client.bucket('chagufilling') 
-                  # blob = bucket.blob(uploadname) # Tunatumia 'media/' kama location 
-                  
-                  # # --- HATUA C: Piga Upload ---
-                  # # Tunatumia logo (UploadedFile) moja kwa moja
-                  # blob.upload_from_file(logo, rewind=True, content_type=logo.content_type)
-                  
-                  # 3. Hifadhi Model (kwa kutumia URL kamili)
+                
                   kampuni.logo = logo # Tunaweka jina tu, si URL kamili
                   kampuni.save()
 
