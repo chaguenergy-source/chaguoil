@@ -39,7 +39,6 @@ from django.core.files.base import ContentFile
 
 from django.conf import settings
 
-from chaguoil.storage import MediaStorage # HUYU NDIYE STORAGE CLASS YAKO!
 
 
 
