@@ -53,7 +53,10 @@ if GS_BUCKET_NAME:
     
     # URL ya STATIC files
     STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
-    
+
+    GS_PROJECT_ID = 'prime-micron-473718-h1'  # Add your GCP project ID here
+    GS_CREDENTIALS = json.loads(GS_CREDENTIALS)  # Parse credentials as dict for storages
+
     print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
 # =======================================================
 # --- END FILE STORAGE SETTINGS ---
