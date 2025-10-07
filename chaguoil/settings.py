@@ -9,8 +9,8 @@ import os
 import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
-from google.oauth2 import service_account
-from storages.backends.gcloud import GoogleCloudStorage # Import mpya
+from google.oauth2 import service_account 
+# Tumeondoa GoogleCloudStorage na Storage Classes hapa.
 
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +27,7 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
-# Hizi LAZIMA ziwe hapa kabla ya kurejelewa na Storage Classes
+# Tumeweka variable hapa pekee
 # =======================================================
 
 GS_BUCKET_NAME = 'chagufilling'
@@ -37,30 +37,10 @@ GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
 )
 print("GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
 
-# 1. Kufafanua Storage Classes NDANI ya settings.py ili kuhakikisha mpangilio sahihi wa upakiaji
-class MediaStorage(GoogleCloudStorage):
-    # **IMEONGEZWA KWA AJILI YA DEBUGGING:** Inathibitisha kuwa hii class inatumiwa
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Ujumbe huu utaonekana kwenye logi ya Gunicorn TU
-        print(">>> SUCCESS: MediaStorage (GCS) has been initialized as DEFAULT_FILE_STORAGE.")
-        
-    # Hizi parameters zinapatikana kwa urahisi kwa sababu zimetajwa hapo juu
-    bucket_name = GS_BUCKET_NAME
-    file_overwrite = GS_FILE_OVERWRITE
-    credentials = GS_CREDENTIALS
-    location = 'media' # Weka picha zote ndani ya folder la 'media'
 
-class StaticStorage(GoogleCloudStorage):
-    bucket_name = GS_BUCKET_NAME
-    file_overwrite = GS_FILE_OVERWRITE
-    credentials = GS_CREDENTIALS
-    location = 'static' # Weka static files zote ndani ya folder la 'static'
-
-
-# 2. Rejelea Storage Classes zilizofafanuliwa hivi punde
-DEFAULT_FILE_STORAGE = 'chaguoil.settings.MediaStorage'
-STATICFILES_STORAGE = 'chaguoil.settings.StaticStorage'
+# 2. Rejelea Storage Classes kutoka chaguoil/storage.py
+DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage' # Hii sasa inarejelea chaguoil/storage.py
+STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage' # Hii sasa inarejelea chaguoil/storage.py
 
 # Media files (uploads)
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
