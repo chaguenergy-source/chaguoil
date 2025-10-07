@@ -9,8 +9,8 @@ import os
 import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
-from google.oauth2 import service_account 
-# Tumeondoa GoogleCloudStorage na Storage Classes hapa.
+# from google.oauth2 import service_account # Tumeondoa import hii
+# Tumeondoa import ya Google credentials
 
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,34 +27,48 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
-# Tumeweka variable hapa pekee
+# SULUHISHO: Tunatumia GS_SERVICE_ACCOUNT_JSON ili kuepuka shida za upakiaji
 # =======================================================
 
 GS_BUCKET_NAME = 'chagufilling'
 GS_FILE_OVERWRITE = False
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(BASE_DIR, 'gcs_service_account.json')
-)
-print("GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
+
+# 1. Pakia Credentials kwenye Environment Variable (Njia Bora)
+GS_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'gcs_service_account.json')
+
+try:
+    with open(GS_CREDENTIALS_PATH, 'r') as f:
+        credentials_data = json.load(f)
+    
+    # Huu ndio mchakato muhimu unaoeleza django-storages kutumia credentials hizi
+    os.environ['GS_SERVICE_ACCOUNT_JSON'] = json.dumps(credentials_data)
+    
+    print("GCS Credentials loaded successfully into OS Environment.")
+    # Tumepakia kwenye Environment, kwa hiyo hatuhitaji GS_CREDENTIALS tena
+    # GS_CREDENTIALS = None 
+    
+except FileNotFoundError:
+    print(f"!!! CRITICAL ERROR: GCS Service Account file not found at {GS_CREDENTIALS_PATH} !!!")
+    
+except Exception as e:
+    print(f"!!! CRITICAL ERROR: Failed to load GCS credentials: {e} !!!")
 
 
-# 2. Rejelea Storage Classes kutoka chaguoil/storage.py
-# SULUHISHO: Tumia darasa la msingi la django-storages na uongeze location
+# 2. Rejelea Storage Classes kutoka storages.backends.gcloud (Inaelewa environment variable)
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 # LOCATIONs ni muhimu wakati wa kutumia darasa la msingi moja kwa moja
 GS_LOCATION = 'media' # Default location, hutumiwa na DEFAULT_FILE_STORAGE (Media files)
-STATICFILES_DIRS = [] # Lazima iwekwe ili STATICFILES_STORAGE itumike ipasavyo
-GS_STATIC_LOCATION = 'static' # Location maalum kwa STATICFILES_STORAGE. Hii inabatilisha GS_LOCATION kwa Static files.
-
+STATICFILES_DIRS = [] 
+GS_STATIC_LOCATION = 'static' # Location maalum kwa STATICFILES_STORAGE.
 
 # Media files (uploads)
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
 
 # =======================================================
 # --- END GOOGLE CLOUD STORAGE SETTINGS ---
