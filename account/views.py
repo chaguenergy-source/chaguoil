@@ -17,6 +17,8 @@ timezone.now()
 from django.core.paginator import Paginator,EmptyPage
 from datetime import date,timedelta,timezone
 
+
+
 import requests
 #Session model stores the session data
 from django.contrib.sessions.models import Session
@@ -33,7 +35,12 @@ import random
 from .todos import Todos,confirmMailF
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+
+
 from django.conf import settings
+
+from chaguoil.storage import MediaStorage # HUYU NDIYE STORAGE CLASS YAKO!
+
 
 
 def todoFunct(request):
@@ -572,8 +579,25 @@ def upload_company_logo(request):
         allowed = ['jpg', 'jpeg', 'png', 'gif']
         data = {}
 
+        
+        is_gcs_storage = isinstance(default_storage, MediaStorage)
+        print("="*80)
+        print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
+        print(f"DEBUG: GCS BUCKET NAME set to: {getattr(settings, 'GS_BUCKET_NAME', 'NOT SET')}")
+        print("="*80)
+        
+        if not is_gcs_storage:
+             # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
+             print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
 
-            
+        # --- END OF DEBUGGING BLOCK ---
+
+        if not is_gcs_storage:
+            # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
+            print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
+
+        # --- END OF DEBUGGING BLOCK ---
+
         # 1. DELETE KAMA IPO (Kwa kutumia default_storage)
         if kampuni.logo:
             try:
