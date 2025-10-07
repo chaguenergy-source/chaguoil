@@ -53,7 +53,6 @@ except Exception as e:
     print(f"!!! CRITICAL ERROR: Failed to load GCS credentials: {e} !!!")
 
 
-# 1. Rejelea Storage Classes zilizofafanuliwa kwenye chaguoil/storage.py
 # Sasa hii inapaswa kufanya kazi vizuri kwa sababu environment variables zimejaa.
 DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage'
 STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'

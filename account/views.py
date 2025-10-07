@@ -593,7 +593,7 @@ def upload_company_logo(request):
         # ------------------------------------------------------------------
         try:
             # Panga jina la faili
-            filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
+            filename = f"media/company_logos/{useri.company.id}_{int(time.time())}.{ext}"
             
             # --- HATUA A: Pakia Credentials Moja kwa Moja ---
             # Hii inatumia faili la JSON moja kwa moja bila kutegemea environment vars (kama faili linaweza kusomwa)
