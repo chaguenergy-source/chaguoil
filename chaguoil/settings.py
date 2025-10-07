@@ -53,7 +53,7 @@ STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
 
 INSTALLED_APPS = [
     'storages', # Hii inahitajika kuwepo
-    'account.apps.AccountConfig',
+    'account', # Njia rahisi na ya uhakika zaidi ya kupakia 'account' app
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
