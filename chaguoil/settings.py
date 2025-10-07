@@ -30,42 +30,31 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 # Tunaita MediaStorage na StaticStorage kutoka chaguoil.storage
 # =======================================================
 GS_BUCKET_NAME = 'chagufilling'
-GS_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'gcs_service_account.json')
-
+GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
+# HAKIKISHA GCS INATUMIA JSON STRING (Njia ya Uhakika)
 try:
-    with open(GS_CREDENTIALS_PATH) as f:
-        # Pata data zote za JSON
-        credentials_data = json.load(f)
-
-    # 1. Weka project ID kwenye environment
-    os.environ['GOOGLE_CLOUD_PROJECT'] = credentials_data['project_id']
-    
-    # 2. Weka content ya JSON yote kama string kwenye environment variable
-    # Hii ndiyo njia ambayo google-cloud-storage na django-storages hupenda kutumia
-    os.environ['GS_SERVICE_ACCOUNT_JSON'] = json.dumps(credentials_data)
-    
-    # Tumia print() kwa ajili ya debugging tu
-    print(">>> GCS ENVIRONMENT VARIABLES SET SUCCESSFULLY.")
-    
+    with open(GCS_CREDENTIALS_FILE, 'r') as f:
+        # Weka content ya JSON kama string
+        GS_CREDENTIALS = f.read()
+        print(">>> GCS CREDENTIALS SUCCESSFULLY READ AS JSON STRING.")
 except FileNotFoundError:
-    print(f"!!! CRITICAL ERROR: GCS Service Account file not found at {GS_CREDENTIALS_PATH} !!!")
-except Exception as e:
-    print(f"!!! CRITICAL ERROR: Failed to load GCS credentials: {e} !!!")
+    raise ImproperlyConfigured(
+        f"GCS Service Account JSON file not found at {GCS_CREDENTIALS_FILE}"
+    )
 
-
-# Sasa hii inapaswa kufanya kazi vizuri kwa sababu environment variables zimejaa.
-DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage'
-STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'
-
-
-# Media files (uploads)
-MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
-# Hatuweki MEDIA_ROOT ili tuilazimishe GCS kutumika
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
-
+# Mipangilio ya Django Storages
+if GS_BUCKET_NAME:
+    # Tumia Class uliyounda kwenye chaguoil.storage
+    DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage'
+    STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'
+    
+    # URL ya MEDIA files
+    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/"
+    
+    # URL ya STATIC files
+    STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
+    
+    print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
 # =======================================================
 # --- END FILE STORAGE SETTINGS ---
 # =======================================================
