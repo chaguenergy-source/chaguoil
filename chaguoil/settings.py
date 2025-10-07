@@ -39,8 +39,15 @@ print("GCS Credentials loaded successfully from dedicated JSON file in settings.
 
 
 # 2. Rejelea Storage Classes kutoka chaguoil/storage.py
-DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage' # Hii sasa inarejelea chaguoil/storage.py
-STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage' # Hii sasa inarejelea chaguoil/storage.py
+# SULUHISHO: Tumia darasa la msingi la django-storages na uongeze location
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+
+# LOCATIONs ni muhimu wakati wa kutumia darasa la msingi moja kwa moja
+GS_LOCATION = 'media' # Default location, hutumiwa na DEFAULT_FILE_STORAGE (Media files)
+STATICFILES_DIRS = [] # Lazima iwekwe ili STATICFILES_STORAGE itumike ipasavyo
+GS_STATIC_LOCATION = 'static' # Location maalum kwa STATICFILES_STORAGE. Hii inabatilisha GS_LOCATION kwa Static files.
+
 
 # Media files (uploads)
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
