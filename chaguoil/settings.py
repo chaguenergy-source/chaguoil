@@ -6,7 +6,7 @@ for Static and Media files.
 """
 
 import os
-import json
+import json # Hakikisha json imeingizwa hapa
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 # from google.oauth2 import service_account  <-- Tumeondoa
@@ -50,6 +50,24 @@ STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'
 MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
 STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
 print(">>> FINAL CHECK: GCS storage classes set.")
+
+# TULIJARIBU KULAZIMISHA CLASS KUJITAMBULISHA (Sasa haitupwi tena kosa la json/os)
+# Hili litaonyesha traceback kamili ikiwa kuna shida.
+try:
+    from django.core.files.storage import default_storage
+    from chaguoil.storage import MediaStorage
+    # Jaribu kuanzisha storage ili kugundua tatizo
+    test_storage = MediaStorage()
+    print("*** SUCCESS: MediaStorage LOADED CORRECTLY ***")
+except Exception as e:
+    import traceback
+    print("="*80)
+    print("!!! CRITICAL MEDIA STORAGE INSTANTIATION FAILURE TRACEBACK !!!")
+    print(f"ERROR TYPE: {e.__class__.__name__}")
+    print(f"ERROR MESSAGE: {e}")
+    traceback.print_exc()
+    print("="*80)
+    
 # =======================================================
 # --- END FILE STORAGE SETTINGS ---
 # =======================================================
