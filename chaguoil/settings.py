@@ -1,16 +1,9 @@
-"""
-Django settings for chaguoil project.
-
-Configuration file for Production environment using Google Cloud Storage (GCS)
-for Static and Media files.
-"""
-
 import os
-import json # Hakikisha json imeingizwa hapa
+import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
-# from google.oauth2 import service_account  <-- Tumeondoa
-# from storages.backends.gcloud import GoogleCloudStorage  <-- Tumeondoa
+from django.core.files.storage import default_storage # Tunaiingiza hapa kwa ajili ya upimaji
+from chaguoil.storage import MediaStorage # Tunaiingiza hapa kwa ajili ya upimaji
 
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,44 +23,27 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 # =======================================================
 GS_BUCKET_NAME = 'chagufilling'
 GS_PROJECT_ID = 'prime-micron-473718-h1'
-GS_DEFAULT_ACL = None # Weka 'public-read' ikiwa unataka files zote ziwe public
-GS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
+GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
-# >>> MUHIMU: KUSOMA NA KUWEKA CREDENTIALS KWENYE GS_CREDENTIALS <<<
+# HAKIKISHA GCS INATUMIA DICTIONARY (MUHIMU SANA KWA AUTH)
 try:
-    with open(GS_CREDENTIALS_FILE, 'r') as f:
-        # Tunasoma JSON moja kwa moja kama dictionary
+    with open(GCS_CREDENTIALS_FILE, 'r') as f:
+        # Soma JSON kama dictionary na kuihifadhi kwenye GS_CREDENTIALS
         GS_CREDENTIALS = json.load(f)
     print(">>> GS_CREDENTIALS DICTIONARY LOADED SUCCESSFULLY.")
 except FileNotFoundError:
     raise ImproperlyConfigured(
-        f"GCS Service Account JSON file not found at {GS_CREDENTIALS_FILE}"
+        f"GCS Service Account JSON file not found at {GCS_CREDENTIALS_FILE}"
     )
 
-# Sasa darasa la GoogleCloudStorage litatumia GS_CREDENTIALS moja kwa moja.
+# Tumia string kuzuia matatizo ya eager loading
 DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage'
 STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'
-MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
-STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
-print(">>> FINAL CHECK: GCS storage classes set.")
 
-# TULIJARIBU KULAZIMISHA CLASS KUJITAMBULISHA (Sasa haitupwi tena kosa la json/os)
-# Hili litaonyesha traceback kamili ikiwa kuna shida.
-try:
-    from django.core.files.storage import default_storage
-    from chaguoil.storage import MediaStorage
-    # Jaribu kuanzisha storage ili kugundua tatizo
-    test_storage = MediaStorage()
-    print("*** SUCCESS: MediaStorage LOADED CORRECTLY ***")
-except Exception as e:
-    import traceback
-    print("="*80)
-    print("!!! CRITICAL MEDIA STORAGE INSTANTIATION FAILURE TRACEBACK !!!")
-    print(f"ERROR TYPE: {e.__class__.__name__}")
-    print(f"ERROR MESSAGE: {e}")
-    traceback.print_exc()
-    print("="*80)
-    
+# URL ya MEDIA files
+MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
+# URL ya STATIC files
+STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
 # =======================================================
 # --- END FILE STORAGE SETTINGS ---
 # =======================================================
