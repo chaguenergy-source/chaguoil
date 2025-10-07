@@ -577,7 +577,7 @@ def upload_company_logo(request):
         # 1. DELETE KAMA IPO (Kwa kutumia default_storage)
         if kampuni.logo:
             try:
-                default_storage.delete(useri.company.logo.name)
+                kampuni.logo.delete(save=True)
             except Exception as e:
                 print(f"Error deleting old logo (via default_storage): {e}")
                 pass
