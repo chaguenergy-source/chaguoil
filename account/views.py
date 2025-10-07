@@ -579,21 +579,21 @@ def upload_company_logo(request):
         data = {}
 
         
-        is_gcs_storage = isinstance(default_storage, MediaStorage)
-        print("="*80)
-        print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
-        print(f"DEBUG: GCS BUCKET NAME set to: {getattr(settings, 'GS_BUCKET_NAME', 'NOT SET')}")
-        print("="*80)
+        # is_gcs_storage = isinstance(default_storage, MediaStorage)
+        # print("="*80)
+        # print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
+        # print(f"DEBUG: GCS BUCKET NAME set to: {getattr(settings, 'GS_BUCKET_NAME', 'NOT SET')}")
+        # print("="*80)
         
-        if not is_gcs_storage:
-             # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
-             print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
+        # if not is_gcs_storage:
+        #      # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
+        #      print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
 
-        # --- END OF DEBUGGING BLOCK ---
+        # # --- END OF DEBUGGING BLOCK ---
 
-        if not is_gcs_storage:
-            # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
-            print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
+        # if not is_gcs_storage:
+        #     # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
+        #     print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
 
         # --- END OF DEBUGGING BLOCK ---
 
