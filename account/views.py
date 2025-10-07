@@ -568,19 +568,14 @@ def upload_company_logo(request):
         useri = todo['useri']
         logo = request.FILES['companyLogo']
         ext = logo.name.split('.')[-1].lower()
+        kampuni = todo['kampuni']
         allowed = ['jpg', 'jpeg', 'png', 'gif']
         data = {}
 
-        if ext not in allowed:
-            data = {
-                'success': False,
-                'eng': 'Invalid file type. Only images are allowed.',
-                'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
-            }
-            return JsonResponse(data)
+
             
         # 1. DELETE KAMA IPO (Kwa kutumia default_storage)
-        if useri.company.logo:
+        if kampuni.logo:
             try:
                 default_storage.delete(useri.company.logo.name)
             except Exception as e:
@@ -592,38 +587,47 @@ def upload_company_logo(request):
         # Hili litatoa 403 Forbidden Error ikiwa ruhusa za GCP haziko sawa.
         # ------------------------------------------------------------------
         try:
-            # Panga jina la faili
-            filename = f"media/company_logos/{useri.company.id}_{int(time.time())}.{ext}"
-            
-            # --- HATUA A: Pakia Credentials Moja kwa Moja ---
-            # Hii inatumia faili la JSON moja kwa moja bila kutegemea environment vars (kama faili linaweza kusomwa)
-            credentials_path = os.path.join(BASE_DIR, 'gcs_service_account.json')
-            credentials = service_account.Credentials.from_service_account_file(credentials_path)
-            
-            # --- HATUA B: Anzisha GCS Client ---
-            storage_client = storage.Client(
-                credentials=credentials, 
-                project=credentials.project_id
-            )
-            bucket = storage_client.bucket('chagufilling') 
-            blob = bucket.blob(filename)
-            
-            # --- HATUA C: Piga Upload ---
-            # Tunatumia logo (UploadedFile) moja kwa moja
-            blob.upload_from_file(logo, rewind=True, content_type=logo.content_type)
-            
-            # 3. Hifadhi Model (kwa kutumia URL kamili)
-            useri.company.logo = filename # Tunaweka jina tu, si URL kamili
-            useri.company.save()
 
-            print(f"!!! SUCCESS: FILE FORCED TO GCS AT {blob.public_url} !!!")
-            
-            data = {
-                'success': True,
-                'eng': 'Logo forced uploaded successfully to GCS.',
-                'swa': 'Nembo imepakiwa kikamilifu GCS.',
-                'logo_url': blob.public_url # Tunapata URL moja kwa moja kutoka kwa blob
-            }
+            if ext not in allowed:
+              data = {
+                  'success': False,
+                  'eng': 'Invalid file type. Only images are allowed.',
+                  'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
+              }
+            else:  
+                  
+                  # Panga jina la faili
+                  # filename = f"media/pics/{useri.company.id}_{int(time.time())}.{ext}"
+                  
+                  # # --- HATUA A: Pakia Credentials Moja kwa Moja ---
+                  # # Hii inatumia faili la JSON moja kwa moja bila kutegemea environment vars (kama faili linaweza kusomwa)
+                  # credentials_path = os.path.join(BASE_DIR, 'gcs_service_account.json')
+                  # credentials = service_account.Credentials.from_service_account_file(credentials_path)
+                  
+                  # # --- HATUA B: Anzisha GCS Client ---
+                  # storage_client = storage.Client(
+                  #     credentials=credentials, 
+                  #     project=credentials.project_id
+                  # )
+                  # bucket = storage_client.bucket('chagufilling') 
+                  # blob = bucket.blob(filename)
+                  
+                  # # --- HATUA C: Piga Upload ---
+                  # # Tunatumia logo (UploadedFile) moja kwa moja
+                  # blob.upload_from_file(logo, rewind=True, content_type=logo.content_type)
+                  
+                  # 3. Hifadhi Model (kwa kutumia URL kamili)
+                  kampuni.logo = logo # Tunaweka jina tu, si URL kamili
+                  kampuni.save()
+
+                  print(f"!!! SUCCESS: FILE FORCED TO GCS AT  !!!")
+                  
+                  data = {
+                      'success': True,
+                      'eng': 'Logo forced uploaded successfully to GCS.',
+                      'swa': 'Nembo imepakiwa kikamilifu GCS.',
+                      # 'logo_url': blob.public_url # Tunapata URL moja kwa moja kutoka kwa blob
+                  }
             return JsonResponse(data)
 
         except Exception as e:
