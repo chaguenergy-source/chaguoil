@@ -30,34 +30,11 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 # Tunaita MediaStorage na StaticStorage kutoka chaguoil.storage
 # =======================================================
 GS_BUCKET_NAME = 'chagufilling'
-GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
-# HAKIKISHA GCS INATUMIA JSON STRING (Njia ya Uhakika)
-try:
-    with open(GCS_CREDENTIALS_FILE, 'r') as f:
-        # Weka content ya JSON kama string
-        GS_CREDENTIALS = f.read()
-        print(">>> GCS CREDENTIALS SUCCESSFULLY READ AS JSON STRING.")
-except FileNotFoundError:
-    raise ImproperlyConfigured(
-        f"GCS Service Account JSON file not found at {GCS_CREDENTIALS_FILE}"
-    )
-
-# Mipangilio ya Django Storages
-if GS_BUCKET_NAME:
-    # Tumia Class uliyounda kwenye chaguoil.storage
-    DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage'
-    STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'
-    
-    # URL ya MEDIA files
-    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
-    
-    # URL ya STATIC files
-    STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
-
-    GS_PROJECT_ID = 'prime-micron-473718-h1'  # Add your GCP project ID here
-    GS_CREDENTIALS = json.loads(GS_CREDENTIALS)  # Parse credentials as dict for storages
-
-    print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
+GS_PROJECT_ID = 'prime-micron-473718-h1'
+DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage'
+STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'
+MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
+STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
 # =======================================================
 # --- END FILE STORAGE SETTINGS ---
 # =======================================================
