@@ -598,6 +598,7 @@ def upload_company_logo(request):
                   
                   # Panga jina la faili
                   filename = f"pics/{useri.company.id}_{int(time.time())}.{ext}"
+                  uploadname = f"media/{filename}"
                   
                   # --- HATUA A: Pakia Credentials Moja kwa Moja ---
                   # Hii inatumia faili la JSON moja kwa moja bila kutegemea environment vars (kama faili linaweza kusomwa)
@@ -610,7 +611,7 @@ def upload_company_logo(request):
                       project=credentials.project_id
                   )
                   bucket = storage_client.bucket('chagufilling') 
-                  blob = bucket.blob(filename)
+                  blob = bucket.blob(uploadname) # Tunatumia 'media/' kama location 
                   
                   # --- HATUA C: Piga Upload ---
                   # Tunatumia logo (UploadedFile) moja kwa moja
