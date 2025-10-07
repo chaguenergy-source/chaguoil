@@ -622,7 +622,7 @@ def upload_company_logo(request):
                   kampuni.logo = filename # Tunaweka jina tu, si URL kamili
                   kampuni.save()
 
-                  print(f"!!! SUCCESS: FILE FORCED TO GCS AT  !!!")
+                  
                   
                   data = {
                       'success': True,
