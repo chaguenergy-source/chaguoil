@@ -33,17 +33,18 @@ GS_PROJECT_ID = 'prime-micron-473718-h1'
 GS_DEFAULT_ACL = None # Weka 'public-read' ikiwa unataka files zote ziwe public
 GS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
-# >>> MUHIMU: KUSOMA NA KUWEKA CREDENTIALS KAMA DICTIONARY <<<
+# >>> MUHIMU: KUSOMA NA KUWEKA CREDENTIALS KWENYE GS_CREDENTIALS <<<
 try:
     with open(GS_CREDENTIALS_FILE, 'r') as f:
-        # Weka content ya JSON kama dictionary, kwa ajili ya kutumiwa na storage.py
-        GCS_CREDENTIALS_DICT = json.load(f)
-    print(">>> GCS CREDENTIALS DICTIONARY LOADED SUCCESSFULLY.")
+        # Tunasoma JSON moja kwa moja kama dictionary
+        GS_CREDENTIALS = json.load(f)
+    print(">>> GS_CREDENTIALS DICTIONARY LOADED SUCCESSFULLY.")
 except FileNotFoundError:
     raise ImproperlyConfigured(
         f"GCS Service Account JSON file not found at {GS_CREDENTIALS_FILE}"
     )
 
+# Sasa darasa la GoogleCloudStorage litatumia GS_CREDENTIALS moja kwa moja.
 DEFAULT_FILE_STORAGE = 'chaguoil.storage.MediaStorage'
 STATICFILES_STORAGE = 'chaguoil.storage.StaticStorage'
 MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
