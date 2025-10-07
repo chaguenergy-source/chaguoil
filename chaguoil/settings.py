@@ -25,69 +25,11 @@ DEBUG = False
 ALLOWED_HOSTS = ['*','34.61.173.58']
 
 
-# =======================================================
-# --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
-# Hizi LAZIMA ziwe hapa kabla ya kurejelewa na Storage Classes
-# =======================================================
-
-GS_BUCKET_NAME = 'chagufilling'
-GS_FILE_OVERWRITE = False
-
-# Hii inapakia credentials za GCS moja kwa moja.
-try:
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-        os.path.join(BASE_DIR, 'gcs_service_account.json')
-    )
-    print("GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
-except Exception as e:
-     # Kama credentials hazipatikani, weka kama None
-     GS_CREDENTIALS = None 
-     print(f"!!! CRITICAL ERROR: Failed to load GCS credentials in settings.py: {e} !!!")
-
-
-# 1. Kufafanua Storage Classes NDANI ya settings.py ili kuhakikisha mpangilio sahihi wa upakiaji
-class MediaStorage(GoogleCloudStorage):
-    # **IMEONGEZWA KWA AJILI YA DEBUGGING:** Inathibitisha kuwa hii class inatumiwa
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Ujumbe huu sasa unaonekana wakati wa kuendesha manage.py
-        print(">>> SUCCESS: MediaStorage (GCS) has been initialized as DEFAULT_FILE_STORAGE.") 
-        
-    # Hizi parameters zinapatikana kwa urahisi kwa sababu zimetajwa hapo juu
-    bucket_name = GS_BUCKET_NAME
-    file_overwrite = GS_FILE_OVERWRITE
-    credentials = GS_CREDENTIALS
-    location = 'media' # Weka picha zote ndani ya folder la 'media'
-
-class StaticStorage(GoogleCloudStorage):
-    bucket_name = GS_BUCKET_NAME
-    file_overwrite = GS_FILE_OVERWRITE
-    credentials = GS_CREDENTIALS
-    location = 'static' # Weka static files zote ndani ya folder la 'static'
-
-
-# 2. Rejelea Storage Classes zilizofafanuliwa hivi punde
-# NB: Hii sasa inatumia 'chaguoil.settings.MediaStorage'
-DEFAULT_FILE_STORAGE = 'chaguoil.settings.MediaStorage'
-STATICFILES_STORAGE = 'chaguoil.settings.StaticStorage'
-
-# Media files (uploads)
-MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
-
-# =======================================================
-# --- END GOOGLE CLOUD STORAGE SETTINGS ---
-# =======================================================
-
-
 # Application definition
 
 INSTALLED_APPS = [
     # Weka 'storages' HAPA MWANZO
-    # 'storages', 
+    
     'account.apps.AccountConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -96,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize' ,
+    'storages', 
 ]
 
 MIDDLEWARE = [
@@ -161,6 +104,66 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+# =======================================================
+# --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
+# Hizi LAZIMA ziwe hapa kabla ya kurejelewa na Storage Classes
+# =======================================================
+
+GS_BUCKET_NAME = 'chagufilling'
+GS_FILE_OVERWRITE = False
+
+# Hii inapakia credentials za GCS moja kwa moja.
+try:
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        os.path.join(BASE_DIR, 'gcs_service_account.json')
+    )
+    print("GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
+except Exception as e:
+     # Kama credentials hazipatikani, weka kama None
+     GS_CREDENTIALS = None 
+     print(f"!!! CRITICAL ERROR: Failed to load GCS credentials in settings.py: {e} !!!")
+
+
+# 1. Kufafanua Storage Classes NDANI ya settings.py ili kuhakikisha mpangilio sahihi wa upakiaji
+class MediaStorage(GoogleCloudStorage):
+    # **IMEONGEZWA KWA AJILI YA DEBUGGING:** Inathibitisha kuwa hii class inatumiwa
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Ujumbe huu sasa unaonekana wakati wa kuendesha manage.py
+        print(">>> SUCCESS: MediaStorage (GCS) has been initialized as DEFAULT_FILE_STORAGE.") 
+        
+    # Hizi parameters zinapatikana kwa urahisi kwa sababu zimetajwa hapo juu
+    bucket_name = GS_BUCKET_NAME
+    file_overwrite = GS_FILE_OVERWRITE
+    credentials = GS_CREDENTIALS
+    location = 'media' # Weka picha zote ndani ya folder la 'media'
+
+class StaticStorage(GoogleCloudStorage):
+    bucket_name = GS_BUCKET_NAME
+    file_overwrite = GS_FILE_OVERWRITE
+    credentials = GS_CREDENTIALS
+    location = 'static' # Weka static files zote ndani ya folder la 'static'
+
+
+# 2. Rejelea Storage Classes zilizofafanuliwa hivi punde
+# NB: Hii sasa inatumia 'chaguoil.settings.MediaStorage'
+DEFAULT_FILE_STORAGE = 'chaguoil.settings.MediaStorage'
+STATICFILES_STORAGE = 'chaguoil.settings.StaticStorage'
+
+# Media files (uploads)
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
+
+# =======================================================
+# --- END GOOGLE CLOUD STORAGE SETTINGS ---
+# =======================================================
+
+
 
 
 # Internationalization
