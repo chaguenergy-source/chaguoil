@@ -603,7 +603,7 @@ def upload_company_logo(request):
                   kampuni.logo = logo # Tunaweka jina tu, si URL kamili
                   kampuni.save()
 
-                  
+                  print("NEW LOGO UPLOADED SUCCESSFULLY.")
                   
                   data = {
                       'success': True,
