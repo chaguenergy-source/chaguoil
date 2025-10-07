@@ -598,9 +598,14 @@ def upload_company_logo(request):
             else:  
                   
                   # 2. UPAKIAJI SAHIHI KWA GCS (Kwa kutumia GCS Client API)
-                  
-                
-                  kampuni.logo = logo # Tunaweka jina tu, si URL kamili
+                  filename = f"pics/{kampuni.id}_{int(time.time())}.{ext}"
+            
+                  # KULAZIMISHA UPAKIAJI WA FILE KWA GCS KWA KUTUMIA default_storage
+                  # Hii inalazimisha backend ya GCS iendeshe save()
+                  path = default_storage.save(filename, logo)
+
+
+                  kampuni.logo.name = path # Tunaweka jina tu, si URL kamili
                   kampuni.save()
 
                   print("NEW LOGO UPLOADED SUCCESSFULLY.")
