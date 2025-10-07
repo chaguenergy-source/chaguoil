@@ -597,29 +597,29 @@ def upload_company_logo(request):
               }
             else:  
                   
-                  # Panga jina la faili
-                  filename = f"pics/{useri.company.id}_{int(time.time())}.{ext}"
-                  uploadname = f"media/{filename}"
+                  # # Panga jina la faili
+                  # filename = f"pics/{useri.company.id}_{int(time.time())}.{ext}"
+                  # uploadname = f"media/{filename}"
                   
-                  # --- HATUA A: Pakia Credentials Moja kwa Moja ---
-                  # Hii inatumia faili la JSON moja kwa moja bila kutegemea environment vars (kama faili linaweza kusomwa)
-                  credentials_path = os.path.join(BASE_DIR, 'gcs_service_account.json')
-                  credentials = service_account.Credentials.from_service_account_file(credentials_path)
+                  # # --- HATUA A: Pakia Credentials Moja kwa Moja ---
+                  # # Hii inatumia faili la JSON moja kwa moja bila kutegemea environment vars (kama faili linaweza kusomwa)
+                  # credentials_path = os.path.join(BASE_DIR, 'gcs_service_account.json')
+                  # credentials = service_account.Credentials.from_service_account_file(credentials_path)
                   
-                  # --- HATUA B: Anzisha GCS Client ---
-                  storage_client = storage.Client(
-                      credentials=credentials, 
-                      project=credentials.project_id
-                  )
-                  bucket = storage_client.bucket('chagufilling') 
-                  blob = bucket.blob(uploadname) # Tunatumia 'media/' kama location 
+                  # # --- HATUA B: Anzisha GCS Client ---
+                  # storage_client = storage.Client(
+                  #     credentials=credentials, 
+                  #     project=credentials.project_id
+                  # )
+                  # bucket = storage_client.bucket('chagufilling') 
+                  # blob = bucket.blob(uploadname) # Tunatumia 'media/' kama location 
                   
-                  # --- HATUA C: Piga Upload ---
-                  # Tunatumia logo (UploadedFile) moja kwa moja
-                  blob.upload_from_file(logo, rewind=True, content_type=logo.content_type)
+                  # # --- HATUA C: Piga Upload ---
+                  # # Tunatumia logo (UploadedFile) moja kwa moja
+                  # blob.upload_from_file(logo, rewind=True, content_type=logo.content_type)
                   
                   # 3. Hifadhi Model (kwa kutumia URL kamili)
-                  kampuni.logo = filename # Tunaweka jina tu, si URL kamili
+                  kampuni.logo = logo # Tunaweka jina tu, si URL kamili
                   kampuni.save()
 
                   
