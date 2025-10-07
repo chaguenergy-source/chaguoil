@@ -578,6 +578,7 @@ def upload_company_logo(request):
         if kampuni.logo:
             try:
                 kampuni.logo.delete(save=True)
+                print(f"Error deleting old logo (via default_storage): Success")
             except Exception as e:
                 print(f"Error deleting old logo (via default_storage): {e}")
                 pass
