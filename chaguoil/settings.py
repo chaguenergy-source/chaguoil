@@ -28,40 +28,34 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
 # =======================================================
-
 GS_BUCKET_NAME = 'chagufilling'
-GS_FILE_OVERWRITE = False
+GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
-# Hizi settings mbili mpya zitaeleza GCS storage classes path ya kuweka faili.
-GS_LOCATION = 'media' 
-GS_STATIC_LOCATION = 'static'
-
-# Hii inapakia credentials za GCS
+# HAKIKISHA GCS INATUMIA JSON DICTIONARY (Njia ya Uhakika)
 try:
-    # GS_CREDENTIALS inatumiwa na test_gcs_upload.py, na pia base GCS storage class
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-        os.path.join(BASE_DIR, 'gcs_service_account.json')
+    with open(GCS_CREDENTIALS_FILE, 'r') as f:
+        # Sasa tunapakia kama DICTIONARY, si STRING
+        GCS_CREDENTIALS_DICT = json.load(f)
+        print(">>> GCS CREDENTIALS SUCCESSFULLY READ AS JSON DICTIONARY.")
+except FileNotFoundError:
+    raise ImproperlyConfigured(
+        f"GCS Service Account JSON file not found at {GCS_CREDENTIALS_FILE}"
     )
-    print("GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
-except Exception as e:
-     GS_CREDENTIALS = None 
-     print(f"!!! CRITICAL ERROR: Failed to load GCS credentials in settings.py: {e} !!!")
 
+# Tumia Class uliyounda kwenye chaguoil.storage
+if GS_BUCKET_NAME:
+    DEFAULT_FILE_STORAGE = 'chaguoil.gcpUtils.MediaStorage'
+    STATICFILES_STORAGE = 'chaguoil.gcpUtils.StaticStorage'
+    
+    # URL ya MEDIA files
+    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
+    
+    # URL ya STATIC files
+    STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
+    
+    print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
 
-# 1. Tumia Base Class moja kwa moja kutoka kwenye django-storages
-# Hii huondoa tatizo la circular import/import failure
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStaticStorage' # Tumia StaticStorage tofauti
-
-# Media files (uploads)
-MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_LOCATION}/'
-# *HAKUNA* MEDIA_ROOT
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
-# *HAKUNA* STATIC_ROOT ni lazima uwepo kwa ajili ya collectstatic, lakini haitatumika kwa ku-serve.
-
+    
 from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
 
 # try:
