@@ -64,10 +64,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
 
-try:
-    MediaStorage = GoogleCloudStorage
-except Exception:
-    MediaStorage = type(default_storage)  # fallback to current storage type
+# try:
+MediaStorage = GoogleCloudStorage
+# except Exception:
+#     MediaStorage = type(default_storage)  # fallback to current storage type
 
 is_gcs_storage = isinstance(default_storage, MediaStorage)    
 print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")

@@ -41,7 +41,6 @@ from django.core.files.base import ContentFile
 from google.oauth2 import service_account
 from google.cloud import storage # Hii inahitajika kwa GCS direct client
 from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
-from storages.utils import get_storage_class
 
 
 
@@ -579,32 +578,31 @@ def upload_company_logo(request):
         data = {}
 
         
-        # try:
-        MediaStorage = get_storage_class(settings.DEFAULT_FILE_STORAGE)
-        print("MediaStorage loaded successfully from settings.DEFAULT_FILE_STORAGE.")
-        # except Exception:
-        #   MediaStorage = type(default_storage)
-        #   print("MediaStorage fallback to current storage type.")
+        # # try:
+        # print("MediaStorage loaded successfully from settings.DEFAULT_FILE_STORAGE.")
+        # # except Exception:
+        # #   MediaStorage = type(default_storage)
+        # #   print("MediaStorage fallback to current storage type.")
 
-        is_gcs_storage = isinstance(default_storage, MediaStorage)
-        print("="*80)
-        print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
-        storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
-        print(f"Storage class in use: {storage_class_name}")
+        # is_gcs_storage = isinstance(default_storage, MediaStorage)
+        # print("="*80)
+        # print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
+        # storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
+        # print(f"Storage class in use: {storage_class_name}")
 
 
-        print(f"DEBUG: GCS BUCKET NAME set to: {getattr(settings, 'GS_BUCKET_NAME', 'NOT SET')}")
-        print("="*80)
+        # print(f"DEBUG: GCS BUCKET NAME set to: {getattr(settings, 'GS_BUCKET_NAME', 'NOT SET')}")
+        # print("="*80)
         
-        if not is_gcs_storage:
-             # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
-             print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
+        # if not is_gcs_storage:
+        #      # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
+        #      print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
 
-        # --- END OF DEBUGGING BLOCK ---
+        # # --- END OF DEBUGGING BLOCK ---
 
-        if not is_gcs_storage:
-            # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
-            print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
+        # if not is_gcs_storage:
+        #     # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
+        #     print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
 
         # --- END OF DEBUGGING BLOCK ---
 
