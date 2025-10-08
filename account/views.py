@@ -30,6 +30,7 @@ import re
 from django.db.models import Sum
 import random 
 
+from django.conf import settings
 
 
 from .todos import Todos,confirmMailF
@@ -37,7 +38,6 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 
-from django.conf import settings
 
 
 
@@ -579,21 +579,26 @@ def upload_company_logo(request):
         data = {}
 
         
-        # is_gcs_storage = isinstance(default_storage, MediaStorage)
-        # print("="*80)
-        # print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
-        # print(f"DEBUG: GCS BUCKET NAME set to: {getattr(settings, 'GS_BUCKET_NAME', 'NOT SET')}")
-        # print("="*80)
+        try:
+          MediaStorage = get_storage_class(settings.DEFAULT_FILE_STORAGE)
+        except Exception:
+          MediaStorage = type(default_storage)  # fallback to current storage type
+
+        is_gcs_storage = isinstance(default_storage, MediaStorage)
+        print("="*80)
+        print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
+        print(f"DEBUG: GCS BUCKET NAME set to: {getattr(settings, 'GS_BUCKET_NAME', 'NOT SET')}")
+        print("="*80)
         
-        # if not is_gcs_storage:
-        #      # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
-        #      print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
+        if not is_gcs_storage:
+             # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
+             print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
 
-        # # --- END OF DEBUGGING BLOCK ---
+        # --- END OF DEBUGGING BLOCK ---
 
-        # if not is_gcs_storage:
-        #     # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
-        #     print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
+        if not is_gcs_storage:
+            # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
+            print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
 
         # --- END OF DEBUGGING BLOCK ---
 
@@ -646,6 +651,7 @@ def upload_company_logo(request):
             print("="*80)
             print("!!! CRITICAL GCS UPLOAD FAILURE TRACEBACK !!!")
             import traceback
+            from django.core.files.storage import get_storage_class
             traceback.print_exc()
             print("="*80)
             data = {
