@@ -579,12 +579,12 @@ def upload_company_logo(request):
         data = {}
 
         
-        try:
-          MediaStorage = get_storage_class(settings.DEFAULT_FILE_STORAGE)
-          print("MediaStorage loaded successfully from settings.DEFAULT_FILE_STORAGE.")
-        except Exception:
-          MediaStorage = type(default_storage)
-          print("MediaStorage fallback to current storage type.")
+        # try:
+        MediaStorage = get_storage_class(settings.DEFAULT_FILE_STORAGE)
+        print("MediaStorage loaded successfully from settings.DEFAULT_FILE_STORAGE.")
+        # except Exception:
+        #   MediaStorage = type(default_storage)
+        #   print("MediaStorage fallback to current storage type.")
 
         is_gcs_storage = isinstance(default_storage, MediaStorage)
         print("="*80)
