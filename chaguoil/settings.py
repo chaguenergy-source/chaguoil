@@ -11,6 +11,7 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from google.oauth2 import service_account
 from storages.backends.gcloud import GoogleCloudStorage
+from django.core.files.storage import get_storage_class
 
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent

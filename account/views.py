@@ -38,6 +38,10 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 
+from google.oauth2 import service_account
+from google.cloud import storage # Hii inahitajika kwa GCS direct client
+from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
+from django.core.files.storage import get_storage_class
 
 
 
@@ -558,9 +562,6 @@ def companyDetails(request):
 #         # Ikiwa sio POST, bado unaweza kutaka kurudisha ukurasa wa logo
 #         return render(request, 'pagenotFound.html')
 
-from google.oauth2 import service_account
-from google.cloud import storage # Hii inahitajika kwa GCS direct client
-from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
 
 
 # Chukua BASE_DIR kutoka settings (kwa sababu ya msimbo wa GCS)
@@ -657,7 +658,7 @@ def upload_company_logo(request):
             print("="*80)
             print("!!! CRITICAL GCS UPLOAD FAILURE TRACEBACK !!!")
             import traceback
-            from django.core.files.storage import get_storage_class
+            
             traceback.print_exc()
             print("="*80)
             data = {
