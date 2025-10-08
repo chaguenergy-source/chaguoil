@@ -69,6 +69,9 @@ try:
 except Exception:
     MediaStorage = type(default_storage)  # fallback to current storage type
 
+is_gcs_storage = isinstance(default_storage, MediaStorage)    
+print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
+
 # =======================================================
 # --- END GOOGLE CLOUD STORAGE SETTINGS ---
 # =======================================================
