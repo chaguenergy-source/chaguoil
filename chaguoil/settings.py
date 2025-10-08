@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from google.oauth2 import service_account
+from storages.backends.gcloud import GoogleCloudStorage
 
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -60,6 +61,13 @@ MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_LOCATION}/'
 STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
 # *HAKUNA* STATIC_ROOT ni lazima uwepo kwa ajili ya collectstatic, lakini haitatumika kwa ku-serve.
+
+from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
+
+try:
+    MediaStorage = GoogleCloudStorage
+except Exception:
+    MediaStorage = type(default_storage)  # fallback to current storage type
 
 # =======================================================
 # --- END GOOGLE CLOUD STORAGE SETTINGS ---
