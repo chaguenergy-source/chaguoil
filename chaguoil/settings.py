@@ -56,19 +56,19 @@ if GS_BUCKET_NAME:
     print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
 
     
-from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
+# from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
 
-# try:
-MediaStorage = GoogleCloudStorage
-# except Exception:
-#     MediaStorage = type(default_storage)  # fallback to current storage type
+# # try:
+# MediaStorage = GoogleCloudStorage
+# # except Exception:
+# #     MediaStorage = type(default_storage)  # fallback to current storage type
 
-is_gcs_storage = isinstance(default_storage, MediaStorage)    
-print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
+# is_gcs_storage = isinstance(default_storage, MediaStorage)    
+# print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
 
-storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
+# storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
 
-print(f"Default media storage Name: {storage_class_name}")
+# print(f"Default media storage Name: {storage_class_name}")
 
 # =======================================================
 # --- END GOOGLE CLOUD STORAGE SETTINGS ---
