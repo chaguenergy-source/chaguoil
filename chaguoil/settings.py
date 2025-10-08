@@ -72,7 +72,9 @@ except Exception:
 is_gcs_storage = isinstance(default_storage, MediaStorage)    
 print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
 
-print(f"Default media storage: {DEFAULT_FILE_STORAGE}")
+storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
+
+print(f"Default media storage Name: {storage_class_name}")
 
 # =======================================================
 # --- END GOOGLE CLOUD STORAGE SETTINGS ---

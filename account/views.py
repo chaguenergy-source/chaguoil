@@ -587,7 +587,10 @@ def upload_company_logo(request):
         is_gcs_storage = isinstance(default_storage, MediaStorage)
         print("="*80)
         print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
-        print(f"Default media storage: {settings.DEFAULT_FILE_STORAGE}")
+        storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
+        print(f"Storage class in use: {storage_class_name}")
+
+
         print(f"DEBUG: GCS BUCKET NAME set to: {getattr(settings, 'GS_BUCKET_NAME', 'NOT SET')}")
         print("="*80)
         
