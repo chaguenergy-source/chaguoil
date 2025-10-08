@@ -41,8 +41,7 @@ from django.core.files.base import ContentFile
 from google.oauth2 import service_account
 from google.cloud import storage # Hii inahitajika kwa GCS direct client
 from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
-from django.core.files.storage import get_storage_class
-
+from storages.utils import get_storage_class
 
 
 
