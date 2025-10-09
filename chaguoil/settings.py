@@ -56,8 +56,7 @@ except FileNotFoundError:
 # 3. KUBAINISHA NJIA ZA STORAGE MOJA KWA MOJA KWA KUTUMIA BASE CLASS
 # Hii huepuka matatizo yote ya ImportError
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStaticStorage'
-
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage' 
 # KUWEKA LOCATIONS BAADA YA KUFAFANUA CLASS
 # Hizi ndizo zinazobainisha kuwa faili za media zitawekwa kwenye saraka ya 'media'
 # na static kwenye saraka ya 'static'
