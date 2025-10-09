@@ -32,9 +32,10 @@ GS_BUCKET_NAME = 'chagufilling'
 GS_FILE_OVERWRITE = False
 GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
+
 # 1. KUPAKIA GS_CREDENTIALS KAMA OBJECT YA SERVICE ACCOUNT
-# Hii ndiyo njia sahihi ya kutumiwa na django-storages
 try:
+    # Tumia GS_CREDENTIALS, kama inavyotarajiwa na django-storages
     GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GCS_CREDENTIALS_FILE)
     print(">>> GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
 except FileNotFoundError:
@@ -42,26 +43,32 @@ except FileNotFoundError:
         f"GCS Service Account JSON file not found at {GCS_CREDENTIALS_FILE}"
     )
 
+
 # 2. KUPAKIA JSON DICTIONARY KWA AJILI YA SCRIPTS ZA KUCHUNGUZA (DEBUGGING)
-# Hii inaweza kuondolewa mara tu upakiaji wa GCS utakapofanya kazi kikamilifu
 try:
     with open(GCS_CREDENTIALS_FILE, 'r') as f:
         GCS_CREDENTIALS_DICT = json.load(f)
         print(">>> GCS_CREDENTIALS_DICT (for script testing) also loaded.")
 except FileNotFoundError:
-    pass # Hili kosa linashughulikiwa hapo juu
+    pass
 
 
-# 3. Rejelea Storage Classes zilizofafanuliwa kwenye chaguoil.gcsUtils
-DEFAULT_FILE_STORAGE = 'chaguoil.gcsUtils.MediaStorage'
-STATICFILES_STORAGE = 'chaguoil.gcsUtils.StaticStorage'
+# 3. KUBAINISHA NJIA ZA STORAGE MOJA KWA MOJA KWA KUTUMIA BASE CLASS
+# Hii huepuka matatizo yote ya ImportError
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStaticStorage'
+
+# KUWEKA LOCATIONS BAADA YA KUFAFANUA CLASS
+# Hizi ndizo zinazobainisha kuwa faili za media zitawekwa kwenye saraka ya 'media'
+# na static kwenye saraka ya 'static'
+GS_MEDIA_LOCATION = 'media'
+GS_STATIC_LOCATION = 'static'
 
 # Media files (uploads)
-# URL HII INATUMIA GS_BUCKET_NAME iliyopo hapo juu
-MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_MEDIA_LOCATION}/'
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
+STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
 
 print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
@@ -116,7 +123,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
 
-# Database - CLOUD SQL SETTINGS
+# Database - CLOUD SQL SETTINGS (Inabaki vilevile)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -129,7 +136,7 @@ DATABASES = {
 }
 
 
-# Password validation 
+# Password validation (Hakuna mabadiliko hapa)
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
