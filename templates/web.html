@@ -4,3 +4,4 @@ sudo journalctl -u gunicorn.service -f
 sudo nano /etc/systemd/system/gunicorn.service
 source venv/bin/activate
 nano account/management/commands/test_gcs_upload.py
+python manage.py test_gcs_upload

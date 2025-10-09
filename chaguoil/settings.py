@@ -10,7 +10,6 @@ import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from google.oauth2 import service_account
-from storages.backends.gcloud import GoogleCloudStorage
 
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i'
 
 # USALAMA: Zima DEBUG katika Production (Inalazimisha kutumia STATICFILES_STORAGE)
-DEBUG = True 
+DEBUG = False 
 
 # Badilisha na IP Address mpya ya VM, na nimeacha '*'
 ALLOWED_HOSTS = ['*','34.61.173.58']
@@ -28,48 +27,44 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
 # =======================================================
+
 GS_BUCKET_NAME = 'chagufilling'
+GS_FILE_OVERWRITE = False
 GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
-# HAKIKISHA GCS INATUMIA JSON DICTIONARY (Njia ya Uhakika)
+# 1. KUPAKIA GS_CREDENTIALS KAMA OBJECT YA SERVICE ACCOUNT
+# Hii ndiyo njia sahihi ya kutumiwa na django-storages
 try:
-    with open(GCS_CREDENTIALS_FILE, 'r') as f:
-        # Sasa tunapakia kama DICTIONARY, si STRING
-        GCS_CREDENTIALS_DICT = json.load(f)
-        print(">>> GCS CREDENTIALS SUCCESSFULLY READ AS JSON DICTIONARY.")
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GCS_CREDENTIALS_FILE)
+    print(">>> GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
 except FileNotFoundError:
-    raise ImproperlyConfigured(
+     raise ImproperlyConfigured(
         f"GCS Service Account JSON file not found at {GCS_CREDENTIALS_FILE}"
     )
 
-# Tumia Class uliyounda kwenye chaguoil.storage
-if GS_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = 'chaguoil.gcpUtils.MediaStorage'
-    STATICFILES_STORAGE = 'chaguoil.gcpUtils.StaticStorage'
-    
-    # URL ya MEDIA files
-    MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
-    
-    # URL ya STATIC files
-    STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
-    
-    print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
+# 2. KUPAKIA JSON DICTIONARY KWA AJILI YA SCRIPTS ZA KUCHUNGUZA (DEBUGGING)
+# Hii inaweza kuondolewa mara tu upakiaji wa GCS utakapofanya kazi kikamilifu
+try:
+    with open(GCS_CREDENTIALS_FILE, 'r') as f:
+        GCS_CREDENTIALS_DICT = json.load(f)
+        print(">>> GCS_CREDENTIALS_DICT (for script testing) also loaded.")
+except FileNotFoundError:
+    pass # Hili kosa linashughulikiwa hapo juu
 
-    
-# from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
 
-# # try:
-# MediaStorage = GoogleCloudStorage
-# # except Exception:
-# #     MediaStorage = type(default_storage)  # fallback to current storage type
+# 3. Rejelea Storage Classes zilizofafanuliwa kwenye chaguoil.gcsUtils
+DEFAULT_FILE_STORAGE = 'chaguoil.gcsUtils.MediaStorage'
+STATICFILES_STORAGE = 'chaguoil.gcsUtils.StaticStorage'
 
-# is_gcs_storage = isinstance(default_storage, MediaStorage)    
-# print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
+# Media files (uploads)
+# URL HII INATUMIA GS_BUCKET_NAME iliyopo hapo juu
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
 
-# storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
 
-# print(f"Default media storage Name: {storage_class_name}")
-
+print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
 # =======================================================
 # --- END GOOGLE CLOUD STORAGE SETTINGS ---
 # =======================================================
@@ -121,7 +116,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
 
-# Database - CLOUD SQL SETTINGS (Inabaki vilevile)
+# Database - CLOUD SQL SETTINGS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -134,7 +129,7 @@ DATABASES = {
 }
 
 
-# Password validation (Hakuna mabadiliko hapa)
+# Password validation 
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
