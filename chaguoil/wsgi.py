@@ -1,17 +1,17 @@
-"""
-WSGI config for chaguoil project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.1/howto/deployment/wsgi/
-"""
-
 import os
-
 from django.core.wsgi import get_wsgi_application
-# Import hi imelazimishwa ili kupakia storages mapema, kabla ya Django kutafuta DEFAULT_FILE_STORAGE.
-import storages 
+
+# =========================================================================
+# === HII NDIO SEHEMU YA MAREKEBISHO KWA GUNICORN/GCS FALLBACK ===
+# Tunalazimisha import ya storages.backends.gcloud mapema
+# Hii inahakikisha darasa la GCS linapatikana kabla ya Django kutathmini settings.
+try:
+    import storages.backends.gcloud 
+except ImportError:
+    # Hii haipaswi kutokea kwani kifurushi kimesakinishwa.
+    # Tumeruhusu kupitishwa ili kuzuia kashfa isiyo ya lazima.
+    pass
+# =========================================================================
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chaguoil.settings')
 
