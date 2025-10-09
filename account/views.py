@@ -581,51 +581,42 @@ def upload_company_logo(request):
         storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
         print(f"Storage class in use: {storage_class_name}")
 
-
+        if ext not in allowed:
+            data = {
+                'success': False,
+                'eng': 'Invalid file type. Only images are allowed.',
+                'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
+            }
+            return JsonResponse(data)
       
 
         # 1. DELETE KAMA IPO (Kwa kutumia default_storage)
-        if kampuni.logo:
-            try:
-                # Delete the old logo file from storage if it exists
-                if default_storage.exists(kampuni.logo.name):
-                    default_storage.delete(kampuni.logo.name)
-                kampuni.logo.delete(save=True)
-                print(f"Old logo deleted successfully.")
-            except Exception as e:
-                print(f"Error deleting old logo: {e}")
-                pass
+
             
   
         try:
+            if kampuni.logo:
+                try:
+                    # Delete the old logo file from storage if it exists
+                    if default_storage.exists(kampuni.logo.name):
+                        default_storage.delete(kampuni.logo.name)
+                    kampuni.logo.delete(save=True)
+                    print(f"Old logo deleted successfully.")
+                except Exception as e:
+                    print(f"Error deleting old logo: {e}")
+                    pass
 
-            if ext not in allowed:
-              data = {
-                  'success': False,
-                  'eng': 'Invalid file type. Only images are allowed.',
-                  'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
-              }
-            else:  
-                  
-                  # 2. UPAKIAJI SAHIHI KWA GCS (Kwa kutumia GCS Client API)
-                  filename = f"pics/{kampuni.id}_{int(time.time())}.{ext}"
+            kampuni.logo = logo # Tunaweka jina tu, si URL kamili
+            kampuni.save()
+
+            print("NEW LOGO UPLOADED SUCCESSFULLY.")
             
-                  # KULAZIMISHA UPAKIAJI WA FILE KWA GCS KWA KUTUMIA default_storage
-                  # Hii inalazimisha backend ya GCS iendeshe save()
-                  path = default_storage.save(filename, logo)
-
-
-                  kampuni.logo.name = path # Tunaweka jina tu, si URL kamili
-                  kampuni.save()
-
-                  print("NEW LOGO UPLOADED SUCCESSFULLY.")
-                  
-                  data = {
-                      'success': True,
-                      'eng': 'Logo forced uploaded successfully .',
-                      'swa': 'Nembo imepakiwa kikamilifu .',
-                      # 'logo_url': blob.public_url # Tunapata URL moja kwa moja kutoka kwa blob
-                  }
+            data = {
+                'success': True,
+                'eng': 'Logo forced uploaded successfully .',
+                'swa': 'Nembo imepakiwa kikamilifu .',
+                # 'logo_url': blob.public_url # Tunapata URL moja kwa moja kutoka kwa blob
+            }
             return JsonResponse(data)
 
         except Exception as e:
