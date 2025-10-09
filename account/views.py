@@ -577,34 +577,12 @@ def upload_company_logo(request):
         allowed = ['jpg', 'jpeg', 'png', 'gif']
         data = {}
 
-        
-        # # try:
-        # print("MediaStorage loaded successfully from settings.DEFAULT_FILE_STORAGE.")
-        # # except Exception:
-        # #   MediaStorage = type(default_storage)
-        # #   print("MediaStorage fallback to current storage type.")
-
-        # is_gcs_storage = isinstance(default_storage, MediaStorage)
-        # print("="*80)
-        # print(f"DEBUG: default_storage is MediaStorage (GCS): {is_gcs_storage}")
-        # storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
-        # print(f"Storage class in use: {storage_class_name}")
+        # KUANGALIA AINA YA FAILI
+        storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
+        print(f"Storage class in use: {storage_class_name}")
 
 
-        # print(f"DEBUG: GCS BUCKET NAME set to: {getattr(settings, 'GS_BUCKET_NAME', 'NOT SET')}")
-        # print("="*80)
-        
-        # if not is_gcs_storage:
-        #      # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
-        #      print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
-
-        # # --- END OF DEBUGGING BLOCK ---
-
-        # if not is_gcs_storage:
-        #     # Hii inamaanisha DEFAULT_FILE_STORAGE haikupakia MediaStorage
-        #     print("!!! CRITICAL ERROR: default_storage is NOT MediaStorage. Check DEFAULT_FILE_STORAGE setting.")
-
-        # --- END OF DEBUGGING BLOCK ---
+      
 
         # 1. DELETE KAMA IPO (Kwa kutumia default_storage)
         if kampuni.logo:
