@@ -583,18 +583,25 @@ def userProfPicture(request):
       }
       return JsonResponse(data)
 
+    gcs_storage  = settings.gcs_storage_instance
+
     try:
       # Delete old image if exists
       if useri.picha:
         try:
-          if default_storage.exists(useri.picha.name):
-            default_storage.delete(useri.picha.name)
+          if gcs_storage.exists(useri.picha.name):
+            gcs_storage.delete(useri.picha.name)
+          
           useri.picha.delete(save=True)
         except Exception:
           pass
 
-      filename = f"user_profiles/{useri.id}_{int(time.time())}.{ext}"
-      path = default_storage.save(filename, image)
+
+
+      filename = f"pics/{useri.id}_{int(time.time())}.{ext}"
+
+      path = gcs_storage.save(f"media/{filename}", image)
+
       useri.picha = path
       useri.save()
 
@@ -602,7 +609,7 @@ def userProfPicture(request):
         'success': True,
         'eng': 'Profile picture uploaded successfully.',
         'swa': 'Picha ya mtumiaji imepakiwa kikamilifu.',
-        'image_url': default_storage.url(path)
+        'image_url': gcs_storage.url(path)
       }
       return JsonResponse(data)
     except Exception as e:

@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from google.oauth2 import service_account
+from storages.backends.gcloud import GoogleCloudStorage
 
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -78,8 +79,13 @@ print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
 # =======================================================
 
 
-    # Application definition
 
+# Application definition
+gcs_storage_instance = GoogleCloudStorage(
+    bucket_name=GS_BUCKET_NAME,
+    credentials=GS_CREDENTIALS,
+    location=GS_MEDIA_LOCATION 
+)
 
 
 INSTALLED_APPS = [
