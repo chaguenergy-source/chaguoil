@@ -638,8 +638,10 @@ def upload_company_logo(request):
         data = {}
 
         # KUANGALIA AINA YA FAILI
-        storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
-        print(f"Storage class in use: {storage_class_name}")
+        # storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
+        # print(f"Storage class in use: {storage_class_name}")
+        gcs_storage = settings.GCS_STORAGE_INSTANCE
+
 
         if ext not in allowed:
             data = {
@@ -658,35 +660,39 @@ def upload_company_logo(request):
             if kampuni.logo:
                 try:
                     # Delete the old logo file from storage if it exists
-                    if default_storage.exists(kampuni.logo.name):
-                        default_storage.delete(kampuni.logo.name)
+                    if gcs_storage.exists(kampuni.logo.name):
+                        gcs_storage.delete(kampuni.logo.name)
                     kampuni.logo.delete(save=True)
                     print(f"Old logo deleted successfully.")
                 except Exception as e:
                     print(f"Error deleting old logo: {e}")
                     pass
+                
+            filename = f"pics/{kampuni.id}_{int(time.time())}.{ext}"
 
-            kampuni.logo = logo # Tunaweka jina tu, si URL kamili
+            path = gcs_storage.save(filename, logo)    
+
+            kampuni.logo = path # Tunaweka jina tu, si URL kamili
             kampuni.save()
 
-            print("NEW LOGO UPLOADED SUCCESSFULLY.")
+       
             
             data = {
                 'success': True,
-                'eng': 'Logo forced uploaded successfully .',
-                'swa': 'Nembo imepakiwa kikamilifu .',
+                'eng': 'Logo uploaded successfully.',
+                'swa': 'Nembo imepakiwa kikamilifu.',
                 # 'logo_url': blob.public_url # Tunapata URL moja kwa moja kutoka kwa blob
             }
             return JsonResponse(data)
 
         except Exception as e:
             # HII NDIYO TRACEBACK TUNAYOHITAJI KUONA KOSA KAMILI LA GCS API!
-            print("="*80)
-            print("!!! CRITICAL GCS UPLOAD FAILURE TRACEBACK !!!")
+            # print("="*80)
+            # print("!!! CRITICAL GCS UPLOAD FAILURE TRACEBACK !!!")
             import traceback
             
             traceback.print_exc()
-            print("="*80)
+            # print("="*80)
             data = {
                 'success': False,
                 'eng': 'CRITICAL UPLOAD ERROR. Check Gunicorn logs immediately!',
