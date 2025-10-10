@@ -78,13 +78,12 @@ print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
 # --- END GOOGLE CLOUD STORAGE SETTINGS ---
 # =======================================================
 
-
-
 # Application definition
-gcs_storage_instance = GoogleCloudStorage(
+
+GCS_STORAGE_INSTANCE = GoogleCloudStorage(
     bucket_name=GS_BUCKET_NAME,
     credentials=GS_CREDENTIALS,
-    location=GS_MEDIA_LOCATION 
+    location=GS_MEDIA_LOCATION
 )
 
 

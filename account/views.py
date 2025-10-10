@@ -583,7 +583,7 @@ def userProfPicture(request):
       }
       return JsonResponse(data)
 
-    gcs_storage  = settings.gcs_storage_instance
+    gcs_storage = settings.GCS_STORAGE_INSTANCE
 
     try:
       # Delete old image if exists
