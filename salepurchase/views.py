@@ -4061,3 +4061,75 @@ def puReceive(request):
     except:
         return render(request,'pagenotFound.html')
   
+@login_required(login_url='login')
+def search_records(request):
+    keyword = request.POST.get('search', '').strip()
+    todo = todoFunct(request)
+    kampuni = todo['kampuni']
+    general = todo['general']
+    shell = todo.get('shell', None)
+
+    result = None
+    model = None
+    if '-' in keyword:
+        prefix, num = keyword.split('-', 1)
+        num = num.strip()
+        prefix = prefix.strip().upper()
+      
+        if prefix and num:
+
+            if prefix == 'INVO':
+                model = fuelSales
+                qs = model.objects.filter(code__endswith=num, by__Interprise__company=kampuni)
+                if not general and shell:
+                    qs = qs.filter(by__Interprise=shell.id)
+                result = qs.last()
+            elif prefix == 'PTR':
+                model = TransferFuel
+                qs = model.objects.filter(code__endswith=num, record_by__Interprise__company=kampuni)
+                if not general and shell:
+                    qs = qs.filter(record_by__Interprise=shell.id)
+                result = qs.last()
+            elif prefix == 'TTR':
+                model = ReceveFuel
+                qs = model.objects.filter(code__endswith=num, by__Interprise__company=kampuni)
+                if not general and shell:
+                    qs = qs.filter(by__Interprise=shell.id)
+                result = qs.last()
+            elif prefix == 'ADJ':
+                model = adjustments
+                qs = model.objects.filter(code__endswith=num, Interprise__company=kampuni)
+                if not general and shell:
+                    qs = qs.filter(Interprise=shell.id)
+                result = qs.last()
+            elif prefix == 'PU':
+                model = Purchases
+                qs = model.objects.filter(code__endswith=num, record_by__company=kampuni)
+                result = qs.last()
+            elif prefix == 'SHF':
+                model = shifts
+                qs = model.objects.filter(code__endswith=num, record_by__Interprise__company=kampuni)
+                if not general and shell:
+                    qs = qs.filter(record_by__Interprise=shell.id)
+                result = qs.last()
+
+    # Return JSON response with redirect URL
+    if result and model:
+        if model == fuelSales:
+            theUrl = f'/salepurchase/viewFuelSales?i={result.id}'
+        elif model == TransferFuel:
+            theUrl = f'/salepurchase/viewTransfer?i={result.id}'
+        elif model == ReceveFuel:
+            theUrl = f'/salepurchase/viewFuelReceive?i={result.id}'
+        elif model == adjustments:
+            theUrl = f'/salepurchase/adjView?i={result.id}'
+        elif model == Purchases:
+            theUrl = f'/salepurchase/viewPurchase?i={result.id}'
+        elif model == shifts:
+            theUrl = f'/salepurchase/viewShift?i={result.id}'
+        else:
+            theUrl = ''
+        return JsonResponse({"success": True, "url": theUrl})# Redirect to the appropriate view
+
+    else:
+        return JsonResponse({"success": False, "url": ''})

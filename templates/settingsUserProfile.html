@@ -1,0 +1,161 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="/settings"> {% if useri.langSet == 0 %}Mpangilio {% else %} Settings{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+   
+
+
+</div>
+
+<div class="table-data">
+    <div class="order">
+    <div class="user-profile-container" style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+        <div class="user-profile-picture" role="button" data-toggle="modal"  data-target="#userProfPictureModal"  style="flex-shrink: 0;">
+            {% if useri.picha %}
+                <img src="{{ useri.picha.url }}" alt="Profile Picture" style="width:120px; height:120px; object-fit:cover; border-radius:50%; border:2px solid #eee;">
+            {% else %}
+                <img src="{% static 'pics/userlogo.png' %}" alt="Profile Picture" style="width:120px; height:120px; object-fit:cover; border-radius:50%; border:2px solid #eee;">
+            {% endif %}
+        </div>
+        <div class="user-profile-details" style="min-width: 200px;">
+            <h3 style="margin:0 0 0.5rem 0;">{{ useri.user.first_name | title }} {{ useri.user.last_name | title }}</h3>
+            <p style="margin:0.2rem 0;"><strong>Position:</strong> {{ useri.cheo|default:"Not specified" }}</p>
+            <p style="margin:0.2rem 0;"><strong>Email:</strong> {{ useri.user.email }}</p>
+            <p style="margin:0.2rem 0;"><strong>Phone:</strong> {{ useri.phone|default:"-" }}</p>
+        </div>
+    </div>
+    </div>
+</div>
+
+
+    <!-- User profile picture Modal -->
+    <div class="modal fade" id="userProfPictureModal" tabindex="-1" role="dialog" aria-labelledby="userProfPictureLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userProfPictureLabel">
+                        {% if useri.langSet == 0 %}Badilisha Picha yako {% else %}Change your plofile image {% endif %}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="userImageForm" action="/userProfPicture" enctype="multipart/form-data" method="post">
+                            {% csrf_token %}
+                            <div class="form-group text-center">
+                                   
+                                    <label  for="userProfPicture" style="width:150px;height:150px;" id="theUserLogo">
+                                            {% if useri.picha %}
+                                                    <img src="{{ useri.picha.url }}" alt="Company Logo" style="max-width:100%;object-fit:contain;">
+                                            {% else %}
+                                                    <u class="p-2 cursor-pointer">{% if useri.langSet == 0 %}Bonyeza Kuongeza Picha{% else %}Click to Add Image{% endif %}</u>
+                                            {% endif %}
+                                    </label>
+                                    <input type="file" hidden class="form-control" id="userProfPicture" name="userProfPicture" accept="image/*" required>
+                            </div>
+                            <div class="text-right">
+                                 <button type="submit" class="btn btn-primary">
+                                    {% if useri.langSet == 0 %}Pakia Picha{% else %}Upload Image{% endif %}
+                                </button>
+                            </div>
+                            
+                            <div id="uploadStatus" style="margin-top:10px;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+
+         $('#userProfPicture').on('change', function() {
+            var file = this.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#theUserLogo').html('<img src="' + e.target.result + '" alt="Company Logo" style="max-width:100%;object-fit:contain;">');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                $('#theUserLogo').html('<span>{% if useri.langSet == 0 %}Bonyeza Kuongeza Nembo{% else %}Click to Add Logo{% endif %}</span>');
+            }
+        });
+
+
+        $('#userImageForm').on('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $('#userProfPictureModal').modal('hide')
+            $('#loadMe').modal('show')
+            $('#uploadStatus').html('<span style="color:gray;">Uploading...</span>');
+            $.ajax({
+                url: $(this).attr('action'), // assumes current page handles upload
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(resp) {
+                     $('#loadMe').modal('hide')
+                     hideLoading()
+                     const msg = lang(resp.swa,resp.eng)
+                     if(resp.success){
+                        
+                        toastr.success(msg,lang('Imefanikiwa','Success'),{timeOut:3000});
+                         location.reload();
+
+                     }else{
+                        toastr.error(msg,lang('Imeshindikana','Failed'),{timeOut:3000});
+                     }
+                     
+                    
+                },
+                error: function(xhr) {
+                     $('#userProfPictureModal').modal('hide')
+                     $('#loadMe').modal('show')
+
+                    let msg = 'Upload failed. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        msg = xhr.responseJSON.error;
+                    }
+                    $('#uploadStatus').html('<span style="color:red;">' + msg + '</span>');
+                }
+            });
+        });
+
+        // Optional: trigger file input when label is clicked
+        $('#thecompayLogo').on('click', function() {
+            $('#userProfPicture').click();
+        });
+    });
+    </script>
+
+{% endblock %}
+
+{% block additionaljs %}
+ <!-- <script src="/static/js/settings.js"></script> -->
+
+{% endblock %}
+
+{% block settings %} active  {% endblock %}

@@ -28,7 +28,8 @@ urlpatterns=[
     path('settings',views.kuseti, name='settings'),
     path('companyDetails',views.companyDetails, name='companyDetails'),
     path('upload_company_logo',views.upload_company_logo, name='upload_company_logo'),
-
+    path('UserProfile',views.UserProfile, name='UserProfile'),  
+    path('userProfPicture',views.userProfPicture, name='userProfPicture'),  
  
 
 ]

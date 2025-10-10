@@ -39,7 +39,7 @@ try:
     GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GCS_CREDENTIALS_FILE)
     print(">>> GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
 except FileNotFoundError:
-     raise ImproperlyConfigured(
+    raise ImproperlyConfigured(
         f"GCS Service Account JSON file not found at {GCS_CREDENTIALS_FILE}"
     )
 
@@ -57,6 +57,8 @@ except FileNotFoundError:
 # Hii huepuka matatizo yote ya ImportError
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage' 
+
+
 # KUWEKA LOCATIONS BAADA YA KUFAFANUA CLASS
 # Hizi ndizo zinazobainisha kuwa faili za media zitawekwa kwenye saraka ya 'media'
 # na static kwenye saraka ya 'static'
@@ -76,7 +78,9 @@ print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
 # =======================================================
 
 
-# Application definition
+    # Application definition
+
+
 
 INSTALLED_APPS = [
     # Weka 'storages' HAPA MWANZO
@@ -134,6 +138,20 @@ DATABASES = {
     }
 }
 
+
+# DATABASES = {
+
+#         'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         # 'NAME': 'chaguoil',
+#         'NAME': 'mafuta',
+#         'USER': 'postgres',
+#         'PASSWORD' : '1152',
+#         'HOST' : 'localhost'
+
+#  }
+
+# }
 
 # Password validation (Hakuna mabadiliko hapa)
 AUTH_PASSWORD_VALIDATORS = [

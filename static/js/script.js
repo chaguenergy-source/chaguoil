@@ -30,20 +30,23 @@ menuBar.addEventListener('click', function () {
 
 const searchButton = document.querySelector('#content nav form .form-input button');
 const searchButtonIcon = document.querySelector('#content nav form .form-input button .bx');
-const searchForm = document.querySelector('#content nav form');
+const searchForm = document.querySelector('#mobile-search-form');
 
-searchButton.addEventListener('click', function (e) {
-	if(window.innerWidth < 576) {
-		e.preventDefault();
-		searchForm.classList.toggle('show');
+// searchButton.addEventListener('click', function (e) {
+// 	if(window.innerWidth < 576) {
+// 		e.preventDefault();
+// 		searchForm.classList.toggle('show');
 
-		// if(searchForm.classList.contains('show')) {
-		// 	searchButtonIcon.classList.replace('bx-search', 'bx-x');
-		// } else {
-		// 	searchButtonIcon.classList.replace('bx-x', 'bx-search');
-		// }
-	}
-})
+// 		console.log('Search button clicked');
+// 		searchForm.classList.toggle('show');
+
+// 		// if(searchForm.classList.contains('show')) {
+// 		// 	searchButtonIcon.classList.replace('bx-search', 'bx-x');
+// 		// } else {
+// 		// 	searchButtonIcon.classList.replace('bx-x', 'bx-search');
+// 		// }
+// 	}
+// })
 
 
 

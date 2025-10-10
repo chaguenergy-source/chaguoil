@@ -502,6 +502,11 @@ def companyDetails(request):
    todo = todoFunct(request)
    return render(request,'settingCompanyDetails.html',todo)
 
+@login_required(login_url='login')
+def UserProfile(request):
+   todo = todoFunct(request)
+   return render(request,'settingsUserProfile.html',todo)
+
 
 # @login_required(login_url='login')
 # def upload_company_logo(request):
@@ -560,7 +565,55 @@ def companyDetails(request):
 #         # Ikiwa sio POST, bado unaweza kutaka kurudisha ukurasa wa logo
 #         return render(request, 'pagenotFound.html')
 
+@login_required(login_url='login')
+def userProfPicture(request):
+  if request.method == 'POST' and request.FILES.get('userProfPicture'):
+    todo = todoFunct(request)
+    useri = todo['useri']
+    image = request.FILES['userProfPicture']
+    ext = image.name.split('.')[-1].lower()
+    allowed = ['jpg', 'jpeg', 'png', 'gif']
+    data = {}
 
+    if ext not in allowed:
+      data = {
+        'success': False,
+        'eng': 'Invalid file type. Only images are allowed.',
+        'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
+      }
+      return JsonResponse(data)
+
+    try:
+      # Delete old image if exists
+      if useri.picha:
+        try:
+          if default_storage.exists(useri.picha.name):
+            default_storage.delete(useri.picha.name)
+          useri.picha.delete(save=True)
+        except Exception:
+          pass
+
+      filename = f"user_profiles/{useri.id}_{int(time.time())}.{ext}"
+      path = default_storage.save(filename, image)
+      useri.picha = path
+      useri.save()
+
+      data = {
+        'success': True,
+        'eng': 'Profile picture uploaded successfully.',
+        'swa': 'Picha ya mtumiaji imepakiwa kikamilifu.',
+        'image_url': default_storage.url(path)
+      }
+      return JsonResponse(data)
+    except Exception as e:
+      data = {
+        'success': False,
+        'eng': f'Error uploading image: ',
+        'swa': f'Hitilafu katika kupakia picha: '
+      }
+      return JsonResponse(data)
+  else:
+    return render(request, 'pagenotFound.html')
 
 # Chukua BASE_DIR kutoka settings (kwa sababu ya msimbo wa GCS)
 BASE_DIR = settings.BASE_DIR

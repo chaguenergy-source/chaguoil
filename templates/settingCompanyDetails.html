@@ -17,7 +17,7 @@
                 </svg>
             </li>
             <li>
-                <a class="active" href="#"> {% if useri.langSet == 0 %}Mpangilio {% else %} Settings{% endif %}</a>
+                <a class="active" href="/settings"> {% if useri.langSet == 0 %}Mpangilio {% else %} Settings{% endif %}</a>
             </li>
         </ul>
     </div>
@@ -29,6 +29,8 @@
 
 <div class="table-data">
     <div class="order">
+
+
          <h4>{% if useri.langSet == 0 %}Nembo ya Kampuni{% else %}Company Logo{% endif %}</h4>
            <div role="button" data-toggle="modal" data-target="#companyLogoModal" style="width:200px" class=" px-3"  >
                         {% if useri.company.logo %}

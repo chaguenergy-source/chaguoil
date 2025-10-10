@@ -56,6 +56,7 @@ urlpatterns=[
         path('lipaBill',views.lipaBill, name='lipaBill'),
         path('puReceive',views.puReceive, name='puReceive'),
         path('puClosed',views.puClosed, name='puClosed'),
+        path('search_records',views.search_records, name='search_records'),
      
 
 ]

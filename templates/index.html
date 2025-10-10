@@ -236,9 +236,10 @@
 				</svg>
 			</i>
 
-			<form action="#">
+			<form action="/salepurchase/search_records" id="search-submit-form" method="POST" >
+				{% csrf_token %}
 				<div class="form-input">
-					<input type="search" placeholder="Search...">
+					<input type="search" id="search-input" placeholder="Search...">
 					<button type="submit" class="search-btn">
 						<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search">
 							<circle cx="11" cy="11" r="8"></circle>
@@ -246,7 +247,83 @@
 						</svg>
 					</button>
 				</div>
+
+				<!-- Mobile Search Form -->
+				<div id="mobile-search-form" class="d-md-none  position-absolute w-100" style="top:0;left:0;z-index:999;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.1);padding:10px;display:none;">
+					<div class="d-flex align-items-center">
+						<button type="button" id="mobile-search-back" class="btn btn-light mr-2">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" fill="currentColor" viewBox="0 0 16 16">
+								<path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H3.707l4.147 4.146a.5.5 0 0 1-.708.708l-5-5a.5.5 0 0 1 0-.708l5-5a.5.5 0 1 1 .708.708L3.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+							</svg>
+						</button>
+						<input type="search" id="mobile-search-input" class="form-control mx-2" placeholder="Search...">
+						<button type="submit" id="mobile-search-btn" class="btn btn-primary ml-2">
+							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search" viewBox="0 0 24 24">
+								<circle cx="11" cy="11" r="8"></circle>
+								<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+							</svg>
+						</button>
+					</div>
+				</div>				
 			</form>
+
+
+			<script>
+				// Show mobile search form when search button is clicked (on mobile)
+				$(function(){
+					
+
+					$('#mobile-search-back').on('click', function(){
+						$('#mobile-search-form').fadeOut(200);
+					});
+
+					$('#content nav form .form-input button').on('click', function(e){
+						if(window.innerWidth < 576){
+							e.preventDefault();
+							$('#mobile-search-form').fadeIn(200);
+							$('#mobile-search-input').focus();
+						}
+					});
+
+					$('#search-submit-form').on('submit', function(e){
+						e.preventDefault();
+
+						const search = window.innerWidth < 576?$('#mobile-search-input').val():$('#search-input').val();
+						if(!search.trim()) return;
+						$('#loadMe').modal('show');
+						const url = $(this).attr('action');
+						const data = {
+							data:{search},
+							url
+						};
+						const sendIt = POSTREQUEST(data);
+						sendIt.then(res=>{
+							$('#loadMe').modal('hide');
+							hideLoading();
+
+							if(res.success){
+								window.location.href = res.url;
+							}else{
+								const msg = `{% if useri.langSet == 0 %}hakuna matokeo yaliyopatikana. Jaribu tena{% else %} No results found. Please try again {% endif %}`;
+								toastr.error(msg, '', { timeOut: 3000 });
+							}
+						}).catch(err=>{
+							toastr.error('Network Error. Please try again.');
+						});
+                    
+
+
+
+
+						// You may want to add AJAX here if needed
+					});
+				});
+
+
+
+
+
+			</script>
 
             <div class="dropdown smallFont">
 					<a href="#" type="button" style="border-radius:30px;" class="btn-sm dropdown-toggle  btn-primary  text-light smallerFont weight200 nav-link" data-toggle="dropdown">
@@ -420,7 +497,7 @@
 			     	<span class="num">{{notify}}</span>
 				{% endif %}	
 			</a>
-			<a href="#" title="{{useri.user.first_name | title}}" class="profile">
+			<a href="/UserProfile" title="{{useri.user.first_name | title}} {{useri.user.last_name | title}} " class="profile">
 				<img src=" {% if useri.picha.url is not null %}{{ useri.picha.url }}{% else %}{% static 'pics/userlogo.png' %}{% endif %}">
 			</a>
 		</nav>
