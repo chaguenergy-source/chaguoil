@@ -2289,12 +2289,19 @@ def addAttach(request):
             todo = todoFunct(request)
             manager = todo['manager']
             useri = todo['useri']
+            kampuni = todo['kampuni']
                   
             if useri.admin or manager:
+                gcs_storage = settings.GCS_STORAGE_INSTANCE
+                ext = file.name.split('.')[-1]
+                filename = f"attachments/{kampuni.id}_{int(time.time())}.{ext}"
+                path = gcs_storage.save(filename, file)
+
                 att = attachments()
-                att.file = file
+                att.file = path
                 att.date = datetime.datetime.now(tz=timezone.utc)
                 att.by = useri
+
                 att.printedDocu = printDoc
                 att.attach_name = attName
 
