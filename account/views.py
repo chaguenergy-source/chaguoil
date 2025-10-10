@@ -600,7 +600,7 @@ def userProfPicture(request):
 
       filename = f"pics/{useri.id}_{int(time.time())}.{ext}"
 
-      path = gcs_storage.save(f"media/{filename}", image)
+      path = gcs_storage.save(filename, image)
 
       useri.picha = path
       useri.save()
