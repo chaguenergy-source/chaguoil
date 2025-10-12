@@ -1,0 +1,44 @@
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        /* Ufafanuzi wa muundo wa nembo */
+        .icon-symbol {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            width: 48px;
+            border-radius: 12px;
+            font-weight: 900;
+        }
+
+        .fuel-pump-svg {
+            width: 2.2rem;
+            height: 2.2rem;
+        }
+
+        .bg-blue-600{
+            background-color: #2563eb;
+        }
+
+        .text-orange-600{
+            color: #f97316;
+        }
+
+        .text-gray-800{
+            color: #1e293b;
+        }
+
+        .tracking-tight{
+            letter-spacing: -0.025em;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            font-size: 2rem;
+        }
