@@ -148,7 +148,7 @@ def login(request):
 def register(request):
   users = UserExtend.objects.all()
   if users.exists():
-    return redirect('/login')
+    return redirect('/')
 
   if request.user.is_authenticated:
      return redirect('userdash')

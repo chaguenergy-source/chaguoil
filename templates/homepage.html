@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-key="pageTitle">CFSPump - Mfumo wa Usimamizi wa Vituo vya Mafuta</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Font (Inter) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        /* Gradient kwa Button - Bluu */
+        .btn-primary {
+            /* Kutoka #007bff kwenda #0056b3 */
+            background-image: linear-gradient(to right, #007bff 0%, #0056b3 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            /* Shadow ya Bluu */
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4); 
+            transform: translateY(-1px);
+        }
+        /* Rangi ya Kifaa */
+        .text-primary-blue {
+            color: #007bff;
+        }
+        .bg-dark-blue {
+            background-color: #0056b3;
+        }
+        .border-primary-blue {
+            border-color: #007bff;
+        }
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Header / Navigation -->
+    <header class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-extrabold text-primary-blue">CFSPump</h1>
+            <nav class="space-x-4 flex items-center">
+                <a href="#huduma" data-key="navFeatures" class="text-gray-600 hover:text-primary-blue font-medium transition duration-150">Huduma</a>
+                <a href="#ripoti" data-key="navReports" class="text-gray-600 hover:text-primary-blue font-medium transition duration-150">Ripoti</a>
+                
+                <!-- Language Selector -->
+                <select id="language-selector" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-blue cursor-pointer">
+                    <option value="sw">Kiswahili</option>
+                    <option value="en">English</option>
+                </select>
+
+                <button data-key="loginButton" class="btn-primary text-white px-6 py-2 rounded-full font-semibold shadow-lg ml-4">Ingia kwenye Mfumo</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="bg-gray-50 py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="w-full md:w-3/4 mx-auto">
+                    <h2 data-key="heroTitle" class="text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
+                        Simamia Kituo Chako cha Mafuta kwa <span class="text-primary-blue">Ufanisi na Dijitali</span>
+                    </h2>
+                    <p data-key="heroSubtitle" class="text-xl text-gray-600 mb-8">
+                        CFSPump ni mfumo kamili wa usimamizi unaounganisha matawi (stations) yote ya mafuta, kurahisisha shughuli, na kutoa ripoti za kina popote ulipo.
+                    </p>
+                    <button data-key="heroCta" class="btn-primary text-white text-lg px-10 py-3 rounded-full font-bold shadow-xl">
+                        Anza Jaribio la Wiki 2 Bila Malipo
+                    </button>
+                    <p data-key="heroNote" class="mt-4 text-sm text-gray-500">Mfumo Salama, Unaoendeshwa na GCP Cloud SQL.</p>
+                </div>
+                <!-- Picha ya Mfumo au Dashibodi (Placeholder) -->
+                <div class="mt-12 bg-white p-6 rounded-xl shadow-2xl border-4 border-primary-blue/50">
+                    <img src="https://placehold.co/1200x550/e0efff/007bff?text=Dashibodi+Ya+CFSPump" alt="Mfumo wa CFSPump" class="rounded-lg w-full">
+                </div>
+            </div>
+        </section>
+
+        <!-- Huduma Kuu Section -->
+        <section id="huduma" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 data-key="featuresTitle" class="text-4xl font-extrabold text-center text-gray-900 mb-12">
+                    Huduma Muhimu za Usimamizi wa Kila Siku
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Kadi 1: Wafanyakazi na Zamu -->
+                    <div class="feature-card p-6 bg-gray-50 rounded-xl shadow-lg border-t-4 border-primary-blue">
+                        <div class="text-3xl text-primary-blue mb-3">🧑‍🤝‍🧑</div>
+                        <h4 data-key="card1Title" class="text-xl font-semibold text-gray-900 mb-3">Usimamizi wa Watumiaji & Zamu</h4>
+                        <ul class="text-gray-600 space-y-2 list-disc ml-5" data-key="card1List">
+                            <li>Kusimamia watumiaji na kuwapa ruhusa maalum.</li>
+                            <li>Upangaji na ufuatiliaji wa **zamu** za pampu kwa uwazi.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Kadi 2: Mauzo na Malipo -->
+                    <div class="feature-card p-6 bg-gray-50 rounded-xl shadow-lg border-t-4 border-yellow-500">
+                        <div class="text-3xl text-yellow-600 mb-3">💰</div>
+                        <h4 data-key="card2Title" class="text-xl font-semibold text-gray-900 mb-3">Mapato, Matumizi, na Madeni</h4>
+                        <ul class="text-gray-600 space-y-2 list-disc ml-5" data-key="card2List">
+                            <li>Kurekodi na kufuatilia **mapato** yote ya mauzo.</li>
+                            <li>Kurekodi **matumizi** madogo madogo ya kituo.</li>
+                            <li>Usimamizi wa **madeni** na malipo ya wateja (credit sales).</li>
+                        </ul>
+                    </div>
+
+                    <!-- Kadi 3: Logistiki na Stock -->
+                    <div class="feature-card p-6 bg-gray-50 rounded-xl shadow-lg border-t-4 border-red-500">
+                        <div class="text-3xl text-red-600 mb-3">⛽</div>
+                        <h4 data-key="card3Title" class="text-xl font-semibold text-gray-900 mb-3">Usimamizi wa Mafuta (Stock)</h4>
+                        <ul class="text-gray-600 space-y-2 list-disc ml-5" data-key="card3List">
+                            <li>Kurekodi manunuzi na **kuongeza mafuta** kwenye matanki.</li>
+                            <li>Kufanya **uhamisho** kati ya matanki kwa urahisi.</li>
+                            <li>Kurekodi **upotevu** wa mafuta kwa usahihi (Dip Readings vs. Sales).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ripoti na Usimamizi wa Matawi Section -->
+        <section id="ripoti" class="py-20 bg-blue-50"> <!-- Light blue background -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="lg:flex lg:items-center lg:space-x-12">
+                    
+                    <!-- Text Content -->
+                    <div class="lg:w-1/2 mb-10 lg:mb-0">
+                        <h3 data-key="reportsTitle" class="text-4xl font-extrabold text-gray-900 mb-6">
+                            Ripoti za Kina & Usimamizi wa Matawi Yote
+                        </h3>
+                        <p data-key="reportsSubtitle" class="text-xl text-gray-700 mb-6">
+                            CFSPump inatoa uwezo wa kipekee wa kuona shughuli zote za kampuni yako ya mafuta kwa wakati halisi.
+                        </p>
+                        <ul class="space-y-4 text-gray-700 font-medium">
+                            <li class="flex items-start space-x-3">
+                                <span class="text-xl text-primary-blue font-extrabold mt-1">✓</span>
+                                <div data-key="reportItem1">
+                                    <strong class="text-gray-900">Ripoti za Kina za Kifedha:</strong> Pata ripoti za Mapato na Matumizi, Gross Profit, na Cash Flow kwa tawi moja au matawi yote kwa ujumla.
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <span class="text-xl text-primary-blue font-extrabold mt-1">✓</span>
+                                <div data-key="reportItem2">
+                                    <strong class="text-gray-900">Usimamizi wa Multi-Branch:</strong> Mkurugenzi wa Kampuni anaweza kupata ripoti zote za **matawi yote** popote alipo duniani.
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <span class="text-xl text-primary-blue font-extrabold mt-1">✓</span>
+                                <div data-key="reportItem3">
+                                    <strong class="text-gray-900">Ulinzi wa Upotevu:</strong> Fanya ulinganifu wa data ya pampu na mafuta yaliyopo kwenye matanki ili kubaini haraka upotevu wowote.
+                                </div>
+                            </li>
+                        </ul>
+                        <button data-key="reportsCta" class="mt-8 btn-primary text-white text-lg px-8 py-3 rounded-full font-bold shadow-xl">
+                            Omba Demo ya Mfumo
+                        </button>
+                    </div>
+
+                    <!-- Image Placeholder for Reports -->
+                    <div class="lg:w-1/2">
+                        <img src="https://placehold.co/600x400/007bff/ffffff?text=Ripoti+Zinazoonekana+Popote" alt="Ripoti za Mfumo wa CFSPump" class="rounded-xl shadow-2xl w-full">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action Footer -->
+        <section class="bg-dark-blue py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h3 data-key="footerCtaTitle" class="text-3xl font-extrabold text-white mb-4">
+                    Usipoteze Tena! Tumia CFSPump Leo.
+                </h3>
+                <p data-key="footerCtaSubtitle" class="text-lg text-white/90 mb-6">
+                    Wasiliana nasi ili kuanza safari ya kubadilisha usimamizi wa kituo chako cha mafuta.
+                </p>
+                <button data-key="footerCtaButton" class="bg-white text-primary-blue text-lg px-8 py-3 rounded-full font-bold shadow-xl hover:bg-gray-100 transition duration-150">
+                    Wasiliana Nasi
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+            &copy; 2025 CFSPump Management System. <span data-key="footerRights">Haki zote zimehifadhiwa.</span>
+        </div>
+    </footer>
+
+    <!-- Language Switching Script (No change to logic, only text content) -->
+    <script>
+        // Mkusanyiko wa tafsiri za lugha
+        const translations = {
+            'sw': {
+                // Header & Navigation
+                pageTitle: 'CFSPump - Mfumo wa Usimamizi wa Vituo vya Mafuta',
+                navFeatures: 'Huduma',
+                navReports: 'Ripoti',
+                loginButton: 'Ingia kwenye Mfumo',
+                // Hero Section
+                heroTitle: 'Simamia Kituo Chako cha Mafuta kwa <span class="text-primary-blue">Ufanisi na Dijitali</span>',
+                heroSubtitle: 'CFSPump ni mfumo kamili wa usimamizi unaounganisha matawi (stations) yote ya mafuta, kurahisisha shughuli, na kutoa ripoti za kina popote ulipo.',
+                heroCta: 'Anza Jaribio la Wiki 2 Bila Malipo',
+                heroNote: 'Mfumo Salama, Unaoendeshwa na GCP Cloud SQL.',
+                // Features Section
+                featuresTitle: 'Huduma Muhimu za Usimamizi wa Kila Siku',
+                card1Title: 'Usimamizi wa Watumiaji & Zamu',
+                card1List: [
+                    'Kusimamia watumiaji na kuwapa ruhusa maalum.',
+                    'Upangaji na ufuatiliaji wa **zamu** za pampu kwa uwazi.'
+                ],
+                card2Title: 'Mapato, Matumizi, na Madeni',
+                card2List: [
+                    'Kurekodi na kufuatilia **mapato** yote ya mauzo.',
+                    'Kurekodi **matumizi** madogo madogo ya kituo.',
+                    'Usimamizi wa **madeni** na malipo ya wateja (credit sales).'
+                ],
+                card3Title: 'Usimamizi wa Mafuta (Stock)',
+                card3List: [
+                    'Kurekodi manunuzi na **kuongeza mafuta** kwenye matanki.',
+                    'Kufanya **uhamisho** kati ya matanki kwa urahisi.',
+                    'Kurekodi **upotevu** wa mafuta kwa usahihi (Dip Readings vs. Sales).'
+                ],
+                // Reports Section
+                reportsTitle: 'Ripoti za Kina & Usimamizi wa Matawi Yote',
+                reportsSubtitle: 'CFSPump inatoa uwezo wa kipepee wa kuona shughuli zote za kampuni yako ya mafuta kwa wakati halisi.',
+                reportItem1: '<strong class="text-gray-900">Ripoti za Kina za Kifedha:</strong> Pata ripoti za Mapato na Matumizi, Gross Profit, na Cash Flow kwa tawi moja au matawi yote kwa ujumla.',
+                reportItem2: '<strong class="text-gray-900">Usimamizi wa Multi-Branch:</strong> Mkurugenzi wa Kampuni anaweza kupata ripoti zote za **matawi yote** popote alipo duniani.',
+                reportItem3: '<strong class="text-gray-900">Ulinzi wa Upotevu:</strong> Fanya ulinganifu wa data ya pampu na mafuta yaliyopo kwenye matanki ili kubaini haraka upotevu wowote.',
+                reportsCta: 'Omba Demo ya Mfumo',
+                // Footer CTA
+                footerCtaTitle: 'Usipoteze Tena! Tumia CFSPump Leo.',
+                footerCtaSubtitle: 'Wasiliana nasi ili kuanza safari ya kubadilisha usimamizi wa kituo chako cha mafuta.',
+                footerCtaButton: 'Wasiliana Nasi',
+                // Footer
+                footerRights: 'Haki zote zimehifadhiwa.',
+            },
+            'en': {
+                // Header & Navigation
+                pageTitle: 'CFSPump - Filling Station Management System',
+                navFeatures: 'Features',
+                navReports: 'Reports',
+                loginButton: 'Login to System',
+                // Hero Section
+                heroTitle: 'Manage Your Filling Station with <span class="text-primary-blue">Efficiency and Digitalization</span>',
+                heroSubtitle: 'CFSPump is a complete management system that connects all fuel branches (stations), simplifying operations and providing detailed reports wherever you are.',
+                heroCta: 'Start Your 2-Week Free Trial',
+                heroNote: 'Secure System, Powered by GCP Cloud SQL.',
+                // Features Section
+                featuresTitle: 'Essential Daily Management Services',
+                card1Title: 'User & Shift Management',
+                card1List: [
+                    'Managing users and assigning specific permissions.',
+                    'Scheduling and monitoring pump **shifts** with clarity.'
+                ],
+                card2Title: 'Revenue, Expenses, and Debts',
+                card2List: [
+                    'Recording and tracking all sales **revenue**.',
+                    'Recording minor operational **expenses**.',
+                    'Managing **debts** and customer payments (credit sales).'
+                ],
+                card3Title: 'Fuel Management (Stock)',
+                card3List: [
+                    'Recording purchases and **adding fuel** to tanks.',
+                    'Easily performing **transfers** between tanks.',
+                    'Accurate recording of fuel **loss** (Dip Readings vs. Sales).'
+                ],
+                // Reports Section
+                reportsTitle: 'In-Depth Reports & Multi-Branch Management',
+                reportsSubtitle: 'CFSPump offers a unique ability to view all company fuel operations in real-time.',
+                reportItem1: '<strong class="text-gray-900">Detailed Financial Reports:</strong> Get Revenue and Expense reports, Gross Profit, and Cash Flow for a single branch or all branches combined.',
+                reportItem2: '<strong class="text-gray-900">Multi-Branch Management:</strong> The Company Director can access all reports for **all branches** from anywhere in the world.',
+                reportItem3: '<strong class="text-gray-900">Loss Prevention:</strong> Compare pump data with actual fuel in tanks to quickly identify any loss.',
+                reportsCta: 'Request a System Demo',
+                // Footer CTA
+                footerCtaTitle: 'Stop Losing Out! Use CFSPump Today.',
+                footerCtaSubtitle: 'Contact us to begin the journey of transforming your filling station management.',
+                footerCtaButton: 'Contact Us',
+                // Footer
+                footerRights: 'All rights reserved.',
+            }
+        };
+
+        const selector = document.getElementById('language-selector');
+        
+        // 1. Chagua lugha iliyohifadhiwa, au tumia Kiswahili kama default
+        let currentLang = localStorage.getItem('cfspump_lang') || 'sw';
+        selector.value = currentLang;
+
+        function updateContent(lang) {
+            const t = translations[lang];
+
+            // Badilisha Kichwa cha Ukurasa
+            document.title = t.pageTitle;
+            document.documentElement.lang = lang;
+            document.querySelector('[data-key="pageTitle"]').textContent = t.pageTitle;
+
+            // Badilisha vipengele vyote vyenye 'data-key'
+            for (const key in t) {
+                const elements = document.querySelectorAll(`[data-key="${key}"]`);
+                elements.forEach(el => {
+                    // Kwa content ya kawaida
+                    if (typeof t[key] === 'string' && key.endsWith('Title') || key.endsWith('Subtitle') || key.endsWith('Cta') || key.endsWith('Note') || key.endsWith('Button') || key === 'navFeatures' || key === 'navReports' || key === 'loginButton' || key === 'footerRights') {
+                         el.innerHTML = t[key]; // Tumia innerHTML kwa sababu ya <span> ndani ya HeroTitle
+                    }
+                    
+                    // Kwa orodha (List items)
+                    if (Array.isArray(t[key])) {
+                        el.innerHTML = t[key].map(item => `<li>${item}</li>`).join('');
+                    }
+                });
+            }
+            // Update the link href for navigation
+            document.querySelector('a[href="#huduma"]').textContent = t.navFeatures;
+            document.querySelector('a[href="#ripoti"]').textContent = t.navReports;
+        }
+
+        // 2. Kazi ya kubadilisha lugha
+        selector.addEventListener('change', (e) => {
+            const newLang = e.target.value;
+            localStorage.setItem('cfspump_lang', newLang);
+            updateContent(newLang);
+        });
+
+        // 3. Fanya update mara moja wakati ukurasa unapopakia
+        window.onload = () => {
+             updateContent(currentLang);
+        };
+    </script>
+
+</body>
+</html>
