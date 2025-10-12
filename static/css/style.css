@@ -288,9 +288,10 @@ color: var(--bluePrint) !important;
 	box-sizing: content-box;
 }
 #sidebar .brand .bx {
-	min-width: 60px;
+	min-width: 40px;
 	display: flex;
 	justify-content: center;
+	color:#2563eb;
 	
 }
 #sidebar .side-menu {

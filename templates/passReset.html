@@ -34,10 +34,11 @@
         <!-- <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet"> -->
         
         <link rel='stylesheet prefetch' href="{% static 'css/animate.min.css' %}">
+        <link rel='stylesheet prefetch' href="{% static 'css/logoStyle.css' %}">
         
-        
-        
-        
+        <!-- favicon down -->
+        <link rel="icon" type="image/x-icon" href="{% static 'pics/theLogo.png' %}">
+
         <!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
         
         <!-- Latest compiled and minified CSS -->
@@ -78,10 +79,7 @@
    
     <div class="shadow  p-3" style="max-width: 600px;min-width:300px">
         <div class="text-center mt-2">
-            <!-- <a href="/?lang={{lang}}" class="navbar-brand">
-                <img id="brandlogo" style="width:220px" src="{% static 'pics/logowithtext.png'  %}" />
-            </a> -->
-            <h2>Chagu Oil</h2>
+            {% include 'logo.html' %}
         </div>
       
         <h5 class="py-3 text-center" >{% if lang == 0 %}KUREKEBISHA NENO LA SIRI{% else %}PASSWORD RESET {% endif %}</h5>

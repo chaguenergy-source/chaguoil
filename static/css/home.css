@@ -91,29 +91,58 @@
             margin-bottom: 20px;
         }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(335px, 1fr));
-            gap: 20px;
-        }
+  
 
-        .card {
-            background-color: var(--whiteBg);
-            border: 1px solid var(--borderColor);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s;
-        }
-
-        /* at larger media screen */
-        @media (min-width: 768px) {
-            #stockMovementCard {
-            /* make this card 2 * wider than other cards */
-            grid-column: span 3;
-        }
-        }
+     /* .dashboard-grid {
+        display: grid;
+       
+        grid-template-columns: 1fr; 
+        gap: 1rem; 
         
+        max-width: 1400px;
+        margin: 0 auto;
+    } */
+
+        .dashboard-grid {
+        display: grid;
+        /* Chagueni 1 column kwa simu */
+        grid-template-columns: 1fr; 
+        gap: 1rem; 
+        /* padding: 1rem; */
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+
+
+      
+
+        /* .card { */
+            /* background-color: var(--whiteBg);
+            border: 1px solid var(--borderColor);
+            border-radius: 0.75rem; /* Rounded corners */
+            /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;  */
+           
+        /* } */
+
+         /* Styling ya card (imeongezwa kwa aesthetic bora) */
+    .card {
+        background-color: var(--whiteBg);
+        border-radius: 0.75rem; /* Rounded corners */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e0e0e0;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding: 1rem;
+    }
+
+  
 
         .card:hover {
             transform: translateY(-3px);
@@ -165,6 +194,22 @@
         .detail-item:first-of-type {
             border-top: none;
         }
+
+                    /* Matumizi ya Simu za Kati (Medium devices - mfano tablets, > 640px) */
+            @media (min-width: 640px) {
+                .dashboard-grid {
+                    /* 2 columns kwa skrini za kati */
+                    grid-template-columns: repeat(2, 1fr); 
+                }
+            }
+
+            /* Matumizi ya Skrini Kubwa na Kubwa Zaidi (Large/Extra-Large devices - mfano desktops, > 1024px) */
+            @media (min-width: 1024px) {
+                .dashboard-grid {
+                    /* 3 columns kwa skrini kubwa */
+                    grid-template-columns: repeat(3, 1fr); 
+                }
+            }
 
         .fuel-trend {
             font-weight: bold;

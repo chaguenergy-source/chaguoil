@@ -5,7 +5,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>Chagu Oil</title>
+        <title>CFS Manager</title>
         
         <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}"> 
             
@@ -45,28 +45,41 @@
         
         <!-- Latest compiled and minified JavaScript -->
         <!-- <script src="{% static 'js/bootstrap-select.min.js' %}"></script> -->
-        <link rel="shortcut icon" type="image/x-icon" href="{% static 'pics/logo1.png' %}">
+        <link rel="shortcut icon" type="image/x-icon" href="{% static 'pics/theLogo.png' %}">
 
+        
         <style>
+             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
             @media screen and (max-width: 766px){
                 form{
                     min-width: 95%;
 
                 }
 
+                #form_field{
+                    width: 100%;
+                }
+
                
             }
             @media screen and (min-width: 766px){
-                form{
-                    min-width: 500px;
+                  #form_field{
+                    width: 600px;
                 } 
+
                 #the_phone{
                     font-size: small;
                 }
             }
+
+    
+
+
         </style>
         
         <link rel="stylesheet" href="{% static 'css/header.css' %}">
+        <link rel="stylesheet" href="{% static 'css/logoStyle.css' %}">
         <link rel="stylesheet" href="{% static 'css/usedashanimations.css' %}">
         <!-- <script src="{% static 'js/nav.js' %}"></script> -->
         
@@ -77,12 +90,14 @@
 
 <div style="min-height: 100vh;" class="whiteBg my-3 py-3 d-flex justify-content-center align-items-center">
    
-    <div class="shadow p-3" style="max-width: 600px;min-width:300px">
+    <div class="shadow p-3" id="form_field" >
         <div class="text-center mt-3">
             <!-- <a href="/?lang={{lang}}" class="navbar-brand">
                 <img id="brandlogo" style="width:200px" src="{% static 'pics/logowithtext.png'  %}" />
             </a> -->
-            <h2>Chagu Oil</h2>
+            
+        
+        {% include 'logo.html' %}
 
         </div>
       
@@ -232,7 +247,7 @@
 
 
             <div class="py-1">
-                 <button id="submitBtn" type="button" disabled class="btn btn-secondary form-control">
+                 <button id="submitBtn" type="button" disabled class="btn btn-primary form-control">
                     {% if lang == 0 %}Kusanya{% else %}Submit{% endif %}
                  </button>
             </div>

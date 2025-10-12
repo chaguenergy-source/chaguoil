@@ -49,8 +49,10 @@
 </style>
 
 <link rel="stylesheet" href="{% static 'css/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/logoStyle.css' %}">
+
 <!-- <script src="{% static 'js/nav.js' %}"></script> -->
-<link rel="shortcut icon" type="image/x-icon" href="{% static 'pics/logo1.png' %}">
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'pics/theLogo.png' %}">
 
 </head>
 <body>
@@ -86,11 +88,7 @@
    
         <div class="shadow p-3 mt-3" style="max-width: 600px;min-width:300px">
             <div class="text-center">
-                <!-- <a href="/?lang={{lang}}" class="navbar-brand">
-                    <img id="brandlogo" style="width:100px" src="{% static 'pics/logowithtext.png'  %}" />
-                </a> -->
-
-                <h2>Chagu Oil</h2>
+               {% include 'logo.html' %}
             </div>
           
             <h5 class="py-3 text-center" >{% if lang == 0 %}KUINGIA{% else %}LOGIN{% endif %}</h5>
@@ -137,7 +135,7 @@
 
 
                 <div class="py-1">
-                     <button type="submit" class="btn btn-secondary form-control">
+                     <button type="submit" class="btn btn-primary form-control">
                         {% if lang == 0 %}Kusanya{% else %}Submit{% endif %}
                      </button>
                 </div>

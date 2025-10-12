@@ -51,20 +51,30 @@
 	<script src="{% static 'js/qrcode.min.js' %}"></script>
 <!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
 
+<!-- favicon down -->
+<link rel="icon" type="image/x-icon" href="{% static 'pics/theLogo.png' %}">
+
 <!-- Latest compiled and minified CSS -->
  {% block additional_css %}
  {% endblock %}
 
-	<title>Chagu Oil</title>
+	<title>CFSPump</title>
 </head>
 <body  class="{% if useri.darkMode  %}dark{% endif %}" >
 
 
 	<!-- SIDEBAR -->
 	<section class="hide" id="sidebar">
-		<a href="#" class="brand">
-			<i class='bx bxs-smile'></i>
-			<span class="text">Chagu Oil</span>
+		<a href="cfspump.com" class="brand">
+			<i class='bx bxs-smile ml-2'>
+				 <svg class="fuel-pump-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Fuel Pump Icon -->
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 10l-2 2m0 0l-2 2m2-2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 21V9m0 0V3h-2a2 2 0 00-2 2v4h4V9"/>
+                </svg>
+			</i>
+
+			<span style="color:#1e293b;" id="brandName" hidden  class="text hide ml-1"><span  style="font-weight: bold; color: #f97316">CFS</span>Pump</span>
 		</a>
 		<ul class="side-menu top">
 			<li class="{% block home %}  {% endblock %}">

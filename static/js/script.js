@@ -17,9 +17,15 @@ allSideMenu.forEach(item=> {
 // TOGGLE SIDEBAR
 const menuBar = document.querySelector('#content nav .bx.bx-menu');
 const sidebar = document.getElementById('sidebar');
-
+const brandName = document.getElementById('brandName');
 menuBar.addEventListener('click', function () {
 	sidebar.classList.toggle('hide');
+	// toggle the hidden attribute on brandName
+	if (brandName.hasAttribute('hidden')) {
+		brandName.removeAttribute('hidden');
+	} else {
+		brandName.setAttribute('hidden', '');
+	}
 })
 
 

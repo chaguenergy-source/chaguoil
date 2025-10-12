@@ -148,7 +148,7 @@ def login(request):
 def register(request):
   users = UserExtend.objects.all()
 
-  if request.user.is_authenticated or users.exists():
+  if request.user.is_authenticated:
      return redirect('userdash')
   else:   
     if request.method == 'POST':
@@ -237,8 +237,6 @@ def register(request):
           }
 
           return JsonResponse(data)
-
-
     else:
 
       return render(request, 'register.html')

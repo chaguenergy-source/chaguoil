@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i'
 
 # USALAMA: Zima DEBUG katika Production (Inalazimisha kutumia STATICFILES_STORAGE)
-DEBUG = True 
+DEBUG = False 
 
 # Badilisha na IP Address mpya ya VM, na nimeacha '*'
 ALLOWED_HOSTS = ['*','34.61.173.58']
@@ -87,6 +87,9 @@ GCS_STORAGE_INSTANCE = GoogleCloudStorage(
 )
 
 
+
+
+
 INSTALLED_APPS = [
     # Weka 'storages' HAPA MWANZO
     'storages', 
@@ -131,17 +134,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
 
-# Database - CLOUD SQL SETTINGS (Inabaki vilevile)
+#Database - CLOUD SQL SETTINGS (Inabaki vilevile)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mafuta', 
-        'USER': 'chaguoil', 
-        'PASSWORD': 'Chagu@me12', 
-        'HOST': '34.71.9.5', # PUBLIC_IP_YA_CLOUDSQL
+        'NAME': 'cfspump_db', 
+        'USER': 'django_admin', 
+        'PASSWORD': 'Chagu@me122', 
+        'HOST': '34.44.22.51', # PUBLIC_IP_YA_CLOUDSQL
         'PORT': '5432',
     }
 }
+
+#prime-micron-473718-h1:us-central1:chagustations
 
 
 # DATABASES = {
