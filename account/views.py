@@ -335,7 +335,7 @@ def fogotpwd(request):
 
 def confirmMailPwdFoggot(request):
   if request.method == "POST":
-    try:
+    # try:
       mail = request.POST.get('mail')
       code = request.POST.get('code')
  
@@ -359,14 +359,14 @@ def confirmMailPwdFoggot(request):
 
       return JsonResponse(data)
 
-    except:
-      data = {
-        'success':False,
-        'msg_eng':'The action was not successfully due to error please try again correctly',
-        'msg_swa':'Kitendo hakikufanikiwa tafadhari jaribu tena kwa usahihi'
+    # except:
+    #   data = {
+    #     'success':False,
+    #     'msg_eng':'The action was not successfully due to error please try again correctly',
+    #     'msg_swa':'Kitendo hakikufanikiwa tafadhari jaribu tena kwa usahihi'
        
-      }
-      return JsonResponse(data)       
+    #   }
+    #   return JsonResponse(data)       
 
 @login_required(login_url='login')
 def changePwd(request):
