@@ -344,9 +344,7 @@ def confirmMailPwdFoggot(request):
       confirm.save()
 
       userI = User.objects.get(email__icontains=mail)
-      userExt=UserExtend.objects.filter(user=userI.id)
-      userExt.pwdResets = True
-      userExt.save()
+      UserExtend.objects.filter(user=userI.id).update(pwdResets=True)
 
       auth.login(request, userI)
 
