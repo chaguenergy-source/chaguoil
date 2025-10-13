@@ -347,7 +347,7 @@ def confirmMailPwdFoggot(request):
       userExt=UserExtend.objects.filter(user=userI.id)
       userExt.pwdResets = True
       userExt.save()
-      
+
       auth.login(request, userI)
 
       data = {
@@ -404,11 +404,12 @@ def changePwd(request):
    
 @login_required(login_url='login')
 def passWordResset(request):
-  try:
+  # try:
       todo = todoFunct(request)
       lang = int(request.GET.get('lang',0))
       
       useri = todo['useri']
+
       if useri.pwdResets:
         todo.update({
           'lang':lang
@@ -416,8 +417,8 @@ def passWordResset(request):
         return render(request,'passReset.html',todo)
       else:
         return redirect('/userdash')
-  except:
-        return redirect('/')
+  # except:
+  #       return redirect('/')
   
 
 @login_required(login_url='login')
