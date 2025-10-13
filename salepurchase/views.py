@@ -3461,7 +3461,7 @@ def addcustomer(request):
                 teja.simu2 = simu2
                 teja.email = mail
                     
-                if wateja.objects.filter(Q(simu1=simu1)|Q(simu2=simu2)).exists() and not edit:
+                if wateja.objects.filter(simu1=simu1).exists() and not edit:
                     data={
                         'success':False,
                         'message_swa':'Tayari kuna Mteja mwingine mwenye jina kama hili kama ni mwinginae unaweza kubadili jina au ondoa taarifa za mteja zilizowekwa awali',
