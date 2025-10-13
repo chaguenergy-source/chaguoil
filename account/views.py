@@ -317,7 +317,7 @@ def resetpwd(request):
       return redirect('/passWordResset')
 
    except:
-      return redirect('/login')   
+      return redirect('/')   
 
 def logout(request):
     # User.objects.all().delete()
@@ -401,17 +401,20 @@ def changePwd(request):
    
 @login_required(login_url='login')
 def passWordResset(request):
-  todo = todoFunct(request)
-  lang = int(request.GET.get('lang',0))
-  
-  useri = todo['useri']
-  if useri.pwdResets:
-    todo.update({
-       'lang':lang
-    })
-    return render(request,'passReset.html',todo)
-  else:
-     return redirect('/userdash')
+  try:
+      todo = todoFunct(request)
+      lang = int(request.GET.get('lang',0))
+      
+      useri = todo['useri']
+      if useri.pwdResets:
+        todo.update({
+          'lang':lang
+        })
+        return render(request,'passReset.html',todo)
+      else:
+        return redirect('/userdash')
+  except:
+        return redirect('/')
   
 
 @login_required(login_url='login')

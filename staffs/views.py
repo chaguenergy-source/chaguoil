@@ -111,7 +111,7 @@ def addStaff(request):
                         payAp.Allow = True
                         
                         payAp.save()
-                  hostname = os.environ.get("HOST", default="http://localhost:8000/")
+                  hostname = os.environ.get("HOST", default="cfspump.com")
                  
                   cfm = {
                       'num':0,
@@ -214,7 +214,7 @@ def permit(request):
             perm = InterprisePermissions.objects.get(pk=usr)
             userr = perm.user
             if not userr.hakikiwa and allow:
-                  hostname = os.environ.get("HOST", default="http://localhost:8000/")
+                  hostname = os.environ.get("HOST", default="cfspump.com")
                  
                   cfm = {
                       'num':0,
@@ -230,7 +230,9 @@ def permit(request):
 
                   confirmMailF(cfm)
                   userr.staff =  True 
+                  userr.pwdResets = True
                   userr.save()
+                  
 
             if allow:
               perm.Allow =  check 

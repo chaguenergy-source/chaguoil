@@ -146,7 +146,7 @@ DATABASES = {
     }
 }
 
-#prime-micron-473718-h1:us-central1:chagustations
+
 
 
 # DATABASES = {
