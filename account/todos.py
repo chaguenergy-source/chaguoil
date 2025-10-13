@@ -32,16 +32,23 @@ class Todos:
       self.request = request 
       
   def todoF(self):  
-        todo = {}
-      # try:
+      todo = {}
+      try:
         used = self.request.user
         user = UserExtend.objects.get(user = used.id ) 
         kampuni = user.company
         cheo = None
         shell = None
+        general = user.ceo or user.admin
         admin = UserExtend.objects.get(admin=True,company=kampuni)
         manager = False
-        allowed=InterprisePermissions.objects.filter(user=user.id,Allow=True,default=True)
+        allowed=InterprisePermissions.objects.filter(user=user.id,Allow=True)
+        if not allowed.filter(default=True).exists() and not general:
+             alloW = allowed.last()
+             alloW.default = True
+             alloW.save()     
+
+        allowed = allowed.filter(default=True)
         payacc = PaymentAkaunts.objects.filter(Interprise__company=kampuni.id)
         tumizi = matumizi.objects.filter(owner__company=kampuni.id,duration=0)
         tr_pump =  fuel_pumps.objects.filter(tank__Interprise__company=kampuni)
@@ -60,7 +67,7 @@ class Todos:
       #   shifts.objects.all().delete()
       #   shiftsTime.objects.all().delete()
 
-        general = user.ceo or user.admin
+        
         if allowed.exists():
            cheo = allowed.last()
            general = False
@@ -111,13 +118,13 @@ class Todos:
   
         }
 
-      # except:
-      #   todo={
+      except:
+        todo={
            
-      #       'useri':None,
-      #       'shell':None
-      #   }
-      # return todo
+            'useri':None,
+            'shell':None
+        }
+      return todo
    
 def invoCode(entry):
         invono = 1
