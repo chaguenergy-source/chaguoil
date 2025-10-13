@@ -32,8 +32,8 @@ class Todos:
       self.request = request 
       
   def todoF(self):  
-      todo = {}
-      try:
+        todo = {}
+      # try:
         used = self.request.user
         user = UserExtend.objects.get(user = used.id ) 
         kampuni = user.company
@@ -111,13 +111,13 @@ class Todos:
   
         }
 
-      except:
-        todo={
+      # except:
+      #   todo={
            
-            'useri':None,
-            'shell':None
-        }
-      return todo
+      #       'useri':None,
+      #       'shell':None
+      #   }
+      # return todo
    
 def invoCode(entry):
         invono = 1
