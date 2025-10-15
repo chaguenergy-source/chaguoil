@@ -248,8 +248,8 @@ def register(request):
 
 def confirmMail(request):
   if request.method == "POST":
-    pwd = int(request.POST.get('pwd',0))
-    try:
+      pwd = int(request.POST.get('pwd',0))
+    # try:
       mail = request.POST.get('mail',None)
       codeN = int(request.POST.get('code',0))
 
@@ -294,12 +294,12 @@ def confirmMail(request):
 
       return JsonResponse(data)
  
-    except:
-      data = {
-        'success':False,
-        'msg_swa':"Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena kwa usahihi",
-        'msg_eng':"The action was not successfully please try again correctly"
-      }
+    # except:
+    #   data = {
+    #     'success':False,
+    #     'msg_swa':"Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena kwa usahihi",
+    #     'msg_eng':"The action was not successfully please try again correctly"
+    #   }
 
 
       return JsonResponse(data)
