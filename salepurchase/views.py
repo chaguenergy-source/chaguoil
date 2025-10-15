@@ -3151,7 +3151,7 @@ def StartEndShift(request):
   if  not general:
       shell = todo['shell']
       by  = InterprisePermissions.objects.get(pk=inch,Interprise=shell.id,pumpIncharge=True)
-      
+      fuel_pumps.objects.all().update(Incharge=None,fromi=None)
       hasshift = shifts.objects.filter(by=by.user.id,To=None)
       if hasshift.exists():
             shift = hasshift.last()
