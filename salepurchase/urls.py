@@ -57,6 +57,8 @@ urlpatterns=[
         path('puReceive',views.puReceive, name='puReceive'),
         path('puClosed',views.puClosed, name='puClosed'),
         path('search_records',views.search_records, name='search_records'),
+        path('save_credit_order',views.save_credit_order, name='save_credit_order'),
+        path('LimitOrderSet',views.LimitOrderSet, name='LimitOrderSet'),
      
 
 ]

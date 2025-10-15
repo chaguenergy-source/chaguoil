@@ -1,7 +1,7 @@
 
 # Create your views here.
 from django.shortcuts import render,redirect
-from account.models import UserExtend,ToContena,PuList,Purchases,CustmDebtPayRec,saleList,saleOnReceive,toaCash,tr_supervisor,shiftsTime,transFromTo,tankAdjust,adjustments,pumpTemper,PumpStation,notifications,fuelPriceChange,shiftSesion,tankContainer,shiftPump,rekodiMatumizi,attachments,fuelSales,receiveFromTr,TransferFuel,receivedFuel,ReceveFuel,transfer_from,PhoneMailConfirm,wekaCash,shifts,wateja,wasambazaji,fuel,fuel_pumps,fuel_tanks,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
+from account.models import UserExtend,ToContena,PuList,Purchases,creditDebtOrder,CustmDebtPayRec,saleList,saleOnReceive,toaCash,tr_supervisor,shiftsTime,transFromTo,tankAdjust,adjustments,pumpTemper,PumpStation,notifications,fuelPriceChange,shiftSesion,tankContainer,shiftPump,rekodiMatumizi,attachments,fuelSales,receiveFromTr,TransferFuel,receivedFuel,ReceveFuel,transfer_from,PhoneMailConfirm,wekaCash,shifts,wateja,wasambazaji,fuel,fuel_pumps,fuel_tanks,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
 # Create your views here.
 from django.contrib import messages
 from django.contrib.auth.models import User, auth
@@ -88,14 +88,25 @@ def ViewCustomer(request):
 
     saleAll = fuelSales.objects.filter(customer=cust.id,by__Interprise__company=kampuni).annotate(due=F('amount')-F('payed')).order_by('-pk')
     saleLst = saleList.objects.filter(sale__in=saleAll).order_by('theFuel')
+    cdOrder =   creditDebtOrder.objects.filter(customer=cust.id,by__user__company=kampuni).annotate(due=F('amount')-F('consumed'),credit=F('paid')-F('consumed')).order_by('-pk')
+    lastCd = cdOrder.first()
 
+    # Add new credit debt order if the last order amount = consumed
+    addNewOrder = not cdOrder.exists() or (lastCd and lastCd.amount == lastCd.consumed) if not general else False
+    newcode = '01'
+    if cdOrder.exists():
+        newcode = cdOrder.last().Invo_no + 1
+    # entry = fuelSales.objects.filter(by__Interprise=shell)
+    
+    # code = invoCode(entry)
+    # sale.code = TCode({'code':code,'shell':shell.id})
 
-    if not general:
-        saleAll = saleAll.filter(by__Interprise=shell)
+    # sale.Invo_no = int(code)   
+    saleAll = saleAll.filter(by__Interprise=shell)
     saleMonth = saleAll.filter(date__gte=thisMonth)
  
     sale_prev = saleAll.filter(date__lt=thisMonth,payed__lt=F('amount')) 
- 
+    # print(addNewOrder)
 
     totprev = sale_prev.aggregate(Amo=Sum('amount'))['Amo'] or 0
     paidprev = sale_prev.aggregate(Paid=Sum('payed'))['Paid'] or 0
@@ -111,14 +122,15 @@ def ViewCustomer(request):
         sale_data_prev = []
         for sale in theSales:
             items = saleLst.filter(sale=sale)
+            StTanks = fuel_tanks.objects.filter(Interprise__company=kampuni)
             # Prepare fuel data for each sale
             fuels = []
             totRAmo = 0
-            for item in items.distinct('theFuel'):
-                fuel_items = items.filter(theFuel=item.theFuel)
+            for item in StTanks.distinct('fuel'):
+                fuel_items = items.filter(theFuel=item.fuel)
                 total_Amo = fuel_items.aggregate(sumi=Sum(F('qty_sold')*F('sa_price_og')))['sumi'] or 0
                 fuels.append({
-                    'fuel': item.theFuel.name,
+                    'fuel': item.fuel.name,
                     'qty':fuel_items.aggregate(sumi=Sum('qty_sold'))['sumi'] or 0,
                     'price': total_Amo / (fuel_items.aggregate(sumi=Sum('qty_sold'))['sumi'] or 1),
                     'total': total_Amo ,
@@ -138,15 +150,16 @@ def ViewCustomer(request):
     
     def thetotSummary(totSale):
         fuel_items= saleLst.filter(sale__in=totSale)
-        theFuel = fuel_items.distinct('theFuel')
         
+        StTanks = fuel_tanks.objects.filter(Interprise__company=kampuni)
+        theFuel = StTanks.distinct('fuel')
 
         fuels = []
         for fl in theFuel:
-            itmsFuel = fuel_items.filter(theFuel=fl.theFuel)
+            itmsFuel = fuel_items.filter(theFuel=fl.fuel)
             total_Amo = itmsFuel.aggregate(sumi=Sum(F('qty_sold')*F('sa_price_og')))['sumi'] or 0
             fuels.append({
-                'fuel': fl.theFuel.name,
+                'fuel': fl.fuel.name,
                 'qty':itmsFuel.aggregate(sumi=Sum('qty_sold'))['sumi'] or 0,
                 'price': total_Amo / (itmsFuel.aggregate(sumi=Sum('qty_sold'))['sumi'] or 1),
                 'total': total_Amo ,
@@ -173,19 +186,19 @@ def ViewCustomer(request):
     sale_data=getsale_data(saleMonth)
     totSummary_prev = thetotSummary(sale_prev)
     totSummary = thetotSummary(saleMonth)
-
+   
 
     todo.update({
         'isCustomer':True,
         'isCustomerView':True,
         'cust':cust,
-
+        'addOrder':addNewOrder,
         'sale':sale_data,
-
+         'newcode':newcode,    
         'totAmo':totAmo,
         'baki':debt,
         'paid':paid,
-        
+        'lastCd':lastCd,
         'debtprev':debtprev,
         'totprev':totprev,
         'prevsale':sale_data_prev,
@@ -208,6 +221,90 @@ def ViewCustomer(request):
     return render(request,'customerView.html',todo)
   except:
       return render(request,'pagenotFound.html')
+
+@login_required(login_url='login')
+def save_credit_order(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            useri = todo['useri']
+            manager = todo['manager']
+            shell = todo['shell']
+            kampuni = todo['kampuni']
+
+            if useri.admin or manager:
+                cust_id = int(request.POST.get('custId', 0))
+                amount = float(request.POST.get('orderAmount', 0))
+                paid = float(request.POST.get('paidAmount', 0))
+                payAcc = int(request.POST.get('paymentAccount', 0))
+                prepaid = int(request.POST.get('prepaid', 0))
+                NewOda = int(request.POST.get('NewOda', 0))
+                customer = wateja.objects.get(pk=cust_id, Interprise__company=kampuni)
+                entry = creditDebtOrder.objects.filter(customer=customer, by__user__company=kampuni)
+
+
+                order = creditDebtOrder()
+                order.customer = customer
+                order.amount = amount
+                if prepaid:
+                    order.paid = paid
+                new_code = invoCode(entry)
+
+                order.by = todo['cheo']
+                order.Invo_no = int(new_code)
+                order.code = TCode({'code': new_code, 'shell': customer.id})
+                order.save()
+
+                if prepaid and paid > 0 and payAcc:
+                    acc = PaymentAkaunts.objects.get(pk=payAcc, Interprise__company=kampuni)
+                    accAmo = float(acc.Amount)
+                    payRec = wekaCash()
+                    payRec.Interprise = shell
+                    payRec.tarehe = datetime.datetime.now(tz=timezone.utc)
+                    payRec.Amount = paid
+                    payRec.Akaunt = acc
+                    payRec.before = accAmo
+                    if NewOda:
+                        payRec.After = float(float(accAmo) + float(paid))
+                    else:
+                        payRec.After =   accAmo  
+                    payRec.maelezo = 'Malipo ya sehemu ya deni kwa oda namba ' + str(order.code) + ' kwa mteja ' + str(
+                        customer.jina)
+                    payRec.by = useri
+                    payRec.cdOrder = order
+                    payRec.save()
+
+                    # Update the account balance
+                    if NewOda:
+                        acc.Amount = float(float(acc.Amount) + float(paid))
+                        acc.save()
+
+
+
+
+
+                data = {
+                    'success': True,
+                    'swa': 'Oda ya deni imehifadhiwa kikamilifu',
+                    'eng': 'Credit order saved successfully',
+                    'id': order.id
+                }
+            else:
+                data = {
+                    'success': False,
+                    'swa': 'Hauna ruhusa ya kitendo hiki kwa sasa',
+                    'eng': 'You have no permission for this action'
+                }
+            return JsonResponse(data)
+        except Exception:
+            data = {
+                'success': False,
+                'swa': 'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena baadaye',
+                'eng': 'The action was unsuccessfully please try again later'
+            }
+            return JsonResponse(data)
+    else:
+        return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
 
 
 @login_required(login_url='login')
@@ -491,6 +588,49 @@ def saveReceive(request):
 
 
 @login_required(login_url='login')
+def LimitOrderSet(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            useri = todo['useri']
+            manager = todo['manager']
+            cheo = todo['cheo']
+            kampuni = todo['kampuni']
+            shell = todo['shell']
+
+            if useri.admin or manager:
+                cust = int(request.POST.get('cust'))
+                custm = wateja.objects.get(pk=cust,Interprise__company=kampuni)
+                custm.limited_order = not custm.limited_order
+                custm.save()
+
+                data ={
+                    'success':True,
+                    'swa':'manunuzi ya oda kwa mteja yamerekebishwa kikamilifu',
+                    'eng':'Order Limit to customer changed successfully'
+                }
+
+                return JsonResponse(data)
+
+            else:
+                data = {
+                    'success':False,
+                    'swa':'Huna ruhusa hii kwa sasa',
+                    'eng':'You have no permission for this now'
+                }   
+                return  JsonResponse(data)
+
+        except:
+            data = {
+                'success':False,
+                'swa':'kitendo hakikufanikiwa kutokana na hitilafu',
+                'eng':'The action was not successfully due to erro please try again'
+            }   
+
+            return JsonResponse(data)
+
+
+@login_required(login_url='login')
 def fuelsales(request):
     if request.method == "POST":
         try:
@@ -518,6 +658,18 @@ def fuelsales(request):
                 }
 
                 custm = wateja.objects.get(pk=cust,Interprise__company=kampuni)
+                cdOrder =   creditDebtOrder.objects.filter(customer=custm.id,by__user__company=kampuni,amount__gt=F('consumed'))
+                lcdorder = None  
+
+                if custm.limited_order and not cdOrder.exists():
+                    data = {
+                        'success':False,
+                        'msg_swa':'Rekodi ya mauzo haijafanikiwa kwa sababu mteja huyu amewekwa katika ukomo wa oda lakini hakuna oda iliyopatikana',
+                        'msg_eng':'The customer is set to limited credit/debt order but no order record found for customer '
+                    }
+
+                    return JsonResponse(data)
+
                 sale = fuelSales()
                 sale.by = cheo
                 sale.customer = custm
@@ -566,37 +718,77 @@ def fuelsales(request):
                         cost = float(pmp.tank.cost)  
                         pr_og = float(pmp.tank.price)   
                     saL.theFuel =  theF
-                    saL.qty_sold = float(sa['qty'])   
+                    saL.qty_sold = float(sa['totAmo']/sa['price'])   
                     saL.sa_price = float(sa['price'])
                     saL.sa_price_og = pr_og
                     saL.cost_sold = cost
                     saL.save()
 
-                    amo += (sa['price']*sa['qty']) 
+                    amo += (sa['totAmo']) 
                 sale.amount = float(amo)
+                
 
+                if cdOrder.exists():
+                    lcdorder = cdOrder.last()
+                    if float(lcdorder.amount) < float(float(lcdorder.consumed)+float(amo)):
+                        fuelSales.objects.filter(pk=sale.id).delete()
+                        data = {
+                            'success':False,
+                            'msg_swa':'Kiasi cha mafuta kimezidi kiwango cha ukomo kilichowekwa',
+                            'msg_eng':'the fuel amount exceeds the order limit set for customer'
+                        }
+
+                        return JsonResponse(data)
+
+
+                    lcdorder.consumed = float(float(amo)+float(lcdorder.consumed))
+                    lcdorder.save()
+                    sale.cdorder = lcdorder
+
+                    if lcdorder.paid > lcdorder.consumed:
+                        Od_balance = float(float(lcdorder.paid) - float(lcdorder.consumed))
+                        if Od_balance >= float(amo):
+                            sale.payed = float(amo)
+                        else:
+                            sale.payed =  Od_balance 
+
+
+                
                 sale.save()
 
-                weka = wekaCash()
-                deni_nyuma = entry.filter(amount__gt=F('payed'))
-                weka.Amount = float(0)
-                weka.before = 0               
-                weka.After = 0 
-                weka.kutoka = 'mauzo'
-                weka.maelezo = 'desc'
-                weka.tarehe = datetime.datetime.now(tz=timezone.utc)
-                weka.by=useri
-                weka.Interprise=shell
-                weka.saRec=True
-                weka.mauzo=True
-                weka.tInvo = len(deni_nyuma)
-                weka.tDebt = float(deni_nyuma.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'])
-            #   if pall:
-                weka.customer = custm
-            #   else:
-            #     weka.sales = bill
-                       
-                weka.save()
+                
+
+                if cdOrder.exists() and int(lcdorder.paid) > 0:
+                    ilolipwa = wekaCash.objects.get(cdOrder=lcdorder)
+                    custPay = CustmDebtPayRec()
+                    custPay.pay = ilolipwa
+                    custPay.sale = sale
+                    custPay.Debt = float(sale.payed)
+                    custPay.Apay = float(sale.payed)
+                    custPay.save()
+                    
+                else:
+
+                    weka = wekaCash()
+                    deni_nyuma = entry.filter(amount__gt=F('payed'))
+                    weka.Amount = float(0)
+                    weka.before = 0               
+                    weka.After = 0 
+                    weka.kutoka = 'mauzo'
+                    weka.maelezo = 'desc'
+                    weka.tarehe = datetime.datetime.now(tz=timezone.utc)
+                    weka.by=useri
+                    weka.Interprise=shell
+                    weka.saRec=True
+                    weka.mauzo=True
+                    weka.tInvo = len(deni_nyuma)
+                    weka.tDebt = float(deni_nyuma.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'])
+                #   if pall:
+                    weka.customer = custm
+                #   else:
+                #     weka.sales = bill
+                        
+                    weka.save()
 
 
                 data.update({'id':sale.id}) 
@@ -2169,6 +2361,11 @@ def  lipaInvo(request):
                                             paid_amo = 0  
                                             exit  
                                         b.save()
+
+                                        if b.cdorder is not None:
+                                            cdOd = b.cdorder
+                                            cdOd.paid = float(float(cdOd.paid)+float(theP))
+                                            cdOd.save()
 
                                         custP = CustmDebtPayRec()  
                                         custP.sale = b

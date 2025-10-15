@@ -1,6 +1,7 @@
   
 {% extends 'index.html' %}
 {% load humanize %}
+{% load static %}
 {% block page_content %}
 
 <div class="head-title pb-md-5">
@@ -34,7 +35,7 @@
 
         <div class="row">
             <div class="col-12">
-                <strong> {% if useri.langSet == 0 %}Taarifa za Mteja{% else %}Customer Details{% endif %}</strong>| <button class="btn btn-light btn-sm text-primary edit_btn"  data-toggle="modal" data-target="#wateja-modal"
+                <strong> {% if useri.langSet == 0 %}Taarifa za Mteja {% else %}Customer Details {% endif %}</strong> | <button class="btn btn-light btn-sm text-primary edit_btn"  data-toggle="modal" data-target="#wateja-modal"
                                           title="Edit" >
                                         <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -77,6 +78,34 @@
                             {{cust.email}}
                         </div>
                 {% endif %}
+                 
+                <hr class="col-12">
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Oda zenye ukomo{% else %}Limited Order {% endif %}
+                </div>
+                <div class="col-9  ">
+                     {% if cust.limited_order %}
+                     <span class="green">
+                        
+                        {% if useri.langSet == 0 %}Ndio{% else %}Yes {% endif %}
+                     </span>
+                     {% else %}
+                      <span class="brown">
+                         {% if useri.langSet == 0 %}Hapana{% else %} No{% endif %}
+                      </span>
+                     {% endif %}
+                     {% if not lastCd  %}
+                      | <button class="btn btn-light btn-sm text-primary edit_btn"  data-toggle="modal" data-target="#OrderLimit"
+                                          title="Edit" >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                      </svg>                                   
+                        </button> 
+                    {% endif %}    
+                      
+                </div>
+
 
         
 
@@ -84,9 +113,84 @@
         
         </div>
 
+        
+
+        {% if cust.limited_order and lastCd  %}
+        <div class="row" id="OrderDetails" >
+            <div class="col-md-5 row">
+
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Oda ya sasa{% else %}Current Order{% endif %}
+                </div>
+
+                <div class="col-7">
+                    ORD-{{lastCd.code}} 
+                </div>
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Ukomo{% else %}Limit{% endif %}
+                </div>
+                <div class="col-7">
+                    {{lastCd.amount | floatformat:'-2'|intcomma}}  
+                </div>
+
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Alokunywa{% else %}Cunsumption{% endif %}
+                </div>
+                <div class="col-7">
+                    {{lastCd.consumed | floatformat:'-2'|intcomma}} 
+                </div>
+
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Alobakiza{% else %}Balance{% endif %}
+                </div>
+                <div class="col-7">
+                    {{lastCd.due | floatformat:'-2'|intcomma}} 
+                </div>
+                
+                {% if lastCd.paid %} 
+                        <div class="col-5">
+                            {% if useri.langSet == 0 %}Ilolipwa{% else %}Paid{% endif %}
+                        </div>
+                        <div class="col-7">
+                            {{lastCd.paid| floatformat:'-2'|intcomma}}
+                        </div>
+                     
+                {% endif %}
+
+                {% if lastCd.credit > 0 %}
+                        <hr class="col-12">
+                        <div class="col-5 weight500">
+                            {% if useri.langSet == 0 %}Anayodai{% else %}Credit{% endif %}
+                        </div>
+                        <div class="col-7 green weight500">
+                            {{lastCd.credit | floatformat:'-2'|intcomma}}
+                        </div>   
+                {% else %}    
+                    
+                        <hr class="col-12">
+                        <div class="col-5 weight500">
+                            {% if useri.langSet == 0 %}Anayodaiwa{% else %}Debt{% endif %}
+                        </div>
+                        <div class="col-7 brown weigt500">
+                            {{lastCd.credit | floatformat:'-2'|intcomma}}
+                        </div>                 
+                        
+                        {% endif %}
+
+        
+
+            </div>
+        
+        </div>  
+        {% endif %}      
+<hr>
+
         {% if not general %}
         <p class="text-right">
-            <a href="#" type="button" onclick="$('#newPurchase').toggle(200)" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Mpya{% else %}New{% endif %}</a>
+            {% if addOrder and cust.limited_order %}
+            <a href="#" type="button" onclick="if($('#newPurchase').is(':visible')){$('#newPurchase').hide(200);}$('#creditDebtOrder').toggle(200)" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Oda Mpya{% else %}New Order{% endif %}</a> |   
+            {% endif %}
+            <a href="#" type="button" onclick="if($('#creditDebtOrder').is(':visible')){$('#creditDebtOrder').hide(200);}$('#newPurchase').toggle(200)" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Ankara Mpya{% else %}New Invoice{% endif %}</a>
         </p>
 
          <select hidden  name="allFuel" id="allFuel">
@@ -112,19 +216,31 @@
                                 {%endfor%}
                             
         </select>
-           <select hidden class=" form-control bluePrint safrm_tank btn-sm" 
-									
-									 name="safrm_tank" data-pos=1 id="safrm_tank">
-										<option value=0 selected>-----------</option>
-										{% for t in tr_tank %}
-											<option data-qty="{{t.qty}}" data-saprice="{{t.price}}" data-tank="{{t.tank.id}}" data-fuel="{{t.fuel.id}}" data-fname="{{t.fuel.name}}" data-price="{{t.price}}" data-name="{{t.name}}" value={{t.id}}>{{t.name}}</option>
-										{% endfor %}
+            <select hidden class=" form-control bluePrint safrm_tank btn-sm" 
+                name="safrm_tank" data-pos=1 id="safrm_tank">
+                <option value=0 selected>-----------</option>
+                {% for t in tr_tank %}
+                    <option data-qty="{{t.qty}}" data-saprice="{{t.price}}" data-tank="{{t.tank.id}}" data-fuel="{{t.fuel.id}}" data-fname="{{t.fuel.name}}" data-price="{{t.price}}" data-name="{{t.name}}" value={{t.id}}>{{t.name}}</option>
+                {% endfor %}
 			</select>
 
 
          <div id="newPurchase" class=" border py-4 px-3" style="display: none;border-radius: 5px;" >
-            <h5 class="mb-3" >{% if useri.langSet == 0 %}Mauzo ya Mafuta Wateja Maalum kwa{% else %}Credit Oder Fuel sales To{% endif %} <u class="bluePrint">{{cust.jina | title }}</u>  </h5>
-             <div class="row">
+            <h5 class="mb-3 row" >
+                <div class="col-9">
+                    {% if useri.langSet == 0 %}Ankara ya Mauzo kwa{% else %}Sales Invoice To{% endif %} <u class="bluePrint">{{cust.jina | title }}</u>  
+                </div>
+                <div class="col-3 text-right">
+                <button type="button" class="btn btn-light btn-sm" onclick="$('#newPurchase').hide(200)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>    
+                </button>
+                </div>
+          
+            </h5>
+             
+                <div class="row">
                 <div class="col-md-5">
                             <div class="form-group mb-3">
                                 <label class="brown" for="sa_date">
@@ -288,7 +404,7 @@
                                         <label class="mt-1 text-danger " for="saQty1"></label> 
                                     <div class="box-pointer d-inline "></div>
                                     </div>
-                                    <input type="number" data-pos=1   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="saQty1" name="saQty1"  class=" money-fomat btn-sm form-control fuelSalesSet weight600">
+                                    <input type="number" data-pos=1   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.0000001"  readonly  id="saQty1" name="saQty1"  class=" money-fomat btn-sm form-control  weight600">
                                 </div>
                            
                         </td>    
@@ -307,7 +423,11 @@
 
 
                          <td>
-                            <input type="text" readonly id="totPrice1" name="totPrice1"  class="form-control btn-sm weight600">
+                                   <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                        <label class="mt-1 text-danger " for="saPrice1"></label> 
+                                    <div class="box-pointer d-inline "></div>
+                                    </div>
+                            <input type="number" step="0.001"  id="totPrice1" name="totPrice1"  class="form-control money-fomat btn-sm weight600 fuelSalesSet">
                         </td> 
                         
                         <td>
@@ -373,6 +493,34 @@
                                 0
                             </div>
                         </h5>
+
+                        <hr>
+                        {% if lastCd and cust.limited_order  %}
+                            <div class=" row">
+                            <div class="col-5 ">
+                                {% if useri.langSet == 0 %}Oda{% else %}Order{% endif %}#
+                            </div>
+                            <div class="col-7 text-right" id="TotSaPrice">
+                                ORD-{{lastCd.code}}
+                            </div>
+                        </div>  
+                        <div class=" row">
+                            <div class="col-5 ">
+                                {% if useri.langSet == 0 %}Kikomo cha Oda{% else %}Order Limit{% endif %} <span class="text-primary">({{currencii}})</span> 
+                            </div>
+                            <div class="col-7 text-right" id="TotSaPrice">
+                                {{lastCd.amount|floatformat:'-2'|intcomma}}
+                            </div>
+                        </div>  
+                        <div class=" row">
+                            <div class="col-5 ">
+                                {% if useri.langSet == 0 %}Balansi{% else %}Order balance{% endif %} <span class="text-primary">({{currencii}})</span> 
+                            </div>
+                            <div class="col-7 text-right {% if lastCd.due > 0 %}green {% endif %}" id="TotSaPrice">
+                                 {{lastCd.due|floatformat:'-2'|intcomma}}
+                            </div>
+                        </div>  
+                        {% endif %}                      
                  </div>  
 
 
@@ -388,6 +536,180 @@
             </p>            
         </div>
 
+        {% if addOrder  %}
+            <div class="border py-4 px-3 mt-4" id="creditDebtOrder" style="border-radius: 5px;display:none">
+                <h5 class="mb-3 row">
+                    <div class="col-9">
+                        {% if useri.langSet == 0 %}Oda ya Mikopo/Malipo{% else %}Credit/Debt Order{% endif %}
+                    </div>
+                    <div class="col-3 text-right">
+                    <!-- Add a closs button with close svg -->
+                    <button type="button" class="close" onclick="$('#creditDebtOrder').hide()" aria-label="Close" title="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    </div>
+                    
+                </h5>
+                <form id="creditOrderForm"  action="/salepurchase/save_credit_order" >
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="orderId">
+                            {% if useri.langSet == 0 %}Namba ya Oda{% else %}Order ID{% endif %}
+                            
+                        </label>
+                        <input type="text" class="form-control" value="ORD-{% if cust.id < 10 %}0{% endif %}{{cust.id}}/{{newcode}}" readonly id="orderId" name="orderId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderAmount" class="brown" >
+                            {% if useri.langSet == 0 %}Kiasi cha Oda{% else %}Order Amount{% endif %} <span class="text-primary">{{currencii}}</span>
+                            <sup>*</sup>
+                        </label>
+                        <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                <label class="mt-1 text-danger " for="orderAmount"></label> 
+                                <div class="box-pointer d-inline "></div>
+                        </div>
+                        <input type="number" class="form-control money-fomat" id="orderAmount" name="orderAmount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderType" class="brown" >
+                            {% if useri.langSet == 0 %}Aina ya Oda{% else %}Order Type{% endif %}
+                            <sup>*</sup>
+                        </label>
+                        <select class="form-control bluePrint" id="orderType" name="orderType" required onchange="$('#paidFields').toggle(this.value=='prepaid')">
+                            <option value=0 >------</option>
+                            <option value="debt">{% if useri.langSet == 0 %}Mikopo{% else %}Debt{% endif %}</option>
+                            <option value="prepaid">{% if useri.langSet == 0 %}Imelipwa{% else %}Prepaid{% endif %}</option>
+                        </select>
+                    </div>
+
+                    <div id="paidFields" style="display: none;">
+                        
+                        
+                        <div class="form-group" >
+                         <label for="orderType"  >
+                            {% if useri.langSet == 0 %}Hali ya Oda{% else %}Order Status{% endif %}
+                            
+                        </label>
+
+                          <select name="NewOrContinue"  id="NewOrContinue" class="form-control bluePrint">
+                            {% if lastCd is None %}  
+                               <option value=0 > {% if useri.langSet == 0 %}Anaendelea{% else %}In Progress{% endif %} </option>
+                            {% endif %} 
+
+                              <option value=1 > {% if useri.langSet == 0 %}Mpya{% else %}New{% endif %} </option>
+                          </select>
+                        </div>
+                        
+                         
+                        <div id="payMentsAcc" class="form-group ">
+                            <label for="paymentAccount" class="brown" >
+                                {% if useri.langSet == 0 %}Akaunti ya Malipo{% else %}Payment Account{% endif %}
+                                <sup>*</sup>
+                            </label>
+                            <select class="form-control bluePrint" id="paymentAccount" name="paymentAccount">
+                                <option value=0>--------</option>
+                                {% for ac in payacc %}
+                                    <option value="{{ac.id}}">{{ac.Akaunt_name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+
+                        <div class="form-group">
+                            <label for="paidAmount" class="brown" >
+                                {% if useri.langSet == 0 %}Kiasi Kilicholipwa{% else %}Paid Amount{% endif %} <span class="text-primary">{{currencii}}</span>
+                                <sup>*</sup>
+                            </label>
+                            <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                    <label class="mt-1 text-danger " for="paidAmount"></label> 
+                                    <div class="box-pointer d-inline "></div>
+                            </div>
+                            <input type="number" class="form-control money-fomat" id="paidAmount" name="paidAmount" step="0.01">
+                        </div>
+
+                    </div>
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            {% if useri.langSet == 0 %}Hifadhi{% else %}Save{% endif %}
+                        </button>
+                    </div>
+                </form>
+                <script>
+                    $('#creditOrderForm').submit(function(e){
+                        e.preventDefault();
+                        // Add your AJAX or form submission logic here
+
+                        const orderId = $('#orderId').val();
+                        const orderAmount = parseFloat($('#orderAmount').val());
+                        const orderType = $('#orderType').val();
+                        const paymentAccount = $('#paymentAccount').val();
+                        const paidAmount = parseFloat($('#paidAmount').val());
+                        const custId = Number('{{cust.id}}');
+                        const prepaid = orderType === 'prepaid' ? 1 : 0;
+                        const NewOda = Number($('#NewOrContinue').val())
+                        const url = $(this).attr('action');
+                        if(!orderAmount || orderAmount <= 0){
+                            alert('{% if useri.langSet == 0 %}Tafadhali ingiza kiasi cha oda{% else %}Please enter a valid order amount{% endif %}');
+                            return;
+                        }
+                        if(orderType === 'prepaid'){
+                            if(!paymentAccount){
+                                alert('{% if useri.langSet == 0 %}Tafadhali chagua akaunti ya malipo{% else %}Please select a payment account{% endif %}');
+                                redborder('#paymentAccount');
+                                return;
+                            }
+                            if(!paidAmount || paidAmount <= 0 || paidAmount > orderAmount){
+                                alert('{% if useri.langSet == 0 %}Tafadhali ingiza kiasi halali kilicholipwa{% else %}Please enter a valid paid amount{% endif %}');
+                                redborder('#paidAmount');
+                                redborder('#orderAmount');
+                                return;
+                            }
+                        }
+                        if(orderType !== 'debt' && orderType !== 'prepaid'){
+                            alert('{% if useri.langSet == 0 %}Tafadhali chagua aina ya oda{% else %}Please select an order type{% endif %}');
+                            redborder('#orderType');
+                            return;
+                        }
+
+                        $('#loadMe').modal('show');
+                        const data = {
+                            data:{
+                            orderId,
+                            orderAmount,
+                            orderType,
+                            paymentAccount: orderType === 'prepaid' ? paymentAccount : 0,
+                            paidAmount: orderType === 'prepaid' ? paidAmount : 0,
+                            custId,
+                            prepaid,
+                            NewOda
+                            },
+                           url
+                        };
+
+                        const sendIt = POSTREQUEST(data)
+
+                        sendIt.then(function(res){
+                            $('#loadMe').modal('hide');
+                            hideLoading();
+                            const msg = lang(res.swa,res.eng)
+                            if(res.success){
+                                toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2000});
+                                location.reload();
+                            }else{
+                                toastr.error(msg, lang('Imeshindikana','Failed'), {timeOut: 2000});
+                            }
+                        });
+
+
+ 
+                    });
+                </script>
+            </div>
+        {% endif %}
         {% endif %}
           
 
@@ -504,7 +826,7 @@
                                 <td rowspan="2" > {% if useri.langSet == 0 %}Na{% else %} By{% endif %}</td>
 
                                 {% for fuel in sale.0.fuels %}
-                                    <td colspan=3 >{{ fuel.fuel }} </td>
+                                    <td colspan=3 >{{ fuel.fuel }}   </td>
                                   
                                 {% endfor %}
 
@@ -1083,6 +1405,51 @@
     </div>
   </div>
 
+  <!-- Order Limit -->
+
+
+  
+  <!-- Modal -->
+  <div class="modal fade" id="OrderLimit" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                   
+                </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+            </div>
+            <div class="modal-body">
+
+            <p>
+                {% if cust.limited_order %}
+                     
+                     {% if useri.langSet == 0 %} 
+                        Ruhusu manunuzi kwa kukopa pasipo na ukomo kwa mteja 
+                     {% else %} 
+                        Allow unlimited debt purchases to customer
+                    {% endif %}    
+                {% else %}
+                     {% if useri.langSet == 0 %} 
+                        Wezesha manunuzi kwa kukopa/malipo kabla kwa ukomo kwa mteja 
+                     {% else %} 
+                        Set limited debt/pre paid purchases to customer
+                    {% endif %}
+                {% endif %}
+            </p>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="submitOrderOpt" class="btn btn-primary">
+                     save
+                </button>
+            </div>
+        </div>
+    </div>
+  </div>
 
 
 {% endblock %}
@@ -1095,8 +1462,8 @@
 
 {% block additionaljs %}
 
-  <script src="/static/js/customers.js" ></script>
-  <script src="/static/js/sales.js" ></script>
+  <script src="{% static 'js/customers.js' %}" ></script>
+  <script src="{% static 'js/sales.js' %}" ></script>
 <script>
 
     
@@ -1150,7 +1517,24 @@
                   
                 })
   
+     $('#submitOrderOpt').click(function(){
+        const data = {data:{cust:Number('{{cust.id}}')},url:'/salepurchase/LimitOrderSet'}
+        const sendIt = POSTREQUEST(data)
+        $('#OrderLimit').modal('hide')
+        $('#loadMe').modal('show')
+        sendIt.then(resp=>{
+            $('#loadMe').modal('hide')
+            hideLoading()
+            const msg = lang(resp.swa,resp.eng)
 
+            if(resp.success){
+                toastr.success(msg,lang('Imefanikiwa','success'),{timeOut:2000})
+                location.reload()
+            }else{
+                toastr.error(msg,lang('Imefanikiwa','success'),{timeOut:2000})
+            }
+        })
+     })
 
 
 </script>

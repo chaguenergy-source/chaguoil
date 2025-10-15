@@ -598,9 +598,11 @@ def addExpense(request):
                             rec.fromShift = shift
                             if isfuel:
                                fuel_cost = float(sh_pump.tank.price)   
-                               fuel_worth = fuel_cost * paid
-                               rec.kiasi = float(fuel_worth)
-                               rec.fuel_qty = float(amo)
+                               Fqty =   paid/fuel_cost
+                               rec.kiasi = float(amo)
+
+                               rec.fuel_qty = float(Fqty)
+
                                rec.fuel_cost = float(sh_pump.tank.cost)
                                rec.fuel_price  = fuel_cost   
                                rec.Fuel = sh_pump.tank.fuel

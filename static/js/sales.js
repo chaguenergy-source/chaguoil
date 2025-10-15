@@ -41,10 +41,10 @@ $('body').on('keyup','.fuelSalesSet',function(){
              const pos = Number($(this).data('pos')),
              saPrice = Number(mv?$(`#safrm_tank${pos}`).find('option:selected').data('saprice'):$(`#sa_pumpSt${pos}`).find('option:selected').data('saprice')),
              price = Number($(`#saPrice${pos}`).val()) || saPrice || 0,
-             qty = Number($(`#saQty${pos}`).val()) || 0,
-             subT = Number(price *  qty)
-             tot+=subT
-             $(`#totPrice${pos}`).val(subT.toLocaleString())
+             totT = Number($(`#totPrice${pos}`).val()) || 0,
+             qtyT = Number(totT/price)
+             tot+=totT
+             $(`#saQty${pos}`).val(qtyT.toFixed(3))
              
           })
 
@@ -113,7 +113,7 @@ const trT = () =>{
                                         <label class="mt-1 text-danger " for="saQty1"></label> 
                                     <div class="box-pointer d-inline "></div>
                                     </div>
-                                    <input type="number" data-pos=${pos}   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="saQty${pos}" name="saQty${pos}"  class=" money-fomat btn-sm form-control fuelSalesSet weight600">
+                                    <input type="number" data-pos=${pos}   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.00000001" readonly  id="saQty${pos}" name="saQty${pos}"  class=" money-fomat btn-sm form-control  weight600">
                                 </div>
                            
                         </td>      
@@ -129,7 +129,11 @@ const trT = () =>{
                         </td>                      
                     
                          <td>
-                            <input type="text" readonly id="totPrice${pos}" name="totPrice${pos}"  class="form-control btn-sm weight600">
+                            <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                    <label class="mt-1 text-danger " for="saPrice1"></label> 
+                                <div class="box-pointer d-inline "></div>
+                            </div>
+                            <input type="number" step=0.001 id="totPrice${pos}" name="totPrice${pos}"  class="form-control money-fomat btn-sm weight600 fuelSalesSet">
                         </td> 
                         
                         <td>
@@ -204,12 +208,13 @@ $('#saveBtn').click(function(){
                         saPrice = Number(mv?$(`#safrm_tank${pos}`).find('option:selected').data('saprice'):$(`#sa_pumpSt${pos}`).find('option:selected').data('saprice')),
                         price = Number($(`#saPrice${pos}`).val()) || saPrice || 0,
                         qty = Number($(`#saQty${pos}`).val()) || 0 ,
+                        totAmo = Number($(`#totPrice${pos}`).val()) || 0 ,
                         tnk =  Number($(`#safrm_tank${pos}`).val()) || 0 ,
                         tnkQty = Number($(`#safrm_tank${pos}`).find('option:selected').data('qty')) || 0 ,
                         pmp = Number($(`#sa_pumpSt${pos}`).val()) || 0 
                         if((pmp&&!mv||tnk&&mv)&&qty){
                             saDt.push({
-                                pos,price,qty,tnk,tnkQty,pmp
+                                pos,price,qty,tnk,tnkQty,pmp,totAmo
                             })                            
                         }else{
                             err += 1

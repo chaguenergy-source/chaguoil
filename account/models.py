@@ -160,7 +160,7 @@ class wateja(models.Model):
     email = models.EmailField(max_length=100,null=True, blank=True)
     allEntp = models.BooleanField(default=False)
     Interprise = models.ForeignKey(Interprise,on_delete=models.SET_NULL,null=True,blank=True)
-   
+    limited_order = models.BooleanField(default=False)
 
 class wasambazaji(models.Model):
       compan = models.ForeignKey(company,on_delete = models.CASCADE)
@@ -181,8 +181,8 @@ class fuel(models.Model):
 
 class fuelPriceChange(models.Model):
     fuel = models.ForeignKey(fuel,on_delete=models.SET_NULL,null=True,blank=True)   
-    Bprice = models.DecimalField(max_digits=20,decimal_places=4) 
-    Aprice = models.DecimalField(max_digits=20,decimal_places=4) 
+    Bprice = models.DecimalField(max_digits=20,decimal_places=7) 
+    Aprice = models.DecimalField(max_digits=20,decimal_places=7) 
     date = models.DateTimeField()
     Interprise = models.ForeignKey(Interprise,on_delete=models.CASCADE,null=True,blank=True)
     desc = models.TextField(blank=True) 
@@ -199,11 +199,11 @@ class fuel_tanks(models.Model):
     Interprise = models.ForeignKey(Interprise,on_delete=models.CASCADE,null=True,blank=True)
     tank = models.ForeignKey(tankContainer,on_delete=models.CASCADE,null=True,blank=True)
     fuel = models.ForeignKey(fuel,on_delete=models.SET_NULL,null=True,blank=True)
-    qty = models.DecimalField(max_digits=20,decimal_places=4)
-    price = models.DecimalField(max_digits=20,decimal_places=4)
-    cost = models.DecimalField(max_digits=20,decimal_places=4)
-    maxm = models.DecimalField(max_digits=20,decimal_places=4)
-    minm = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    qty = models.DecimalField(max_digits=20,decimal_places=7)
+    price = models.DecimalField(max_digits=20,decimal_places=7)
+    cost = models.DecimalField(max_digits=20,decimal_places=7)
+    maxm = models.DecimalField(max_digits=20,decimal_places=7)
+    minm = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
     moving = models.BooleanField(default=False)
 
@@ -218,7 +218,7 @@ class fuel_pumps(models.Model):
     name = models.CharField(max_length=100)
     station =  models.ForeignKey(PumpStation,on_delete=models.SET_NULL,null=True,blank=True)
     tank = models.ForeignKey(fuel_tanks,on_delete=models.SET_NULL,null=True,blank=True)
-    readings = models.DecimalField(max_digits=20,decimal_places=4)
+    readings = models.DecimalField(max_digits=20,decimal_places=7)
     Incharge = models.ForeignKey(UserExtend,on_delete=models.SET_NULL,null=True,blank=True)
     fromi = models.DateTimeField(blank=True,null=True)
 
@@ -244,8 +244,8 @@ class shifts(models.Model):
     To =  models.DateTimeField(blank=True,null=True)
     by = models.ForeignKey(UserExtend,on_delete=models.SET_NULL,null=True,blank=True)
     record_by = models.ForeignKey(InterprisePermissions, on_delete=models.CASCADE,null=True)
-    amount = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    paid =  models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    amount = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    paid =  models.DecimalField(max_digits=20,decimal_places=7,default=0)
     remarks = models.TextField(blank=True)
     lossprof = models.BooleanField(default=False)
     session = models.ForeignKey(shiftSesion,on_delete=models.SET_NULL,null=True,blank=True)
@@ -255,12 +255,12 @@ class shiftPump(models.Model):
     pump = models.ForeignKey(fuel_pumps,on_delete=models.SET_NULL,null=True,blank=True)
     Fuel = models.ForeignKey(fuel,on_delete=models.SET_NULL,null=True,blank=True)
     shift = models.ForeignKey(shifts,on_delete=models.SET_NULL,null=True,blank=True)
-    initial = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    final = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    qty = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    price = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    cost = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    amount = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    initial = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    final = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    qty = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    price = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    amount = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
 class transfer_from(models.Model):
     tank = models.ForeignKey(fuel_tanks,on_delete=models.SET_NULL,null=True,blank=True)
@@ -276,16 +276,16 @@ class Purchases(models.Model):
     date = models.DateTimeField()
     recDate = models.DateTimeField(null=True)
     record_by = models.ForeignKey(UserExtend,on_delete=models.SET_NULL,null=True,blank=True)
-    amount = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    payed = models.DecimalField(max_digits=20,decimal_places=4,default=0) 
+    amount = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    payed = models.DecimalField(max_digits=20,decimal_places=7,default=0) 
     closed =  models.BooleanField(default=False)  
 
 
 class PuList(models.Model):
     pu = models.ForeignKey(Purchases,on_delete=models.CASCADE)
-    cost = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    qty = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    rcvd = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    qty = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    rcvd = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     Fuel = models.ForeignKey(fuel,on_delete=models.CASCADE)
 
 
@@ -309,19 +309,19 @@ class transFromTo(models.Model):
     pump =  models.ForeignKey(fuel_pumps,on_delete=models.SET_NULL,null=True,blank=True)
     Fuel =  models.ForeignKey(fuel,on_delete=models.SET_NULL,null=True,blank=True)
 
-    cost = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    saprice = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    FuelAmo = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    saprice = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    FuelAmo = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
-    qty = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    qty = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
     From = models.ForeignKey(transfer_from,on_delete=models.SET_NULL,null=True,blank=True)
     to = models.ForeignKey(fuel_tanks,on_delete=models.SET_NULL,null=True,blank=True)
 
-    # qty_trans = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    # qty_sales = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    # qty_trans = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    # qty_sales = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
-    taken = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    taken = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
     closed = models.BooleanField(default=False)    
 
@@ -352,11 +352,11 @@ class receivedFuel(models.Model):
     receive = models.ForeignKey(ReceveFuel,on_delete=models.SET_NULL,null=True,blank=True)
     To = models.ForeignKey(fuel_tanks,on_delete=models.SET_NULL,null=True,blank=True)
     From = models.ForeignKey(transfer_from,on_delete=models.SET_NULL,null=True,blank=True)
-    qty =  models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    qtyB =  models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    qtyA =  models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    price =  models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    cost = models.DecimalField(max_digits=20,decimal_places=4,default=0)   
+    qty =  models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    qtyB =  models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    qtyA =  models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    price =  models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)   
     Fuel = models.ForeignKey(fuel,on_delete=models.SET_NULL,null=True,blank=True)
 
 
@@ -364,8 +364,8 @@ class saleOnReceive(models.Model):
     receive = models.ForeignKey(receivedFuel, on_delete=models.CASCADE,null=True)
     tank = models.ForeignKey(fuel_tanks, on_delete=models.CASCADE,null=True)
     ses = models.ForeignKey(shiftSesion, on_delete=models.CASCADE,null=True)
-    qty =  models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    cost = models.DecimalField(max_digits=20,decimal_places=4,default=0)   
+    qty =  models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)   
 
 class adjustments(models.Model):
     code =  models.CharField(max_length=20,null=True)
@@ -383,12 +383,22 @@ class tankAdjust(models.Model):
     adj =  models.ForeignKey(adjustments,on_delete=models.SET_NULL,null=True,blank=True)
     tank = models.ForeignKey(fuel_tanks,on_delete=models.SET_NULL,null=True,blank=True)
     fuel = models.ForeignKey(fuel,on_delete=models.SET_NULL,null=True,blank=True)
-    read = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    stick = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    diff = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    price = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    cost = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-   
+    read = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    stick = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    diff = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    price = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+
+# CREDIT AND DEBT ORDERS ............//
+class creditDebtOrder(models.Model):
+    customer = models.ForeignKey(wateja, on_delete=models.CASCADE,null=True)
+    amount = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    paid = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    consumed = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    code =  models.CharField(max_length=20,null=True)
+    Invo_no = models.IntegerField(default=0)   
+    by = models.ForeignKey(InterprisePermissions, on_delete=models.CASCADE,null=True)
+    date = models.DateTimeField(null=True)
 
 class fuelSales(models.Model):
     code =  models.CharField(max_length=20,null=True)
@@ -402,11 +412,12 @@ class fuelSales(models.Model):
     customer = models.ForeignKey(wateja, on_delete=models.CASCADE,null=True)
     phone = models.CharField(max_length=200,blank=True)
     
-    amount = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    payed = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    amount = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    payed = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     recDate = models.DateTimeField(null=True)
     date = models.DateTimeField(null=True) 
     shiftBy = models.ForeignKey(shifts,on_delete=models.SET_NULL,null=True,blank=True) 
+    cdorder = models.ForeignKey(creditDebtOrder,on_delete=models.SET_NULL,null=True,blank=True) 
 
 
 class saleList(models.Model):    
@@ -414,10 +425,10 @@ class saleList(models.Model):
     tank = models.ForeignKey(fuel_tanks, on_delete=models.CASCADE,null=True)
     theFuel = models.ForeignKey(fuel, on_delete=models.CASCADE,null=True)
     shift = models.ForeignKey(shiftPump, on_delete=models.CASCADE,null=True)
-    qty_sold = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    cost_sold = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    sa_price = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    sa_price_og = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    qty_sold = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    cost_sold = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    sa_price = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    sa_price_og = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
 
 
@@ -426,7 +437,7 @@ class saleList(models.Model):
 class receiveFromTr(models.Model):
     From = models.ForeignKey(TransferFuel,on_delete=models.SET_NULL,null=True,blank=True) 
     To_Rc = models.ForeignKey(ReceveFuel,on_delete=models.SET_NULL,null=True,blank=True) 
-    rc_qty = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    rc_qty = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     To_Sa = models.ForeignKey(fuelSales,on_delete=models.SET_NULL,null=True,blank=True)
 
 class matumizi(models.Model):
@@ -437,7 +448,7 @@ class matumizi(models.Model):
     duration = models.IntegerField(default=0)
     last_paid = models.DateField(null=True,blank=True)
     next_pay = models.DateField(null=True,blank=True)
-    amount = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    amount = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     depends = models.BooleanField(default=True)
     general = models.BooleanField(default=False)
 
@@ -456,11 +467,11 @@ class rekodiMatumizi(models.Model):
     # manunuzi_id = models.ForeignKey(manunuzi, on_delete=models.CASCADE,blank=True, null=True)
     # adjst= models.ForeignKey(stokAdjustment, on_delete=models.CASCADE,blank=True, null=True)
     
-    kiasi = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    fuel_qty = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    fuel_cost = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    fuel_price = models.DecimalField(max_digits=20,decimal_places=4,default=0)
-    ilolipwa = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    kiasi = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    fuel_qty = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    fuel_cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    fuel_price = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    ilolipwa = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     akaunti = models.ForeignKey(PaymentAkaunts, on_delete=models.CASCADE,blank=True, null=True)
     fromShift = models.ForeignKey(shiftPump, on_delete=models.CASCADE,blank=True, null=True)
     Fuel = models.ForeignKey(fuel, on_delete=models.CASCADE,blank=True, null=True)
@@ -474,11 +485,11 @@ class wekaCash(models.Model):
     Interprise=models.ForeignKey(Interprise,on_delete=models.CASCADE)
     tarehe = models.DateTimeField()
     Akaunt = models.ForeignKey(PaymentAkaunts,on_delete=models.CASCADE,null=True)
-    Amount = models.DecimalField(max_digits=20,decimal_places=4)
-    tDebt = models.DecimalField(max_digits=20,decimal_places=4,default=0)
+    Amount = models.DecimalField(max_digits=20,decimal_places=7)
+    tDebt = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     tInvo = models.IntegerField(default=0)
-    before = models.DecimalField(max_digits=20,decimal_places=4)
-    After = models.DecimalField(max_digits=20,decimal_places=4)
+    before = models.DecimalField(max_digits=20,decimal_places=7)
+    After = models.DecimalField(max_digits=20,decimal_places=7)
     kutoka =  models.CharField(max_length=500) 
     maelezo = models.CharField(max_length=500,blank=True,null=True)
     by= models.ForeignKey(UserExtend,on_delete=models.CASCADE,null=True)
@@ -503,6 +514,7 @@ class wekaCash(models.Model):
     kuhamisha = models.BooleanField(default=False)
     kuhamishaNje = models.BooleanField(default=False)
     mtaji = models.BooleanField(default=False)
+    cdOrder = models.ForeignKey(creditDebtOrder,on_delete=models.CASCADE,null=True)
 
     # huduma_nyingine = models.ForeignKey(HudumaNyingine,on_delete=models.SET_NULL,null=True)
 
@@ -510,9 +522,9 @@ class  toaCash(models.Model):
     Interprise=models.ForeignKey(Interprise,on_delete=models.CASCADE,null=True)     
     tarehe = models.DateTimeField()  
     Akaunt = models.ForeignKey(PaymentAkaunts,on_delete=models.CASCADE)
-    Amount = models.DecimalField(max_digits=20,decimal_places=4)
-    before = models.DecimalField(max_digits=20,decimal_places=4)
-    After = models.DecimalField(max_digits=20,decimal_places=4)
+    Amount = models.DecimalField(max_digits=20,decimal_places=7)
+    before = models.DecimalField(max_digits=20,decimal_places=7)
+    After = models.DecimalField(max_digits=20,decimal_places=7)
     kwenda =  models.CharField(max_length=500) 
     maelezo = models.CharField(max_length=500)
     makato = models.IntegerField(default=0)
@@ -534,14 +546,14 @@ class  toaCash(models.Model):
 class CustmDebtPayRec(models.Model):
     pay =  models.ForeignKey(wekaCash, on_delete=models.CASCADE,blank=True, null=True)
     sale = models.ForeignKey(fuelSales, on_delete=models.CASCADE,blank=True, null=True)
-    Debt = models.DecimalField(max_digits=20,decimal_places=4)
-    Apay = models.DecimalField(max_digits=20,decimal_places=4)
+    Debt = models.DecimalField(max_digits=20,decimal_places=7)
+    Apay = models.DecimalField(max_digits=20,decimal_places=7)
 
 class pumpTemper(models.Model):
     by = models.ForeignKey(InterprisePermissions, on_delete=models.CASCADE,blank=True, null=True)
     pump = models.ForeignKey(fuel_pumps, on_delete=models.CASCADE,blank=True, null=True)
-    BRead = models.DecimalField(max_digits=20,decimal_places=4)
-    ARead = models.DecimalField(max_digits=20,decimal_places=4)
+    BRead = models.DecimalField(max_digits=20,decimal_places=7)
+    ARead = models.DecimalField(max_digits=20,decimal_places=7)
     desc = models.TextField(blank=True)
     date = models.DateTimeField(null=True)
 
@@ -562,7 +574,7 @@ class attachments(models.Model):
     session = models.ForeignKey(shiftSesion, on_delete=models.CASCADE,blank=True, null=True)
     adj = models.ForeignKey(adjustments, on_delete=models.CASCADE,blank=True, null=True)
     purchase = models.ForeignKey(Purchases, on_delete=models.CASCADE,blank=True, null=True)
-    
+    cdOrder = models.ForeignKey(creditDebtOrder, on_delete=models.CASCADE,blank=True, null=True)
     attach_name = models.CharField(max_length=500,blank=True)
     printedDocu = models.BooleanField(default=False)
     by = models.ForeignKey(UserExtend, on_delete=models.SET_NULL,blank=True, null=True)

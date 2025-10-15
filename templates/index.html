@@ -661,10 +661,10 @@
 						"
 					
 					name="exp_pump" id="exp_pump">
-						<option value=0 data-station=0 selected>-----------</option>
+						<option value=0 data-station=0 data-price="0" selected>-----------</option>
 						{% for p in tr_pump %}
 
-							<option class="bluePrint" data-station="{{p.station.id}}" data-incharge="{{p.Incharge.user.first_name|title}}  {{p.Incharge.user.last_name|title}}" data-incharger="{{p.Incharge.id}}" value={{p.id}}>{{p.station.name}} {{p.name}}</option>
+							<option class="bluePrint" data-station="{{p.station.id}}" data-price="{{p.tank.price}}" data-incharge="{{p.Incharge.user.first_name|title}}  {{p.Incharge.user.last_name|title}}" data-incharger="{{p.Incharge.id}}" value={{p.id}}>{{p.station.name}} {{p.name}}</option>
 
 						{%endfor%}
 					
@@ -739,63 +739,95 @@
 
 			</div>
   
-		   <div class="form-group mb-3">
-			
-               		
-					    <label class="text-danger" for="tumia_amount"> 
-							<span class="cost_opt cost_opt1 theOpt theOpt1 theOpt2">
-								{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}<sup>*</sup> <span class="text-primary">{{currencii}}</span> 
-							</span>  
-							<span class="cost_opt theOpt cost_opt2" hidden >
-								{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %}<sup>*</sup> <span class="text-primary">(LTRS)</span>
-							</span>  
+			<div class="row mb-3">
 
-							</label>
-			
-			
+				<div class="form-group col-12 " id="amountField">
+					
+							
+								<label class="text-danger" for="tumia_amount"> 
+									<span class="cost_opt cost_opt1 theOpt theOpt1 theOpt2">
+										{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}<sup>*</sup> <span class="text-primary">{{currencii}}</span> 
+									</span>  
+								
+								</label>
+					
+					
+					<div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+						<label class="mt-1 text-danger " for="tumia_amount"></label> 
+						<div class="box-pointer d-inline "></div>
+					</div>
 
-			<script>
-				  $('.btn_option').click(function(){
-					   $('.btn_option').removeClass('active')
-					   $(this).addClass('active')
-					   const opt=Number($(this).data('opt'))
-					   $('.cost_opt').prop('hidden',1)
-					   $(`.cost_opt${opt}`).prop('hidden',0)
-					   if(opt==1)$('#tumia_amount').addClass('money-fomat')
-					   if(opt==2)$('#tumia_amount').removeClass('money-fomat')
-				  })
-			</script>
+					<input type="number" step="0.01" name="tumia_amount" id="tumia_amount"
+					onkeyup="
+					let ac = Number($('#matumizi_malipo-akaunti').find('option:selected').data('value')),
+						am = Number($('#matumizi_malipo-akaunti').find('option:selected').data('amount')),
+						exp = Number($(this).val())
+		
+						if(ac>0){
+							if(am>=exp){
+							$('#baki_tumia_amount').attr('placeholder',floatValue(am-exp))
+							$('#account_amount_address').prop('hidden',true)
+							}else{
+							
+								$('#account_amount_address').prop('hidden',false)
+							
+							
+							}     
+						}
+					
+					"
+					class="form-control money-fomat latoFont AmountQtyFields"  placeholder=0 aria-describedby="helpId">
+
+				</div>
 
 
-  
-			 <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
-				  <label class="mt-1 text-danger " for="tumia_amount"></label> 
-				<div class="box-pointer d-inline "></div>
-			  </div>
-			 <input type="number" step="0.01" name="tumia_amount" id="tumia_amount"
-			 onkeyup="
-			   let ac = Number($('#matumizi_malipo-akaunti').find('option:selected').data('value')),
-				   am = Number($('#matumizi_malipo-akaunti').find('option:selected').data('amount')),
-				   exp = Number($(this).val())
-  
-				 
-  
-				   if(ac>0){
-					 if(am>=exp){
-					   $('#baki_tumia_amount').attr('placeholder',floatValue(am-exp))
-					   $('#account_amount_address').prop('hidden',true)
-					 }else{
-					   
-						  $('#account_amount_address').prop('hidden',false)
-					  
-					  
-					 }     
-				   }
-			 
-			 "
-			 class="form-control money-fomat latoFont" placeholder=0 aria-describedby="helpId">
-			
-		   </div> 
+
+				 <div class="form-group col-6 " hidden id="QtyField"  >
+                    <label for="fuelQty">{% if useri.langSet == 0 %}Kiasi cha mafuta{% else %}Fuel Qty{% endif %} </label>
+					<input type="number" step="0.0000001"  name="fuelQty" id="fuelQty" class="form-control latoFont AmountQtyFields" placeholder=0 aria-describedby="helpId">
+				 </div>
+
+
+
+				 <script>
+						$('.btn_option').click(function(){
+							$('.btn_option').removeClass('active')
+							$(this).addClass('active')
+
+							const opt=Number($(this).data('opt'))
+							if(opt==1){
+								$('#amountField').removeClass('col-6')
+								$('#amountField').addClass('col-12')
+								$('#QtyField').prop('hidden',true)
+
+							}
+
+							if(opt==2){
+							   $('#amountField').removeClass('col-12')
+								$('#amountField').addClass('col-6')
+								$('#QtyField').prop('hidden',false)				
+							}
+
+
+						})
+
+						$('#fuelQty').keyup(function(){
+							const FPrice = Number($('#exp_pump').find('option:selected').data('price')) || 0
+							const qty = Number($(this).val()) || 0
+							$('#tumia_amount').val(Number(FPrice*qty))
+						})
+
+						$('#tumia_amount').keyup(function(){
+							const FPrice = Number($('#exp_pump').find('option:selected').data('price')) || 0
+							const amo = Number($(this).val()) || 0
+							$('#fuelQty').val(Number(amo/FPrice).toFixed(2))
+						})
+					</script>
+
+
+			</div>
+
+
   
   
 		   <div hidden class="form-group mb-3 theOpt theOpt2">
