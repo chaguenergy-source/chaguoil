@@ -123,8 +123,10 @@ const company_header = `
   <head>
     <meta charset="UTF-8">
     <title>Document</title>
-    <link rel="stylesheet" href="/static/css/bootstrap5.min.css" >
-    <link rel="stylesheet" href="/static/css/companyheader.css">
+    
+    <link rel="stylesheet" href="https://storage.googleapis.com/chagufilling/static/css/bootstrap5.min.css" >
+    <link rel="stylesheet" href="https://storage.googleapis.com/chagufilling/static/css/companyheader.css">
+    
     <style>
     
     </style>
@@ -132,4 +134,5 @@ const company_header = `
   <body>
 
   ${$('#CompanyTitle').html()}
-`
+  `
+
