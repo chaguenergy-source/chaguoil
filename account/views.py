@@ -254,7 +254,7 @@ def confirmMail(request):
       codeN = int(request.POST.get('code',0))
 
       if pwd:
-         print(email)
+         print(mail)
          getmail = User.objects.get(email__icontains=mail)
          mail = getmail.email
          
