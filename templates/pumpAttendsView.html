@@ -851,10 +851,10 @@
                                 {% endfor %}      
                                 
                                 <hr>
-                                <h6 class="row" > 
+                                <h5 class="row" > 
                                    <div class="col-6">{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %}</div>
                                    <div class="col-6"  id="showtotpay" >0</div>
-                                </h6>
+                                </h5>
                           
                       </div>
 
@@ -1046,7 +1046,7 @@
         let tot = 0
         
         payac = []
-            $('.payacc').each(val => {
+            $('.payacc').each(function(){
                     
                 const amo = Number($(this).val()) || 0
                 tot+=amo
@@ -1061,6 +1061,8 @@
             
        });
 
+       
+
        totpay = tot
 
        // Represent loss or profit.................................//
@@ -1070,7 +1072,7 @@
 
        $('#showtotpay').html( `
        <span class="text-primary">{{currencii}}.</span>
-        <span class="brown"> ${tot.toLocaleString()} </span>`)
+        <span > ${tot.toLocaleString()} </span>`)
     })
 
 
@@ -1227,8 +1229,11 @@
 
             $('#endshift_modal').modal('hide')
                     $('#loadMe').modal('show')
+
+
         
-                    const sendIt = POSTREQUEST(data)
+                   const sendIt = POSTREQUEST(data)
+
                     sendIt.then(resp=>{
                         $('#loadMe').modal('hide')
                         hideLoading()
