@@ -2888,7 +2888,7 @@ def endshift(request):
                 sales.shiftBy = sh
                 # sales.theFuel = pmp.tank.fuel
                 sales.session = sh.session
-                sales.date = datetime.datetime.now(tz=timezone.utc)
+                sales.date = tto
 
                 sales.save()
 
