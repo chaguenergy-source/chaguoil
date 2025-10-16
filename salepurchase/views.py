@@ -2962,7 +2962,7 @@ def endshift(request):
 
                     wk=wekaCash()
                     wk.Interprise = shell
-                    wk.tarehe = datetime.datetime.now(tz=timezone.utc)
+                    wk.tarehe = tto
                     wk.Akaunt = acc
 
                     wk.Amount = float(p['amo'])
