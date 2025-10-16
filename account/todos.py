@@ -49,7 +49,7 @@ class Todos:
              alloW.save()     
 
         allowed = allowed.filter(default=True)
-        payacc = PaymentAkaunts.objects.filter(Interprise__company=kampuni.id)
+        payacc = PaymentAkaunts.objects.filter(Interprise__company=kampuni.id).order_by('pk')
         tumizi = matumizi.objects.filter(owner__company=kampuni.id,duration=0)
         tr_pump =  fuel_pumps.objects.filter(tank__Interprise__company=kampuni)
        
