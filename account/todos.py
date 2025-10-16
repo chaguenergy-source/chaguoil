@@ -72,7 +72,7 @@ class Todos:
            cheo = allowed.last()
            general = False
            shell = cheo.Interprise
-      #      payacc = payacc.filter(Interprise=shell.id) 
+           payacc = payacc.exclude(Q(aina="cash") & ~Q(Interprise=shell.id))
            manager = cheo.fullcontrol
            tr_pump = fuel_pumps.objects.filter(tank__Interprise=shell.id)
            
