@@ -80,16 +80,22 @@ def payaccounts(request):
   todo = todoFunct(request)
   general = todo['general']
   kampuni = todo['kampuni']
+  useri = todo['useri']
+  
   stations = None
+  payaacc = todo['payacc']
   if general:
      stations = Interprise.objects.filter(company = kampuni)
+  if not (useri.ceo or useri.admin):
+      shell = todo['shell']
+      payaacc = payaacc.filter(Interprise=shell.id)
+      
 
-
-  AccSum = todo['payacc'].aggregate(sumi=Sum('Amount'))['sumi'] or 0
+  AccSum = payaacc.aggregate(sumi=Sum('Amount'))['sumi'] or 0
 
   todo.update({
       'stations':stations,
-    #   'payacc':payacc,
+      'payaacc':payaacc,
       'AccSum':AccSum,
       'isAkaunti':True
   })
