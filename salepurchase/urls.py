@@ -59,6 +59,8 @@ urlpatterns=[
         path('search_records',views.search_records, name='search_records'),
         path('save_credit_order',views.save_credit_order, name='save_credit_order'),
         path('LimitOrderSet',views.LimitOrderSet, name='LimitOrderSet'),
+        path('deleteShiftExpenses',views.deleteShiftExpenses, name='deleteShiftExpenses'),
+        path('deleteShift',views.deleteShift, name='deleteShift'),
      
 
 ]

@@ -73,7 +73,7 @@
                                   <td>{{w.before|floatformat:'-2'|intcomma}} </td>
                                   <td>{{w.After|floatformat:'-2'|intcomma}} </td>
                                   <td>
-                                    <u class="brown px-2">
+                                    <u class="bluePrint px-2">
                                         {% if w.mauzo or w.shift %}
                                                 {% if useri.langSet == 0 %}Mauzo{%else%}Sales{%endif%}
                                         {%endif%}
@@ -82,7 +82,7 @@
                                                 {% if useri.langSet == 0 %}Huduma{%else%}Service{%endif%}
                                         {%endif%}
                                         {% if w.kuhamisha %}
-                                                {% if useri.langSet == 0 %}Kuhamisha{%else%}Transfer{%endif%}
+                                                {{w.kutoka}}
                                         {%endif%}
                                         {% if not w.huduma and not w.mauzo and not w.kuhamisha and not w.biforeShift %}
                                                 {% if useri.langSet == 0 %}Mtaji{%else%}Capital{%endif%}

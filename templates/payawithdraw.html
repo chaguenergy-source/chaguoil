@@ -78,8 +78,8 @@
                               <td>{{w.before|floatformat:'-2'|intcomma}} </td>
                               <td>{{w.After|floatformat:'-2'|intcomma}} </td>
                               
-                              <td class="px-2" >
-                                <u class="brown">
+                              <td class="px-2 text-primary" >
+                              
                                 
 
                                  {% if w.matumizi is not Null %}
@@ -87,13 +87,13 @@
                                        {{w.matumizi.matumizi.matumizi | title }}
                                  {%endif%}
                                  {% if w.kuhamisha %}
-                                        {% if useri.langSet == 0 %}Kuhamisha{%else%}Transfer{%endif%}
+                                        {{w.kwenda}}
                                  {%endif%}
 
                                  {% if w.personal %}
                                         {% if useri.langSet == 0 %}mambo binafsi{%else%}Personal isuues{%endif%}
                                  {%endif%}
-                            </u>
+                         
                                 {% if w.bill  %}
                                      <a href="/salepurchase/viewVendor?v={{w.bill.id}}">{{w.bill.jina}}</a>
                                 {% endif %}

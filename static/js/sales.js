@@ -29,6 +29,19 @@ $('body').on('change','.pmpSelect, .safrm_tank',function(){
 })
 
 $('body').on('keyup','.fuelSalesSet',function(){
+           const val = Number($(this).val())||0
+           const isTotPrice = Number($(this).data('tprice'))||0
+           const pos = Number($(this).data('pos'))
+           const isQty = Number($(this).data('qty'))||0,
+            isPrice = Number($(this).data('price'))||0 ,
+            {mv} = trT(),
+            saPrice = Number(mv?$(`#safrm_tank${pos}`).find('option:selected').data('saprice'):$(`#sa_pumpSt${pos}`).find('option:selected').data('saprice')),
+            price = Number($(`#saPrice${pos}`).val()) || saPrice || 0,
+            Qty =  Number($(`#saQty${pos}`).val())
+
+            if(isPrice || isQty)$(`#totPrice${pos}`).val(Number(price*Qty))
+            if(isTotPrice)$(`#saQty${pos}`).val(Number(val/price).toFixed(2))
+             
            setAmo()
         })
 
@@ -41,10 +54,12 @@ $('body').on('keyup','.fuelSalesSet',function(){
              const pos = Number($(this).data('pos')),
              saPrice = Number(mv?$(`#safrm_tank${pos}`).find('option:selected').data('saprice'):$(`#sa_pumpSt${pos}`).find('option:selected').data('saprice')),
              price = Number($(`#saPrice${pos}`).val()) || saPrice || 0,
+
              totT = Number($(`#totPrice${pos}`).val()) || 0,
              qtyT = Number(totT/price)
              tot+=totT
-             $(`#saQty${pos}`).val(qtyT.toFixed(3))
+
+            //  $(`#saQty${pos}`).val(qtyT.toFixed(3))
              
           })
 
@@ -113,7 +128,7 @@ const trT = () =>{
                                         <label class="mt-1 text-danger " for="saQty1"></label> 
                                     <div class="box-pointer d-inline "></div>
                                     </div>
-                                    <input type="number" data-pos=${pos}   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.00000001" readonly  id="saQty${pos}" name="saQty${pos}"  class=" money-fomat btn-sm form-control  weight600">
+                                    <input type="number" data-pos=${pos}   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)" data-qty=1  step="0.00000001"   id="saQty${pos}" name="saQty${pos}"  class=" money-fomat btn-sm form-control  fuelSalesSet weight600">
                                 </div>
                            
                         </td>      
@@ -124,7 +139,7 @@ const trT = () =>{
                                         <label class="mt-1 text-danger " for="saPrice1"></label> 
                                     <div class="box-pointer d-inline "></div>
                                     </div>
-                                    <input type="number" data-pos=${pos}   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="saPrice${pos}" name="saPrice${pos}"  class=" money-fomat btn-sm form-control fuelSalesSet weight600">
+                                    <input type="number" data-pos=${pos} data-price=1  style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)" step="0.01"  id="saPrice${pos}" name="saPrice${pos}"  class=" money-fomat btn-sm form-control fuelSalesSet weight600">
                                 </div>
                         </td>                      
                     
@@ -133,7 +148,7 @@ const trT = () =>{
                                     <label class="mt-1 text-danger " for="saPrice1"></label> 
                                 <div class="box-pointer d-inline "></div>
                             </div>
-                            <input type="number" step=0.001 id="totPrice${pos}" name="totPrice${pos}"  class="form-control money-fomat btn-sm weight600 fuelSalesSet">
+                            <input type="number" data-pos=${pos} step=0.001 id="totPrice${pos}" name="totPrice${pos}" data-tprice=1  class="form-control money-fomat btn-sm weight600 fuelSalesSet">
                         </td> 
                         
                         <td>

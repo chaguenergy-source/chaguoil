@@ -400,13 +400,13 @@
 
 						<li class="dropdown-divider"></li>
                          <li class="mt-2" >
-							 <a type="button" data-toggle="modal" title="{% if useri.langSet == 0 %}Chukua Pesa Katika Zamu{% else %} Cash Deposit Before{% endif %}"  data-target="#shiftCash" href="#">
+							 <a type="button" data-toggle="modal" title="{% if useri.langSet == 0 %}Kuweka Pesa Benki{% else %} Cash Deposit {% endif %}"  data-target="#shiftCash" href="#">
 								<svg width="1.2em" height="1.2em" viewBox="0 0 16 16" class="bi bi-cash-stack mx-1 " fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 									<path d="M14 3H1a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1h-1z"/>
 									<path fill-rule="evenodd" d="M15 5H1v8h14V5zM1 4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H1z"/>
 									<path d="M13 5a2 2 0 0 0 2 2V5h-2zM3 5a2 2 0 0 1-2 2V5h2zm10 8a2 2 0 0 1 2-2v2h-2zM3 13a2 2 0 0 0-2-2v2h2zm7-4a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
 								  </svg>
-								{% if useri.langSet == 0 %}Pesa/Zamu{% else %} Cash/Shift {% endif %} 
+								{% if useri.langSet == 0 %}Kuweka/Benki{% else %} Cash Deposit{% endif %} 
 							
 							</a>
 						</li>
@@ -1087,28 +1087,81 @@
    
 
 
-  <!--CASH OUT BEFORE SHIFT  -->
+  <!--CASH DEPOSITI -->
   <!-- Modal -->
   <div class="modal fade" id="shiftCash" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 				<div class="modal-header">
-						<h5 class="modal-title"> {% if useri.langSet == 0 %}Chukua Pesa kutoka zamu{% else %}Cash Out From Shift{% endif %}</h5>
+						<h5 class="modal-title"> {% if useri.langSet == 0 %}Kuweka Pesa Bank{% else %}Cash Deposit{% endif %}</h5>
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 								<span aria-hidden="true">&times;</span>
 							</button>
-					</div>
+				</div>
 			<div class="modal-body">
 
 				<form id="cashOutForm" action="/salepurchase/cashOut" method="post">
+
+					{% csrf_token %}
+					
 						<div class="form-group">
+							<label for="cash_source" class="brown">
+								{% if useri.langSet == 0 %}Pesa Kutoka{% else %}Cash From{% endif %}
+								<sup>*</sup>
+							</label>
+
+						
+
+							<select class="form-control bluePrint border" name="cash_source" id="cash_source">
+								<option value="0">{% if useri.langSet == 0 %}--Chagua--{% else %}--Select--{% endif %}</option>
+								<option value="1">{% if useri.langSet == 0 %}Mhusika wa Pampu{% else %}Pump Attendant{% endif %}</option>
+								<option value="2">{% if useri.langSet == 0 %}Akaunti ya Pesa{% else %}Cash Account{% endif %}</option>
+							</select>
+	                        <script>
+								$(document).ready(function() {
+									$('#cash_source').change(function() {
+										const source = Number($(this).val());
+										if(source) {
+											$(this).selectpicker('setStyle', 'bluePrint');
+										} else {
+											$(this).selectpicker('setStyle', '');
+										}
+										if (source === 1) {
+											$('#pump_attendant_field').show();
+											$('#cash_account_field').hide();
+										} else if (source === 2) {
+											$('#pump_attendant_field').hide();
+											$('#cash_account_field').show();
+
+											// Hide 'Cash' accounts from the destination select
+											$('#cashOutAcc option').show();
+											$('#cashOutAcc option[data-aina="Cash"]').hide();
+											if ($('#cashOutAcc option:selected').is(':hidden')) {
+												$('#cashOutAcc').val('0');
+											}
+											$('#cashOutAcc').selectpicker('refresh');
+										} else {
+											$('#pump_attendant_field').hide();
+											$('#cash_account_field').hide();
+
+											// Show all options back
+											$('#cashOutAcc option').show();
+											$('#cashOutAcc').selectpicker('refresh');
+										}
+									});
+								});
+							</script>
+							  
+						</div>
+
+						<div class="form-group" id="pump_attendant_field" style="display:none;">
 							<label for="pump_attendant" class="brown" >
-							{% if useri.langSet == 0 %}Mhusika wa Pampu {% else %} Pump  Incharge {% endif %} 
+							{% if useri.langSet == 0 %}Mhusika wa Pampu {% else %}Pump Attendant {% endif %} 
 							<sup>*</sup>
 							</label>
 					
 							{% block cashDepoIncharge %}
-							<select class=" form-control selectpicker bluePrint" data-live-search="true"
+							<select class=" form-control selectpicker border bluePrint" data-live-search="true"
 							onchange="
 								var inc = $(this).find('option:selected').data('incharge'),
 									val  = Boolean(Number($(this).val()))
@@ -1131,25 +1184,42 @@
 							
 
 							</select>
-                     {% endblock %}
+					 {% endblock %}
+
+
 						</div>
 
-								<div  class="form-group mb-3  ">
-									<label class="text-danger" for="cashOutAcc">{% if useri.langSet == 0 %}Akaunti ya Malipo {% else %}Payment Account{% endif %}  <sup>*</sup> </label>
-									<select name="cashOutAcc"
-									onchange="$(this).selectpicker('setStyle','bluePrint')"
-									
-									id="cashOutAcc" class="form-control machaguo-pesa smallFont latoFont selectpicker" data-live-search="true">
-									<option value=0 data-amount=0 data-value=0 >{% if useri.langSet == 0 %}--Chagua Akaunti--{% else %}--Select Account--{% endif %}</option>
-									{% for ac in payacc %}
-									<option value={{ac.id}} data-amount={{ac.Amount}} data-value="{{ac.id}}" >{{ac.Akaunt_name}}</option>
-									{%endfor%}
-									
-									</select>
+						<div class="form-group" id="cash_account_field" style="display:none;">
+							<label for="source_cash_account" class="brown">
+								{% if useri.langSet == 0 %}Akaunti ya Pesa{% else %}Cash Account{% endif %}
+								<sup>*</sup>
+							</label>
+							<select class="form-control selectpicker bluePrint border" data-live-search="true" name="source_cash_account" id="source_cash_account">
+								<option value="0">-----------</option>
+								{% for ac in payacc %}
+								{% if ac.aina == 'Cash' %}
+								<option value="{{ac.id}}">{{ac.Akaunt_name}}</option>
+								{% endif %}
+								{% endfor %}
+							</select>
+						</div>
+
+						<div class="form-group mb-3">
+							<label class="text-danger" for="cashOutAcc">{% if useri.langSet == 0 %}Kwenda Akaunti {% else %}To Account{% endif %}  <sup>*</sup> </label>
+							<select name="cashOutAcc"
+							onchange="$(this).selectpicker('setStyle','bluePrint')"
+
+							id="cashOutAcc" class="form-control machaguo-pesa border latoFont selectpicker" data-live-search="true">
+							<option value=0 data-amount=0 data-value=0 >{% if useri.langSet == 0 %}--Chagua Akaunti--{% else %}--Select Account--{% endif %}</option>
+							{% for ac in payacc  %}
 								
+								   <option value={{ac.id}} data-aina="{{ac.aina}}" data-amount={{ac.Amount}} data-value="{{ac.id}}" >{{ac.Akaunt_name}}</option>
 								
+							{%endfor%}
 							
-								</div> 
+							</select>
+						
+						</div> 
 
 								<div class="form-group">
 									<label for="CashOutAmo" class="brown" >{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">{{currencii}}</span> <sup>*</sup> </label>
@@ -1426,26 +1496,36 @@
 		e.preventDefault()
 		const url = $(this).attr('action'),
 		shift = Number($('#pump_attendant').val()),
-		acco = Number($('#cashOutAcc').val()),
+		To_acco = Number($('#cashOutAcc').val()),
 		To = $('#kabidhiwa').val(),
 		desc = $('#CashBReasons').val(),
 		amoC = Number($('#CashOutAmo').val())||0,
+		FromPmp = Number(Number($('#cash_source').val()) === 1),
+		FrmAcc = Number($('#source_cash_account').val()),
+
 
 		data = {
 			data:{
 			shift,
 			amoC,
-			acco,
+			To_acco,
 			desc,
-			To
-			
+			To,
+			FromPmp,
+			FrmAcc
 		},
 			url
 		}
 
-		if(shift&&amoC&&acco){
+	if(FromPmp&&!shift){$('#pump_attendant').selectpicker('setStyle','redborder');return}
+	if(!FromPmp&&!FrmAcc){$('#source_cash_account').selectpicker('setStyle','redborder');return}
+	if(amoC<=0){redborder('#CashOutAmo');return}
+	if(!To_acco){$('#cashOutAcc').selectpicker('setStyle','redborder');return}
+
+	const T = confirm(lang('Una uhakika unataka kuendelea?','Are you sure you want to continue?'))
+    if(!T)return
             $('#shiftCash').modal('hide')      
-            $('#loadMe').modal('show')      
+			$('#loadMe').modal('show')    
 			const sendIt=POSTREQUEST(data)
 			sendIt.then(resp=>{
 				$('#loadMe').modal('hide')
@@ -1461,13 +1541,7 @@
                 }
 			})
 
-		}else{
-			if(!shift)$('#pump_attendant').selectpicker('setStyle','redborder')
-			if(!acco)$('#cashOutAcc').selectpicker('setStyle','redborder')
-		
-			if(!amoC)$('#CashOutAmo').addClass('redborder')
-		}
-
+        //    console.log(data);
 		       
 	})
    

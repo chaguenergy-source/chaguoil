@@ -563,6 +563,7 @@
                                         <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
             
                                         <th>{% if useri.langSet == 0 %}Matumizi{% else %} Expanses {% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %} Given To{% endif %} </th>
                                         <th>{% if useri.langSet == 0 %}Maelezo{% else %} Description{% endif %} </th>
                                         <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
                                         
@@ -580,6 +581,15 @@
                                                 </script>
                                             </td>
                                             <td class="brown">{{s.matumizi.matumizi | title}}</td>
+
+                                            <td >
+                                                {% if s.kabidhiwa %}
+                                                  {{s.kabidhiwa}}
+                                                {% else %}
+                                                  ------
+                                                {% endif %}
+                                            </td>
+
                                             <td >{{s.maelezo}}</td>
             
                                             <td>{{s.kiasi|floatformat:'-2'|intcomma}}</td>
@@ -593,7 +603,7 @@
                                         {% endfor %}
             
                                         <tr>
-                                            <th colspan="4" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                            <th colspan="5" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
                                              <th>{{exclude.expamo | floatformat:'-2'  | intcomma}}</th>
                                         </tr>
                                     </tbody>

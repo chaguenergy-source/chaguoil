@@ -54,7 +54,14 @@
 
                     </div>
                     <div class="col-7 text-primary">
-                            SH-{{shift.code}}
+                            SHF-{{shift.code}}  |<button title="{% if useri.langSet == 0 %}Futa na Anzisha Upya {% else %}Delete Shift and Restart {% endif %}" data-toggle="modal" data-target="#confirmShiftDelete" class="btn btn-light">
+                                <!-- edit svg icon down -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-3">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+
+                            </button>
                     </div>
                 
 
@@ -501,14 +508,32 @@
              {% if exclude.expf > 0 %}
                <hr>
              <div class="table-responsive">
-                <strong>{% if useri.langSet == 0 %}Matumizi kwa Mafuta{% else %} Fuel  Usage & Wastage {% endif %}</strong>
-                <table class="table table-bordered smallFont table-sm">
-                    <thead>
-                        <tr class="smallFont" >
-                            <th>#</th>
-                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+               
+                <form id="fuel-usage-delete-form" method="post" action="/salepurchase/deleteShiftFuelUsage/">
+                    {% csrf_token %}
+                    <div class="mb-2 row">
+                        <div class="col-8">
+                             <strong>{% if useri.langSet == 0 %}Matumizi kwa Mafuta{% else %} Fuel  Usage & Wastage {% endif %}</strong>
+                        </div>
+
+                        <div class="col-4 text-right">
+                        <button type="button" title="{% if useri.langSet == 0 %}Futa{% else %}Delete{% endif %}" id="delete-fuel-usage-btn" class="btn btn-light btn-sm" disabled onclick="confirmDeleteFuelUsage()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+                            </svg>
+                        </button>
+                        </div>  
+                    </div>
+                    <table class="table table-bordered smallFont table-sm">
+                        <thead>
+                            <tr class="smallFont" >
+                                <th><input type="checkbox" id="select-all-fuel-usage" onclick="toggleAllFuelUsage(this)"></th>
+                                <th>#</th>
+                                <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
 
                             <th>{% if useri.langSet == 0 %}Matumizi{% else %} Usage {% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Aliyekabidhiwa {% else %} Given To {% endif %} </th>
+
                             <th>{% if useri.langSet == 0 %}Maelezo{% else %} Description{% endif %} </th>
                             <th>{% if useri.langSet == 0 %}Pampu{% else %} Pump{% endif %} </th>
                             <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %} </th>
@@ -524,6 +549,9 @@
                             {% for s in expF %}
                             
                             <tr>
+                                <td>
+                                    <input type="checkbox" name="fuel_usage_ids" value="{{s.id}}" class="fuel-usage-checkbox" onclick="updateFuelUsageDeleteButtonState()">
+                                </td>
                                 <td>{{forloop.counter}}</td>
                                 <td>
                                     <script>
@@ -531,6 +559,13 @@
                                     </script>
                                 </td>
                                 <td class="brown">{{s.matumizi.matumizi | title}}</td>
+                                <td >
+                                    {% if s.kabidhiwa %}
+                                    {{s.kabidhiwa}}
+                                    {% else %}
+                                         -----
+                                    {% endif %}
+                                </td>
                                 <td >{{s.maelezo}}</td>
                                 <td class="bluePrint" >{{s.fromShift.pump.station.name}} {{s.fromShift.pump.name}}</td>
                                 <td class="brown" >{{s.Fuel.name}}</td>
@@ -552,7 +587,7 @@
                             {% endfor %}
 
                             <tr>
-                                <th colspan="7" >
+                                <th colspan="9" >
                                     {% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}
                                 </th>
                                 <th>
@@ -568,9 +603,47 @@
 
                         </tbody>
                       </table>
-
+                </form>
 
              </div>
+
+               <script>
+                             function updateFuelUsageDeleteButtonState() {
+                                 const checkboxes = document.querySelectorAll('.fuel-usage-checkbox');
+                                 const btn = document.getElementById('delete-fuel-usage-btn');
+                                 btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
+                             }
+                             function toggleAllFuelUsage(source) {
+                                 const checkboxes = document.querySelectorAll('.fuel-usage-checkbox');
+                                 checkboxes.forEach(cb => { cb.checked = source.checked; });
+                                 updateFuelUsageDeleteButtonState();
+                             }
+                             function confirmDeleteFuelUsage() {
+                                 const selected = document.querySelectorAll('.fuel-usage-checkbox:checked');
+                                 if (selected.length === 0) return;
+                                 const msg = `{% if useri.langSet == 0 %}Futa matumizi haya ya mafuta? Ukifuta, utahitaji kuyaongeza tena.{% else %}Delete selected fuel usage records? If you delete, you will need to re-add them.{% endif %}`;
+                                 if (confirm(msg)) {
+  // Use AJAX to submit the form without reloading the page
+                                    const checs = []
+                                    selected.forEach(cb => { checs.push(Number(cb.value)); });
+                                    const url = '/salepurchase/deleteShiftExpenses'
+                                    const data = {data:{expense_ids: JSON.stringify(checs)},url}
+                                    $('#loadMe').modal('show')
+                                    const sendIt = POSTREQUEST(data)
+                                    sendIt.then(res=>{
+                                        $('#loadMe').modal('hide')
+                                        hideLoading()
+                                        const msg = lang(res.swa,res.eng)
+                                        if(res.success){
+                                            toastr.success(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                            location.reload()
+                                        }else{
+                                            toastr.error(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                        }
+                                    })
+                                }
+                             }
+                         </script>
 
           
 
@@ -578,53 +651,106 @@
 
              {% if exclude.expamo > 0 %}
                <hr>
-             <div class="table-responsive">
-                <strong>{% if useri.langSet == 0 %}Matumizi ya Pesa{% else %} Expenses By Cash{% endif %}</strong>
-                <table class="table table-bordered smallFont table-sm">
-                    <thead>
-                        <tr class="smallFont" >
-                            <th>#</th>
-                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
 
-                            <th>{% if useri.langSet == 0 %}Matumizi{% else %} Expanses {% endif %} </th>
-                            <th>{% if useri.langSet == 0 %}Maelezo{% else %} Description{% endif %} </th>
-                            <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
-                            
-                            </tr>
-                    </thead>
-               
-                        <tbody>
-                            {% for s in expA %}
-                         
-                            <tr>
-                                <td>{{forloop.counter}}</td>
-                                <td>
-                                    <script>
-                                        document.write(moment('{{s.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
-                                    </script>
-                                </td>
-                                <td class="brown">{{s.matumizi.matumizi | title}}</td>
-                                <td >{{s.maelezo}}</td>
+                         <div class="table-responsive">
+                                
+                                <form id="expense-delete-form" method="post" action="/salepurchase/deleteShiftExpenses">
+                                    {% csrf_token %}
+                                    <div class="mb-2 row">
+                                        <div class="col-8">
+                                            <strong>{% if useri.langSet == 0 %}Matumizi ya Pesa{% else %} Expenses By Cash{% endif %}</strong>
+                                        </div>
+                                        <div class="col-4 text-right">
+                                            <button type="button" id="delete-expenses-btn" class="btn btn-light btn-sm" disabled onclick="confirmDeleteExpenses()">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+                                                </svg>
+                                            </button>                                            
+                                        </div>
 
-                                <td>{{s.kiasi|floatformat:'-2'|intcomma}}</td>
+                                    </div>
+                                    <table class="table table-bordered smallFont table-sm">
+                                        <thead>
+                                                <tr class="smallFont" >
+                                                        <th><input type="checkbox" id="select-all-expenses" onclick="toggleAllExpenses(this)"></th>
+                                                        <th>#</th>
+                                                        <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+                                                        <th>{% if useri.langSet == 0 %}Matumizi{% else %} Expanses {% endif %} </th>
+                                                        <th>{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %} Given To{% endif %} </th>
+                                                        <th>{% if useri.langSet == 0 %}Maelezo{% else %} Description{% endif %} </th>
+                                                        <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
+                                                </tr>
+                                        </thead>
+                                        <tbody>
+                                                {% for s in expA %}
+                                                <tr>
+                                                        <td><input type="checkbox" class="expense-checkbox" name="expense_ids" value="{{s.id}}" onchange="updateDeleteButtonState()"></td>
+                                                        <td>{{forloop.counter}}</td>
+                                                        <td>
+                                                                <script>
+                                                                        document.write(moment('{{s.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                                                </script>
+                                                        </td>
+                                                        <td class="brown">{{s.matumizi.matumizi | title}}</td>
+                                                        <td >
+                                                                {% if s.kabidhiwa %}
+                                                                {{s.kabidhiwa}}
+                                                                {% else %}
+                                                                     -----
+                                                                {% endif %}
+                                                        </td>
+                                                        <td >{{s.maelezo}}</td>
+                                                        <td>{{s.kiasi|floatformat:'-2'|intcomma}}</td>
+                                                </tr>
+                                                {% endfor %}
+                                                <tr>
+                                                        <th colspan="6" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                                        <th>{{exclude.expamo | floatformat:'-2'  | intcomma}}</th>
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                         </div>
+                         <script>
+                             function updateDeleteButtonState() {
+                                 const checkboxes = document.querySelectorAll('.expense-checkbox');
+                                 const btn = document.getElementById('delete-expenses-btn');
+                                 btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
+                             }
+                             function toggleAllExpenses(source) {
+                                 const checkboxes = document.querySelectorAll('.expense-checkbox');
+                                 checkboxes.forEach(cb => { cb.checked = source.checked; });
+                                 updateDeleteButtonState();
+                             }
+                             function confirmDeleteExpenses() {
+                                 const selected = document.querySelectorAll('.expense-checkbox:checked');
+                                 if (selected.length === 0) return;
+                                 const msg = `{% if useri.langSet == 0 %}Futa matumizi haya? Ukifuta, utahitaji kuyaongeza tena.{% else %}Delete selected expenses? If you delete, you will need to re-add them.{% endif %}`;
+                                 if (confirm(msg)) {
+                                    //   document.getElementById('expense-delete-form').submit();
+                                    // Use AJAX to submit the form without reloading the page
+                                    const checs = []
+                                    selected.forEach(cb => { checs.push(Number(cb.value)); });
+                                    const url = '/salepurchase/deleteShiftExpenses'
+                                    const data = {data:{expense_ids: JSON.stringify(checs)},url}
+                                    $('#loadMe').modal('show')
+                                    const sendIt = POSTREQUEST(data)
+                                    sendIt.then(res=>{
+                                        $('#loadMe').modal('hide')
+                                        hideLoading()
+                                        const msg = lang(res.swa,res.eng)
+                                        if(res.success){
+                                            toastr.success(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                            location.reload()
+                                        }else{
+                                            toastr.error(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                        }
+                                    })
 
-                                <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
-                                <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
-                                <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
-                            </tr>
-                           
+                                 }
+                             }
 
-                            {% endfor %}
-
-                            <tr>
-                                <th colspan="4" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
-                                 <th>{{exclude.expamo | floatformat:'-2'  | intcomma}}</th>
-                            </tr>
-                        </tbody>
-                      </table>
-
-
-             </div>
+                         </script>
           
              {% endif %}
              {% if exclude.cashBA > 0 %}
@@ -921,8 +1047,68 @@
 </div>
 
 
+<!-- Confirm Shift Delete Modal -->
+  <div class="modal fade" id="confirmShiftDelete" tabindex="-1" role="dialog" aria-labelledby="confirmShiftDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmShiftDeleteModalLabel">{% if useri.langSet == 0 %}Thibitisha Kufuta Zamu{% else %}Confirm Shift Deletion{% endif %}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          {% if useri.langSet == 0 %}
+            Una uhakika unataka kufuta zamu hii? Hii itafuta rekodi zote zinazohusiana na zamu hii, Ikiwa ni pamoja na matumizi yote, Credit/Customer Order zote, Kusafirisha mafuta, na mengineyo.
+          {% else %}
+            Are you sure you want to delete this shift? This will remove all records associated with this shift, these records includes all expenses, Credit/Customer Orders, Fuel Transfers, and more.
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Hapana{% else %}No{% endif %}</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteShiftBtn">{% if useri.langSet == 0 %}Ndio, Futa{% else %}Yes, Delete{% endif %}</button>
+        </div>
+      </div>
+    </div>
+ </div>
+
+ <!-- a script to handle shift deletion -->
+
+<script>
+  $(document).ready(function() {
+    let shiftIdToDelete;
 
 
+
+    // Confirm delete action
+    $('#confirmDeleteShiftBtn').on('click', function() {
+        // hide the confirm modal
+        $('#confirmShiftDelete').modal('hide');
+        $('#loadMe').modal('show');
+      $.ajax({
+        url: '{% url "deleteShift" %}',
+        type: 'POST',
+        data: {
+          'shift_id': Number('{{ shift.id }}'),
+          'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        success: function(response) {
+            const msg = lang(response.swa, response.eng)
+          if (response.success) {
+            // Hide modal and refresh page or remove shift element
+            $('#loadMe').modal('hide');
+            hideLoading();
+            toastr.success(msg, lang('Imefanikiwa','Success',{timeOut:3000}));
+            location.reload();
+          } else {
+            // Handle error
+            alert('Error deleting shift');
+          }
+        }
+      });
+    });
+  });
+</script>
 
 {% endblock %}
 

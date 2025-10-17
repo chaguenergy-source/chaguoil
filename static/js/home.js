@@ -116,7 +116,6 @@ const dashBoard = d =>{
             const Ses = Sess[0] || {}
             // get a set of unique attendants from pAtt
             const Drange = getDurationRange()
-            
             shiftInfoDiv.innerHTML = `
                 <div class="detail-item">
                     <span>${lang('Mpango Zamu','Shift Session')}:</span>
@@ -124,7 +123,7 @@ const dashBoard = d =>{
                 </div>
                 <div class="detail-item">
                     <span>${lang('Muda','Duration')}:</span>
-                    <span style="font-weight: bold;">${Ses.From ? moment(Ses.From).format('HH:mm') : 'N/A'} - ${Ses.To ? moment(Ses.To).format('HH:mm') : 'N/A'}</span>
+                    <span style="font-weight: bold;">${Ses.From ? moment(`${Ses.date} ${Ses.From}`).format('HH:mm') : 'N/A'} - ${Ses.To ? moment(`${Ses.date} ${Ses.To}`).format('HH:mm') : 'N/A'}</span>
                 </div>
                 <div class="detail-item">
                     <span>${lang('Wahudumu ','Attendants ')}:</span>

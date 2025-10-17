@@ -36,6 +36,8 @@ from django.conf import settings
 
 
 from account.todos import Todos,confirmMailF,invoCode,TCode
+from django.views.decorators.http import require_POST
+import json
 def todoFunct(request):
   usr = Todos(request)
   return usr.todoF()
@@ -696,35 +698,44 @@ def fuelsales(request):
                     ses = shiftSesion.objects.filter(session__Interprise=shell,complete=False)    
                     sale.session = ses.last()
                 sale.save()    
-                amo = 0     
-                for sa in saleDt:
-                    saL = saleList()
-                    saL.sale = sale
-                    theF = None
-                    cost = 0
-                    pr_og = 0
-                    if mv:
-                        tnk = fuel_tanks.objects.get(pk=sa['tnk'],tank=contn)
-                        theF = tnk.fuel
-                        cost = float(tnk.cost)  
-                        pr_og = float(tnk.price)
-                        saL.tank = tnk
-                    else:
-                        pmp = fuel_pumps.objects.get(pk=sa['pmp'],tank__Interprise=shell)
-                        shpmp = shiftPump.objects.get(pump=pmp,shift__To=None) 
-                        saL.shift = shpmp
-                        saL.tank = pmp.tank
-                        theF = pmp.tank.fuel
-                        cost = float(pmp.tank.cost)  
-                        pr_og = float(pmp.tank.price)   
-                    saL.theFuel =  theF
-                    saL.qty_sold = float(sa['totAmo']/sa['price'])   
-                    saL.sa_price = float(sa['price'])
-                    saL.sa_price_og = pr_og
-                    saL.cost_sold = cost
-                    saL.save()
+                amo = 0    
+                try: 
+                    for sa in saleDt:
+                        saL = saleList()
+                        saL.sale = sale
+                        theF = None
+                        cost = 0
+                        pr_og = 0
+                        if mv:
+                            tnk = fuel_tanks.objects.get(pk=sa['tnk'],tank=contn)
+                            theF = tnk.fuel
+                            cost = float(tnk.cost)  
+                            pr_og = float(tnk.price)
+                            saL.tank = tnk
+                        else:
+                            pmp = fuel_pumps.objects.get(pk=sa['pmp'],tank__Interprise=shell)
+                            shpmp = shiftPump.objects.get(pump=pmp,shift__To=None) 
+                            saL.shift = shpmp
+                            saL.tank = pmp.tank
+                            theF = pmp.tank.fuel
+                            cost = float(pmp.tank.cost)  
+                            pr_og = float(pmp.tank.price)   
+                        saL.theFuel =  theF
+                        saL.qty_sold = float(sa['totAmo']/sa['price'])   
+                        saL.sa_price = float(sa['price'])
+                        saL.sa_price_og = pr_og
+                        saL.cost_sold = cost
+                        saL.save()
 
-                    amo += (sa['totAmo']) 
+                        amo += (sa['totAmo']) 
+                except:
+                    sale.delete()
+                    data = {
+                        'success':False,
+                        'msg_swa':'Rekodi ya mauzo haijafanikiwa tafadhari hakikisha umejaza taarifa zote kikamilifu',        
+                         'msg_eng':'Sales record was not successful please make sure you fill all required information correctly'
+                    }
+                    return JsonResponse(data)
                 sale.amount = float(amo)
                 
 
@@ -1319,7 +1330,30 @@ def theshiftsTime(request):
     return render(request,'shiftsTime.html',todo)
 
 
-
+@login_required(login_url='login')
+@require_POST
+def deleteShiftExpenses(request):
+    try:
+        todo = todoFunct(request)
+        shell = todo['shell']
+        manager = todo['manager']
+        if not manager and not todo['useri'].admin:
+            return JsonResponse({'success': False, 'eng': 'Permission denied.','swa':'Ruhusa imeruhusiwa.'})
+        expense_ids = request.POST.getlist('expense_ids[]')
+        if not expense_ids:
+            # Try as JSON string if not sent as array
+            expense_ids = json.loads(request.POST.get('expense_ids', '[]'))
+        # Ensure all ids are integers
+        expense_ids = [int(eid) for eid in expense_ids if str(eid).isdigit()]
+        if not expense_ids:
+            return JsonResponse({'success': False, 'eng': 'No valid expense IDs provided.','swa':'Hakuna vitambulisho halali vya matumizi vilivyotolewa.'})
+        deleted, _ = rekodiMatumizi.objects.filter(pk__in=expense_ids,Interprise=shell.id).delete()
+        if deleted > 0:
+            return JsonResponse({'success': True, 'eng': 'Expenses deleted successfully.','swa':'Matumizi yamefutwa kwa mafanikio.'})
+        else:
+            return JsonResponse({'success': False, 'eng': 'No expenses deleted.','swa':'Hakuna matumizi yaliyofutwa.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'eng': f'Error: {str(e)}'})
 
 @login_required(login_url='login')
 def theAdjst(request):
@@ -3227,6 +3261,80 @@ def StartEndShift(request):
   return render(request,'pumpAttendsView.html',todo)
 
 @login_required(login_url='login')
+@require_POST
+def deleteShift(request):
+    try:
+        todo = todoFunct(request)
+        shell = todo['shell']
+        manager = todo['manager']
+        useri = todo['useri']
+        shift_id = int(request.POST.get('shift_id', 0))
+        if not (manager or useri.admin):
+            return JsonResponse({'success': False, 'eng': 'Permission denied.', 'swa': 'Ruhusa haijarusiwa.'})
+        if not shift_id:
+            return JsonResponse({'success': False, 'eng': 'No shift ID provided.', 'swa': 'Hakuna ID ya zamu iliyotolewa.'})
+        
+        shiftToD = shifts.objects.get(pk=shift_id, record_by__Interprise=shell.id,To=None)
+
+        sale = saleList.objects.filter(shift__shift=shiftToD.id)
+        for s in sale:
+            theSale = s.sale
+            s.delete()
+            rems = saleList.objects.filter(sale=theSale.id)
+
+            if not rems.exists():
+                saleAmo = theSale.amount
+                payedAmo = theSale.payed
+                accs = wekaCash.objects.filter(sales=theSale.id)
+                for ac in accs:
+                    acc = ac.Akaunt
+                    acc.Amount = float(float(acc.Amount) - float(payedAmo))
+                    acc.save()
+                    ac.delete()
+                IsCreditor = theSale.cdorder
+                if IsCreditor:
+                    IsCreditor.consumed = float(float(IsCreditor.consumed) - float(saleAmo))
+                    IsCreditor.save()
+
+                theSale.delete()
+
+        tr = transFromTo.objects.filter(shift__shift=shiftToD.id)
+        for ft in tr:
+            totnk = ft.to
+            totnk.qty = float(float(totnk.qty) - float(ft.qty))
+            totnk.save()
+            theTr = ft.transfer
+            ft.delete()
+            remft = transFromTo.objects.filter(transfer=theTr.id)
+            if not remft.exists():
+                theTr.delete()
+
+       
+        exp = rekodiMatumizi.objects.filter(fromShift__shift=shiftToD.id)
+        exp.delete()
+
+        cashB = wekaCash.objects.filter(shift=shiftToD)
+        if cashB.exists():  
+            for bf in cashB:
+                acc = bf.Akaunt
+                acc.Amount = float(float(acc.Amount) - float(bf.Amount))
+                acc.save()
+                bf.delete()
+
+        fuel_pumps.objects.filter(Incharge=shiftToD.by.id).update(Incharge=None,fromi=None)
+
+
+        deleted, _ = shifts.objects.filter(pk=shiftToD.id, record_by__Interprise=shell.id).delete()
+
+
+        if deleted > 0:
+            return JsonResponse({'success': True, 'eng': 'Shift deleted successfully.', 'swa': 'Zamu imefutwa kikamilifu.'})
+        else:
+            return JsonResponse({'success': False, 'eng': 'No shift deleted.', 'swa': 'Hakuna zamu iliyofutwa.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'eng': f'Error: {str(e)}'})
+
+@login_required(login_url='login')
 def fuell(request):
   todo = todoFunct(request)
   general = todo['general']
@@ -3551,24 +3659,75 @@ def addpump(request):
 @login_required(login_url='login')
 def cashOut(request):
     if request.method == "POST":
-        try:
+        # try:
             shift = int(request.POST.get('shift'))
             amoC = float(request.POST.get('amoC'))
-            acco = int(request.POST.get('acco',0))
+            To_acco = int(request.POST.get('To_acco',0))
             giveTo = request.POST.get('To')
             desc = request.POST.get('desc')
-
+            FromPmp = int(request.POST.get('FromPmp',0))
+            FrmAcc = int(request.POST.get('FrmAcc',0))
             todo = todoFunct(request)
-
+   
             useri = todo['useri']
             general = todo['general']
             shell = todo['shell']
             manager = todo['manager']
+            kampuni = todo['kampuni']
 
+            data = {
+                'success':True,
+                'msg_swa':'Fedha zimehamishwa kikamilifu',
+                'msg_eng':'Cash transferred successfully'
+            }
+
+            
 
             if (useri.admin or manager) and not general:
-                acount = PaymentAkaunts.objects.get(pk=acco,Interprise=shell.id)
-                sh = shifts.objects.get(pk=shift,record_by__Interprise=shell.id)
+                fA = None
+                acount = PaymentAkaunts.objects.get(pk=To_acco,Interprise__company=kampuni.id)
+
+                if not FromPmp:
+                    fA = PaymentAkaunts.objects.get(pk=FrmAcc,Interprise=shell.id)
+                    fA_Amo = float(fA.Amount) 
+                    if float(fA_Amo) >= float(amoC):
+                        
+                        fA.Amount = float(fA_Amo - amoC)
+                        fA.save()
+
+                        toa = toaCash()
+                        toa.Akaunt = fA
+                        toa.Amount = amoC
+                        toa.before = fA_Amo
+                        toa.After = fA.Amount
+                        if To_acco:
+                            toa.kwenda = acount.Akaunt_name
+                            if not acount.onesha:
+                                toa.kwenda_siri = True
+                        else:
+                            toa.kwenda = "Personal"
+                        if not fA.onesha:
+                            toa.usiri =True       
+                        toa.maelezo = desc
+                        toa.makato = 0
+                        toa.tarehe = datetime.datetime.now(tz=timezone.utc)
+                        toa.by=useri
+                        toa.Interprise=fA.Interprise
+                        
+                        toa.kuhamisha = True
+
+                        toa.kuhamishaNje =  acount.Interprise is not fA.Interprise
+                        toa.save()
+
+                    else:
+                        data = {
+                            'success':False,
+                            'msg_swa':'Kitendo hakikufanikiwa. Akaunti ya kutoa fedha haina kiasi cha kutosha',
+                            'msg_eng':'The action was not successfully. The account to withdraw from has no sufficient amount',
+                        }
+                        return JsonResponse(data)
+                sh = None
+
                 weka =  wekaCash() 
                 ac_Amo = float(acount.Amount) 
                 afterAmo = float(ac_Amo+amoC)
@@ -3581,37 +3740,39 @@ def cashOut(request):
                 weka.Amount =amoC
                 weka.before = ac_Amo
                 weka.After = afterAmo
-                weka.kutoka = f'SHF-{sh.code}'
+
+                if FromPmp:
+                    sh = shifts.objects.get(pk=shift,record_by__Interprise=shell.id)
+                    weka.shift = sh
+                    weka.biforeShift = True                    
+                    weka.kutoka = f'SHF-{sh.code}'
+
+                else:
+                    weka.kutoka = fA.Akaunt_name   
+                    weka.kuhamisha = True
                 weka.by = useri
-                weka.shift = sh
-                weka.biforeShift = True
                 weka.giveTo = giveTo
-                weka.maelezo = desc
+                weka.maelezo = desc 
                 weka.save()
 
-
-
-                data = {
-                    'success':True,
-                    'msg_swa':'Kiasi kimeongezwa kwenye akaunti kikamilifu',
-                    'msg_eng':'Amount added to the account successfully'
-                    
-                }
+            
             else:
                 data = {
                     'success':False,
                     'msg_swa':'Hauna Ruhusa ya kuongeza Pampu',
                     'msg_eng':'You have no permition to add Pump',
-                } 
+                }
+
+
             return JsonResponse(data)
 
-        except:
-            data = {
-                'success':False,
-                'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena',
-                'msg_eng':'The action was not successfully please try again',
-            }
-            return JsonResponse(data)
+        # except:
+        #     data = {
+        #         'success':False,
+        #         'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena',
+        #         'msg_eng':'The action was not successfully please try again',
+        #     }
+        #     return JsonResponse(data)
     
 
 @login_required(login_url='login')
