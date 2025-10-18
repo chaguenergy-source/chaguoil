@@ -1411,12 +1411,14 @@
                 url
             }
 
+            console.log('submited');
+
           if(shiftTo<=moment().format() && shiftTo!='' && ((totpay==netreqAmo) || lossprof) && !unfilled ){
 
             $('#endshift_modal').modal('hide')
                     $('#loadMe').modal('show')
 
-
+                  console.log('Every thing is ok');
         
                    const sendIt = POSTREQUEST(data)
 
@@ -1438,6 +1440,8 @@
                     })
 
           }else{
+
+            console.log({sucess:'Some errors here....',data});
             $('#errorAret').fadeIn(500)
             if(unfilled){
                 $('.final_read').each(function(){
