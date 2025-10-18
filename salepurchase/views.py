@@ -712,6 +712,8 @@ def fuelsales(request):
                             cost = float(tnk.cost)  
                             pr_og = float(tnk.price)
                             saL.tank = tnk
+                            tnk.qty = float(float(tnk.qty) - float(sa['totAmo']/sa['price']))
+                            tnk.save()
                         else:
                             pmp = fuel_pumps.objects.get(pk=sa['pmp'],tank__Interprise=shell)
                             shpmp = shiftPump.objects.get(pump=pmp,shift__To=None) 
@@ -720,6 +722,7 @@ def fuelsales(request):
                             theF = pmp.tank.fuel
                             cost = float(pmp.tank.cost)  
                             pr_og = float(pmp.tank.price)   
+
                         saL.theFuel =  theF
                         saL.qty_sold = float(sa['totAmo']/sa['price'])   
                         saL.sa_price = float(sa['price'])
