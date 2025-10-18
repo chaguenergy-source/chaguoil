@@ -467,12 +467,13 @@
                                 
                                 <td class="bluePrint" >{{s.shift.pump.station.name}} {{s.shift.pump.name}}</td>
 
-                                <td class="brown" >{{s.shift.Fuel.name}}</td>
+                                <td class="brown" >{{s.shift.Fuel.name | title }}</td>
 
                                 <td class="bluePrint" >{{s.to.name | title}}</td>
 
-                                <td>{{s.qty|floatformat:'-2'|intcomma}}</td>
                                 <td>{{s.saprice|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.qty|floatformat:'-2'|intcomma}}</td>
+                                
                                 <td>
                                     <script>
                                         var the_q =Number('{{s.qty}}'),
@@ -509,8 +510,7 @@
                <hr>
              <div class="table-responsive">
                
-                <form id="fuel-usage-delete-form" method="post" action="/salepurchase/deleteShiftFuelUsage/">
-                    {% csrf_token %}
+              
                     <div class="mb-2 row">
                         <div class="col-8">
                              <strong>{% if useri.langSet == 0 %}Matumizi kwa Mafuta{% else %} Fuel  Usage & Wastage {% endif %}</strong>
@@ -568,7 +568,7 @@
                                 </td>
                                 <td >{{s.maelezo}}</td>
                                 <td class="bluePrint" >{{s.fromShift.pump.station.name}} {{s.fromShift.pump.name}}</td>
-                                <td class="brown" >{{s.Fuel.name}}</td>
+                                <td class="brown" >{{s.Fuel.name | title }}</td>
                                 
                                 <td>{{s.fuel_price|floatformat:'-2'|intcomma}}</td>
                                 <td>{{s.fuel_qty|floatformat:'-2'|intcomma}}</td>
@@ -603,47 +603,11 @@
 
                         </tbody>
                       </table>
-                </form>
+             
 
              </div>
 
-               <script>
-                             function updateFuelUsageDeleteButtonState() {
-                                 const checkboxes = document.querySelectorAll('.fuel-usage-checkbox');
-                                 const btn = document.getElementById('delete-fuel-usage-btn');
-                                 btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
-                             }
-                             function toggleAllFuelUsage(source) {
-                                 const checkboxes = document.querySelectorAll('.fuel-usage-checkbox');
-                                 checkboxes.forEach(cb => { cb.checked = source.checked; });
-                                 updateFuelUsageDeleteButtonState();
-                             }
-                             function confirmDeleteFuelUsage() {
-                                 const selected = document.querySelectorAll('.fuel-usage-checkbox:checked');
-                                 if (selected.length === 0) return;
-                                 const msg = `{% if useri.langSet == 0 %}Futa matumizi haya ya mafuta? Ukifuta, utahitaji kuyaongeza tena.{% else %}Delete selected fuel usage records? If you delete, you will need to re-add them.{% endif %}`;
-                                 if (confirm(msg)) {
-  // Use AJAX to submit the form without reloading the page
-                                    const checs = []
-                                    selected.forEach(cb => { checs.push(Number(cb.value)); });
-                                    const url = '/salepurchase/deleteShiftExpenses'
-                                    const data = {data:{expense_ids: JSON.stringify(checs)},url}
-                                    $('#loadMe').modal('show')
-                                    const sendIt = POSTREQUEST(data)
-                                    sendIt.then(res=>{
-                                        $('#loadMe').modal('hide')
-                                        hideLoading()
-                                        const msg = lang(res.swa,res.eng)
-                                        if(res.success){
-                                            toastr.success(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
-                                            location.reload()
-                                        }else{
-                                            toastr.error(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
-                                        }
-                                    })
-                                }
-                             }
-                         </script>
+         
 
           
 
@@ -654,8 +618,7 @@
 
                          <div class="table-responsive">
                                 
-                                <form id="expense-delete-form" method="post" action="/salepurchase/deleteShiftExpenses">
-                                    {% csrf_token %}
+                               
                                     <div class="mb-2 row">
                                         <div class="col-8">
                                             <strong>{% if useri.langSet == 0 %}Matumizi ya Pesa{% else %} Expenses By Cash{% endif %}</strong>
@@ -709,48 +672,9 @@
                                                 </tr>
                                         </tbody>
                                     </table>
-                                </form>
+                                
                          </div>
-                         <script>
-                             function updateDeleteButtonState() {
-                                 const checkboxes = document.querySelectorAll('.expense-checkbox');
-                                 const btn = document.getElementById('delete-expenses-btn');
-                                 btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
-                             }
-                             function toggleAllExpenses(source) {
-                                 const checkboxes = document.querySelectorAll('.expense-checkbox');
-                                 checkboxes.forEach(cb => { cb.checked = source.checked; });
-                                 updateDeleteButtonState();
-                             }
-                             function confirmDeleteExpenses() {
-                                 const selected = document.querySelectorAll('.expense-checkbox:checked');
-                                 if (selected.length === 0) return;
-                                 const msg = `{% if useri.langSet == 0 %}Futa matumizi haya? Ukifuta, utahitaji kuyaongeza tena.{% else %}Delete selected expenses? If you delete, you will need to re-add them.{% endif %}`;
-                                 if (confirm(msg)) {
-                                    //   document.getElementById('expense-delete-form').submit();
-                                    // Use AJAX to submit the form without reloading the page
-                                    const checs = []
-                                    selected.forEach(cb => { checs.push(Number(cb.value)); });
-                                    const url = '/salepurchase/deleteShiftExpenses'
-                                    const data = {data:{expense_ids: JSON.stringify(checs)},url}
-                                    $('#loadMe').modal('show')
-                                    const sendIt = POSTREQUEST(data)
-                                    sendIt.then(res=>{
-                                        $('#loadMe').modal('hide')
-                                        hideLoading()
-                                        const msg = lang(res.swa,res.eng)
-                                        if(res.success){
-                                            toastr.success(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
-                                            location.reload()
-                                        }else{
-                                            toastr.error(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
-                                        }
-                                    })
-
-                                 }
-                             }
-
-                         </script>
+                       
           
              {% endif %}
              {% if exclude.cashBA > 0 %}
@@ -783,7 +707,7 @@
                                         document.write(moment('{{cb.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
                                     </script>
                                 </td>
-                                <td class="brown">{{cb.Akaunt.Akaunt_name | title}}</td>
+                                <td class="text-primary">{{cb.Akaunt.Akaunt_name }}</td>
                                 <td >{{cb.giveTo}}</td>
                                 <td >{{cb.maelezo}}</td>
 
@@ -903,27 +827,7 @@
 
                             {% endif %}
 
-                            <!-- {% if cashB or trd or sale or exp  %}
-
-                            <tr >
-                               
-                                <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Kiasi cha Kutoa{% else %}Amount to Exclude{% endif %}</td>
-                                <td style="font-size: 15px;" > </td>
-                                <td class="brown weight600" style="font-size: 15px;"  > 
-                                    <script>
-                                            const sale = Number('{{exclude.saleA}}'),
-                                            tr = Number('{{exclude.trAmo}}'),
-                                            cashB = Number('{{exclude.cashBA}}'),
-                                            expfA = Number('{{exclude.expfA}}'),
-                                            expamo = Number('{{exclude.expamo}}'),
-                                            exctot = sale + tr + cashB + expfA + expamo
-                                          
-                                        document.write(Number(exctot).toLocaleString())
-                                    </script>
-                                </td>
-                            </tr>
-
-                            {% endif %} -->
+                           
                           
                             <tr class="grey" >
                                
@@ -1121,6 +1025,87 @@
 
 
 {% block additionaljs %} 
+           <!-- Update/Delete Expenses Fuel -->
+          <script>
+                             function updateDeleteButtonState() {
+                                 const checkboxes = document.querySelectorAll('.expense-checkbox');
+                                 const btn = document.getElementById('delete-expenses-btn');
+                                 btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
+                             }
+                             function toggleAllExpenses(source) {
+                                 const checkboxes = document.querySelectorAll('.expense-checkbox');
+                                 checkboxes.forEach(cb => { cb.checked = source.checked; });
+                                 updateDeleteButtonState();
+                             }
+                             function confirmDeleteExpenses() {
+                                 const selected = document.querySelectorAll('.expense-checkbox:checked');
+                                 if (selected.length === 0) return;
+                                 const msg = `{% if useri.langSet == 0 %}Futa matumizi haya? Ukifuta, utahitaji kuyaongeza tena.{% else %}Delete selected expenses? If you delete, you will need to re-add them.{% endif %}`;
+                                 if (confirm(msg)) {
+                                    //   document.getElementById('expense-delete-form').submit();
+                                    // Use AJAX to submit the form without reloading the page
+                                    const checs = []
+                                    selected.forEach(cb => { checs.push(Number(cb.value)); });
+                                    const url = '/salepurchase/deleteShiftExpenses'
+                                    const data = {data:{expense_ids: JSON.stringify(checs)},url}
+                                    $('#loadMe').modal('show')
+                                    const sendIt = POSTREQUEST(data)
+                                    sendIt.then(res=>{
+                                        $('#loadMe').modal('hide')
+                                        hideLoading()
+                                        const msg = lang(res.swa,res.eng)
+                                        if(res.success){
+                                            toastr.success(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                            location.reload()
+                                        }else{
+                                            toastr.error(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                        }
+                                    })
+
+                                 }
+                             }
+
+       </script>
+
+<!-- Update/Delete Expenses Amount -->
+      <script>
+                             function updateFuelUsageDeleteButtonState() {
+                                 const checkboxes = document.querySelectorAll('.fuel-usage-checkbox');
+                                 const btn = document.getElementById('delete-fuel-usage-btn');
+                                 btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
+                             }
+                             function toggleAllFuelUsage(source) {
+                                 const checkboxes = document.querySelectorAll('.fuel-usage-checkbox');
+                                 checkboxes.forEach(cb => { cb.checked = source.checked; });
+                                 updateFuelUsageDeleteButtonState();
+                             }
+                             function confirmDeleteFuelUsage() {
+                                 const selected = document.querySelectorAll('.fuel-usage-checkbox:checked');
+                                 if (selected.length === 0) return;
+                                 const msg = `{% if useri.langSet == 0 %}Futa matumizi haya ya mafuta? Ukifuta, utahitaji kuyaongeza tena.{% else %}Delete selected fuel usage records? If you delete, you will need to re-add them.{% endif %}`;
+                                 if (confirm(msg)) {
+  // Use AJAX to submit the form without reloading the page
+                                    const checs = []
+                                    selected.forEach(cb => { checs.push(Number(cb.value)); });
+                                    const url = '/salepurchase/deleteShiftExpenses'
+                                    const data = {data:{expense_ids: JSON.stringify(checs)},url}
+                                    $('#loadMe').modal('show')
+                                    const sendIt = POSTREQUEST(data)
+                                    sendIt.then(res=>{
+                                        $('#loadMe').modal('hide')
+                                        hideLoading()
+                                        const msg = lang(res.swa,res.eng)
+                                        if(res.success){
+                                            toastr.success(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                            location.reload()
+                                        }else{
+                                            toastr.error(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                        }
+                                    })
+                                }
+                             }
+     </script>
+
 <script>
 
 
