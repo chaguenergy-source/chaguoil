@@ -716,7 +716,21 @@ def fuelsales(request):
                             tnk.save()
                         else:
                             pmp = fuel_pumps.objects.get(pk=sa['pmp'],tank__Interprise=shell)
-                            shpmp = shiftPump.objects.get(pump=pmp,shift__To=None) 
+                            # shpId = []
+                            
+                            # for sh in shppm:
+                            #     shpId.append({
+                            #         'id':sh.id,
+                            #         'pmp':sh.pump.id,
+                            #         'shId': sh.id if sh.shift else None,
+                            #         'datFr':sh.shift.From if sh.shift else None,
+                            #         'datTo':sh.shift.To if sh.shift else None
+                            #         })
+                            # print(shpId)   
+
+                            shppm = shiftPump.objects.filter(pump=pmp,shift__To=None).exclude(shift=None).order_by('pk')
+                            shpmp = shppm.last()
+
                             saL.shift = shpmp
                             saL.tank = pmp.tank
                             theF = pmp.tank.fuel
@@ -3330,7 +3344,10 @@ def deleteShift(request):
         deleted, _ = shifts.objects.filter(pk=shiftToD.id, record_by__Interprise=shell.id).delete()
 
 
+
         if deleted > 0:
+            shiftPump.objects.filter(shift=None).delete()
+
             return JsonResponse({'success': True, 'eng': 'Shift deleted successfully.', 'swa': 'Zamu imefutwa kikamilifu.'})
         else:
             return JsonResponse({'success': False, 'eng': 'No shift deleted.', 'swa': 'Hakuna zamu iliyofutwa.'})
