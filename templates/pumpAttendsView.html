@@ -1328,11 +1328,11 @@
         
                             if(resp.success){
                                 toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success '), {timeOut: 2000});
-                                location.reload()
+                                location.replace(`/salepurchase/theshiftsAttend`)
                             }else{
 
                               
-                                    toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});
+                             toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});
         
                             }
                       

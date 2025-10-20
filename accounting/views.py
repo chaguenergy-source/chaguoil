@@ -530,6 +530,17 @@ def withdraw(request):
 
 
 @login_required(login_url='login')
+def expenseRecords(request):
+    try:
+        todo = todoFunct(request)
+   
+        
+        return render(request, 'matumizi.html', todo)
+    
+    except:
+        return render(request, 'pagenotFound.html', todoFunct(request))
+
+@login_required(login_url='login')
 def addExpense(request):
       if request.method == "POST":
 
@@ -680,3 +691,79 @@ def addExpense(request):
       else:
            return render(request,'pagenotFound.html',todoFunct(request))
 
+@login_required(login_url='login')
+def getExpData(request):
+    # try:
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        general = todo['general']
+        shell = todo['shell']
+        payacc = todo['payacc']
+        useri = todo['useri']
+
+        if not useri.admin :
+            payacc = payacc.filter(Interprise=shell.id,aina='Cash')
+        
+        # Get expenses
+        expenses = matumizi.objects.filter(owner__company=kampuni).annotate(name=F('matumizi'))
+
+        # Get payment accounts
+        payacc_data = list(payacc.annotate(name=F('Akaunt_name')).values('id', 'name', 'Amount', 'aina'))
+
+
+        shift_pumps_data = []
+        attendants = []
+        if not general:
+            # expenses = expenses.filter(Q(shell=shell) | Q(general=True))
+            # Get pump attendants, pumps and nozzles from shiftPump
+            shf = shifts.objects.filter(To=None, record_by__Interprise=shell)
+            attendants = [{'id': s.id, 'name': f'{s.by.user.first_name.capitalize()} {s.by.user.last_name.capitalize()}' if s.by else None} for s in shf]
+
+            shift_pumps = shiftPump.objects.filter(shift__in=shf)
+          
+            # Group shift pumps by station to create the pump/nozzle structure
+            if shift_pumps.exists():
+                pumps_dict = {}
+                for sp in shift_pumps:
+                    station_id = sp.pump.station.id
+                    station_name = sp.pump.station.name
+                    
+                    if station_id not in pumps_dict:
+                        pumps_dict[station_id] = {
+                            'id': station_id,
+                            'name': station_name,
+                            'nozzles': []
+                        }
+                    
+                    pumps_dict[station_id]['nozzles'].append({
+                        'id': sp.pump.id,
+                        'name': sp.pump.name,
+                        'fuel': sp.pump.tank.fuel.name if sp.pump.tank else None,
+                        'price': float(sp.pump.tank.price) if sp.pump.tank else 0
+                    })
+
+
+
+                shift_pumps_data = list(pumps_dict.values())
+
+        expenses_data = list(expenses.values('id', 'name','mafuta'))
+        
+
+
+        data = {
+            'success': True,
+            'expenses': expenses_data,
+            'payment_accounts': payacc_data,
+            'shift_pumps': shift_pumps_data,
+            'attendants': attendants
+        }
+        
+        return JsonResponse(data)
+        
+    # except Exception as e:
+    #     data = {
+    #         'success': False,
+    #         'message_eng': 'Failed to retrieve expense data',
+    #         'message_swa': 'Imeshindikana kupata taarifa za matumizi'
+    #     }
+    #     return JsonResponse(data)

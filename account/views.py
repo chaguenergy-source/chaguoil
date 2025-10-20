@@ -254,7 +254,7 @@ def confirmMail(request):
       codeN = int(request.POST.get('code',0))
 
       if pwd:
-         print(mail)
+       
          getmail = User.objects.get(email__icontains=mail)
          mail = getmail.email
          
@@ -669,9 +669,9 @@ def upload_company_logo(request):
                     if gcs_storage.exists(kampuni.logo.name):
                         gcs_storage.delete(kampuni.logo.name)
                     kampuni.logo.delete(save=True)
-                    print(f"Old logo deleted successfully.")
+                    # print(f"Old logo deleted successfully.")
                 except Exception as e:
-                    print(f"Error deleting old logo: {e}")
+                    # print(f"Error deleting old logo: {e}")
                     pass
                 
             filename = f"pics/{kampuni.id}_{int(time.time())}.{ext}"

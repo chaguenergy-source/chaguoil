@@ -3004,7 +3004,7 @@ def endshift(request):
                     
                 
                 for p in payed:
-                    acc = PaymentAkaunts.objects.get(pk=p['ac'],Interprise=shell)
+                    acc = PaymentAkaunts.objects.get(pk=p['ac'],Interprise__company=kampuni)
                     acc_b = acc.Amount
                     acc.Amount = float(float(acc.Amount) + float(p['amo']))
                     acc.save()
@@ -3292,7 +3292,7 @@ def deleteShift(request):
             return JsonResponse({'success': False, 'eng': 'No shift ID provided.', 'swa': 'Hakuna ID ya zamu iliyotolewa.'})
         
         shiftToD = shifts.objects.get(pk=shift_id, record_by__Interprise=shell.id,To=None)
-
+        ses = shiftToD.session
         sale = saleList.objects.filter(shift__shift=shiftToD.id)
         for s in sale:
             theSale = s.sale
@@ -3346,6 +3346,10 @@ def deleteShift(request):
 
 
         if deleted > 0:
+            sesShifts = shifts.objects.filter(session=ses.id)
+            if not sesShifts.exists():
+                ses.delete()
+
             shiftPump.objects.filter(shift=None).delete()
 
             return JsonResponse({'success': True, 'eng': 'Shift deleted successfully.', 'swa': 'Zamu imefutwa kikamilifu.'})

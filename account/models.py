@@ -451,6 +451,7 @@ class matumizi(models.Model):
     amount = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     depends = models.BooleanField(default=True)
     general = models.BooleanField(default=False)
+    mafuta = models.BooleanField(default=False)
 
 class matumiziTarehe(models.Model):
     date = models.DateTimeField(null=True,blank=True)

@@ -15,5 +15,7 @@ urlpatterns=[
         path('pdcBills',views.pdcBills, name='pdcBills'),
         path('addPBill',views.addPBill, name='addPBill'),
         path('pdcBillsView',views.pdcBillsView, name='pdcBillsView'),
+        path('expenseRecords',views.expenseRecords, name='expenseRecords'),
+        path('getExpData',views.getExpData, name='getExpData'),
 
 ]
