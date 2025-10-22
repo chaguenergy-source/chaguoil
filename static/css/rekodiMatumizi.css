@@ -1,0 +1,77 @@
+  /* .header-section {
+          /*  background-color: #0d6efd;  Bootstrap Primary Blue */
+            /* color: white; */
+        /* } */ 
+        /* Muhimu: table-responsive inasababisha overflow. Tuache iwe, lakini tutatumia JS kurekebisha dropdown. */
+        .table-responsive {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        .fixed-source-info {
+            background-color: #e9ecef;
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .expense-group-cell, .source-cell {
+            min-width: 330px; 
+            /* Muhimu: Weka relative ili kuweza kuweka z-index kwenye input wrapper */
+            position: relative; 
+        }
+        .source-cell {
+            min-width: 280px; 
+        }
+        /* Style for Recycle Button */
+        .recycle-btn {
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+            flex-shrink: 0; 
+        }
+        
+        /* --- Searchable Select Styles: REVISED FOR OVERFLOW FIX --- */
+        
+        /* Hakikisha Search Input container inafanya kazi kama chombo cha dropdown */
+        .searchable-select-container {
+             position: relative; /* Inahitajika kuweka dropdown ndani yake */
+        }
+
+        /* The actual dropdown list - it MUST be appended to the body to escape table overflow */
+        .options-list-dropdown {
+            list-style: none;
+            padding: 0;
+            margin: 0; /* Hakuna margin kutoka kwa body */
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute; /* Inafuata Body/Viewport */
+            background-color: #fff;
+            z-index: 9999; /* Z-index ya juu sana kuonekana juu ya vitu vyote */
+            width: 0; /* Hii itarekebishwa na JS */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            top: 0; /* Hii itarekebishwa na JS */
+            left: 0; /* Hii itarekebishwa na JS */
+        }
+        .searchable-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.875rem; 
+        }
+        .searchable-option:hover {
+            background-color: #f0f0f0;
+        }
+        
+        /* Text color feedback for selected fields */
+        .selected-text {
+            color: var(--text-primary) !important; 
+            font-weight: 600;
+        }
+        

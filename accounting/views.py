@@ -31,6 +31,7 @@ import re
 from django.db.models import Sum
 import random 
 import os
+import json
 
 
 from account.todos import Todos,confirmMailF
@@ -552,125 +553,129 @@ def addExpense(request):
                         
                        }  
                             
-                  bil = request.POST.get('bill')
-                  mpya = int(request.POST.get('mpya'))
-                  name = request.POST.get('name')
-                  tumi = request.POST.get('select')
-                  amo = float(request.POST.get('amo'))
-                  bal = int(request.POST.get('bak'))
-                  kwa = request.POST.get('kwa')
-                  bal_set = int(request.POST.get('bal_set'))
-                  ac = request.POST.get('ac')
-                  maelezo = request.POST.get('maelezo')
-                  opt = int(request.POST.get('opt'))
-                  pump = int(request.POST.get('pump'))
-                  isfuel = int(request.POST.get('fuel'))
+                  isfuel = int(request.POST.get('isFuel',0))
+                  isPumpAttendant = int(request.POST.get('isPumpAttendant',0))
+                  isPayment = int(request.POST.get('isPayment',0))
+                  
+                  exprecs = json.loads(request.POST.get('expenses'))
+                  expDate = request.POST.get('expDate')
+
+                #   bal = int(request.POST.get('bak'))
+                #   bal_set = int(request.POST.get('bal_set'))
+                 
+                
+                 
                   
                   todo=todoFunct(request)
                 #   duka=todo['duka']
                   useri = todo['useri']
                   cheo = todo['cheo']
                   admin = todo['admin']
-                  paid = amo
+                 
                   shell = todo['shell']
+                  manager = todo['manager']
 
                   
 
-                  if useri.admin or cheo is not None :  
-                        matum = None
-                        if  mpya:
-                                # print('new')
-                                if matumizi.objects.filter(matumizi__istartswith=name,owner=admin).exists():
-                                    matum = matumizi.objects.filter(matumizi__istartswith=name,owner=admin).last()
-                                else:
-                                        matum = matumizi()
-                                        matum.owner = admin
-                                        matum.matumizi = name
-                                        matum.save()
-                                        
-                        else:
-                                # print('old')
-                                matum = matumizi.objects.get(pk=tumi,owner=admin) 
-                        # print(matum.id)
-                        rec = rekodiMatumizi()
-                        rec.Interprise=shell
-                        rec.matumizi = matum 
-                        # if is_bill:         
-                        #       rec.manunuzil = True  
-                        #       bill =  manunuzi.objects.get(pk=bil,Interprise=duka.id)         
-                        #       rec.manunuzi_id = bill        
-                        #       manunuzi.objects.filter(pk=bil,Interprise=duka.id).update(amount=F('amount')+float(amo),ilolipwa=F('ilolipwa')+float(amo)) 
+                  if useri.admin or cheo is not None or manager:  
+                        for exp in exprecs:
 
-                        rec.tarehe = datetime.datetime.now(tz=timezone.utc)
-                        rec.kiasi = float(amo)
-                        rec.by = useri
-                        rec.kabidhiwa = kwa
-                        rec.maelezo = maelezo
-                        rec.date = date.today()
-                        rec.save()
-                        if opt == 1:
-                            sh_pump = fuel_pumps.objects.get(pk=pump,tank__Interprise=cheo.Interprise)
-                            shiftP = shiftPump.objects.filter(pump=sh_pump,shift__To=None)
-                            shift = shiftP.last()
-                            rec.fromShift = shift
-                            if isfuel:
-                               fuel_cost = float(sh_pump.tank.price)   
-                               Fqty =   paid/fuel_cost
-                               rec.kiasi = float(amo)
+                                    # print('old')
+                            amo = float(0)
+                            if isfuel:  
+                                amo = float(exp['amount_total'])
+                            if isPayment or isPumpAttendant:
+                                amo = float(exp['amount_cash'])
+                           
+                            paid = amo
 
-                               rec.fuel_qty = float(Fqty)
+                            matum = matumizi.objects.get(pk=exp['expense_group_id'],owner=admin) 
+                        
+                            rec = rekodiMatumizi()
+                            rec.Interprise=shell
+                            rec.matumizi = matum 
 
-                               rec.fuel_cost = float(sh_pump.tank.cost)
-                               rec.fuel_price  = fuel_cost   
-                               rec.Fuel = sh_pump.tank.fuel
-                      
-                        if opt == 2:
-                            acc =   PaymentAkaunts.objects.get(pk=ac)   
-                            duka = acc.Interprise
- 
+                            rec.tarehe = expDate
 
-                            desk = matum.matumizi + '('+ maelezo +')' 
 
-                            rec.akaunti=acc
+                            rec.kiasi = float(amo)
+                            rec.by = useri
+                            rec.kabidhiwa = exp['receiver_name']
+                            rec.maelezo = exp['remarks']
+                            rec.date = date.today()
+                            rec.save()
 
-                            toakwa= acc
-                            beforweka=toakwa.Amount 
-                
-                            toa = toaCash()
-                            toa.Akaunt = toakwa
-                            toa.Amount = paid
-                            toa.matumizi = rec
-                            toa.before = beforweka
-                            if bool(bal_set):
-                                bal = int(bal)
-                                toa.After = bal 
-                                toa.makato = beforweka-(bal+paid)
-                
-                            else :
+                            pAtt = None
+                            if isPumpAttendant or isfuel:
+                                pAtt = shifts.objects.get(pk=exp['source_details']['attendant_id'],record_by__Interprise=shell)
+                                shiftP = None
+                                if isfuel:
+                                    sh_pump = fuel_pumps.objects.get(pk=exp['source_details']['nozzle_id'],tank__Interprise=shell)
+                                    shiftP = shiftPump.objects.filter(pump=sh_pump.id,shift=pAtt.id)
+
+                                if isPumpAttendant:
+                                    shiftP = shiftPump.objects.filter(shift=pAtt.id)
+
+
+                                
+
+                                shift = shiftP.last()
+                                rec.fromShift = shift
+                                Fqty = 0
+                                if isfuel:
+                                    fuel_cost = float(sh_pump.tank.price)   
+                                    Fqty =   amo/fuel_cost
+                                    rec.fuel_qty = float(Fqty)
+
+                                    rec.fuel_cost = float(sh_pump.tank.cost)
+                                    rec.fuel_price  = fuel_cost   
+                                    rec.Fuel = sh_pump.tank.fuel
+                                
+                                rec.kiasi = float(amo)
+
+
+
+                        
+                            if isPayment:
+                                acc =   PaymentAkaunts.objects.get(pk=exp['source_details']['account_id'],Interprise__owner=admin.id)   
+                                duka = acc.Interprise
+    
+
+                                desk = f'{matum.matumizi} ({exp["remarks"]})'
+
+                                rec.akaunti=acc
+
+                                toakwa= acc
+                                beforweka=toakwa.Amount 
+                    
+                                toa = toaCash()
+                                toa.Akaunt = toakwa
+                                toa.Amount = paid
+                                toa.matumizi = rec
+                                toa.before = beforweka
+                              
                                 toa.After = float(beforweka) - paid 
                                 toa.makato = 0
-                                                    
-                            toa.kwenda = matum.matumizi
-                            toa.maelezo = desk
-                            toa.tarehe = datetime.datetime.now(tz=timezone.utc)
-                            toa.by=useri
-                            toa.Interprise=duka
-                            toa.pu=True
-                            # if is_bill:
-                            #       toa.bill = bill
-                            if not toakwa.onesha:
-                                toa.usiri =True 
-                
-                            if paid <=  beforweka :  
-                              if bool(bal_set): 
-                                    toakwa.Amount =  bal
-                              else:
+                                                        
+                                toa.kwenda = matum.matumizi
+                                toa.maelezo = desk
+                                toa.tarehe = expDate
+                                toa.by=useri
+                                toa.Interprise=duka
+                                # toa.matumizi=True
+                                # if is_bill:
+                                #       toa.bill = bill
+                                if not toakwa.onesha:
+                                    toa.usiri =True 
+                    
+                                if paid <=  beforweka :  
                                     toakwa.Amount = float(toakwa.Amount) - paid
-            
-                              toakwa.save()              
-                              toa.save() 
-                        rec.save()         
-                      
+                                           
+                    
+                                toakwa.save()              
+                                toa.save() 
+                            rec.save()         
+                        
                   else:
                         data={
                              'success':False,
@@ -691,9 +696,65 @@ def addExpense(request):
       else:
            return render(request,'pagenotFound.html',todoFunct(request))
 
+
+@login_required(login_url='login')
+def addExpenseGroup(request):
+    if request.method == "POST":
+        try:
+            exp_name = request.POST.get('groupName')
+            isFuel = int(request.POST.get('isFuel', 0))
+            
+            todo = todoFunct(request)
+            admin = todo['admin']
+            useri = todo['useri']
+            shell = todo['shell']
+            
+            if useri.admin:
+                # Check if expense group already exists
+                if matumizi.objects.filter(matumizi__iexact=exp_name, owner=admin).exists():
+                    data = {
+                        'success': False,
+                        'message_eng': 'Expense group with this name already exists',
+                        'message_swa': 'Kundi la matumizi lenye jina hili tayari lipo'
+                    }
+                else:
+                    # Create new expense group
+                    matum = matumizi()
+                    matum.owner = admin
+                    matum.shell = shell
+                    matum.matumizi = exp_name
+                    matum.mafuta = isFuel
+                    matum.save()
+                    
+                    data = {
+                        'success': True,
+                        'message_eng': 'Expense group added successfully',
+                        'message_swa': 'Kundi la matumizi limeongezwa kikamilifu',
+                        'id': matum.id
+                    }
+            else:
+                data = {
+                    'success': False,
+                    'message_eng': 'You have no permission to add expense groups',
+                    'message_swa': 'Hauna ruhusa ya kuongeza makundi ya matumizi'
+                }
+            
+            return JsonResponse(data)
+            
+        except:
+            data = {
+                'success': False,
+                'message_eng': 'Expense group was not added, please try again',
+                'message_swa': 'Kundi la matumizi halikuongezwa, tafadhali jaribu tena'
+            }
+            return JsonResponse(data)
+    else:
+        return render(request, 'pagenotFound.html', todoFunct(request))
+
+
 @login_required(login_url='login')
 def getExpData(request):
-    # try:
+    try:
         todo = todoFunct(request)
         kampuni = todo['kampuni']
         general = todo['general']
@@ -717,7 +778,7 @@ def getExpData(request):
             # expenses = expenses.filter(Q(shell=shell) | Q(general=True))
             # Get pump attendants, pumps and nozzles from shiftPump
             shf = shifts.objects.filter(To=None, record_by__Interprise=shell)
-            attendants = [{'id': s.id, 'name': f'{s.by.user.first_name.capitalize()} {s.by.user.last_name.capitalize()}' if s.by else None} for s in shf]
+            attendants = [{'id': s.id,  'name': f'{s.by.user.first_name.capitalize()} {s.by.user.last_name.capitalize()}' if s.by else None} for s in shf]
 
             shift_pumps = shiftPump.objects.filter(shift__in=shf)
           
@@ -732,11 +793,13 @@ def getExpData(request):
                         pumps_dict[station_id] = {
                             'id': station_id,
                             'name': station_name,
+                            'shift': sp.shift.id if sp.shift else None,
                             'nozzles': []
                         }
                     
                     pumps_dict[station_id]['nozzles'].append({
                         'id': sp.pump.id,
+                        
                         'name': sp.pump.name,
                         'fuel': sp.pump.tank.fuel.name if sp.pump.tank else None,
                         'price': float(sp.pump.tank.price) if sp.pump.tank else 0
@@ -760,10 +823,10 @@ def getExpData(request):
         
         return JsonResponse(data)
         
-    # except Exception as e:
-    #     data = {
-    #         'success': False,
-    #         'message_eng': 'Failed to retrieve expense data',
-    #         'message_swa': 'Imeshindikana kupata taarifa za matumizi'
-    #     }
-    #     return JsonResponse(data)
+    except Exception as e:
+        data = {
+            'success': False,
+            'message_eng': 'Failed to retrieve expense data',
+            'message_swa': 'Imeshindikana kupata taarifa za matumizi'
+        }
+        return JsonResponse(data)
