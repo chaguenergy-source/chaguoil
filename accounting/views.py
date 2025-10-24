@@ -586,7 +586,13 @@ def addExpense(request):
                                 amo = float(exp['amount_total'])
                             if isPayment or isPumpAttendant:
                                 amo = float(exp['amount_cash'])
-                           
+                            if isPayment and not (useri.exp or useri.admin):
+                                data = {
+                                    'success':False,
+                                    'message_eng':'You have no permission to add expenses',
+                                    'message_swa':'Hauna ruhusa ya kuongeza matumizi'
+                                    }
+                                return JsonResponse(data)
                             paid = amo
 
                             matum = matumizi.objects.get(pk=exp['expense_group_id'],owner=admin) 

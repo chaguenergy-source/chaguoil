@@ -53,14 +53,14 @@
                     {% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}
                 </div>
 
-                <div class="col-9">
-                    {{cust.jina | title}} 
+                <div class="col-9 bluePrint weight600">
+                    {{cust.jina}}
                 </div>
                 <div class="col-3">
                     {% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}
                 </div>
                 <div class="col-9">
-                    {{cust.address | title}}  
+                    {{cust.address }}  
                 </div>
 
                 <div class="col-3">
@@ -188,7 +188,7 @@
         {% if not general %}
         <p class="text-right">
             {% if addOrder and cust.limited_order %}
-            <a href="#" type="button" onclick="if($('#newPurchase').is(':visible')){$('#newPurchase').hide(200);}$('#creditDebtOrder').toggle(200)" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Oda Mpya{% else %}New Order{% endif %}</a> |   
+            <a href="#" type="button" data-toggle="modal" data-target="#credit_debt_order" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Oda Mpya{% else %}New Order{% endif %}</a> |   
             {% endif %}
             <a href="#" type="button" onclick="if($('#creditDebtOrder').is(':visible')){$('#creditDebtOrder').hide(200);}$('#newPurchase').toggle(200)" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Ankara Mpya{% else %}New Invoice{% endif %}</a>
         </p>
@@ -536,180 +536,7 @@
             </p>            
         </div>
 
-        {% if addOrder  %}
-            <div class="border py-4 px-3 mt-4" id="creditDebtOrder" style="border-radius: 5px;display:none">
-                <h5 class="mb-3 row">
-                    <div class="col-9">
-                        {% if useri.langSet == 0 %}Oda ya Mikopo/Malipo{% else %}Credit/Debt Order{% endif %}
-                    </div>
-                    <div class="col-3 text-right">
-                    <!-- Add a closs button with close svg -->
-                    <button type="button" class="close" onclick="$('#creditDebtOrder').hide()" aria-label="Close" title="Close">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                    </button>
-                    </div>
-                    
-                </h5>
-                <form id="creditOrderForm"  action="/salepurchase/save_credit_order" >
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="orderId">
-                            {% if useri.langSet == 0 %}Namba ya Oda{% else %}Order ID{% endif %}
-                            
-                        </label>
-                        <input type="text" class="form-control" value="ORD-{% if cust.id < 10 %}0{% endif %}{{cust.id}}/{{newcode}}" readonly id="orderId" name="orderId" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="orderAmount" class="brown" >
-                            {% if useri.langSet == 0 %}Kiasi cha Oda{% else %}Order Amount{% endif %} <span class="text-primary">{{currencii}}</span>
-                            <sup>*</sup>
-                        </label>
-                        <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
-                                <label class="mt-1 text-danger " for="orderAmount"></label> 
-                                <div class="box-pointer d-inline "></div>
-                        </div>
-                        <input type="number" class="form-control money-fomat" id="orderAmount" name="orderAmount" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="orderType" class="brown" >
-                            {% if useri.langSet == 0 %}Aina ya Oda{% else %}Order Type{% endif %}
-                            <sup>*</sup>
-                        </label>
-                        <select class="form-control bluePrint" id="orderType" name="orderType" required onchange="$('#paidFields').toggle(this.value=='prepaid')">
-                            <option value=0 >------</option>
-                            <option value="debt">{% if useri.langSet == 0 %}Mikopo{% else %}Debt{% endif %}</option>
-                            <option value="prepaid">{% if useri.langSet == 0 %}Imelipwa{% else %}Prepaid{% endif %}</option>
-                        </select>
-                    </div>
-
-                    <div id="paidFields" style="display: none;">
-                        
-                        
-                        <div class="form-group" >
-                         <label for="orderType"  >
-                            {% if useri.langSet == 0 %}Hali ya Oda{% else %}Order Status{% endif %}
-                            
-                        </label>
-
-                          <select name="NewOrContinue"  id="NewOrContinue" class="form-control bluePrint">
-                            {% if lastCd is None %}  
-                               <option value=0 > {% if useri.langSet == 0 %}Anaendelea{% else %}In Progress{% endif %} </option>
-                            {% endif %} 
-
-                              <option value=1 > {% if useri.langSet == 0 %}Mpya{% else %}New{% endif %} </option>
-                          </select>
-                        </div>
-                        
-                         
-                        <div id="payMentsAcc" class="form-group ">
-                            <label for="paymentAccount" class="brown" >
-                                {% if useri.langSet == 0 %}Akaunti ya Malipo{% else %}Payment Account{% endif %}
-                                <sup>*</sup>
-                            </label>
-                            <select class="form-control bluePrint" id="paymentAccount" name="paymentAccount">
-                                <option value=0>--------</option>
-                                {% for ac in payacc %}
-                                    <option value="{{ac.id}}">{{ac.Akaunt_name}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-
-
-                        <div class="form-group">
-                            <label for="paidAmount" class="brown" >
-                                {% if useri.langSet == 0 %}Kiasi Kilicholipwa{% else %}Paid Amount{% endif %} <span class="text-primary">{{currencii}}</span>
-                                <sup>*</sup>
-                            </label>
-                            <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
-                                    <label class="mt-1 text-danger " for="paidAmount"></label> 
-                                    <div class="box-pointer d-inline "></div>
-                            </div>
-                            <input type="number" class="form-control money-fomat" id="paidAmount" name="paidAmount" step="0.01">
-                        </div>
-
-                    </div>
-                    <div class="text-right">
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            {% if useri.langSet == 0 %}Hifadhi{% else %}Save{% endif %}
-                        </button>
-                    </div>
-                </form>
-                <script>
-                    $('#creditOrderForm').submit(function(e){
-                        e.preventDefault();
-                        // Add your AJAX or form submission logic here
-
-                        const orderId = $('#orderId').val();
-                        const orderAmount = parseFloat($('#orderAmount').val());
-                        const orderType = $('#orderType').val();
-                        const paymentAccount = $('#paymentAccount').val();
-                        const paidAmount = parseFloat($('#paidAmount').val());
-                        const custId = Number('{{cust.id}}');
-                        const prepaid = orderType === 'prepaid' ? 1 : 0;
-                        const NewOda = Number($('#NewOrContinue').val())
-                        const url = $(this).attr('action');
-                        if(!orderAmount || orderAmount <= 0){
-                            alert('{% if useri.langSet == 0 %}Tafadhali ingiza kiasi cha oda{% else %}Please enter a valid order amount{% endif %}');
-                            return;
-                        }
-                        if(orderType === 'prepaid'){
-                            if(!paymentAccount){
-                                alert('{% if useri.langSet == 0 %}Tafadhali chagua akaunti ya malipo{% else %}Please select a payment account{% endif %}');
-                                redborder('#paymentAccount');
-                                return;
-                            }
-                            if(!paidAmount || paidAmount <= 0 || paidAmount > orderAmount){
-                                alert('{% if useri.langSet == 0 %}Tafadhali ingiza kiasi halali kilicholipwa{% else %}Please enter a valid paid amount{% endif %}');
-                                redborder('#paidAmount');
-                                redborder('#orderAmount');
-                                return;
-                            }
-                        }
-                        if(orderType !== 'debt' && orderType !== 'prepaid'){
-                            alert('{% if useri.langSet == 0 %}Tafadhali chagua aina ya oda{% else %}Please select an order type{% endif %}');
-                            redborder('#orderType');
-                            return;
-                        }
-
-                        $('#loadMe').modal('show');
-                        const data = {
-                            data:{
-                            orderId,
-                            orderAmount,
-                            orderType,
-                            paymentAccount: orderType === 'prepaid' ? paymentAccount : 0,
-                            paidAmount: orderType === 'prepaid' ? paidAmount : 0,
-                            custId,
-                            prepaid,
-                            NewOda
-                            },
-                           url
-                        };
-
-                        const sendIt = POSTREQUEST(data)
-
-                        sendIt.then(function(res){
-                            $('#loadMe').modal('hide');
-                            hideLoading();
-                            const msg = lang(res.swa,res.eng)
-                            if(res.success){
-                                toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2000});
-                                location.reload();
-                            }else{
-                                toastr.error(msg, lang('Imeshindikana','Failed'), {timeOut: 2000});
-                            }
-                        });
-
-
- 
-                    });
-                </script>
-            </div>
-        {% endif %}
+        
         {% endif %}
           
 
@@ -1092,11 +919,12 @@
                         <input type="number" onkeyup="
                            if($(this).val()!=''){
                                let amo = Number($(this).val()),
-                                act = Number($(this).data('debt'))  
+                                act = Number($(this).data('debt'))  ,
+                                hasOda = Number($(this).data('hasorder'))
 
                          
                                 
-                           if(amo<=act){
+                           if(amo<=act||hasOda){
 
                               
                                 $('#helpId').hide()
@@ -1104,6 +932,10 @@
                                if(Number($('#invo_ac_id').val())!=0){
                                    $('#invo_submited').prop('disabled',false)
                                }
+
+                               if(hasOda&&amo>act){
+                                   $('#credit_order_top_up').show()
+                                 }
                                
                            }else{
                                $('#helpId').show()
@@ -1115,9 +947,9 @@
                            }
                             
                                "
-                         
-                        data-debt="{{totD}}" name="lipwa" id="lipa_kiasi" class="form-control money-fomat" placeholder="{{totD|floatformat:'-2'|intcomma}}" aria-describedby="helpId">
-                         
+
+                        data-debt="{{totD}}" data-hasOrder="{% if cust.limited_order %}1{% else %}0{% endif %}" name="lipwa" id="lipa_kiasi" class="form-control money-fomat" placeholder="{{totD|floatformat:'-2'|intcomma}}" aria-describedby="helpId">
+
                         <div class="input-group-prepend">
                             <button type="button" onclick="$('#kama_change').toggle(400)" class="input-group-text btn btn-light btn-sm latoFont" id="basic-addon1">{% if useri.langSet == 0 %} Chenji {% else %} Change {% endif %} 
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-caret-down-fill ml-2" viewBox="0 0 16 16">
@@ -1138,6 +970,14 @@
                             {% else %}
                             The amount exceed the actual invoice amount
                             {% endif %}
+                        </small>
+
+                        <small id="credit_order_top_up" class="green" style="display: none;" >
+                            {% if useri.langSet == 0 %}
+                               Ongeza Credit kwenye oda ya Mteja
+                               {% else %}
+                               Add Credit to Customer Order
+                               {% endif %}
                         </small>
                          
                                          
@@ -1228,6 +1068,197 @@
             </div>
         </div>
     </div>
+
+  {% if addOrder  %}
+    <!--A CREDIT/DEBIT ORDER MODAL -->
+    <div class="modal fade" id="credit_debt_order" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog animate" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title latoFont" id="exampleModalLabel">
+                {% if useri.langSet == 0 %}Oda ya Deni/Credit{% else %} Credit/Debit Order {% endif %}  
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+      
+            <div class=" px-3 " id="creditDebtOrder" >
+                
+                <form id="creditOrderForm"  action="/salepurchase/save_credit_order" >
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="orderId">
+                            {% if useri.langSet == 0 %}Namba ya Oda{% else %}Order ID{% endif %}
+                            
+                        </label>
+                        <input type="text" class="form-control" value="ORD-{% if cust.id < 10 %}0{% endif %}{{cust.id}}/{{newcode}}" readonly id="orderId" name="orderId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderAmount" class="brown" >
+                            {% if useri.langSet == 0 %}Kiasi cha Oda{% else %}Order Amount{% endif %} <span class="text-primary">{{currencii}}</span>
+                            <sup>*</sup>
+                        </label>
+                        <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                <label class="mt-1 text-danger " for="orderAmount"></label> 
+                                <div class="box-pointer d-inline "></div>
+                        </div>
+                        <input type="number" class="form-control money-fomat" id="orderAmount" name="orderAmount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderType" class="brown" >
+                            {% if useri.langSet == 0 %}Aina ya Oda{% else %}Order Type{% endif %}
+                            <sup>*</sup>
+                        </label>
+                        <select class="form-control bluePrint" id="orderType" name="orderType" required onchange="$('#paidFields').toggle(this.value=='prepaid')">
+                            <option value=0 >------</option>
+                            <option value="debt">{% if useri.langSet == 0 %}Mikopo{% else %}Debt{% endif %}</option>
+                            <option value="prepaid">{% if useri.langSet == 0 %}Imelipwa{% else %}Prepaid{% endif %}</option>
+                        </select>
+                    </div>
+
+                    <div id="paidFields" style="display: none;">
+                        
+                        
+                        <div class="form-group" >
+                         <label for="orderType"  >
+                            {% if useri.langSet == 0 %}Hali ya Oda{% else %}Order Status{% endif %}
+                            
+                        </label>
+
+                          <select name="NewOrContinue"  id="NewOrContinue" class="form-control bluePrint" required >
+                            <option  value=0 >-----</option>
+
+                            {% if lastCd is None %}  
+                               <option value=1 > {% if useri.langSet == 0 %}Anaendelea{% else %}In Progress{% endif %} </option>
+                            {% endif %} 
+
+                              <option value=2 > {% if useri.langSet == 0 %}Mpya{% else %}New{% endif %} </option>
+                          </select>
+                        </div>
+                        
+                         
+                        <div id="payMentsAcc" class="form-group ">
+                            <label for="paymentAccount" class="brown" >
+                                {% if useri.langSet == 0 %}Akaunti ya Malipo{% else %}Payment Account{% endif %}
+                                <sup>*</sup>
+                            </label>
+                            <select class="form-control bluePrint" id="paymentAccount" name="paymentAccount">
+                                <option value=0>--------</option>
+                                {% for ac in payacc %}
+                                    <option value="{{ac.id}}">{{ac.Akaunt_name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+
+                        <div class="form-group">
+                            <label for="paidAmount" class="brown" >
+                                {% if useri.langSet == 0 %}Kiasi Kilicholipwa{% else %}Paid Amount{% endif %} <span class="text-primary">{{currencii}}</span>
+                                <sup>*</sup>
+                            </label>
+                            <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                    <label class="mt-1 text-danger " for="paidAmount"></label> 
+                                    <div class="box-pointer d-inline "></div>
+                            </div>
+                            <input type="number" class="form-control money-fomat" id="paidAmount" name="paidAmount" step="0.01">
+                        </div>
+
+                    </div>
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            {% if useri.langSet == 0 %}Hifadhi{% else %}Save{% endif %}
+                        </button>
+                    </div>
+                </form>
+                <script>
+                    $('#creditOrderForm').submit(function(e){
+                        e.preventDefault();
+                        // Add your AJAX or form submission logic here
+
+                        const orderId = $('#orderId').val();
+                        const orderAmount = parseFloat($('#orderAmount').val());
+                        const orderType = $('#orderType').val();
+                        const paymentAccount = $('#paymentAccount').val();
+                        const paidAmount = parseFloat($('#paidAmount').val());
+                        const custId = Number('{{cust.id}}');
+                        const prepaid = orderType === 'prepaid' ? 1 : 0;
+                        const odStutus = Number($('#NewOrContinue').val());
+                        const NewOda = Number(odStutus == 2);
+                        const url = $(this).attr('action');
+
+                        if(!odStutus || odStutus <=0 ){
+                            alert('{% if useri.langSet == 0 %}Tafadhali chagua hali ya oda{% else %}Please select an order status{% endif %}');
+                            redborder('#NewOrContinue');
+                            return;
+                        }
+                        if(!orderAmount || orderAmount <= 0){
+                            alert('{% if useri.langSet == 0 %}Tafadhali ingiza kiasi cha oda{% else %}Please enter a valid order amount{% endif %}');
+                            redborder('#orderAmount');
+                            return;
+                        }
+                        if(orderType === 'prepaid'){
+                            if(!paymentAccount){
+                                alert('{% if useri.langSet == 0 %}Tafadhali chagua akaunti ya malipo{% else %}Please select a payment account{% endif %}');
+                                redborder('#paymentAccount');
+                                return;
+                            }
+                            if(!paidAmount || paidAmount <= 0 || paidAmount > orderAmount){
+                                alert('{% if useri.langSet == 0 %}Tafadhali ingiza kiasi halali kilicholipwa{% else %}Please enter a valid paid amount{% endif %}');
+                                redborder('#paidAmount');
+                                redborder('#orderAmount');
+                                return;
+                            }
+                        }
+                        if(orderType !== 'debt' && orderType !== 'prepaid'){
+                            alert('{% if useri.langSet == 0 %}Tafadhali chagua aina ya oda{% else %}Please select an order type{% endif %}');
+                            redborder('#orderType');
+                            return;
+                        }
+
+                        $('#credit_debt_order').modal('hide');
+                        $('#loadMe').modal('show');
+                        const data = {
+                            data:{
+                            orderId,
+                            orderAmount,
+                            orderType,
+                            paymentAccount: orderType === 'prepaid' ? paymentAccount : 0,
+                            paidAmount: orderType === 'prepaid' ? paidAmount : 0,
+                            custId,
+                            prepaid,
+                            NewOda
+                            },
+                           url
+                        };
+
+                        const sendIt = POSTREQUEST(data)
+
+                        sendIt.then(function(res){
+                            $('#loadMe').modal('hide');
+                            hideLoading();
+                            const msg = lang(res.swa,res.eng)
+                            if(res.success){
+                                toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2000});
+                                location.reload();
+                            }else{
+                                toastr.error(msg, lang('Imeshindikana','Failed'), {timeOut: 2000});
+                            }
+                        });
+
+
+ 
+                    });
+                </script>
+            </div>
+       
+            </div>
+          </div>
+        </div>
+      </div>
+       {% endif %}
 
     <!-- Kuedit Mteja ................................................................ -->
 <div class="modal fade" id="wateja-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -1474,7 +1505,7 @@
                           url = $(this).attr("action"),
                           ac = Number($('#malipo-akaunti').val()),
                           pay_amo = Number($('#lipa_kiasi').val())||Number('{{totD}}'),
-                         
+                          isCredit = Number($('#lipa_kiasi').data('hasorder')),
                           date = $('#pay_d').val(),
                           amo = Number('{{totD}}'),
                           desc = $('#lipaElezo').val()
@@ -1485,14 +1516,15 @@
                               ac,
                               pay_amo,
                               date,
-                              desc
+                              desc,
+                              isCredit
                             },
                             url
                           }
 
                           console.log('pass');
 
-                          if(ac&&pay_amo<=amo){
+                          if(ac&&(pay_amo<=amo||isCredit)){
                             console.log('passed here');
                                     $("#modal_malipo").modal('hide');
                                     $("#loadMe").modal('show');

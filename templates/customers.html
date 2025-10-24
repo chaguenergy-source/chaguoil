@@ -30,12 +30,12 @@
     <span class="text">Download PDF</span>
 </a> -->
 
-
-<button data-toggle="modal" data-target="#wateja-modal" id="addCustombtn" class="btn btn-default btn-download">
-    <!-- <i class='bx bxs-cloud-download' ></i> -->
-    <span class="text"> {% if useri.langSet == 0 %} Ongeza Mteja{% else %}Add Customer{% endif %}</span>
-</button>
-
+{% if useri.admin or useri.cust %}
+  <button data-toggle="modal" data-target="#wateja-modal" id="addCustombtn" class="btn btn-default btn-download">
+      <!-- <i class='bx bxs-cloud-download' ></i> -->
+      <span class="text"> {% if useri.langSet == 0 %} Ongeza Mteja{% else %}Add Customer{% endif %}</span>
+  </button>
+{% endif %}
 
 </div>
 
@@ -94,7 +94,7 @@
                                   </a>
                                 </td>
 
-                                <td>{{s.cust.address | title }} </td>
+                                <td>{{s.cust.address }} </td>
                                 <td>{{s.cust.code}}{{s.cust.simu1}} {% if s.cust.simu2 %} ,{{s.cust.code}}{{s.cust.simu2}} {% endif %} </td>
                                 <td> {% if s.cust.email %} {{s.cust.email}} {% else %} --- {% endif %} </td>
                                 <td class="{% if s.deni > 0 %} brown {% endif %}" > {% if s.deni > 0 %} {{s.deni|floatformat:'-2'|intcomma}} {% else %} --- {% endif %} </td>

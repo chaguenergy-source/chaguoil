@@ -369,10 +369,28 @@
               {% if sale %}
                
              <div class="mt-4 table-responsive">
-                <strong>{% if useri.langSet == 0 %}Mauzo Wateja Maalum{% else %}Credit Order Sales {% endif %}</strong>
+                
+                  
+                <div class="mb-2 row">
+                        <div class="col-8">
+                            <strong>{% if useri.langSet == 0 %}Mauzo Wateja wa Mikopo/Kutanguzia {% else %}Credit/Debit Order Sales {% endif %}</strong> 
+                        </div>
+
+                        <div class="col-4 text-right">
+                        <button type="button" title="{% if useri.langSet == 0 %}Futa{% else %}Delete{% endif %}" id="delete-cd-orders-btn" class="btn btn-light btn-sm" disabled onclick="confirmDeleteCDOrders()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+                            </svg>
+                        </button>
+                        </div>  
+                    </div>
+
+
                 <table class="table table-bordered smallFont table-sm">
                     <thead>
                         <tr class="smallFont" >
+                            <th><input type="checkbox" id="select-all-expenses" onclick="toggleAllCDOrder(this)"></th>
+
                             <th>#</th>
                             <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
 
@@ -391,6 +409,8 @@
                         <tbody>
                             {% for s in sale %}
                             <tr>
+                                <td><input type="checkbox" class="cd_order-checkbox" name="cd_order_ids" value="{{s.id}}" onchange="updateDeleteButtonState_cd()"></td>
+
                                 <td>{{forloop.counter}}</td>
                                 <td>
                                     <script>
@@ -414,7 +434,7 @@
                             {% endfor %}
 
                             <tr class="weight600 smallFont" >
-                                <td colspan="7" > {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} </td>
+                                <td colspan="8" > {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} </td>
                                
                                  <td>{{exclude.sale | floatformat:'-2'  | intcomma}}</td>
                                  
@@ -1049,6 +1069,45 @@
                                     const url = '/salepurchase/deleteShiftExpenses'
                                     const data = {data:{expense_ids: JSON.stringify(checs)},url}
                                     $('#loadMe').modal('show')
+                                    const sendIt = POSTREQUEST(data)
+                                    sendIt.then(res=>{
+                                        $('#loadMe').modal('hide')
+                                        hideLoading()
+                                        const msg = lang(res.swa,res.eng)
+                                        if(res.success){
+                                            toastr.success(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                            location.reload()
+                                        }else{
+                                            toastr.error(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                        }
+                                    })
+
+                                 }
+                             }
+                             
+                             function updateDeleteButtonState_cd() {
+                                 const checkboxes = document.querySelectorAll('.cd_order-checkbox');
+                                 const btn = document.getElementById('delete-cd-orders-btn');
+                                 btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
+                             }
+                             function toggleAllCDOrder(source) {
+                                 const checkboxes = document.querySelectorAll('.cd_order-checkbox');
+                                 checkboxes.forEach(cb => { cb.checked = source.checked; });
+                                 updateDeleteButtonState_cd();
+                             }
+                             function confirmDeleteCDOrders() {
+                                 const selected = document.querySelectorAll('.cd_order-checkbox:checked');
+                                 if (selected.length === 0) return;
+                                 const msg = `{% if useri.langSet == 0 %}Futa Mauzo haya? Ukifuta, utahitaji kuyaongeza tena.{% else %}Delete selected Sales? If you delete, you will need to re-add them.{% endif %}`;
+                                 if (confirm(msg)) {
+                                    //   document.getElementById('expense-delete-form').submit();
+                                    // Use AJAX to submit the form without reloading the page
+                                    const checs = []
+                                    selected.forEach(cb => { checs.push(Number(cb.value)); });
+                                    const url = '/salepurchase/deleteCDSales'
+                                    const data = {data:{cd_order_ids: JSON.stringify(checs)},url}
+                                    $('#loadMe').modal('show')
+                                   // console.log(data);  
                                     const sendIt = POSTREQUEST(data)
                                     sendIt.then(res=>{
                                         $('#loadMe').modal('hide')

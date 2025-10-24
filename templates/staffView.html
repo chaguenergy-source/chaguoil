@@ -115,22 +115,23 @@
                     
                 </div>
             </div>
-            <div class="col-md-9">
-                <ul class="list-unstyled ">
+            <div class="col-md-9 ">
+                <ul class="list-unstyled mx-3 mx-lg-1 classic_div">
                     <li class="row py-1" >
-                        <div class="col-3">{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}:</div>
-                        <div class="col-8">
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
                         <u class="bluePrint">{{s.user.user.first_name |title }} {{s.user.user.last_name |title }}</u> 
                         </div>
                     </li>
                     <li class="row py-1" >
-                        <div class="col-3">{% if useri.langSet == 0 %}Cheo{% else %}Position{% endif %}:</div>
-                        <div class="col-8">{{s.cheo |title }}</div>
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Cheo{% else %}Position{% endif %}:</div>
+                        <div class="col-6 col-lg-9">{{s.cheo |title }}</div>
                     </li>
+
                     <li class="row py-1" >
-                        <div class="col-3">{% if useri.langSet == 0 %}Anaruhusa{% else %}Allow{% endif %}:</div>
-                        <div class="col-8">
-                            
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Anaruhusa{% else %}Allow{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
+
                             <label class="switch">
                                 {% if s.Allow %}
                                 <input type="checkbox" checked data-allow=1 >
@@ -142,9 +143,10 @@
 
                         </div>
                     </li>
+
                     <li class="row py-1" >
-                        <div class="col-3">{% if useri.langSet == 0 %}Usimamizi{% else %}Manage{% endif %}:</div>
-                        <div class="col-8">
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Usimamizi{% else %}Manage{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
                             
                             <label class="switch">
                                 {% if s.fullcontrol %}
@@ -158,9 +160,10 @@
 
                         </div>
                     </li>
+
                     <li class="row py-1" >
-                        <div class="col-3">{% if useri.langSet == 0 %}Muhusika wa pampu{% else %}Pump Attendant{% endif %}:</div>
-                        <div class="col-8">
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Muhusika wa pampu{% else %}Pump Attendant{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
                             
                             <label class="switch">
                                 {% if s.pumpIncharge %}
@@ -176,9 +179,9 @@
                     </li>
 
                     <li class="row py-1" >
-                        <div class="col-3">{% if useri.langSet == 0 %}Ruhusa General{% else %}General Allowed{% endif %}:</div>
-                        <div class="col-8">
-                            
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Ruhusa General{% else %}General Allowed{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
+
                             <label class="switch">
                                 {% if s.user.ceo %}
                                 <input type="checkbox" checked data-ceo=1 >
@@ -190,9 +193,10 @@
 
                         </div>
                     </li>
+                    
                     <li class="row py-1" >
-                        <div class="col-3">{% if useri.langSet == 0 %}Onesha Manunuzi{% else %}View Purchases{% endif %}:</div>
-                        <div class="col-8">
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Onesha Manunuzi{% else %}View Purchases{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
                             
                             <label class="switch">
                                 {% if s.user.pu and s.user.ceo %}
@@ -211,8 +215,40 @@
                     </li>
 
                     <li class="row py-1" >
-                        <div class="col-3">{% if useri.langSet == 0 %}Usafirishaji Mafuta{% else %}Fuel Tranfer{% endif %}:</div>
-                        <div class="col-8">
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Ongeza Mteja{% else %}Add Customer{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
+                            
+                            <label class="switch">
+                                {% if s.user.cust %}
+                                       <input type="checkbox" checked data-cust=1 >
+                                {% else %}
+                                    <input type="checkbox" data-cust=1  >
+                                {% endif %}
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
+
+                    <li class="row py-1" >
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Rekodi Matumizi kwa Ujumla{% else %}Record General Expenses{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
+                            
+                            <label class="switch">
+                                {% if s.user.exp %}
+                                       <input type="checkbox" checked data-exp=1 >
+                                {% else %}
+                                    <input type="checkbox" data-exp=1  >
+                                {% endif %}
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
+
+                    <li class="row py-1" >
+                        <div class=" col-6 col-lg-3 ">{% if useri.langSet == 0 %}Usafirishaji Mafuta{% else %}Fuel Tranfer{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
                             
                             <label class="switch">
                                 {% if s.user.op %}
@@ -227,8 +263,8 @@
                     </li>
 
                     <li class="row py-1" >
-                        <div class="col-3">{% if useri.langSet == 0 %}Usimamizi Matanki{% else %}Tanks Supervisor{% endif %}:</div>
-                        <div class="col-8">
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Usimamizi Matanki{% else %}Tanks Supervisor{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
                             
                             <label class="switch">
                                 {% if s.user.tankSup %}
@@ -255,6 +291,8 @@
                                 user = Number('{{s.id}}'),
                                 sup = Number($(this).data('sup')) || 0,
                                 pu = Number($(this).data('pu')) || 0,
+                                exp = Number($(this).data('exp')) || 0,
+                                cust = Number($(this).data('cust')) || 0;
 
                                 data = {
                                     data:{
@@ -266,6 +304,8 @@
                                         op,
                                         sup,
                                         pu,
+                                        exp,
+                                        cust,
                                     user},
                                     url:'/staffs/permit'
                                 }

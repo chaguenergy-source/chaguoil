@@ -61,6 +61,7 @@ urlpatterns=[
         path('LimitOrderSet',views.LimitOrderSet, name='LimitOrderSet'),
         path('deleteShiftExpenses',views.deleteShiftExpenses, name='deleteShiftExpenses'),
         path('deleteShift',views.deleteShift, name='deleteShift'),
+        path('deleteCDSales',views.deleteCDSales, name='deleteCDSales'),
      
 
 ]

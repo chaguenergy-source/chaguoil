@@ -46,6 +46,8 @@ class UserExtend(models.Model):
     pu = models.BooleanField(default=False)
     ceo = models.BooleanField(default=False)
     op = models.BooleanField(default=False)
+    exp = models.BooleanField(default=False)
+    cust = models.BooleanField(default=False)
     tankSup = models.BooleanField(default=False)
     company = models.ForeignKey(company,on_delete=models.CASCADE,null=True)
     langSet =  models.IntegerField(default=1)

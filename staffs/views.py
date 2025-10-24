@@ -202,6 +202,8 @@ def permit(request):
         op = int(request.POST.get('op'))
         sup = int(request.POST.get('sup'))
         pu = int(request.POST.get('pu'))
+        exp = int(request.POST.get('exp',0))
+        cust = int(request.POST.get('cust',0))
         todo = todoFunct(request)
         useri = todo['useri']
         data = {
@@ -261,7 +263,15 @@ def permit(request):
             if pu:
               userr.pu =  check 
               userr.save()
-             
+
+            if exp:
+              userr.exp =  check 
+              userr.save()  
+
+            if cust:
+              userr.cust =  check 
+              userr.save()
+
         else:
            data = {
               'success':False,
