@@ -1006,7 +1006,7 @@ def fueltranfer(request):
                     trFrT.Fuel = frm_tank.fuel
                     trFrT.cost = float(frm_tank.cost)
                     trFrT.saprice = float(frm_tank.price)
-                    trFrT.qty = float(t['tqty'])
+                    trFrT.qty = float(float(t['tAmo'])/float(frm_tank.price))
                     trFrT.From = trFr
                     trFrT.to = to_tank
                     trFrT.save()
@@ -2054,7 +2054,7 @@ def getStationData(request):
 
 
             disp = todo['disp'].annotate(dis_name=F('station__name')).values()
-            pumps = todo['tr_pump'].annotate(Fuel=F('tank__fuel'),Fname=F('tank__fuel__name'),disp_name=F('station__name'),AF_name=F('Incharge__user__first_name'),AL_name=F('Incharge__user__last_name')).values()
+            pumps = todo['tr_pump'].annotate(Fuel=F('tank__fuel'),price=F('tank__price'),Fname=F('tank__fuel__name'),disp_name=F('station__name'),AF_name=F('Incharge__user__first_name'),AL_name=F('Incharge__user__last_name')).values()
             
             othF = []
            
@@ -3309,6 +3309,11 @@ def StartEndShift(request):
       spancer = pmps.distinct('station')
 
       sessions = shiftsTime.objects.filter(Interprise=shell)
+      shiftStarted = None
+      lastShift = shifts.objects.filter(record_by__Interprise=shell.id,To=None).order_by('pk')
+      if lastShift.exists():
+          shiftStarted = lastShift.last()
+
 
 
   todo.update({
@@ -3316,7 +3321,7 @@ def StartEndShift(request):
       'shift':shift,
       'pumps':pmps.order_by('pk'),
       'fuel':fl,
-      
+      'shiftStarted':shiftStarted,
       'sessions':sessions,
       'spancer':spancer,
       'isShiftAttend':True,
@@ -3461,6 +3466,125 @@ def deleteCDSales(request):
         }
         return JsonResponse(data)
     
+@login_required(login_url='login')
+@require_POST
+def deleteCashDeposit(request):
+    try:
+        todo = todoFunct(request)
+        shell = todo['shell']
+        manager = todo['manager']
+        useri = todo['useri']
+        
+        if not (manager or useri.admin):
+            return JsonResponse({
+                'success': False, 
+                'eng': 'Permission denied.',
+                'swa': 'Ruhusa haijaruhusiwa.'
+            })
+        
+        cash_deposit_ids = request.POST.getlist('cash_deposit_ids[]')
+        if not cash_deposit_ids:
+            # Try as JSON string if not sent as array
+            cash_deposit_ids = json.loads(request.POST.get('cash_deposit_ids', '[]'))
+        
+        # Ensure all ids are integers
+        cash_deposit_ids = [int(cid) for cid in cash_deposit_ids if str(cid).isdigit()]
+        
+        if not cash_deposit_ids:
+            return JsonResponse({
+                'success': False, 
+                'eng': 'No valid cash deposit IDs provided.',
+                'swa': 'Hakuna vitambulisho halali vya amana za fedha vilivyotolewa.'
+            })
+        
+        # Get cash deposits to delete
+        cash_deposits = wekaCash.objects.filter(
+            pk__in=cash_deposit_ids, 
+            Interprise=shell.id,
+            biforeShift=True
+        )
+        
+        if not cash_deposits.exists():
+            return JsonResponse({
+                'success': False, 
+                'eng': 'No cash deposits found.',
+                'swa': 'Hakuna amana za fedha zilizopatikana.'
+            })
+        
+        deleted_count = 0
+        for deposit in cash_deposits:
+            # Reduce amount from payment account
+            if deposit.Akaunt:
+                acc = deposit.Akaunt
+                acc.Amount = float(float(acc.Amount) - float(deposit.Amount))
+                acc.save()
+            
+            # Delete the deposit
+            deposit.delete()
+            deleted_count += 1
+        
+        if deleted_count > 0:
+            return JsonResponse({
+                'success': True, 
+                'eng': 'Cash deposits deleted successfully.',
+                'swa': 'Amana za fedha zimefutwa kwa mafanikio.'
+            })
+        else:
+            return JsonResponse({
+                'success': False, 
+                'eng': 'No cash deposits deleted.',
+                'swa': 'Hakuna amana za fedha zilizofutwa.'
+            })
+            
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'eng': f'Error: {str(e)}',
+            'swa': f'Hitilafu: {str(e)}'
+        })
+
+
+
+@login_required(login_url='login')
+@require_POST
+def deleteFuelTransfers(request):
+    try:
+        todo = todoFunct(request)
+        shell = todo['shell']
+        manager = todo['manager']
+        useri = todo['useri']
+        if not (manager or useri.admin):
+            return JsonResponse({'success': False, 'eng': 'Permission denied.', 'swa': 'Ruhusa haijarusiwa.'})
+        transfer_ids = json.loads(request.POST.get('transfer_ids', '[]'))
+        if not transfer_ids:
+            return JsonResponse({'success': False, 'eng': 'No transfer IDs provided.', 'swa': 'Hakuna ID za uhamisho zilizotolewa.'})
+        transfr = transFromTo.objects.filter(pk__in=transfer_ids,shift__shift__record_by__Interprise=shell.id,shift__shift__To=None)
+        if transfr.exists():
+            for tf in transfr:
+                totnk = tf.to
+                totnk.qty = float(float(totnk.qty) - float(tf.qty))
+                totnk.save()
+                theTr = tf.transfer
+                tf.delete()
+                remft = transFromTo.objects.filter(transfer=theTr.id)
+                if not remft.exists():
+                    theTr.delete()
+            data = {
+                'success':True,
+                'swa':'Uhamisho umefutwa kikamilifu',
+                'eng':'Transfer deleted successfully'
+            } 
+
+            return JsonResponse(data)
+    except:
+        data = {
+            'success':False,
+            'swa':'Kitendo hakikufanikiwa tafadhari jaribu tena',
+            'eng':'The action was unsuccessfull please try again'
+        }
+
+        return JsonResponse(data)
+
 
 @login_required(login_url='login')
 def fuell(request):
@@ -3553,7 +3677,7 @@ def fuell(request):
 @login_required(login_url='login')
 def addTank(request):
     if request.method == "POST":
-        # try:
+        try:
             name = request.POST.get('name')
             Cont_name = request.POST.get('Cont_name')
             fue = int(request.POST.get('fuel'))
@@ -3644,13 +3768,13 @@ def addTank(request):
                 } 
             return JsonResponse(data)
 
-        # except:
-        #     data = {
-        #         'success':False,
-        #         'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena',
-        #         'msg_eng':'The action was not successfully please try again',
-        #     }
-        #     return JsonResponse(data)
+        except:
+            data = {
+                'success':False,
+                'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena',
+                'msg_eng':'The action was not successfully please try again',
+            }
+            return JsonResponse(data)
     
 @login_required(login_url='login')
 def pumpSetting(request):

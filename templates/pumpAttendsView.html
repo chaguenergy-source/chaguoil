@@ -45,7 +45,7 @@
       </div>
 
         <div class="row mb-3">
-            <div class="col-md-5 col-lg-4  ">
+            <div class="col-md-6 col-lg-5  ">
 
                 {% if shift %}
                  <div class="row mb-2">
@@ -67,6 +67,59 @@
 
                 </div>
                {% endif %} 
+
+                <div class="row mb-2">
+                    <div class="col-5">
+                         <label for="session_" class=" brown " > 
+                            {% if useri.langSet == 0 %}Mpango{% else %} Session {% endif %}:
+                        </label>
+
+                    </div>
+                    <div class="col-7">
+                   
+                         <div class="input-group">
+
+                         
+                            <select class=" p-2 bluePrint form-control" name="session_" id="session_">
+                                {% if shift %}
+                                   <option value="{{shift.session.session.id}}"  >{{shift.session.session.name}}</option>
+                                {% else %}
+                                <option value=0  >------</option>
+
+                                {% for s in sessions %}
+                                   <option value={{s.id}} data-from="{{s.shFrom|date:'H:i'}}" data-to="{{s.shTo|date:'H:i'}}" >{{s.name}}</option>
+                                {% endfor %}
+                                {% endif %}
+                            
+                            </select>
+                           {% if not shift %}
+                            <button type="button" class="btn btn-sm border pt-2 input-group-append btn-light " onclick="getSes(1)" title="{% if useri.langSet == 0 %}Chagua Kiotomatiki{% else %}Auto Select{% endif %}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                                </svg>
+                            </button>
+                            {% endif %}
+
+                     </div>
+                    </div>
+                
+
+                </div>
+
+                {% if shiftStarted %}
+                   <script>
+                    $(document).ready(function(){
+                          const
+                       lastSessionId = Number('{{shiftStarted.session.session.id}}')
+                       shiftFrom = moment('{{shiftStarted.From | date:"r" }}').format('YYYY-MM-DDTHH:mm:ss')
+                       $('#tFrom').val(shiftFrom)
+
+                          $('#session_').val(lastSessionId)
+                    });
+                   </script>
+                {%endif%}
+
+
                 <div class="row mb-2">
                   <div class="col-5">
                      <label for="form_attendant" class=" brown " > {% if useri.langSet == 0 %}Zamu Kuanzia{% else %} Shift From {% endif %}:</label>
@@ -79,7 +132,14 @@
                     </script> 
         
                     {% else %}
-                      <input class="p-2  form-control" type="datetime-local" id="tFrom" >
+                     <div class="input-group">
+                        <input class="p-2  bluePrint form-control" type="datetime-local" id="tFrom" >
+                        <button type="button" class="btn btn-sm border pt-2 input-group-append btn-light " onclick="setDateFromSession()" title="{% if useri.langSet == 0 %}Weka Kiotomatiki{% else %}Auto setting{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                            </svg>
+                        </button>
+                     </div>
                     {% endif %}
                 </div>
                 
@@ -99,30 +159,6 @@
 
                 </div>
 
-                 <div class="row mb-2">
-                    <div class="col-5">
-                         <label for="session_" class=" brown " > 
-                            {% if useri.langSet == 0 %}Mpango{% else %} Session {% endif %}:
-                        </label>
-
-                    </div>
-                    <div class="col-7">
-                            <select class=" p-2 bluePrint form-control" name="session_" id="session_">
-                                {% if shift %}
-                                   <option value="{{shift.session.session.id}}"  >{{shift.session.session.name}}</option>
-                                {% else %}
-                                <option value=0  >------</option>
-
-                                {% for s in sessions %}
-                                   <option value={{s.id}} data-from="{{s.shFrom|date:'H:i'}}" data-to="{{s.shTo|date:'H:i'}}" >{{s.name}}</option>
-                                {% endfor %}
-                                {% endif %}
-                            
-                            </select>
-                    </div>
-                
-
-                </div>
 
 
 
@@ -154,7 +190,7 @@
                       
             }
 
-            getSes(1)
+            // getSes(1)
 
            
  
@@ -167,6 +203,14 @@
                       }else{
                         getSes(df+1)
                       }
+            }
+
+            function setDateFromSession(){
+                const sesId = Number($('#session_').val())
+                      if(sesId==0){redborder('#session_');return;}
+                     const tFrom = sesdt.find(s=>s.id==sesId).sfrom
+                     $('#tFrom').val(tFrom.format('YYYY-MM-DDTHH:mm'));
+                   
             }
 
 
@@ -455,10 +499,25 @@
              {% if trd %}
                <hr>
              <div class="table-responsive">
-                <strong>{% if useri.langSet == 0 %}Kuhamisha Mafuta{% else %}Transfered Fuel {% endif %}</strong>
+               
+                 <div class="mb-2 row">
+                    <div class="col-8">
+                        <strong>{% if useri.langSet == 0 %}Kuhamisha Mafuta{% else %}Transfered Fuel {% endif %}</strong>
+                    </div>
+                    <div class="col-4 text-right">
+                        <button type="button" id="delete-fuel-transfer-btn" class="btn btn-light btn-sm" disabled onclick="confirmDeleteFuelTransfer()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+                            </svg>
+                        </button>                                            
+                    </div>
+
+                        </div>
+               
                 <table class="table table-bordered smallFont table-sm">
                     <thead>
                         <tr class="smallFont" >
+                            <th><input type="checkbox" id="select-all-transfer" onclick="toggleAllFuelTransfer(this)"></th>
                             <th>#</th>
                             <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
 
@@ -477,6 +536,10 @@
                         <tbody>
                             {% for s in trd %}
                             <tr>
+                                <td>
+                                    <input type="checkbox" name="transfer_ids" value="{{s.id}}" class="fuel-transfer-checkbox" onclick="updateFuelTransferDeleteButtonState()">
+                                </td>
+
                                 <td>{{forloop.counter}}</td>
                                 <td>
                                     <script>
@@ -510,7 +573,7 @@
                             {% endfor %}
 
                             <tr class="weight600 smallFont" >
-                                <td colspan="7" >
+                                <td colspan="8" >
                                     {% if useri.langSet == 0 %}Jumla{% else %} Total{% endif %}
                                 </td>
                                 <td>{{exclude.tr | floatformat:'-2'  | intcomma}}</td>
@@ -652,6 +715,7 @@
                                         </div>
 
                                     </div>
+                                    
                                     <table class="table table-bordered smallFont table-sm">
                                         <thead>
                                                 <tr class="smallFont" >
@@ -700,10 +764,23 @@
              {% if exclude.cashBA > 0 %}
                <hr>
              <div class="table-responsive">
-                <strong>{% if useri.langSet == 0 %}Pesa Iliyotoka{% else %} Cash Deposit Before{% endif %}</strong>
+                  <div class="mb-2 row">
+                    <div class="col-8">
+                        <strong>{% if useri.langSet == 0 %}Pesa Iliyotoka{% else %} Cash Deposit Before{% endif %}</strong>
+                    </div>
+                    <div class="col-4 text-right">
+                        <button type="button" id="delete_cash_Deposit_btn" class="btn btn-light btn-sm" disabled onclick="confirmDeleteCashDeposit()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+                            </svg>
+                        </button>                                            
+                    </div>
+
+                </div>
                 <table class="table table-bordered smallFont table-sm">
                     <thead>
                         <tr class="smallFont" >
+                            <th><input type="checkbox" id="select-all-cashDeposits" onclick="toggleAllCashDeposits(this)"></th>
                             <th>#</th>
                             <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
 
@@ -721,6 +798,8 @@
                             
                         
                             <tr>
+                                <td><input type="checkbox" class="cashDeposit-checkbox" name="cashDeposit_ids" value="{{cb.id}}" onchange="updateDeleteButtonStateCashDeposit()"></td>
+
                                 <td>{{forloop.counter}}</td>
                                 <td>
                                     <script>
@@ -742,7 +821,7 @@
                             {% endfor %}
 
                             <tr>
-                                <th colspan="5" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                <th colspan="6" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
                                  <th>{{exclude.cashBA | floatformat:'-2'  | intcomma}}</th>
                             </tr>
                         </tbody>
@@ -766,7 +845,8 @@
                                {% if useri.langSet == 0 %}Maelezo ya Kina{% else %}Shift Details  {% endif %}
                            
                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-                                <polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
+                                <polyline points="17 11 12 6 7 11">
+                                </polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
                         </a>
                     </div>
                 </div>
@@ -908,13 +988,25 @@
                           
                       </div>
 
+
                       <div class="form-group mt-3">
                         <label class="brown" for="tToshift ">
                             {% if useri.langSet == 0 %}Muda wa Kumaliza{% else %}Shift End {% endif %}
                             <sup>*</sup>
                         </label>
-                        <input type="datetime-local"
-                          class="form-control" name="tToshift" id="tToshift" aria-describedby="helpId" placeholder="">
+                        <div class="input-group">
+                            <input type="datetime-local"
+                              class="form-control" name="tToshift" id="tToshift" aria-describedby="helpId" placeholder="">
+                        
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" onclick="setShiftEndDateTime()" title="{% if useri.langSet == 0 %}Weka Muda Kiautomatiki{% else %}Set Time Automatically{% endif %}">
+                                    <!-- Auto time set svg icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                </button>
+                            </div>
                        
                       </div>
 
@@ -943,9 +1035,10 @@
                     </p>                    
 
                 </div>
-             </div>
+              </div>
+              </div>
 
-
+        
 
                 <p class="text-right mt-3" >
                     
@@ -1047,6 +1140,7 @@
 {% block additionaljs %} 
            <!-- Update/Delete Expenses Fuel -->
           <script>
+                            //  Delete Expenses By Amount
                              function updateDeleteButtonState() {
                                  const checkboxes = document.querySelectorAll('.expense-checkbox');
                                  const btn = document.getElementById('delete-expenses-btn');
@@ -1085,6 +1179,7 @@
                                  }
                              }
                              
+                            // Delete CD Orders
                              function updateDeleteButtonState_cd() {
                                  const checkboxes = document.querySelectorAll('.cd_order-checkbox');
                                  const btn = document.getElementById('delete-cd-orders-btn');
@@ -1124,9 +1219,84 @@
                                  }
                              }
 
-       </script>
+                            //  Delete Cash Deposits
+                                function updateDeleteButtonStateCashDeposit() {
+                                    const checkboxes = document.querySelectorAll('.cashDeposit-checkbox');
+                                    const btn = document.getElementById('delete_cash_Deposit_btn');
+                                    btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
+                                }
 
-<!-- Update/Delete Expenses Amount -->
+                                function toggleAllCashDeposits(source) {
+                                    const checkboxes = document.querySelectorAll('.cashDeposit-checkbox');
+                                    checkboxes.forEach(cb => { cb.checked = source.checked; });
+                                    updateDeleteButtonStateCashDeposit();
+                                }
+
+                                function confirmDeleteCashDeposit() {
+                                    const selected = document.querySelectorAll('.cashDeposit-checkbox:checked');
+                                    if (selected.length === 0) return;
+                                    const msg = `{% if useri.langSet == 0 %}Futa Amana hizi za Pesa? Ukifuta, utahitaji kuyaongeza tena.{% else %}Delete selected Cash Deposits? If you delete, you will need to re-add them.{% endif %}`;
+                                    if (confirm(msg)) {
+                                        // Use AJAX to submit the form without reloading the page
+                                        const checs = []
+                                        selected.forEach(cb => { checs.push(Number(cb.value)); });
+                                        const url = '/salepurchase/deleteCashDeposit'
+                                        const data = {data:{cash_deposit_ids: JSON.stringify(checs)},url}
+                                       
+                                        $('#loadMe').modal('show')
+                                        const sendIt = POSTREQUEST(data)
+                                        sendIt.then(res=>{
+                                            $('#loadMe').modal('hide')
+                                            hideLoading()
+                                            const msg = lang(res.swa,res.eng)
+                                            if(res.success){
+                                                toastr.success(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                                location.reload()
+                                            }else{
+                                                toastr.error(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                            }
+                                        })
+                                    }
+                                }
+                        
+                            // Delete Fuel Transfers
+                                function updateFuelTransferDeleteButtonState() {
+                                    const checkboxes = document.querySelectorAll('.fuel-transfer-checkbox');
+                                    const btn = document.getElementById('delete-fuel-transfer-btn');
+                                    btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
+                                }
+                                function toggleAllFuelTransfer(source) {
+                                    const checkboxes = document.querySelectorAll('.fuel-transfer-checkbox');
+                                    checkboxes.forEach(cb => { cb.checked = source.checked; });
+                                    updateFuelTransferDeleteButtonState();
+                                }
+                                function confirmDeleteFuelTransfer() {
+                                    const selected = document.querySelectorAll('.fuel-transfer-checkbox:checked');
+                                    if (selected.length === 0) return;
+                                    const msg = `{% if useri.langSet == 0 %}Futa usafirishaji huu wa mafuta? Ukifuta, utahitaji kuyaongeza tena.{% else %}Delete selected fuel transfer records? If you delete, you will need to re-add them.{% endif %}`;
+                                    if (confirm(msg)) { 
+                                        // Use AJAX to submit the form without reloading the page
+                                            const checs = []
+                                            selected.forEach(cb => { checs.push(Number(cb.value)); });
+                                            const url = '/salepurchase/deleteFuelTransfers'
+                                            const data = {data:{transfer_ids: JSON.stringify(checs)},url}
+                                            $('#loadMe').modal('show')
+                                            const sendIt = POSTREQUEST(data)
+                                            sendIt.then(res=>{
+                                                $('#loadMe').modal('hide')
+                                                hideLoading()
+                                                const msg = lang(res.swa,res.eng)
+                                                if(res.success){
+                                                    toastr.success(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                                    location.reload()
+                                                }else{
+                                                    toastr.error(msg,lang('Imefanikiwa','Success',{timeOut:3000}))
+                                                }
+                                            })
+                                        }
+                                    }
+                        </script>
+
       <script>
                              function updateFuelUsageDeleteButtonState() {
                                  const checkboxes = document.querySelectorAll('.fuel-usage-checkbox');
@@ -1317,7 +1487,7 @@
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="lossOrProfit">
                         <label class="custom-control-label latoFont ${prof?'green':'brown'} cursor-pointer" style="cursor: pointer !important;" for="lossOrProfit">
-                          ${prof?lang('Faida','Profit'):lang('Hasara','Loss')}
+                          ${prof?lang('Bonasi','Bonus'):lang('Hasara','Loss')}
                         </label>
                     </div>  
                 </div>
@@ -1503,8 +1673,27 @@
 
 
    
+ function setShiftEndDateTime() {
+       const sesTimeForm = moment('{{shift.From|date:"r"}}').format();
+       const tTo =  '{{shift.session.session.shTo}}';
+       let shToDateTime = moment().set({
+           hour: moment(tTo, "HH:mm").hour(),
+           minute: moment(tTo, "HH:mm").minute(),
+           second: 0,
+           millisecond: 0
+       }).format();
 
+    //    if sesTimeFrom is greater than shToDateTime, add one day to shToDateTime
+       if (moment(sesTimeForm).isAfter(moment(shToDateTime))) {
+           shToDateTime = moment(shToDateTime).add(1, 'days').format();
+       }
 
+       $('#tToshift').val(moment(shToDateTime).format('YYYY-MM-DDTHH:mm'));
+   
+    //    console.log({sesTimeForm, tTo, shToDateTime});
+    }
+
+    
 
 
 

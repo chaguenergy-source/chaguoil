@@ -35,65 +35,63 @@ GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
 
 # 1. KUPAKIA GS_CREDENTIALS KAMA OBJECT YA SERVICE ACCOUNT
-try:
-    # Tumia GS_CREDENTIALS, kama inavyotarajiwa na django-storages
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GCS_CREDENTIALS_FILE)
-    print(">>> GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
-except FileNotFoundError:
-    raise ImproperlyConfigured(
-        f"GCS Service Account JSON file not found at {GCS_CREDENTIALS_FILE}"
-    )
+if not DEBUG:
+        try:
+            # Tumia GS_CREDENTIALS, kama inavyotarajiwa na django-storages
+            GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GCS_CREDENTIALS_FILE)
+            print(">>> GCS Credentials loaded successfully from dedicated JSON file in settings.py.")
+        except FileNotFoundError:
+            raise ImproperlyConfigured(
+                f"GCS Service Account JSON file not found at {GCS_CREDENTIALS_FILE}"
+            )
 
 
-# 2. KUPAKIA JSON DICTIONARY KWA AJILI YA SCRIPTS ZA KUCHUNGUZA (DEBUGGING)
-try:
-    with open(GCS_CREDENTIALS_FILE, 'r') as f:
-        GCS_CREDENTIALS_DICT = json.load(f)
-        print(">>> GCS_CREDENTIALS_DICT (for script testing) also loaded.")
-except FileNotFoundError:
-    pass
+        # 2. KUPAKIA JSON DICTIONARY KWA AJILI YA SCRIPTS ZA KUCHUNGUZA (DEBUGGING)
+        try:
+            with open(GCS_CREDENTIALS_FILE, 'r') as f:
+                GCS_CREDENTIALS_DICT = json.load(f)
+                print(">>> GCS_CREDENTIALS_DICT (for script testing) also loaded.")
+        except FileNotFoundError:
+            pass
 
 
-# 3. KUBAINISHA NJIA ZA STORAGE MOJA KWA MOJA KWA KUTUMIA BASE CLASS
-# Hii huepuka matatizo yote ya ImportError
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage' 
+        # 3. KUBAINISHA NJIA ZA STORAGE MOJA KWA MOJA KWA KUTUMIA BASE CLASS
+        # Hii huepuka matatizo yote ya ImportError
+        DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+        STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage' 
 
 
-# KUWEKA LOCATIONS BAADA YA KUFAFANUA CLASS
-# Hizi ndizo zinazobainisha kuwa faili za media zitawekwa kwenye saraka ya 'media'
-# na static kwenye saraka ya 'static'
-GS_MEDIA_LOCATION = 'media'
-GS_STATIC_LOCATION = 'static'
+        # KUWEKA LOCATIONS BAADA YA KUFAFANUA CLASS
+        # Hizi ndizo zinazobainisha kuwa faili za media zitawekwa kwenye saraka ya 'media'
+        # na static kwenye saraka ya 'static'
+        GS_MEDIA_LOCATION = 'media'
+        GS_STATIC_LOCATION = 'static'
 
-# Media files (uploads)
-MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_MEDIA_LOCATION}/'
+        # Media files (uploads)
+        MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_MEDIA_LOCATION}/'
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
+        # Static files (CSS, JavaScript, Images)
+        STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
+        STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
 
-print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
-# =======================================================
-# --- END GOOGLE CLOUD STORAGE SETTINGS ---
-# =======================================================
+        print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
+        # =======================================================
+        # --- END GOOGLE CLOUD STORAGE SETTINGS ---
+        # =======================================================
 
-# Application definition
+        # Application definition
 
-GCS_STORAGE_INSTANCE = GoogleCloudStorage(
-    bucket_name=GS_BUCKET_NAME,
-    credentials=GS_CREDENTIALS,
-    location=GS_MEDIA_LOCATION
-)
-
-
-
-# MEDIA_URL = '/media/'
-# STATIC_URL = '/static/'
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Only used for collectstatic
-
-
+        GCS_STORAGE_INSTANCE = GoogleCloudStorage(
+            bucket_name=GS_BUCKET_NAME,
+            credentials=GS_CREDENTIALS,
+            location=GS_MEDIA_LOCATION
+        )
+else:
+    # LOCAL DEVELOPMENT SETTINGS (USALAMA: HIZI HAZITUMIKI KATIKA PRODUCTION)
+    MEDIA_URL = '/media/'
+    STATIC_URL = '/static/'
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Only used for collectstatic
 
 
 INSTALLED_APPS = [
@@ -139,35 +137,36 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
-
-# Database - CLOUD SQL SETTINGS (Inabaki vilevile)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cfspump_db', 
-        'USER': 'django_admin', 
-        'PASSWORD': 'Chagu@me122', 
-        'HOST': '34.44.22.51', # PUBLIC_IP_YA_CLOUDSQL
-        'PORT': '5432',
+if not DEBUG:
+    # Database - CLOUD SQL SETTINGS (Inabaki vilevile)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'cfspump_db', 
+            'USER': 'django_admin', 
+            'PASSWORD': 'Chagu@me122', 
+            'HOST': '34.44.22.51', # PUBLIC_IP_YA_CLOUDSQL
+            'PORT': '5432',
+        }
     }
-}
+
+else:
+    # LOCAL DEVELOPMENT DATABASE SETTINGS (USALAMA: HIZI HAZITUMIKI KATIKA PRODUCTION)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            # 'NAME': 'chaguoil',
+            'NAME': 'mafuta',
+            'USER': 'postgres',
+            'PASSWORD' : '1152',
+            'HOST' : 'localhost'
+
+     }
+
+    }
 
 
 
-
-# DATABASES = {
-
-#         'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         # 'NAME': 'chaguoil',
-#         'NAME': 'mafuta',
-#         'USER': 'postgres',
-#         'PASSWORD' : '1152',
-#         'HOST' : 'localhost'
-
-#  }
-
-# }
 
 # Password validation (Hakuna mabadiliko hapa)
 AUTH_PASSWORD_VALIDATORS = [

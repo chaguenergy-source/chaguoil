@@ -714,8 +714,9 @@ def addExpenseGroup(request):
             admin = todo['admin']
             useri = todo['useri']
             shell = todo['shell']
+            manager = todo['manager']
             
-            if useri.admin:
+            if useri.admin or manager:
                 # Check if expense group already exists
                 if matumizi.objects.filter(matumizi__iexact=exp_name, owner=admin).exists():
                     data = {

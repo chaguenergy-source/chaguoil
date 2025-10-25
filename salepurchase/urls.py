@@ -62,6 +62,8 @@ urlpatterns=[
         path('deleteShiftExpenses',views.deleteShiftExpenses, name='deleteShiftExpenses'),
         path('deleteShift',views.deleteShift, name='deleteShift'),
         path('deleteCDSales',views.deleteCDSales, name='deleteCDSales'),
+        path('deleteCashDeposit',views.deleteCashDeposit, name='deleteCashDeposit'),
+        path('deleteFuelTransfers',views.deleteFuelTransfers, name='deleteFuelTransfers'),
      
 
 ]

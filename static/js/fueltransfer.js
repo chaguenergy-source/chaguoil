@@ -22,7 +22,7 @@ getdata()
 $('#saveTrBtn').click(function(){
     
     const url = '/salepurchase/fueltranfer',
-           {mv,Sto,cont,tr,pmp,tr_tank,trqty} = trT(),
+           {mv,Sto,cont,tr,pmp,tr_tank,trqty,trAmo} = trT(),
            otherSto = $('#otherStorageInput').val(),
            op = Number($('#TankSupVisor').val()),
            desc = $('#TransRemarks').val(),
@@ -38,11 +38,12 @@ $('#saveTrBtn').click(function(){
                      trpmp = Number($(`#${pmp}${pos}`).val())||0,
                      p_fuel = Number($(`#${pmp}${pos}`).find('option:selected').data('fuel'))||0,
                    
-                     tqty = Number($(`#${trqty}${pos}`).val())||0
+                     tqty = Number($(`#${trqty}${pos}`).val())||0,
+                     tAmo = Number($(`#${trAmo}${pos}`).val())||0
 
                      if((tnk || (Sto && otherSto!=''))&&trpmp&&tqty){
                         tr_dt.push({
-                            tnk,trpmp,tqty,pos,t_fuel,p_fuel
+                            tnk,trpmp,tqty,pos,t_fuel,p_fuel,tAmo
                         })
                      }else{
                         if(tnk||trpmp||tqty){
@@ -144,15 +145,16 @@ const trT = () =>{
                 lpos = $(tr).children('tr').last().data('pos'),
                 Sto = Number($('#OtherStorage').prop('checked')),
                 trqty = mv?'mvqty':'stqty',
+                trAmo = mv?'mvAmo':'stAmo',
                 tr_tank = mv?'Mv_Tanks':'pmp_Tanks'
 
 
-                return {tr,rlen,mv,cont,Sto,pmp,lpos,trqty,tr_tank}
+                return {tr,rlen,mv,cont,Sto,pmp,lpos,trqty,trAmo,tr_tank}
 }
 
 $('#AddTransfrow').click(function(){
 
-        const {tr,rlen,mv,lpos,pmp,cont,Sto,trqty,tr_tank} = trT(),
+        const {tr,rlen,mv,lpos,pmp,cont,Sto,trqty,trAmo,tr_tank} = trT(),
              tanks = mv?TR_TANKS.filter(t=>t.tank_id===cont):STA_TANKS,
              pos = lpos + 1,
               
@@ -170,7 +172,7 @@ $('#AddTransfrow').click(function(){
             })
 
             PUMPS?.forEach(p=>{
-               pmp_opt+=`<option class="bluePrint" data-pos=${pos} data-fname="${p.Fname}" data-fuel="${p.Fuel}" data-tank="${p.tank_id}" data-station="${p.station_id}" data-incharge="${p.AF_name} ${p.AL_name}" data-incharger="${p.Incharge_id}" value=${p.id}>${p.disp_name} ${p.name}</option>
+               pmp_opt+=`<option class="bluePrint" data-price=${p.price} data-pos=${pos} data-fname="${p.Fname}" data-fuel="${p.Fuel}" data-tank="${p.tank_id}" data-station="${p.station_id}" data-incharge="${p.AF_name} ${p.AL_name}" data-incharger="${p.Incharge_id}" value=${p.id}>${p.disp_name} ${p.name}</option>
 `
             })
 
@@ -219,7 +221,18 @@ $('#AddTransfrow').click(function(){
                                                 <label class="mt-1 text-danger " for="FuelPriceTotal"></label> 
                                             <div class="box-pointer d-inline "></div>
                                             </div>
-                                            <input type="number"   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="${trqty}${pos}"  class="${trqty} made-input money-fomat AllAdjTanks weight600">
+                                            <input type="number" data-isqty=1  style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="${trqty}${pos}"  class="${trqty} setTr form-control money-fomat AllAdjTanks weight600">
+                                        </div>                             
+                                </td>
+
+                                <td>
+
+                                        <div class="input-group  pt-2" style="width:150px" >
+                                            <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                                <label class="mt-1 text-danger " for="FuelPriceTotal"></label> 
+                                            <div class="box-pointer d-inline "></div>
+                                            </div>
+                                            <input type="number" data-isamo=1  style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="${trAmo}${pos}"  class="${trAmo} setTr form-control money-fomat AllAdjTanks weight600">
                                         </div>                             
                                 </td>
 
@@ -249,6 +262,28 @@ $('#AddTransfrow').click(function(){
         
 })
 
+$('body').on('input','.setTr',function(){
+    
+    const val = Number($(this).val())||0,
+          pos = Number($(this).data('pos')),
+          {pmp,trqty,trAmo} = trT(),
+          price = Number($(`#${pmp}${pos}`).find('option:selected').data('price')) ,
+          isqty = Number($(this).data('isqty')) ||0,
+          isamo = Number($(this).data('isamo')) ||0
+
+        //   console.log({isqty,isamo});
+
+          if(isqty){
+            const amo = Number((val*price).toFixed(2))
+            $(`#${trAmo}${pos}`).val(amo?amo:0)
+          }
+
+          if(isamo){
+            const qty = Number((val/price).toFixed(2))
+            $(`#${trqty}${pos}`).val(qty?qty:0)
+          }
+})
+
 $('body').on('change','.tr_tanks',function(){
      const pos = Number($(this).data('pos')),
            fuel = Number($(this).find('option:selected').data('fuel'))||0,
@@ -268,9 +303,11 @@ $('body').on('change','.pmpSelect',function(){
          att_name = $(this).find('option:selected').data('incharge'),
        
          pos = Number($(this).data('pos'))
-       
-     
-         MixCheck(pos) 
+
+         const {trqty,trAmo} = trT()
+         $(`#${trqty}${pos},#${trAmo}${pos}`).val('')
+
+         MixCheck(pos)
 
          $(this).parent('td').siblings('.AttendantName').text(at_id?att_name:'------')
 
