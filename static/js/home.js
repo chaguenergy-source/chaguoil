@@ -95,8 +95,8 @@
 
               ISGENERAL = resp.general
             //   get a count of unique attendants from resp.pAtt
-            const attendantsSet = new Set(resp.pAtt.map(att => att.Incharge));
-
+            const attendantsSet = new Set(resp.pAtt.map(att => att.Incharge_id));
+            
                 ATTENDANTS = attendantsSet.size
 
               dashBoard({resp,tFr,tTo})

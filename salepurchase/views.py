@@ -2812,12 +2812,13 @@ def startshift(request):
                 ssn = shiftsTime.objects.get(pk=ses,Interprise=shell)
                 
                 sesSt = None
-                sesSh = shiftSesion.objects.filter(session=ssn,date=date.today())
+                sesDate = datetime.datetime.fromisoformat(tFrom).date()
+                sesSh = shiftSesion.objects.filter(session=ssn, date=sesDate, complete=False)
                 if sesSh.exists():
                    sesSt = sesSh.last()
                 else:
                     sesSt = shiftSesion()
-                    sesSt.date = date.today()
+                    sesSt.date = sesDate
                     sesSt.session = ssn
                     sesSt.save()
 
