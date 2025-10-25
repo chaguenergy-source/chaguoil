@@ -161,12 +161,13 @@
                         </div>
                     </li>
 
+                    {% if not general %}
                     <li class="row py-1" >
                         <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Muhusika wa pampu{% else %}Pump Attendant{% endif %}:</div>
                         <div class="col-6 col-lg-9">
                             
                             <label class="switch">
-                                {% if s.pumpIncharge %}
+                                {% if s.pumpIncharge and s.Interprise == shell %}
                                 <input type="checkbox" checked data-incharge=1 >
                                 {% else %}  
                                     <input type="checkbox" data-incharge=1 >
@@ -177,6 +178,7 @@
 
                         </div>
                     </li>
+                    {% endif %}
 
                     <li class="row py-1" >
                         <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Ruhusa General{% else %}General Allowed{% endif %}:</div>

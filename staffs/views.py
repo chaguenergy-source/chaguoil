@@ -206,6 +206,8 @@ def permit(request):
         cust = int(request.POST.get('cust',0))
         todo = todoFunct(request)
         useri = todo['useri']
+        kampuni = todo['kampuni']
+        shell = todo['shell']
         data = {
            'success':True,
            'msg_swa':'Ruhusa kwa mhusika imebadirishwa kikamilifu',
@@ -213,7 +215,7 @@ def permit(request):
         }
 
         if useri.admin:
-            perm = InterprisePermissions.objects.get(pk=usr)
+            perm = InterprisePermissions.objects.get(pk=usr,Interprise__company=kampuni.id)
             userr = perm.user
             if not userr.hakikiwa and allow:
                   hostname = os.environ.get("HOST", default="cfspump.com")
@@ -241,8 +243,19 @@ def permit(request):
               perm.save()
 
             if incharge:
-              perm.pumpIncharge =  check 
-              perm.save()
+              if shell == perm.Interprise:
+                perm.pumpIncharge =  check 
+                perm.save()
+             
+              if shell != perm.Interprise and check:
+                    pm = InterprisePermissions()
+                    pm.Interprise = shell
+                    pm.user = userr
+                    pm.cheo = perm.cheo
+                    pm.pumpIncharge =  check
+                    pm.save()  
+
+
 
             if manager:
               perm.fullcontrol =  check 
@@ -298,7 +311,8 @@ def viewStaff(request):
     todo = todoFunct(request)
     # User.objects.filter(pk__gt=1).delete()
     if todo['useri'].admin:
-          staff =  InterprisePermissions.objects.get(pk=st)
+          kampuni = todo['kampuni']  
+          staff =  InterprisePermissions.objects.get(pk=st,Interprise__company=kampuni.id)
           todo.update({
             's':staff
           })
