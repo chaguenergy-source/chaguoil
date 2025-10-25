@@ -176,7 +176,7 @@ def staffs(request):
     # User.objects.filter(pk__gt=1).delete()
     shell = todo['shell']
     useri = todo['useri']
-    staff = InterprisePermissions.objects.all()
+    staff = InterprisePermissions.objects.filter(Interprise__company=useri.company)
 
     if not useri.admin:
       staff = staff.filter(Interprise=shell.id)
@@ -312,7 +312,15 @@ def viewStaff(request):
     # User.objects.filter(pk__gt=1).delete()
     if todo['useri'].admin:
           kampuni = todo['kampuni']  
+          general = todo['general']
+          shell = todo['shell']
           staff =  InterprisePermissions.objects.get(pk=st,Interprise__company=kampuni.id)
+          usr = staff.user
+          if not general:
+              belongs = InterprisePermissions.objects.filter(Interprise=shell.id,user=usr)
+              if staff.Interprise != shell and  belongs.exists():
+                  staff = InterprisePermissions.objects.get(Interprise=shell.id,user=usr)
+
           todo.update({
             's':staff
           })
