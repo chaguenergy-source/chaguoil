@@ -49,11 +49,11 @@
 
                 {% if shift %}
                  <div class="row mb-2">
-                    <div class="col-5">
+                    <div class="col-3 col-md-5">
                          <label for="form_attendant"  > {% if useri.langSet == 0 %}Zamu{% else %} Shift {% endif %}:</label>
 
                     </div>
-                    <div class="col-7 text-primary">
+                    <div class="col-9 col-md-7   text-primary">
                             SHF-{{shift.code}}  |<button title="{% if useri.langSet == 0 %}Futa na Anzisha Upya {% else %}Delete Shift and Restart {% endif %}" data-toggle="modal" data-target="#confirmShiftDelete" class="btn btn-light">
                                 <!-- edit svg icon down -->
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-3">
@@ -69,13 +69,13 @@
                {% endif %} 
 
                 <div class="row mb-2">
-                    <div class="col-5">
+                    <div class="col-3 col-md-5"> 
                          <label for="session_" class=" brown " > 
                             {% if useri.langSet == 0 %}Mpango{% else %} Session {% endif %}:
                         </label>
 
                     </div>
-                    <div class="col-7">
+                    <div class="col-9 col-md-7">
                    
                          <div class="input-group">
 
@@ -121,10 +121,10 @@
 
 
                 <div class="row mb-2">
-                  <div class="col-5">
-                     <label for="form_attendant" class=" brown " > {% if useri.langSet == 0 %}Zamu Kuanzia{% else %} Shift From {% endif %}:</label>
+                  <div class="col-3 col-md-5">
+                     <label for="form_attendant" class=" brown " > {% if useri.langSet == 0 %}Kuanzia{% else %}From{% endif %}:</label>
                   </div>  
-                 <div class="col-7">
+                 <div class="col-9 col-md-7">
                     {% if shift %}
 
                     <script>
@@ -146,11 +146,11 @@
                 </div>
 
                  <div class="row mb-2">
-                    <div class="col-5">
+                    <div class="col-3 col-md-5">
                          <label for="form_attendant" class=" brown " > {% if useri.langSet == 0 %}Mhusika{% else %} Attendant {% endif %}:</label>
 
                     </div>
-                    <div class="col-7">
+                    <div class="col-9 col-md-7">
                             <select class=" p-2 bluePrint form-control" name="form_attendant" id="form_attendant">
                                 <option value={{trf.id}} >{{trf.user.user.first_name | title}} {{trf.user.user.last_name | title}}</option>
                             </select>
@@ -175,7 +175,6 @@
                  })
             '{% endfor %}'
 
-           
             sesdt = ses.map(s=>getTmDate(s))
            
 
@@ -191,9 +190,6 @@
             }
 
             // getSes(1)
-
-           
- 
             function getSes(df){
                 const now=moment(),
                       nowses = sesdt.filter(s=>Math.abs(s.sfrom.diff(now,'hours'))<=df)
@@ -1202,7 +1198,7 @@
                                     const url = '/salepurchase/deleteCDSales'
                                     const data = {data:{cd_order_ids: JSON.stringify(checs)},url}
                                     $('#loadMe').modal('show')
-                                   // console.log(data);  
+                                   
                                     const sendIt = POSTREQUEST(data)
                                     sendIt.then(res=>{
                                         $('#loadMe').modal('hide')
@@ -1632,7 +1628,7 @@
             $('#endshift_modal').modal('hide')
                     $('#loadMe').modal('show')
 
-                  console.log('Every thing is ok');
+                //   console.log('Every thing is ok');
         
                    const sendIt = POSTREQUEST(data)
 
@@ -1655,7 +1651,7 @@
 
           }else{
 
-            console.log({sucess:'Some errors here....',data});
+            //  console.log({sucess:'Some errors here....',data});
             $('#errorAret').fadeIn(500)
             if(unfilled){
                 $('.final_read').each(function(){
@@ -1666,7 +1662,7 @@
             }
             
             if(shiftTo>moment().format() || shiftTo=='')redborder('#tToshift')
-            if(totpay!=netreqAmo)$('#profitLoss').addClass('border-danger')
+            if(totpay!=netreqAmo&&!lossprof)$('#profitLoss').addClass('border-danger')
         }
 
     })
@@ -1677,10 +1673,11 @@
        const sesTimeForm = moment('{{shift.From|date:"r"}}').format();
        const tTo =  '{{shift.session.session.shTo}}';
        let shToDateTime = moment().set({
-           hour: moment(tTo, "HH:mm").hour(),
-           minute: moment(tTo, "HH:mm").minute(),
+           hour: moment(tTo, "HH:mm A").hour(),
+           minute: moment(tTo, "HH:mm A").minute(),
            second: 0,
            millisecond: 0
+
        }).format();
 
     //    if sesTimeFrom is greater than shToDateTime, add one day to shToDateTime
@@ -1688,9 +1685,11 @@
            shToDateTime = moment(shToDateTime).add(1, 'days').format();
        }
 
+    
+
        $('#tToshift').val(moment(shToDateTime).format('YYYY-MM-DDTHH:mm'));
    
-    //    console.log({sesTimeForm, tTo, shToDateTime});
+  
     }
 
     
