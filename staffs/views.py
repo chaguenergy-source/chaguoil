@@ -51,6 +51,8 @@ def addStaff(request):
       address = request.POST.get('address')
       ceo = int(request.POST.get('ceo'))
       intp = int(request.POST.get('entp',0))
+      usrd = int(request.POST.get('user',0))
+      edit = int(request.POST.get('edit',0))
       
       data = {
         'success':True,
@@ -67,7 +69,37 @@ def addStaff(request):
       kampuni =  useri.company
       if useri.admin and (ceo or not general):
         usr = UserExtend.objects.filter(user__email__icontains=email)
-        if not usr.exists():
+        if not usr.exists() or (usr.exists() and edit):
+                usrr = None
+                if edit:
+                    usrr = UserExtend.objects.get(pk=usrd,company=kampuni.id)
+                    user = usrr.user
+                    user.first_name = f_name
+                    user.last_name = l_name
+                    user.email = email
+                    user.username = email
+                    user.save()
+
+                 
+                    usrr.region = city
+                    usrr.address = address
+                    usrr.phone = phone
+                    usrr.country = 'Tanzania'
+                    usrr.postal = useri.postal
+                    usrr.cheo = cheo
+
+                    pmq = InterprisePermissions.objects.filter(user=usrr,Interprise__company=kampuni.id)
+                    pm = pmq.first()
+
+                    usrr.save()
+                    
+                    data = {
+                        'success':True,
+                          'msg_swa':'Stafu ameongezwa kikamilifu',
+                          'msg_eng':'Staff added successfully',
+                          'id':pm.id
+                      }
+                    return JsonResponse(data)
                 user = User.objects.create_user(email=email,username=email,first_name=f_name, 
                                                 last_name=l_name, password='nnPQWWEAdauiias' )
                 ext = UserExtend()
@@ -217,7 +249,7 @@ def permit(request):
         if useri.admin:
             perm = InterprisePermissions.objects.get(pk=usr,Interprise__company=kampuni.id)
             userr = perm.user
-            if not userr.hakikiwa and allow:
+            if not userr.hakikiwa and allow and check:
                   hostname = os.environ.get("HOST", default="cfspump.com")
                  
                   cfm = {

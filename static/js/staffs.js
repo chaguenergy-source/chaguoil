@@ -1,18 +1,21 @@
-$('#reg1Form').submit(function(e) {
+$('#reg1Form,#editStaffForm').submit(function(e) {
     e.preventDefault()
-   const f_name = $('#f_name').val(),
-       l_name = $('#l_name').val(),
-       phone = $('#Phone').val(),
-       email = $('#email').val(),
-       cheo = $('#cheo').val(),
-       city = $('#city').val(),
-       address = $('#address').val(),
-       ceo = Number($('#ceo_member').prop('checked')),
-       url = $(this).attr('action')
+
+   const edit = Number($(this).data('edit'))||0,
+       f_name = !edit?$('#f_name').val():$('#editFirstName').val(),
+       l_name = !edit?$('#l_name').val():$('#editLastName').val(),
+       phone = !edit?$('#Phone').val():$('#editPhone').val(),
+       email = !edit?$('#email').val():$('#editEmail').val(),
+       cheo = !edit?$('#cheo').val():$('#editPosition').val(),
+       city = !edit?$('#city').val():$('#editCity').val(),
+       address = !edit?$('#address').val():$('#editAddress').val(),
+       ceo = Number($('#ceo_member').prop('checked')) || 0,
+       url = $(this).attr('action'),
+       user = Number($(this).data('user'))||0
        
 
        if(f_name!=''&&l_name!=''&&phone!=''&&email!=''&&cheo!=''&&city!=''&&address!=''){
-           $('#addStaff').modal('hide')
+           $(`${edit ? '#editStaffModal' : '#addStaff'}`).modal('hide')
            $('#loadMe').modal('show')
            const data={
               data:{ f_name,
@@ -22,6 +25,8 @@ $('#reg1Form').submit(function(e) {
                cheo,
                city,
                address,
+               user,
+               edit,    
                ceo},
                url
            },

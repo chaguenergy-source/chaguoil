@@ -16,6 +16,7 @@ def confirmMailF(mail):
       html_content = render_to_string("mailtemp.html",{'num':mail['num']})
       if not mail['num']:
            html_content =  render_to_string("staffconfirm.html",mail['user'])  
+           
       
       text_content = strip_tags(html_content)
       emaili =  EmailMultiAlternatives(
@@ -27,6 +28,7 @@ def confirmMailF(mail):
       )
       emaili.attach_alternative(html_content,"text/html")
       emaili.send()
+      
 class Todos:
   def __init__(self,request):
       self.request = request 
