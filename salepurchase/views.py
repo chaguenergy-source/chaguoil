@@ -3256,7 +3256,7 @@ def StartEndShift(request):
       by  = InterprisePermissions.objects.get(pk=inch,Interprise=shell.id,pumpIncharge=True)
      
 
-      hasshift = shifts.objects.filter(by=by.user.id,To=None)
+      hasshift = shifts.objects.filter(by=by.user.id,To=None,record_by__Interprise=todo['shell'])
       if hasshift.exists():
             shift = hasshift.last()
             shp = shiftPump.objects.filter(shift=shift)
