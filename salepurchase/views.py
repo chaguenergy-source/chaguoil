@@ -104,7 +104,9 @@ def ViewCustomer(request):
     # sale.code = TCode({'code':code,'shell':shell.id})
 
     # sale.Invo_no = int(code)   
-    saleAll = saleAll.filter(by__Interprise=shell)
+    if not general:
+        saleAll = saleAll.filter(by__Interprise=shell)
+
     saleMonth = saleAll.filter(date__gte=thisMonth)
  
     sale_prev = saleAll.filter(date__lt=thisMonth,payed__lt=F('amount')) 
