@@ -74,7 +74,7 @@ def customers(request):
 
 @login_required(login_url='login')
 def ViewCustomer(request):
-  try:
+#   try:
     i = int(request.GET.get('i',0))
     todo = todoFunct(request)
     shell = todo['shell']
@@ -130,11 +130,11 @@ def ViewCustomer(request):
             # Prepare fuel data for each sale
             fuels = []
             totRAmo = 0
-            for item in StTanks.distinct('fuel'):
-                fuel_items = items.filter(theFuel=item.fuel)
+            for item in saleLst.distinct('theFuel'):
+                fuel_items = items.filter(theFuel=item.theFuel)
                 total_Amo = fuel_items.aggregate(sumi=Sum(F('qty_sold')*F('sa_price_og')))['sumi'] or 0
                 fuels.append({
-                    'fuel': item.fuel.name,
+                    'fuel': item.theFuel.name,
                     'qty':fuel_items.aggregate(sumi=Sum('qty_sold'))['sumi'] or 0,
                     'price': total_Amo / (fuel_items.aggregate(sumi=Sum('qty_sold'))['sumi'] or 1),
                     'total': total_Amo ,
@@ -156,14 +156,14 @@ def ViewCustomer(request):
         fuel_items= saleLst.filter(sale__in=totSale)
         
         StTanks = fuel_tanks.objects.filter(Interprise__company=kampuni)
-        theFuel = StTanks.distinct('fuel')
+        theFuel = saleLst.distinct('theFuel')
 
         fuels = []
         for fl in theFuel:
-            itmsFuel = fuel_items.filter(theFuel=fl.fuel)
+            itmsFuel = fuel_items.filter(theFuel=fl.theFuel)
             total_Amo = itmsFuel.aggregate(sumi=Sum(F('qty_sold')*F('sa_price_og')))['sumi'] or 0
             fuels.append({
-                'fuel': fl.fuel.name,
+                'fuel': fl.theFuel.name,
                 'qty':itmsFuel.aggregate(sumi=Sum('qty_sold'))['sumi'] or 0,
                 'price': total_Amo / (itmsFuel.aggregate(sumi=Sum('qty_sold'))['sumi'] or 1),
                 'total': total_Amo ,
@@ -223,8 +223,8 @@ def ViewCustomer(request):
 
     })
     return render(request,'customerView.html',todo)
-  except:
-      return render(request,'pagenotFound.html')
+#   except:
+#       return render(request,'pagenotFound.html')
 
 @login_required(login_url='login')
 def save_credit_order(request):
