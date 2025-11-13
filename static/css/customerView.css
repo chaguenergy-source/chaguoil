@@ -1,0 +1,94 @@
+/* Styles specific to customerView.html */
+
+/* Container tweaks */
+#invoice_wrapper .order {
+  padding: 1rem;
+}
+
+/* Header / title area */
+.head-title {
+  margin-bottom: 0.75rem;
+}
+
+/* Customer details grid */
+#customerDetails .col-3 {
+  color: #6b7280; /* slate-500 */
+  font-weight: 600;
+  padding-top: 0.35rem;
+}
+#customerDetails .col-9 {
+  font-size: 1rem;
+  color: #0f172a; /* slate-900 */
+}
+
+/* Emphasized fields */
+.bluePrint.weight600, .bluePrint.weight500 {
+  color: #0ea5a3; /* teal-ish */
+}
+
+/* Buttons area */
+.d-flex .btn {
+  margin-left: 0.35rem;
+}
+
+/* Floating action group on mobile */
+@media (max-width: 768px) {
+  #customerDetails .col-3, #customerDetails .col-9 {
+    width: 100%;
+    display: block;
+  }
+  .d-flex.justify-content-end {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .d-flex .btn-toolbar { margin-top: .5rem; }
+}
+
+/* Tables inside the customer view */
+/* #invoice_wrapper table.table {
+  border-collapse: separate;
+  border-spacing: 0 6px;
+} */
+#invoice_wrapper table.table thead th {
+  background: transparent;
+  color: #374151; /* gray-700 */
+  font-weight: 600;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+#invoice_wrapper table.table tbody tr {
+  background: #ffffff;
+  transition: background .12s ease;
+}
+#invoice_wrapper table.table tbody tr:hover {
+  background: #f8fafc; /* very light */
+}
+
+/* Make small icons and action buttons consistent */
+.edit_btn svg, .btn svg {
+  vertical-align: middle;
+}
+
+/* Attachments and small badges */
+.smallBadge {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+/* Improve modal trigger appearance */
+.btn-light.edit_btn {
+  border: 1px dashed rgba(14,165,163,0.12);
+}
+
+/* Make totals more visible */
+.weight600 th, .weight600 td {
+  font-weight: 700;
+  background: transparent!important;
+}
+
+/* Small responsive tweaks for long addresses/emails */
+#customerDetails .col-9 {
+  word-break: break-word;
+}

@@ -1,0 +1,137 @@
+{% extends "customerView.html" %}
+{% load static %}
+{% load humanize %}
+{% block ViewCust %}/salepurchase/ViewCustomer?i={{ cust.id }}{% endblock %}
+{% block lastMonths %}{% endblock %}
+{% block the_summary %}{% endblock %}
+{% block thisMonth_active %} {% endblock %}
+{% block orderLimitBtn %}{% endblock %}
+{% block printBtn %}{% endblock %}
+
+
+{% block order_payments_active %} active {% endblock %}
+
+{% block thisMonthInvo %}
+            <div id="attachments" class="report-section mt-4">
+                <h5>{% if useri.langSet == 0 %}Order za Mteja{% else %}Customer Orders{% endif %}</h5>
+                
+                {% if orders %}
+                    <table class="table  table-striped mt-3">
+                        <thead>
+                            <tr>
+                                <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Oda{% else %}Order{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Na{% else %}By{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Aina{% else %} Type{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Statasi{% else %} Status{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Ukomo{% else %}Limit{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                                <th>{% if useri.langSet == 0 %}Matumizi{% else %}Consumption{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                                <th>{% if useri.langSet == 0 %}Balansi{% else %}Balance{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                                <th>{% if useri.langSet == 0 %}Ilolipwa{% else %}Paid{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                                <th>{% if useri.langSet == 0 %}Dai{% else %}Credit{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                                <th>{% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                            </tr>
+                        </thead>
+                        <tbody class="smallFont" >
+                            {% for order in orders %}
+                            <tr>
+                                <td>
+                                
+                                    <script>
+                                        document.write(moment("{{ order.date|date:'r'}}").format('DD/MM/YYYY HH:mm'));
+                                    </script>
+                                </td>
+                                <td>
+                                    <a href="/salepurchase/ViewOrder?i={{ order.id }}&cust={{ cust.id }}">
+                                       ORD-{{ order.code }}
+                                    </a>
+                                </td>
+                                <td>{{ order.by.user.user.first_name | title }} {{ order.by.user.user.last_name | title }}</td>
+                                <td>
+                                     {% if order.consumed < order.paid %}
+                                       <span class="text-primary">
+                                          {% if useri.langSet == 0 %}Imelipiwa Kabla{% else %}Pre-Paid{% endif %}
+                                       </span>
+                                        
+                                     {% else %}  
+                                       <span class="brown">{% if useri.langSet == 0 %}Mkopo{% else %}Debt{% endif %}</span>  
+                                     {% endif %}
+
+                                </td>
+                                <td>
+                                        {% if order.consumed < order.amount and order.consumed > 0 %}
+                                            <span class="badge bg-success">{% if useri.langSet == 0 %}Hai{% else %}Active{% endif %}</span>
+                                        {% endif %}
+                                    {% if order.consumed == 0 %}
+                                        <span class="badge bg-primary text-light">{% if useri.langSet == 0 %}Mpya{% else %}New{% endif %}</span>
+                                    {% endif %}
+                                    {% if order.consumed == order.amount %}
+                                        <span class="badge bg-secondary">{% if useri.langSet == 0 %}Imekamilika{% else %}Completed{% endif %}</span>
+                                    {% endif %}
+                                    
+                                </td>
+                                <td class="value-row">{{ order.amount|floatformat:'-2'|intcomma }}</td>
+                                <td class="value-row">{{ order.consumed|floatformat:'-2'|intcomma }}</td>
+                                <td class="value-row">{{ order.balance|floatformat:'-2'|intcomma }}</td>
+                                <td class="value-row">{{ order.paid|floatformat:'-2'|intcomma }}</td>
+
+                                <td class="debt-value">{% if order.credit > 0  %} {{ order.credit|floatformat:'-2'|intcomma }} {% else %} -- {% endif %}</td>
+                                <td class="debt-value">{% if order.deni > 0  %}{{ order.deni|floatformat:'-2'|intcomma }}{% else %} -- {% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- pagination buttons down -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item {% if not orders.has_previous %}disabled{% endif %}">
+                                <a class="page-link" href="?page=1&cust={{cust.id}}" aria-label="First">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
+                                    </svg>
+                                </a>
+                            </li>
+                            <li class="page-item {% if not orders.has_previous %}disabled{% endif %}">
+                                <a class="page-link" href="{% if orders.has_previous %}?page={{ orders.previous_page_number }}&cust={{cust.id}}{% endif %}" aria-label="Previous">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                                    </svg>
+                                </a>
+                            </li>
+                            
+                            {% for num in orders.paginator.page_range %}
+                                {% if orders.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}&cust={{cust.id}}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <li class="page-item {% if not orders.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{% if orders.has_next %}?page={{ orders.next_page_number }}&cust={{cust.id}}{% endif %}" aria-label="Next">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                                    </svg>
+                                </a>
+                            </li>
+                            <li class="page-item {% if not orders.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="?page={{ orders.paginator.num_pages }}&cust={{cust.id}}" aria-label="Last">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
+                                    </svg>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                     
+
+                {% else %}
+                    <p>{% if useri.langSet == 0 %}Hakuna oda zilizopatikana kwa mteja huyu.{% else %}No orders  found for this customer.{% endif %}</p>
+                {% endif %}  
+            </div>  
+{% endblock %}

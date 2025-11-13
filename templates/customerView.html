@@ -2,6 +2,9 @@
 {% extends 'index.html' %}
 {% load humanize %}
 {% load static %}
+{% block additional_css %}
+<link rel="stylesheet" href="{% static 'css/customerView.css' %}">
+{% endblock %}
 {% block page_content %}
 
 <div class="head-title pb-md-5">
@@ -80,9 +83,10 @@
                         </div>
                 {% endif %}
                  
-                <hr class="col-12">
+                <!-- <hr class="col-12"> -->
                 <div class="col-3">
                     {% if useri.langSet == 0 %}Oda zenye ukomo{% else %}Limited Order {% endif %}
+                    <!-- <a href = "/salepurchase/priveiw" >onesha</a> -->
                 </div>
                 <div class="col-9  ">
                      {% if cust.limited_order %}
@@ -95,6 +99,7 @@
                          {% if useri.langSet == 0 %}Hapana{% else %} No{% endif %}
                       </span>
                      {% endif %}
+                     {% block orderLimitBtn %}
                      {% if not lastCd  %}
                       | <button class="btn btn-light btn-sm text-primary edit_btn"  data-toggle="modal" data-target="#OrderLimit"
                                           title="Edit" >
@@ -103,7 +108,8 @@
                                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                       </svg>                                   
                         </button> 
-                    {% endif %}    
+                    {% endif %}   
+                    {% endblock %} 
                       
                 </div>
 
@@ -116,83 +122,102 @@
 
         
 
-        {% if cust.limited_order and lastCd  %}
-        <div class="row" id="OrderDetails" >
-            <div class="col-md-5 row">
+        {% if not general %}
 
-                <div class="col-5">
-                    {% if useri.langSet == 0 %}Oda ya sasa{% else %}Current Order{% endif %}
-                </div>
+        <hr>
+       
+        <div class="d-flex justify-content-end align-items-center mb-4 bg-light p-3 rounded">
+            <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group mr-2 mt-2" role="group">
+                    {% if addOrder and cust.limited_order %}
+                    <button type="button" 
+                            class="btn btn-outline-primary btn-sm" 
+                            title="{% if useri.langSet == 0 %}Oda Mpya{% else %}New Order{% endif %}" 
+                            data-toggle="modal" 
+                            data-target="#credit_debt_order">
 
-                <div class="col-7">
-                    ORD-{{lastCd.code}} 
-                </div>
-                <div class="col-5">
-                    {% if useri.langSet == 0 %}Ukomo{% else %}Limit{% endif %}
-                </div>
-                <div class="col-7">
-                    {{lastCd.amount | floatformat:'-2'|intcomma}}  
-                </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" fill="currentColor" class="bi bi-plus-circle mr-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                            </svg> 
 
-                <div class="col-5">
-                    {% if useri.langSet == 0 %}Alokunywa{% else %}Cunsumption{% endif %}
-                </div>
-                <div class="col-7">
-                    {{lastCd.consumed | floatformat:'-2'|intcomma}} 
-                </div>
-
-                <div class="col-5">
-                    {% if useri.langSet == 0 %}Alobakiza{% else %}Balance{% endif %}
-                </div>
-                <div class="col-7">
-                    {{lastCd.due | floatformat:'-2'|intcomma}} 
+                         {% if useri.langSet == 0 %}Oda Mpya{% else %}New Order{% endif %}
+                    </button>
+                    {% endif %}
+                    
+                    
+                    <button type="button" 
+                            class="btn btn-outline-primary btn-sm" 
+                            title="{% if useri.langSet == 0 %}Ankara Mpya{% else %}New Invoice{% endif %}" 
+                            onclick="if($('#creditDebtOrder').is(':visible')){$('#creditDebtOrder').hide(200);}$('#newPurchase').toggle(200)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" fill="currentColor" class="bi bi-plus-circle mr-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>   
+                            </svg>
+                        {% if useri.langSet == 0 %}Ankara Mpya{% else %}New Invoice{% endif %}
+                    </button>
                 </div>
                 
-                {% if lastCd.paid %} 
-                        <div class="col-5">
-                            {% if useri.langSet == 0 %}Ilolipwa{% else %}Paid{% endif %}
-                        </div>
-                        <div class="col-7">
-                            {{lastCd.paid| floatformat:'-2'|intcomma}}
-                        </div>
-                     
-                {% endif %}
+                <div class="btn-group mt-2" role="group">
+                    <button type="button" 
+                            class="btn btn-outline-info btn-sm" 
+                            title="{% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}" 
+                            data-toggle="modal" 
+                            data-target="#modal_malipo">
 
-                {% if lastCd.credit > 0 %}
-                        <hr class="col-12">
-                        <div class="col-5 weight500">
-                            {% if useri.langSet == 0 %}Anayodai{% else %}Credit{% endif %}
-                        </div>
-                        <div class="col-7 green weight500">
-                            {{lastCd.credit | floatformat:'-2'|intcomma}}
-                        </div>   
-                {% else %}    
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-credit-card mr-1">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                       
+
+                        {% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}
+                    </button>    
+
+                    <!-- Add attachment button -->
+                    <button type="button" 
+                            class="btn btn-outline-info btn-sm" 
+                            title="{% if useri.langSet == 0 %}Ongeza Kiambatisho{% else %}Add Attachment{% endif %}" 
+                            data-toggle="modal" 
+                            data-target="#addAttachment">
+
+                             <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                                <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+                            </svg>
+
+                        {% if useri.langSet == 0 %} Kiambatanisho{% else %}Attachment{% endif %}
+                    </button>
+
+                    {% block printBtn %}
+                    <button type="button" 
+                            id="customerStatement" 
+                            data-station="{% if not general %}{{shell.name}}{%else%} {% if useri.langSet == 0 %}Vituo Vyote{%else%}All Stations {%endif%} {%endif%}" 
+                            data-user="{{useri.user.first_name}}  {{useri.user.last_name}}" 
+                            data-prev="{{thereIsPrev}}" 
+                            data-month="{{thereIsThis}}" 
+                            class="btn btn-outline-info btn-sm" 
+                            title="{% if useri.langSet == 0 %}Chapa{% else %}Print{% endif %}">
+
+                       <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer mr-1">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+
+
+
+                            {% if useri.langSet == 0 %}Chapa{% else %}Print{% endif %}
+                    </button>
+
+                    {% endblock %}
                     
-                        <hr class="col-12">
-                        <div class="col-5 weight500">
-                            {% if useri.langSet == 0 %}Anayodaiwa{% else %}Debt{% endif %}
-                        </div>
-                        <div class="col-7 brown weigt500">
-                            {{lastCd.credit | floatformat:'-2'|intcomma}}
-                        </div>                 
-                        
-                        {% endif %}
 
-        
 
+                </div>
             </div>
-        
-        </div>  
-        {% endif %}      
-<hr>
+        </div>
 
-        {% if not general %}
-        <p class="text-right">
-            {% if addOrder and cust.limited_order %}
-            <a href="#" type="button" data-toggle="modal" data-target="#credit_debt_order" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Oda Mpya{% else %}New Order{% endif %}</a> |   
-            {% endif %}
-            <a href="#" type="button" onclick="if($('#creditDebtOrder').is(':visible')){$('#creditDebtOrder').hide(200);}$('#newPurchase').toggle(200)" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Ankara Mpya{% else %}New Invoice{% endif %}</a>
-        </p>
+
 
          <select hidden  name="allFuel" id="allFuel">
             <option value=0 >------</option> 
@@ -539,8 +564,82 @@
 
         
         {% endif %}
-          
+        
 
+        {% if cust.limited_order and lastCd  %}
+        <div class="row" id="OrderDetails" >
+            <div class="col-md-5 row">
+
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Oda ya sasa{% else %}Current Order{% endif %}
+                </div>
+
+                <div class="col-7">
+                    ORD-{{lastCd.code}} 
+                </div>
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Ukomo{% else %}Limit{% endif %}
+                </div>
+                <div class="col-7">
+                    {{lastCd.amount | floatformat:'-2'|intcomma}}  
+                </div>
+
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Alokunywa{% else %}Cunsumption{% endif %}
+                </div>
+                <div class="col-7">
+                    {{lastCd.consumed | floatformat:'-2'|intcomma}} 
+                </div>
+
+                <div class="col-5">
+                    {% if useri.langSet == 0 %}Alobakiza{% else %}Balance{% endif %}
+                </div>
+                <div class="col-7">
+                    {{lastCd.due | floatformat:'-2'|intcomma}} 
+                </div>
+                
+                {% if lastCd.paid %} 
+                        <div class="col-5">
+                            {% if useri.langSet == 0 %}Ilolipwa{% else %}Paid{% endif %}
+                        </div>
+                        <div class="col-7">
+                            {{lastCd.paid| floatformat:'-2'|intcomma}}
+                        </div>
+                     
+                {% endif %}
+
+                {% if lastCd.credit > 0 %}
+                        <hr class="col-12">
+                        <div class="col-5 weight500">
+                            {% if useri.langSet == 0 %}Anayodai{% else %}Credit{% endif %}
+                        </div>
+                        <div class="col-7 green weight500">
+                            {{lastCd.credit | floatformat:'-2'|intcomma}}
+                        </div>   
+                {% else %}    
+                    
+                        <hr class="col-12">
+                        <div class="col-5 weight500">
+                            {% if useri.langSet == 0 %}Anayodaiwa{% else %}Debt{% endif %}
+                        </div>
+                        <div class="col-7 brown weigt500">
+                            {{lastCd.credit | floatformat:'-2'|intcomma}}
+                        </div>                 
+                        
+                        {% endif %}
+
+        
+
+            </div>
+        
+        </div>  
+
+        <hr>
+        {% endif %}      
+
+          
+        {% block the_summary %}
+           
             <div class="row mt-3" id="customerSummary" >
                 <div class="col-lg-6 ">
                     <h6 class="weight600"> {% if useri.langSet == 0 %}Ufupisho {%else%} Summary {% endif %} </h6>
@@ -595,23 +694,40 @@
                 </div>
             </div>
 
-        <div class="text-right smallerFont tabs_menu" >
-            <a href="#" data-show="this_Month" class="report_show bluePrint" >
-                
-                {% if useri.langSet == 0 %}Mwezi Huu{% else %} This Month{% endif %}
-            </a>|
-            <a href="#" data-show="last_Month" class="report_show " >
-                
-                {% if useri.langSet == 0 %}Deni Miezi Ilopita{% else %}Debt last Month(s){% endif %}
-            </a>
-            
-        </div>
+        {% endblock %}
+      
 
+        <ul class="nav nav-tabs smallerFont mt-3 d-flex">
+            <li class="nav-item">
+                <a class="nav-link report_show {% block thisMonth_active %} active {% endblock %}"  data-show="this_Month"  href="{% block ViewCust %}#{% endblock %}">{% if useri.langSet == 0 %}Mwezi Huu{% else %} This Month{% endif %}</a>
+            </li>
+            
+            {% block lastMonths %}
+            {% if debtprev > 0 %}
+            <li class="nav-item">
+                <a class="nav-link report_show" data-show="last_Month" href="#">{% if useri.langSet == 0 %}Deni Miezi Ilopita{% else %}Debt last Month(s){% endif %}</a>
+            </li>
+            {% endif %}
+
+            {% endblock %}
+
+
+            <li class="nav-item">
+                <a class="nav-link  {% block order_payments_active %}  {% endblock %}" data-show="order_payments" href="/salepurchase/orderPayments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Oda na Malipo{% else %}Order & Payments{% endif %}</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link  {% block attachments_active %}  {% endblock %}" data-show="attachments" href="/salepurchase/customerAttachments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Viambatisho{% else %}Attachments{% endif %}</a>
+            </li>    
+            </ul>
+
+
+            {% block thisMonthInvo %}
 
         <script>
             $('.report_show').click(function(){
-                 $('.report_show').removeClass('bluePrint')
-                 $(this).addClass('bluePrint')
+                 $('.report_show').removeClass('active')
+                 $(this).addClass('active')
                  $('.list_toggle').hide()
                  $('.list_toggle').hide(100)
                  const show = $(this).data('show')
@@ -853,7 +969,8 @@
           {% endif %}
             
         </div>
-
+    
+        {% endblock %}
 
 
     </div>
@@ -1483,6 +1600,79 @@
     </div>
   </div>
 
+      <!-- Modal Attachments -->
+    <div class="modal fade" id="addAttachment" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+      <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              {% if useri.langSet == 0 %}Kiambatanisho{% else %}Attachment {%endif%}
+            </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+            <form id="attachform" action="/salepurchase/addAttach" method="post">
+                 {% csrf_token %}
+              <div class="classic_div text-center">
+                    <label type="button" class="btn btn-light" for="attachment">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="3.3em" height="3.3em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                        <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+                    </svg>
+                      <div class="text-center">
+                         <small id="attach_name" > 
+                          
+                          {% if useri.langSet == 0 %}Bonyeza Kuongeza{% else %}Press to Add{% endif %}
+                        </small> 
+                      </div>
+                    </label>
+                    <input type="file" name="attachment" onchange="
+                      const val = $(this).val();
+                       $('#submitattach').prop('disabled',val=='');
+                       $('#attach_name').html(val)
+
+                    " accept=".pdf" hidden id="attachment">
+                    <input type="hidden" name="cust" value="{{cust.id}}" >
+                </div>
+
+               <div class="form-group mt-3">
+                 <label for="attach_name" class="brown"  >{% if useri.langSet == 0 %}Jina la Kiambatanisho{% else %}Attachment Name{%endif%} <sup>*</sup> </label>
+                 <input type="text"
+                   class="form-control btn-sm" name="attach_name" id="attach_name" aria-describedby="helpId" placeholder="">
+                 
+                   <div class="custom-control custom-checkbox" hidden >
+                    <input type="checkbox" class="custom-control-input" 
+                     onchange="$('#printedDoc').val(Number($(this).prop('checked')))"
+                    name="printedDocIn"
+                    id="printedDocIn">
+                   
+                    
+                    <label class="custom-control-label latoFont smallFont cursor-pointer" style="cursor: pointer !important;" for="printedDocIn">
+                       <small>{% if useri.langSet == 0 %}Dokumenti iliyoprintiwa na kusainiwa{% else %}Printed and signed document{% endif %}</small>
+                    </label>
+                    </div>
+                    <input type="hidden" value=0 id="printedDoc" name="printedDoc">
+               </div>
+
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" id="submitattach" disabled class="btn btn-primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </button>
+                  </div>
+            </form>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
 
 {% endblock %}
 
@@ -1492,6 +1682,7 @@
    </select>
 {% endblock %}
 
+
 {% block additionaljs %}
 
   <script src="{% static 'js/customers.js' %}" ></script>
@@ -1500,74 +1691,74 @@
 
     
 
-     $('body').on("submit", "#savepaymentForm" ,function(e){
-                    e.preventDefault();
-                    const invo = Number('{{cust.id}}'),
-                          url = $(this).attr("action"),
-                          ac = Number($('#malipo-akaunti').val()),
-                          pay_amo = Number($('#lipa_kiasi').val())||Number('{{totD}}'),
-                          isCredit = Number($('#lipa_kiasi').data('hasorder')),
-                          date = $('#pay_d').val(),
-                          amo = Number('{{totD}}'),
-                          desc = $('#lipaElezo').val()
-                          data = {
-                            data:{ 
-                              all:1,
-                              invo,
-                              ac,
-                              pay_amo,
-                              date,
-                              desc,
-                              isCredit
-                            },
-                            url
-                          }
+$('body').on("submit", "#savepaymentForm" ,function(e){
+            e.preventDefault();
+            const invo = Number('{{cust.id}}'),
+                    url = $(this).attr("action"),
+                    ac = Number($('#malipo-akaunti').val()),
+                    pay_amo = Number($('#lipa_kiasi').val())||Number('{{totD}}'),
+                    isCredit = Number($('#lipa_kiasi').data('hasorder')),
+                    date = $('#pay_d').val(),
+                    amo = Number('{{totD}}'),
+                    desc = $('#lipaElezo').val()
+                    data = {
+                    data:{ 
+                        all:1,
+                        invo,
+                        ac,
+                        pay_amo,
+                        date,
+                        desc,
+                        isCredit
+                    },
+                    url
+                    }
 
-                          console.log('pass');
+                    console.log('pass');
 
-                          if(ac&&(pay_amo<=amo||isCredit)){
-                            console.log('passed here');
-                                    $("#modal_malipo").modal('hide');
-                                    $("#loadMe").modal('show');
-                                    const sendIt = POSTREQUEST(data)
-                                    sendIt.then(resp=>{
-                                      $('#loadMe').modal('hide')
-                                            hideLoading()
-                                            const msg = lang(resp.msg_swa,resp.msg_eng)
-                                            if(resp.success){
-                                            toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000});
-                                            // location.replace(`/salepurchase/viewFuelSales?i=${resp.id}`)
-                                               location.reload()
-                                          }else{
-                                              toastr.error(msg, lang('Haikufanikiwa','Error '), {timeOut: 2000});
-                                        
-                                          }
+                    if(ac&&(pay_amo<=amo||isCredit)){
+                    console.log('passed here');
+                            $("#modal_malipo").modal('hide');
+                            $("#loadMe").modal('show');
+                            const sendIt = POSTREQUEST(data)
+                            sendIt.then(resp=>{
+                                $('#loadMe').modal('hide')
+                                    hideLoading()
+                                    const msg = lang(resp.msg_swa,resp.msg_eng)
+                                    if(resp.success){
+                                    toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000});
+                                    // location.replace(`/salepurchase/viewFuelSales?i=${resp.id}`)
+                                        location.reload()
+                                    }else{
+                                        toastr.error(msg, lang('Haikufanikiwa','Error '), {timeOut: 2000});
+                                
+                                    }
 
 
-                                    })
-                          }
+                            })
+                    }
 
-                  
-                })
-  
-     $('#submitOrderOpt').click(function(){
-        const data = {data:{cust:Number('{{cust.id}}')},url:'/salepurchase/LimitOrderSet'}
-        const sendIt = POSTREQUEST(data)
-        $('#OrderLimit').modal('hide')
-        $('#loadMe').modal('show')
-        sendIt.then(resp=>{
-            $('#loadMe').modal('hide')
-            hideLoading()
-            const msg = lang(resp.swa,resp.eng)
-
-            if(resp.success){
-                toastr.success(msg,lang('Imefanikiwa','success'),{timeOut:2000})
-                location.reload()
-            }else{
-                toastr.error(msg,lang('Imefanikiwa','success'),{timeOut:2000})
-            }
+            
         })
-     })
+
+$('#submitOrderOpt').click(function(){
+const data = {data:{cust:Number('{{cust.id}}')},url:'/salepurchase/LimitOrderSet'}
+const sendIt = POSTREQUEST(data)
+$('#OrderLimit').modal('hide')
+$('#loadMe').modal('show')
+sendIt.then(resp=>{
+    $('#loadMe').modal('hide')
+    hideLoading()
+    const msg = lang(resp.swa,resp.eng)
+
+    if(resp.success){
+        toastr.success(msg,lang('Imefanikiwa','success'),{timeOut:2000})
+        location.reload()
+    }else{
+        toastr.error(msg,lang('Imefanikiwa','success'),{timeOut:2000})
+    }
+})
+})
 
 
 </script>

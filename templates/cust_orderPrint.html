@@ -1,0 +1,346 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" >
+
+	
+
+
+
+  <link rel="stylesheet" href="{% static 'css/mediascreen.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/companyheader.css' %}">
+
+<link rel="stylesheet" href="{% static 'css/custmorderView.css' %}">
+
+
+    <!-- Latest compiled and minified CSS -->
+
+    <!-- Latest compiled and minified JavaScript -->
+    <!-- <script src="{% static 'js/bootstrap-select.min.js' %}"></script> -->
+    
+	<!-- <script src="{% static 'js/validator.min.js' %}"></script> -->
+        <link href="{% static 'css/toastr.min.css' %}" rel="stylesheet">
+
+
+<script src="{% static 'js/jquery.js' %}" crossorigin="anonymous"></script>
+<script src="{% static 'js/bootstrap.min.js' %}" ></script>
+<!-- <script src="{% static 'js/moment.min.js' %}" ></script> -->
+<script src="{% static 'js/momentlocale.js' %}" ></script>
+<script src="{% static 'js/qrcode.min.js' %}"></script>
+
+    <title>
+        ORD-{{order.code}}
+    </title>
+    <style>
+              body { 
+        margin:10px;
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.6;
+        font-weight: 600;
+        color: #000;
+        background-color: #fff;
+     }
+
+        table th, table td, table tr {
+          padding: 8px 12px;
+          color: #000;
+          font-size: 14px;
+          border-color: #000 !important;
+          border-width:1px
+
+      }
+      table {
+       border-color: #000 !important;
+       border-width: 1px;
+       border-style: solid;
+      }
+    </style>
+</head>
+<body>
+
+   <div id="CompanyTitle" >
+        <div >
+        <div class="letterhead">
+            <!-- Company Name Full Width -->
+            <div class="row">
+            <div class="col-12">
+                <div class="company-name">{{useri.company.jina}}</div>
+            </div>
+            </div>
+           
+         
+            <!-- Contact Info Left and Right -->
+             <!-- I want this to be centered -->
+              <div class="d-flex justify-content-center align-items-center">
+                        <div class="row classic_div" style="width:750px" >
+
+                    <div class="col-4 mx-0 contact-info contact-left">
+                        <p class="mb-0">Phone: {{useri.company.phone}} {%if useri.company.phone2%},{{useri.company.phone2}}{% endif %}</p>
+                        <p class="mb-0">Email: {{useri.company.email}}</p>
+                    </div>
+
+                    <!-- Logo Centered -->
+                    <div class="col-4 mx-0 logo-center">
+                        
+                          <img src="{% if useri.company.logo %}{{useri.company.logo.url}}{% endif %}" alt="Logo" class="company-logo">
+                    </div>
+
+                    <div class="col-4 mx-0 contact-info contact-right">
+                        <p class="mb-0">{{useri.company.address}}, {{useri.company.country}}</p>
+                    </div>
+                    </div>  
+            </div>
+
+
+      
+        </div>
+        </div>
+</div>
+    <div class="whiteBg"  >
+   
+        <h2>{% if useri.langSet == 0 %}Mwenendo na Hali ya Oda ya Mteja{% else %}Customer Order Statement {% endif %}</h2>
+
+ <div class="order-view mt-3">
+  <div class="order-header d-flex justify-content-between align-items-start">
+    <div>
+      <h4 class="mb-1">{% if useri.langSet == 0 %}Oda{% else %}Order{% endif %} - ORD-{{ order.code }}</h4>
+      <div class="muted">{% if useri.langSet == 0 %}Tarehe:{% else %}Date:{% endif %} <script>document.write(moment('{{ order.date|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script></div>
+      <div class="mt-2">{% if useri.langSet == 0 %}Mteja:{% else %}Customer:{% endif %} <strong>{{ customer.jina }}</strong></div>
+      <div>{% if useri.langSet == 0 %}Imeundwa na:{% else %}Created by:{% endif %} {{ order.by.user.user.first_name }} {{ order.by.user.user.last_name }}</div>
+    </div>
+
+    <div class="order-stats text-right">
+      <div class="stat-line"><span class="label">{% if useri.langSet == 0 %}Ukomo{% else %}Limit{% endif %}:</span> <span class="value">{{ order.amount|floatformat:'-2'|intcomma }} {{ currencii }}</span></div>
+      <div class="stat-line"><span class="label">{% if useri.langSet == 0 %}Matumizi{% else %}Consumed{% endif %}:</span> <span class="value">{{ order.consumed|floatformat:'-2'|intcomma }} {{ currencii }}</span></div>
+      <div class="stat-line"><span class="label">{% if useri.langSet == 0 %}Balansi{% else %}Balance{% endif %}:</span> <span class="value">{{ order_balance|floatformat:'-2'|intcomma }} {{ currencii }}</span></div>
+      <div class="stat-line"><span class="label">{% if useri.langSet == 0 %}Ilolipwa{% else %}Paid{% endif %}:</span> <span class="value">{{ order.paid|floatformat:'-2'|intcomma }} {{ currencii }}</span></div>
+      <div class="stat-line"><span class="label">{% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %}:</span> <span class="value debt">{{ order_debt|floatformat:'-2'|intcomma }} {{ currencii }}</span></div>
+    </div>
+  </div>
+
+  <div class="order-progress mt-3">
+    <div class="progress-labels d-flex justify-content-between smallFont">
+      <div>{% if useri.langSet == 0 %}Ukamilishaji{% else %}Completion{% endif %}</div>
+      <div>{% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %}</div>
+    </div>
+    <div class="d-flex gap-2">
+      <div class="flex-fill">
+        <div class="progress">
+          <div class="progress-bar bg-info" role="progressbar" style="width: {{ progress_percentage }}%;" aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ progress_percentage|floatformat:0 }}%</div>
+        </div>
+      </div>
+      <div class="flex-fill">
+        <div class="progress">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ payment_percentage }}%;" aria-valuenow="{{ payment_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ payment_percentage|floatformat:0 }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <h6 class="section-title">{% if useri.langSet == 0 %}Muhtasari wa Mafuta{% else %}Fuel Consumption Summary{% endif %}</h6>
+      {% if sales_fuel_summary %}
+        <table class="table table-sm smallFont">
+          <thead>
+            <tr>
+                <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                <th class="text-right">{% if useri.langSet == 0 %}Bei{% else %}Price{% endif %} <span class="text-primary">/LTRS</span></th>
+                <th class="text-right">{% if useri.langSet == 0 %}Qty{% else %}Qty{% endif %} <span class="text-primary">(LTRS)</span></th>
+                <th class="text-right">{% if useri.langSet == 0 %}Thamani{% else %}Amount{% endif %}(<span class="text-primary">{{currencii}}</span>) </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in sales_fuel_summary %}
+            <tr class="{% if f.fuel_name == 'TOTAL' %}weight600 smallFont {% endif %}" >
+              <td>{{ f.fuel_name | title }}</td>
+              <td class="text-right">{{ f.avg_price|floatformat:'-2'|intcomma }}</td>
+              <td class="text-right">{{ f.total_qty|floatformat:'-2'|intcomma }}</td>
+              <td class="text-right">{{ f.total_amount|floatformat:'-2'|intcomma }} </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted smallFont">{% if useri.langSet == 0 %}Hakuna mauzo ya mafuta{% else %}No fuel sales summary{% endif %}</p>
+      {% endif %}
+    </div>
+
+    <div class="col-md-6">
+      <h6 class="section-title">{% if useri.langSet == 0 %}Malipo (Payments){% else %}Payments{% endif %}</h6>
+      {% if payments.exists or payAfter.exists %}
+        <table class="table table-sm table-striped smallFont">
+          <thead>
+            <tr>
+              <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
+              <th>{% if useri.langSet == 0 %}Akaunti{% else %}Account{% endif %}</th>
+              <th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}</th>
+            </tr>
+          </thead>
+          <tbody>
+           
+            {% for p in payments %}
+            <tr>
+              <td><script>document.write(moment('{{ p.tarehe|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script></td>
+              <td>
+               
+                {% if p.Akaunt %}
+                    {{ p.Akaunt.Akaunt_name }}  
+            
+                {% endif %}
+
+                {% if p.by %}
+
+                    {{ p.by.Interprise.name }}  
+            
+                {% endif %}
+            
+            </td>
+              <td class="text-right">{{ p.Amount|floatformat:'-2'|intcomma }}</td>
+            </tr>
+            {% endfor %}
+            
+            {% for p in payAfter %}
+            <tr>
+              <td><script>document.write(moment('{{ p.tarehe|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script></td>
+              <td>
+               
+                {% if p.pay.Akaunt %}
+                    {{ p.pay.Akaunt.Akaunt_name }}  
+            
+                {% endif %}
+
+                {% if p.pay.by %}
+
+                    {{ p.pay.by.Interprise.name }}  
+            
+                {% endif %}
+            
+            </td>
+              <td class="text-right">{{ p.pay.Amount|floatformat:'-2'|intcomma }}</td>
+            </tr>
+            {% endfor %}
+
+
+
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted smallFont">{% if useri.langSet == 0 %}Hakuna malipo yaliyorekodiwa{% else %}No payments recorded{% endif %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row mt-3">
+
+
+    <div class="col-md-12">
+      <h6 class="section-title">{% if useri.langSet == 0 %}Muamala{% else %}Transactions{% endif %}</h6>
+      {% if transactions_by_date %}
+        <table class="table table-sm table-bordered smallFont">
+          <thead>
+            <tr>
+                <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Aina{% else %}Type{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Maelezo{% else %}Details{% endif %}</th>
+
+                <th>{% if useri.langSet == 0 %}Dereva{% else %}Driver{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Chombo{% else %}Vehicle{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Na{% else %}By{% endif %}</th>
+
+                <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                <th class="text-right">{% if useri.langSet == 0 %}Bei{% else %}Price{% endif %}(/<span class="text-primary">LTR</span>)</th>
+                <th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %}(<span class="text-primary">LTR</span>)</th>
+                <th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}<span class="text-primary">({{currencii}})</span></th>
+               
+                <th class="text-right">{% if useri.langSet == 0 %}Malipo{% else %}Credit{% endif %}<span class="text-primary">({{currencii}})</span></th>
+                <th class="text-right">{% if useri.langSet == 0 %}Stakabadhi{% else %}Balance{% endif %}<span class="text-primary">({{currencii}})</span></th>
+                <th class="text-right">{% if useri.langSet == 0 %}Deni{% else %}Credit{% endif %}<span class="text-primary">({{currencii}})</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in transactions_by_date %}
+              <tr>
+                <td>
+                  {% if t.sale %}
+                    <script>document.write(moment('{{ t.sale.sale.date|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script>
+                  {% else %}
+                    <script>document.write(moment('{{ t.pay.tarehe|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script>
+                  {% endif %}
+                </td>
+         
+                <td>
+                    {% if t.sale %}
+                        {% if useri.langSet == 0 %}Matumizi{% else %}Consumption{% endif %}
+                    {% else %}
+                         {% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}
+                    {% endif %}
+                   
+                </td>
+
+                <td>
+                  {% if t.sale %}
+                    <span class="text-primary">{{ t.sale.sale.by.Interprise.name }}</span>
+                  {% else %}
+                      <span class="text-primary">{{t.pay.Interprise.name}}</span>
+                  {% endif %}
+                </td>
+
+
+
+                <td>
+                  {% if t.sale %}
+                    <a href="/salepurchase/viewFuelSales?i={{ t.sale.sale.id }}">SA-{{ t.sale.sale.code }}</a>
+                  {% else %}
+                      <span class="bluePrint">{{t.pay.Akaunt.Akaunt_name}}</span>
+                  {% endif %}
+                </td>
+                {% if t.sale %}
+                    <td>{{t.sale.sale.driver}}</td>
+                    <td>{{t.sale.sale.vihecle}}</td>
+                    <td>{{ t.sale.sale.by.user.user.first_name | title }} {{ t.sale.sale.by.user.user.last_name | title }}</td>
+                    <td>{{ t.sale.theFuel.name | title }}</td>
+                    <td class="text-right">{{ t.sale.sa_price|floatformat:'-2'|intcomma }}</td>
+                    <td class="text-right">{{ t.sale.qty_sold|floatformat:'-2'|intcomma }}</td>
+                    <td class="text-right">{{ t.sale.total_amount|floatformat:'-2'|intcomma }}</td> 
+                    
+                   
+                {% else %}
+                   
+                   <td>---</td> 
+                   <td>---</td> 
+                   <td>{{t.pay.by.user.first_name | title }} {{ t.pay.by.user.last_name | title }}</td> 
+
+                   <td class="text-right">---</td> 
+                   <td class="text-right">---</td> 
+                   <td class="text-right">---</td> 
+                   <td class="text-right">{{t.pay.Amount|floatformat:'-2'|intcomma }}</td> 
+                   
+                   
+                    
+                {% endif %}
+
+                <td class="text-right">{{t.cr|floatformat:'-2'|intcomma }}</td>
+                <td class="text-right">{{ t.balance|floatformat:'-2'|intcomma }}</td>
+                <td class="text-right {% if t.dr  > 0 %} brown {% endif %} ">{% if t.dr %}{{ t.dr|floatformat:'-2'|intcomma }}{% else %}0{% endif %}</td>
+
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted smallFont">{% if useri.langSet == 0 %}Hakuna muamala{% else %}No transactions{% endif %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+ </div>
+ </body>       

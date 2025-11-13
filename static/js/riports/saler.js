@@ -2196,13 +2196,14 @@ const paymentsView = d =>{
     const {val,hdt} = d,
           
           hdg = val?`${lang('Malipo kutoka kwa wateja','Customer Payments')}  ${hdt}`:`${lang('Malipo kutoka kwa Wahusika wa Pampu','Pump Attendants Payments')}  ${hdt}`,
-          payf = val?p=>p.cust!=null:p=>p.pAtt!=null , 
+          payf = val?p=>p.cust!=null&&Number(p.Amount)>0:p=>p.pAtt!=null , 
           mapf = val?p=>p.cust:p=>p.pAtt,
           payMnt = thePay.filter(payf),
-          Tsale = theSale.filter(payf),
+          Tsale = theSale.filter(payf)
 
+          console.log({payMnt})
    
-        totAmo = payMnt.reduce((a,b)=>a+Number(b.Amount),0),
+    const    totAmo = payMnt.reduce((a,b)=>a+Number(b.Amount),0),
         custDue = val?Number(payMnt[Number(payMnt.length)-1]?.rem):0,
         totDue = Tsale.reduce((a,b)=>a+Number(b.due),0),
         totreqAmo =  custDue+totAmo,
@@ -2219,7 +2220,7 @@ const paymentsView = d =>{
                          rem = val?Number(paymt[Number(paymt.length)-1]?.rem):0, 
                          loss = saleP.reduce((a,b)=>a+Number(b.due),0),
                          invoAmo = saleP.reduce((a,b)=>a+Number(b.amount),0),
-                         reqAmo =   val?rem+pAmo:invoAmo,    
+                         reqAmo =   val?(rem+pAmo):invoAmo,    
                         dt = {
                             
                             val:p,
@@ -2247,12 +2248,12 @@ const paymentsView = d =>{
                 rw+=`<tr>
                     <td><a type="button" class="bluePrint morePayDetails text-capitalize" data-has_amount=${payT}  ${val?`data-custm=${p.val}`:`data-attnd=${p.val}`}  >${p.name}</a> </td>
                     <td>${Number(payT).toLocaleString()}</td>
-                    ${val?`<td>${Number(p.postDue).toLocaleString()}</td>`:''}
-                    ${val?`<td>${Number(p.invoAmo).toLocaleString()}</td>`:''}
+                    ${val?`<td>${Number(Number(p.postDue).toFixed(2)).toLocaleString()}</td>`:''}
+                    ${val?`<td>${Number(Number(p.invoAmo).toFixed(2)).toLocaleString()}</td>`:''}
 
-                    
-                    <td>${Number(p.reqAmo).toLocaleString()}</td>
-                    <td>${Number(p.amount).toLocaleString()}</td>
+
+                    <td>${Number(Number(p.reqAmo).toFixed(2)).toLocaleString()}</td>
+                    <td>${Number(Number(p.amount).toFixed(2)).toLocaleString()}</td>
                     ${val?`<td class="${p.rem>0?'brown':''}" >${val?Number(p.rem).toLocaleString():'--'}</td>`:''}
                     ${!val?`<td class="${p.loss<0?'green':p.loss>0?'brown':''}" >${Number(Math.abs(p.loss)).toLocaleString()}</td>`:''}
                 </tr>`

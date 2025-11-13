@@ -143,7 +143,6 @@ def ViewCustomer(request):
 
         
               
-
             sale_data_prev.append({
                 'sale': sale,
                 'fuels': fuels,
@@ -227,6 +226,341 @@ def ViewCustomer(request):
 #       return render(request,'pagenotFound.html')
 
 @login_required(login_url='login')
+def orderPayments(request):
+    try:
+        i = int(request.GET.get('cust', 0))
+        todo = todoFunct(request)
+        shell = todo['shell']
+        kampuni = todo['kampuni']
+        general = todo['general']
+
+        cust = wateja.objects.get(Q(Interprise__company=kampuni)|Q(allEntp=True), pk=i)
+
+        orders = creditDebtOrder.objects.filter(customer=cust.id, by__user__company=kampuni).annotate(
+            balance=F('amount')-F('consumed'),
+            credit=F('paid')-F('consumed'),
+            deni = F('consumed') - F('paid')
+        ).order_by('-pk')
+
+        totD = fuelSales.objects.filter(
+            customer=cust,
+            by__Interprise__company=kampuni
+        ).aggregate(
+            total_debt=Sum(F('amount') - F('payed'))
+        )['total_debt'] or 0
+
+        if not general:
+            orders = orders.filter(by__Interprise=shell)
+
+        num = orders.count()
+        
+        p = Paginator(orders, 15)
+        page_num = request.GET.get('page', 1)
+
+        try:
+            page = p.page(page_num)
+        except EmptyPage:
+            page = p.page(1)
+
+        pg_number = p.num_pages
+
+        # Calculate totals for all orders
+        totals = orders.aggregate(
+            total_amount=Sum('amount'),
+            total_paid=Sum('paid'),
+            total_consumed=Sum('consumed')
+        )
+
+        total_due = (totals['total_amount'] or 0) - (totals['total_consumed'] or 0)
+        total_credit = (totals['total_paid'] or 0) - (totals['total_consumed'] or 0)
+
+        todo.update({
+            'isCustomer': True,
+            'isOrderPayments': True,
+            'cust': cust,
+            'orders': page,
+            'p_num': page_num,
+            'pages': pg_number,
+            'order_num': num,
+            'totD': totD,
+            'total_amount': totals['total_amount'] or 0,
+            'total_paid': totals['total_paid'] or 0,
+            'total_consumed': totals['total_consumed'] or 0,
+            'total_due': total_due,
+            'total_credit': total_credit
+        })
+
+        return render(request, 'custm_order.html', todo)
+    except:
+        return render(request, 'pagenotFound.html')
+
+@login_required(login_url='login')
+def ViewOrder(request):
+    try:
+        i = int(request.GET.get('i', 0))
+        cust = int(request.GET.get('cust', 0))
+        todo = todoFunct(request)
+        shell = todo['shell']
+        kampuni = todo['kampuni']
+        general = todo['general']
+
+        # Get the credit debt order
+        order = creditDebtOrder.objects.get(pk=i, by__user__company=kampuni,customer=cust)
+      
+        # if not general:
+        #     order = creditDebtOrder.objects.get(pk=i, by__Interprise=shell.id)
+
+        # Get customer details
+        customer = order.customer
+
+        # Get all sales invoices related to this order
+        sales_invoices = fuelSales.objects.filter(
+            cdorder=order,
+            by__Interprise__company=kampuni
+        ).order_by('pk')
+
+        totD = fuelSales.objects.filter(
+            customer=order.customer,
+            by__Interprise__company=kampuni
+        ).aggregate(
+            total_debt=Sum(F('amount') - F('payed'))
+        )['total_debt'] or 0
+
+        # if not general:
+        #     sales_invoices = sales_invoices.filter(by__Interprise=shell)
+
+        # Get all payments related to this order
+        payments = wekaCash.objects.filter(
+            cdOrder=order,
+            Interprise__company=kampuni
+        ).order_by('pk')
+
+        # print(payments.exists())
+
+        # if not general:
+        #     payments = payments.filter(Interprise=shell)
+
+        # Get payment records for sales under this order
+        payment_records = CustmDebtPayRec.objects.filter(
+            sale__cdorder=order
+        ).annotate(tarehe=F('pay__tarehe'),Akaunti=F('pay__Akaunt'),Amount=F('pay__Amount'),by=F('pay__by'))
+
+        # Calculate order summary
+        order_balance = float(order.amount - order.consumed)
+        order_credit = float(order.paid - order.consumed)
+        order_debt = float(order.consumed - order.paid) if order.consumed > order.paid else 0
+
+        # Calculate sales summary
+        total_sales_amount = sales_invoices.aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+
+        total_sales_paid = sales_invoices.aggregate(
+            total=Sum('payed')
+        )['total'] or 0
+
+        total_sales_debt = float(total_sales_amount - total_sales_paid)
+
+        # Calculate payments summary
+        total_payments = payments.aggregate(
+            total=Sum('Amount')
+        )['total'] or 0
+
+        # Group sales by fuel type for better visualization
+        sales_fuel_summary = []
+        fuel_sold = saleList.objects.filter(
+            sale__in=sales_invoices
+        ).annotate(
+            total_qty=Sum('qty_sold'),
+            total_amount=Sum(F('qty_sold') * F('sa_price')),
+            avg_price=Sum(F('qty_sold') * F('sa_price')) / Sum('qty_sold'),
+            theFuel__name=F('theFuel__name')
+        )
+
+        fuel_sales = fuel_sold.values('theFuel__name').annotate(
+            total_qty=Sum('qty_sold'),
+            total_amount=Sum(F('qty_sold') * F('sa_price')),
+            avg_price=Sum(F('qty_sold') * F('sa_price')) / Sum('qty_sold'),
+        )
+
+        for fuel_data in fuel_sales:
+            sales_fuel_summary.append({
+                'fuel_name': fuel_data['theFuel__name'],
+                'total_qty': fuel_data['total_qty'],
+                'total_amount': fuel_data['total_amount'],
+                'avg_price': fuel_data['avg_price'] or 0
+            })
+
+        # Get all dates from wekaCash and fuelSales
+
+        #   get all transaction dates
+        cash_dates = payment_records.values_list('tarehe', flat=True) 
+        prepay=payments.values_list('tarehe', flat=True)
+
+        sales_dates = sales_invoices.values_list('date', flat=True)
+
+        # Combine and sort dates in descending order
+        all_dates = list(cash_dates) + list(sales_dates) + list(prepay)
+        # Remove duplicates and sort in descending order
+        unique_dates = sorted(set(all_dates))
+
+        # Prepare a list of transactions grouped by date
+        cr = order.amount 
+        dr = 0
+        paye = 0
+        blc = cr
+        deni = float(0)
+        transactions_by_date = []
+        for trans_date in unique_dates:
+            # Add sales invoices for this date
+            daily_sales = fuel_sold.filter(sale__date = trans_date )
+            daily_payments = wekaCash.objects.filter(Q(customer=customer)|Q(cdOrder=order), tarehe = trans_date)
+
+
+            if daily_sales.exists():
+                for sale in daily_sales:
+                    theAmo = sale.qty_sold * sale.sa_price
+
+                    dr += theAmo
+                    blc = float(cr - theAmo)
+                    
+                    
+
+                    deni = 0 if paye >= (deni+float(theAmo)) else float(deni+float(theAmo))
+                    paye = paye - theAmo if paye >= deni else 0
+
+                    transactions_by_date.append({
+                        'sale': sale,
+                        'pay':None,
+                        'cr': paye,
+                        'dr': deni,
+                        'balance': blc
+                    })
+                    cr = cr - theAmo
+
+                         
+
+              
+            if daily_payments.exists():
+                for pay in daily_payments:
+                    deni = 0 if deni==0 or float(pay.Amount) >= deni else float(deni - float(pay.Amount))
+                    paye = paye + pay.Amount
+                    transactions_by_date.append({
+                        'sale': None,
+                        'pay':pay,
+                        'cr': paye if paye > 0 else pay.Amount,
+                        'dr': deni,
+                        'balance': blc
+                    })
+                    
+                    
+
+        # Calculate totals for sales_fuel_summary
+        total_qty = 0
+        total_amount = 0
+        for fuel_data in sales_fuel_summary:
+            total_qty += fuel_data['total_qty']
+            total_amount += fuel_data['total_amount']
+
+        # Add total row to sales_fuel_summary
+        sales_fuel_summary.append({
+            'fuel_name': 'TOTAL',
+            'total_qty': total_qty,
+            'total_amount': total_amount,
+            'avg_price': total_amount / total_qty if total_qty > 0 else 0
+        })# Get all dates from wekaCash and fuelSales
+      
+     
+
+        # Progress calculation
+        progress_percentage = (order.consumed / order.amount * 100) if order.amount > 0 else 0
+        payment_percentage = (order.paid / order.amount * 100) if order.amount > 0 else 0
+
+        payAfter = payment_records.distinct('pay') 
+        
+
+        todo.update({
+            'isCustomer': True,
+            'isOrderView': True,
+            'order': order,
+            'customer': customer,
+            'sales_invoices': sales_invoices,
+            'payments': payments,
+            'payment_records': payment_records.order_by('pk'),
+            'payAfter':payAfter,
+            'sales_fuel_summary': sales_fuel_summary,
+            'transactions_by_date': transactions_by_date,
+            # Order summary
+            'order_balance': order_balance,
+            'order_credit': order_credit,
+            'order_debt': order_debt,
+            'progress_percentage': min(progress_percentage, 100),
+            'payment_percentage': min(payment_percentage, 100),
+            'cust': customer,
+            # Totals
+            'total_sales_amount': total_sales_amount,
+            'total_sales_paid': total_sales_paid,
+            'total_sales_debt': total_sales_debt,
+            'total_payments': total_payments,
+            'totD':totD,
+            # Counts
+            'sales_count': sales_invoices.count(),
+            'payments_count': payments.count(),
+        })
+
+        html = 'cust_orderView.html'
+        pr = int(request.GET.get('t', 0))
+        lang = int(request.GET.get('lang', 0))
+
+        if pr:
+            todo.update({
+                'langSet': lang
+            })
+            html = 'cust_orderPrint.html'
+
+        return render(request, html, todo)
+        
+    except:
+        return render(request, 'pagenotFound.html')
+
+@login_required(login_url='login')
+def customerAttachments(request):
+    try:
+        i = int(request.GET.get('cust', 0))
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        general = todo['general']
+        
+        # Get the customer
+        cust = wateja.objects.get(Interprise__company=kampuni, pk=i)
+        
+        # Get all attachments for this customer
+        attach = attachments.objects.filter(cust=cust).order_by('-pk')
+
+        cdOrder =   creditDebtOrder.objects.filter(customer=cust.id,by__user__company=kampuni).annotate(due=F('amount')-F('consumed'),credit=F('paid')-F('consumed')).order_by('-pk')
+        lastCd = cdOrder.first()
+
+        # Add new credit debt order if the last order amount = consumed
+        addNewOrder = not cdOrder.exists() or (lastCd and lastCd.amount == lastCd.consumed) if not general else False
+        newcode = '01'
+        if cdOrder.exists():
+            newcode = cdOrder.last().Invo_no + 1
+        
+        todo.update({
+            'isCustomer': True,
+            'isCustomerAttach': True,
+            'cust': cust,
+            'attachments': attach,
+            'addOrder':addNewOrder,
+            'lastCd':lastCd,
+            'newcode':newcode,
+        })
+        
+        return render(request, 'custattach.html', todo)
+    except:
+        return render(request, 'pagenotFound.html')
+
+@login_required(login_url='login')
 def save_credit_order(request):
     if request.method == "POST":
         try:
@@ -258,6 +592,7 @@ def save_credit_order(request):
                 order.Invo_no = int(new_code)
                 order.code = TCode({'code': new_code, 'shell': customer.id})
                 order.save()
+                order.date = datetime.datetime.now(tz=timezone.utc)
                 consume = fuelSales.objects.filter(customer=customer,amount__gt=F('payed')).annotate(deni=F('amount')-F('payed'))
                 if consume.exists():
                     deni = consume.aggregate(sumi=Sum('deni'))['sumi'] or 0
@@ -769,17 +1104,7 @@ def fuelsales(request):
                             tnk.save()
                         else:
                             pmp = fuel_pumps.objects.get(pk=sa['pmp'],tank__Interprise=shell)
-                            # shpId = []
-                            
-                            # for sh in shppm:
-                            #     shpId.append({
-                            #         'id':sh.id,
-                            #         'pmp':sh.pump.id,
-                            #         'shId': sh.id if sh.shift else None,
-                            #         'datFr':sh.shift.From if sh.shift else None,
-                            #         'datTo':sh.shift.To if sh.shift else None
-                            #         })
-                            # print(shpId)   
+
 
                             shppm = shiftPump.objects.filter(pump=pmp,shift__To=None).exclude(shift=None).order_by('pk')
                             shpmp = shppm.last()
@@ -834,20 +1159,42 @@ def fuelsales(request):
                     lcdorder.consumed = float(float(amo)+float(lcdorder.consumed))
                     sale.cdorder = lcdorder
                     lcdorder.save()
+                    remBalance = float(lcdorder.amount - lcdorder.consumed)
+                    if remBalance <= float(100) :
+                        lcdorder.consumed = float(lcdorder.amount)
+                        lcdorder.save()
 
                 
                 sale.save()
 
                 
 
-                if cdOrder.exists() and int(lcdorder.paid) > 0:
-                    ilolipwa = wekaCash.objects.get(cdOrder=lcdorder)
-                    custPay = CustmDebtPayRec()
-                    custPay.pay = ilolipwa
-                    custPay.sale = sale
-                    custPay.Debt = float(sale.payed)
-                    custPay.Apay = float(sale.payed)
-                    custPay.save()
+                if cdOrder.exists() and int(lcdorder.paid) > int(lcdorder.consumed):
+                    print(lcdorder.id)
+                    ilolipwa = 0
+                    daiwa = 0
+                    zilizolipwa = wekaCash.objects.filter(cdOrder=lcdorder,used_amount__lt=F('Amount')).order_by('pk')
+                    for paye in zilizolipwa:
+                        denii = daiwa if daiwa > 0 else sale.payed 
+                        paye_balance = float(float(paye.Amount) - float(paye.used_amount))
+
+                        if paye_balance >= float(denii):
+                            ilolipwa = float(denii)
+                            paye.used_amount = float(float(paye.used_amount) + float(denii))
+                            paye.save()
+                            exit
+                        else:
+                            ilolipwa = paye_balance  
+                            paye.used_amount = float(float(paye.used_amount) + float(paye_balance))
+                            paye.save()  
+                            daiwa = float(float(denii) - float(ilolipwa))
+                         
+                        custPay = CustmDebtPayRec()
+                        custPay.pay = paye
+                        custPay.sale = sale
+                        custPay.Debt = ilolipwa
+                        custPay.Apay = ilolipwa
+                        custPay.save()
                     
                 else:
 
@@ -2582,6 +2929,7 @@ def addAttach(request):
             ses = int(request.POST.get('ses',0))
             adj = int(request.POST.get('adj',0))
             pu = int(request.POST.get('pu',0))
+            cust = int(request.POST.get('cust',0))
 
             attName = request.POST.get('attach_name')
             printDoc = int(request.POST.get('printedDoc',0))
@@ -2633,6 +2981,10 @@ def addAttach(request):
                 if pu:
                     ftr = Purchases.objects.get(pk=pu) 
                     att.purchase = ftr
+
+                if cust:
+                    ftr = wateja.objects.get(pk=cust) 
+                    att.cust = ftr
 
                 att.save()    
 
@@ -3367,7 +3719,7 @@ def deleteShift(request):
                     acc.save()
                     ac.delete()
                 IsCreditor = theSale.cdorder
-                if IsCreditor:
+                if IsCreditor is not None:
                     IsCreditor.consumed = float(float(IsCreditor.consumed) - float(saleAmo))
                     IsCreditor.save()
 
@@ -3440,7 +3792,7 @@ def deleteCDSales(request):
                         acc.save()
                         ac.delete()
                     IsCreditor = sale.cdorder
-                    if IsCreditor:
+                    if IsCreditor is not None:
                         IsCreditor.consumed = float(float(IsCreditor.consumed) - float(sale.amount))
                         IsCreditor.save()
 
@@ -4755,3 +5107,7 @@ def search_records(request):
 
     else:
         return JsonResponse({"success": False, "url": ''})
+
+def priveiw(request): 
+    todo = todoFunct(request)
+    return render(request,'test.html',todo)

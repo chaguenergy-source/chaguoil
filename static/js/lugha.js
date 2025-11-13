@@ -126,9 +126,29 @@ const company_header = `
     
     <link rel="stylesheet" href="https://storage.googleapis.com/chagufilling/static/css/bootstrap5.min.css" >
     <link rel="stylesheet" href="https://storage.googleapis.com/chagufilling/static/css/companyheader.css">
-    
+   
     <style>
-    
+      body { 
+        margin:20px;
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.6;
+        font-weight: 600;
+        color: #000;
+     }
+
+        table th, table td, table tr {
+          padding: 8px 12px;
+          color: #000;
+          font-size: 14px;
+          border-color: #000;
+
+      }
+      table {
+       border-color: #000;
+       border-width: 1px;
+       border-style: solid;
+      }
+
     </style>
   </head>
   <body>

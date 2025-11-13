@@ -1,0 +1,25 @@
+/* Styles for customer order view */
+
+.order-view {
+  background: var(--whiteBg);
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+}
+
+.order-header h4 { margin-bottom: 0; }
+.order-header .muted { color: #6b7280; font-size: 0.95rem; }
+.order-stats .stat-line { font-size: 0.95rem; margin-bottom: 0.25rem; }
+.order-stats .label { color: #6b7280; margin-right: 0.5rem; }
+.order-stats .value { font-weight: 700; }
+.order-stats .debt { color: #b91c1c; }
+
+.section-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+.muted { color: #6b7280; }
+
+.table-sm th, .table-sm td { padding: 0.4rem 0.6rem; }
+
+@media (max-width: 768px) {
+  .order-header { flex-direction: column; }
+  .order-stats { text-align: left; margin-top: 0.75rem; }
+}

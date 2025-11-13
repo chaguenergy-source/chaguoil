@@ -64,6 +64,10 @@ urlpatterns=[
         path('deleteCDSales',views.deleteCDSales, name='deleteCDSales'),
         path('deleteCashDeposit',views.deleteCashDeposit, name='deleteCashDeposit'),
         path('deleteFuelTransfers',views.deleteFuelTransfers, name='deleteFuelTransfers'),
+        path('priveiw',views.priveiw, name='priveiw'),
+        path('customerAttachments',views.customerAttachments, name='customerAttachments'),
+        path('orderPayments',views.orderPayments, name='orderPayments'),
+        path('ViewOrder',views.ViewOrder, name='ViewOrder'),
      
 
 ]

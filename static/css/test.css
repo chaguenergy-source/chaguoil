@@ -1,0 +1,76 @@
+
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f6f9;
+        margin: 20px;
+        color: #333;
+    }
+
+    .customer-page {
+        max-width: 1100px;
+        margin: auto;
+        padding: 15px;
+    }
+
+    .section {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        padding: 20px;
+    }
+
+    /* VICHWA VYA HABARI */
+    h2 {
+        color: #007bff;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 10px;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    /* JEDWALI KUU (MUHTASARI WA KIFEDHA) */
+    .summary-table, .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    .summary-table th, .summary-table td, .invoice-table th, .invoice-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .summary-table th {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .summary-table .value-row {
+        font-weight: bold;
+    }
+
+    .debt-value {
+        color: #dc3545; /* Rangi nyekundu kwa Deni */
+        font-weight: bold;
+    }
+
+    .invoice-table th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    /* TAARIFA ZA MTEJA */
+    .customer-details p {
+        margin: 5px 0;
+        font-size: 16px;
+    }
+
+    .customer-details strong {
+        display: inline-block;
+        width: 100px; /* Kuweka uwiano */
+        color: #6c757d;
+    }

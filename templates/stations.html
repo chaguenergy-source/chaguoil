@@ -57,56 +57,10 @@
                   <th>{% if useri.langSet == 0 %}Ingia{% else %}Shift{% endif %}</th>
                 </tr>
               </thead>
-
-              <!-- <tbody>
-
-                <tr>
-                  <td>
-                    <img src="img/people.png">
-                    <p>John Doe</p>
-                  </td>
-                  <td>01-10-2021</td>
-                  <td><span class="status completed">Completed</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <img src="img/people.png">
-                    <p>John Doe</p>
-                  </td>
-                  <td>01-10-2021</td>
-                  <td><span class="status pending">Pending</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <img src="img/people.png">
-                    <p>John Doe</p>
-                  </td>
-                  <td>01-10-2021</td>
-                  <td><span class="status process">Process</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <img src="img/people.png">
-                    <p>John Doe</p>
-                  </td>
-                  <td>01-10-2021</td>
-                  <td><span class="status pending">Pending</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <img src="img/people.png">
-                    <p>John Doe</p>
-                  </td>
-                  <td>01-10-2021</td>
-                  <td><span class="status completed">Completed</span></td>
-                </tr>
-              </tbody> -->
-
-
               <tbody>
                   {% for s in stations %}
                       <tr>
-                          <td><u class="text-primary" >{{s.Interprise.name  }}</u>  </td>
+                          <td><a href="/enterstation?sh={{s.Interprise.id}}" class="text-primary" >{{s.Interprise.name  }}</a>  </td>
                           <td> {{s.Interprise.sehemu | title }} </td>
                           <td>
                             <a href="/enterstation?sh={{s.Interprise.id}}" title="{% if useri.langSet == 0 %}Ingia{% else %}Shift to {%endif%} {{s.Interprise.name}}" class="btn btn-light btn-sm">

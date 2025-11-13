@@ -5,21 +5,6 @@
     {% if isSalesView or isCustomerView  %}
 
 
-        {% if isCustomerView %}
- 
-          <a role="button" id="customerStatement" data-station="{% if not general %}{{shell.name}}{%else%} {% if useri.langSet == 0 %}Vituo Vyote{%else%}All Stations {%endif%} {%endif%}" data-user="{{useri.user.first_name}}  {{useri.user.last_name}}" data-prev="{{thereIsPrev}}" data-month="{{thereIsThis}}" class="btn btn-light btn-sm fontColor" title="{% if useri.langSet == 0 %}Chapa{% else %}Print{% endif %}" >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer">
-            <polyline points="6 9 6 2 18 2 18 9"></polyline>
-            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-            <rect x="6" y="14" width="12" height="8"></rect>
-            </svg>
-        </a>
-
-          <a href="#" data-toggle="modal" data-target="#modal_malipo" class="btn btn-light btn-sm fontColor" title="{% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}" >
-              <span style="font-size:1.3em ;" >$</span>  
-          </a>  
-        {%endif%}
-
 
       {% if isSalesView  %}
         <div class="btn-group " role="group" aria-label="Button group with nested dropdown">
@@ -41,15 +26,18 @@
               </div>
             </div>
           </div>
+          
+            {% if manager or useri.admin %}    
+            <a href="#" type="button" data-toggle="modal" data-target="#addAttachment" class="border-left pl-1  fontColor " title="{% if useri.langSet == 0 %}Ongeza Kiambatanisho{% else %}Add Attachment{% endif %}" >
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                    <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+                </svg>
+            </a>
+            {% endif %}
+
       {% endif %}    
 
-    {% if manager or useri.admin %}    
-    <a href="#" type="button" data-toggle="modal" data-target="#addAttachment" class="border-left pl-1  fontColor " title="{% if useri.langSet == 0 %}Ongeza Kiambatanisho{% else %}Add Attachment{% endif %}" >
-        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
-            <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
-        </svg>
-    </a>
-    {% endif %}
+
 
     {% endif %}
 
