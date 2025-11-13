@@ -74,7 +74,7 @@ def customers(request):
 
 @login_required(login_url='login')
 def ViewCustomer(request):
-#   try:
+  try:
     i = int(request.GET.get('i',0))
     todo = todoFunct(request)
     shell = todo['shell']
@@ -222,8 +222,8 @@ def ViewCustomer(request):
 
     })
     return render(request,'customerView.html',todo)
-#   except:
-#       return render(request,'pagenotFound.html')
+  except:
+      return render(request,'pagenotFound.html')
 
 @login_required(login_url='login')
 def orderPayments(request):
@@ -1048,7 +1048,7 @@ def fuelsales(request):
                 }
 
                 custm = wateja.objects.get(pk=cust,Interprise__company=kampuni)
-                cdOrder =   creditDebtOrder.objects.filter(customer=custm.id,by__user__company=kampuni,amount__gt=F('consumed'))
+                cdOrder =   creditDebtOrder.objects.filter(customer=custm.id,by__user__company=kampuni,amount__gt=F('consumed')).order_by('pk')
                 lcdorder = None  
 
                 if custm.limited_order and not cdOrder.exists():
@@ -1135,7 +1135,7 @@ def fuelsales(request):
                 
 
                 if cdOrder.exists():
-                    lcdorder = cdOrder.last()
+                    lcdorder = cdOrder.first()
                     if float(lcdorder.amount) < float(float(lcdorder.consumed)+float(amo)):
                         fuelSales.objects.filter(pk=sale.id).delete()
                         data = {
@@ -1159,7 +1159,7 @@ def fuelsales(request):
                     lcdorder.consumed = float(float(amo)+float(lcdorder.consumed))
                     sale.cdorder = lcdorder
                     lcdorder.save()
-                    remBalance = float(lcdorder.amount - lcdorder.consumed)
+                    remBalance = float(float(lcdorder.amount) - float(lcdorder.consumed))
                     if remBalance <= float(100) :
                         lcdorder.consumed = float(lcdorder.amount)
                         lcdorder.save()
