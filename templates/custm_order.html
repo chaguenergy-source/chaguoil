@@ -48,13 +48,13 @@
                                 </td>
                                 <td>{{ order.by.user.user.first_name | title }} {{ order.by.user.user.last_name | title }}</td>
                                 <td>
-                                     {% if order.consumed < order.paid %}
+                                     {% if order.prepaid_order %}
                                        <span class="text-primary">
                                           {% if useri.langSet == 0 %}Imelipiwa Kabla{% else %}Pre-Paid{% endif %}
                                        </span>
                                         
                                      {% else %}  
-                                       <span class="brown">{% if useri.langSet == 0 %}Mkopo{% else %}Debt{% endif %}</span>  
+                                       <span class="brown">{% if useri.langSet == 0 %}Mkopo{% else %}Loan{% endif %}</span>  
                                      {% endif %}
 
                                 </td>
@@ -75,8 +75,8 @@
                                 <td class="value-row">{{ order.balance|floatformat:'-2'|intcomma }}</td>
                                 <td class="value-row">{{ order.paid|floatformat:'-2'|intcomma }}</td>
 
-                                <td class="debt-value">{% if order.credit > 0  %} {{ order.credit|floatformat:'-2'|intcomma }} {% else %} -- {% endif %}</td>
-                                <td class="debt-value">{% if order.deni > 0  %}{{ order.deni|floatformat:'-2'|intcomma }}{% else %} -- {% endif %}</td>
+                                <td class="debt-value">{% if order.credit > 0  %} {{ order.credit|floatformat:'-2'|intcomma }} {% else %} 0 {% endif %}</td>
+                                <td class="debt-value">{% if order.deni > 0  %}{{ order.deni|floatformat:'-2'|intcomma }}{% else %} 0 {% endif %}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

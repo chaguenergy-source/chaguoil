@@ -163,6 +163,8 @@ class wateja(models.Model):
     allEntp = models.BooleanField(default=False)
     Interprise = models.ForeignKey(Interprise,on_delete=models.SET_NULL,null=True,blank=True)
     limited_order = models.BooleanField(default=False)
+    debt_limit = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+
 
 class wasambazaji(models.Model):
       compan = models.ForeignKey(company,on_delete = models.CASCADE)
@@ -401,6 +403,7 @@ class creditDebtOrder(models.Model):
     Invo_no = models.IntegerField(default=0)   
     by = models.ForeignKey(InterprisePermissions, on_delete=models.CASCADE,null=True)
     date = models.DateTimeField(null=True)
+    prepaid_order = models.BooleanField(default=False)
 
 class fuelSales(models.Model):
     code =  models.CharField(max_length=20,null=True)

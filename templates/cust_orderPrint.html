@@ -47,7 +47,7 @@
      }
 
         table th, table td, table tr {
-          padding: 8px 12px;
+          padding: 5px !important;
           color: #000;
           font-size: 14px;
           border-color: #000 !important;
@@ -77,7 +77,7 @@
             <!-- Contact Info Left and Right -->
              <!-- I want this to be centered -->
               <div class="d-flex justify-content-center align-items-center">
-                        <div class="row classic_div" style="width:750px" >
+                    <div class="row classic_div" style="width:750px" >
 
                     <div class="col-4 mx-0 contact-info contact-left">
                         <p class="mb-0">Phone: {{useri.company.phone}} {%if useri.company.phone2%},{{useri.company.phone2}}{% endif %}</p>
@@ -261,7 +261,7 @@
                
                 <th class="text-right">{% if useri.langSet == 0 %}Malipo{% else %}Credit{% endif %}<span class="text-primary">({{currencii}})</span></th>
                 <th class="text-right">{% if useri.langSet == 0 %}Stakabadhi{% else %}Balance{% endif %}<span class="text-primary">({{currencii}})</span></th>
-                <th class="text-right">{% if useri.langSet == 0 %}Deni{% else %}Credit{% endif %}<span class="text-primary">({{currencii}})</span></th>
+                <th class="text-right">{% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %}<span class="text-primary">({{currencii}})</span></th>
             </tr>
           </thead>
           <tbody>
@@ -277,9 +277,9 @@
          
                 <td>
                     {% if t.sale %}
-                        {% if useri.langSet == 0 %}Matumizi{% else %}Consumption{% endif %}
+                        {% if useri.langSet == 0 %}Tumia{% else %}Use{% endif %}
                     {% else %}
-                         {% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}
+                         {% if useri.langSet == 0 %}Lipa{% else %}Pay{% endif %}
                     {% endif %}
                    
                 </td>
