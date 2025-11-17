@@ -1104,7 +1104,7 @@ def fuelsales(request):
                 custm = wateja.objects.get(pk=cust,Interprise__company=kampuni)
                 cdOrder =   creditDebtOrder.objects.filter(customer=custm.id,by__user__company=kampuni,amount__gt=F('consumed')).order_by('pk')
                 lcdorder = None  
-                madeni = fuelSales.objects.filter(by__Interprise__company=kampuni,amount__gt=F('payed')).annotate(deni=F('amount')-F('payed')).aggregate(sumi=Sum('deni'))['sumi'] or 0
+                madeni = fuelSales.objects.filter(by__Interprise__company=kampuni,customer=custm.id,amount__gt=F('payed')).annotate(deni=F('amount')-F('payed')).aggregate(sumi=Sum('deni'))['sumi'] or 0
 
                 if  custm.limited_order  and not cdOrder.exists():
                     data = {
@@ -1182,6 +1182,8 @@ def fuelsales(request):
 
                 #    Reject if customer debt limit exceeds
 
+                   
+
                     if float(float(custm.debt_limit)+float(creditBalance)) < float(float(madeni)+float(amo)):
                         sale.delete()
                         data = {
@@ -1238,7 +1240,6 @@ def fuelsales(request):
                 
 
                 if cdOrder.exists() and int(lcdorder.paid) > int(lcdorder.consumed):
-                    print(lcdorder.id)
                     ilolipwa = 0
                     daiwa = 0
                     zilizolipwa = wekaCash.objects.filter(cdOrder=lcdorder,used_amount__lt=F('Amount')).order_by('pk')
