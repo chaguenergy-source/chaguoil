@@ -1106,7 +1106,7 @@ def fuelsales(request):
                 lcdorder = None  
                 madeni = fuelSales.objects.filter(by__Interprise__company=kampuni,amount__gt=F('payed')).annotate(deni=F('amount')-F('payed')).aggregate(sumi=Sum('deni'))['sumi'] or 0
 
-                if not custm.limited_order  and cdOrder.exists():
+                if  custm.limited_order  and not cdOrder.exists():
                     data = {
                         'success':False,
                         'msg_swa':'Rekodi ya mauzo haijafanikiwa kwa sababu mteja huyu amewekwa katika ukomo wa oda lakini hakuna oda iliyopatikana',
