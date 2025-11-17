@@ -652,7 +652,7 @@ def save_credit_order(request):
                 consume = fuelSales.objects.filter(customer=customer,amount__gt=F('payed')).annotate(deni=F('amount')-F('payed'))
                 order = creditDebtOrder()
 
-                print(ordt,topUp)
+               
 
                 if not justLimit and not topUp:
                     if not customer.limited_order:
@@ -679,9 +679,10 @@ def save_credit_order(request):
                         order.consumed = deni
                     order.save()
 
-                if float(customer.debt_limit) == float(0)  and not consume.exists() :       
+                if float(customer.debt_limit) == float(0)  or not consume.exists() :       
                     customer.debt_limit = debt_limit
                     customer.save()
+                    
 
                 if topUp:
                     order = creditDebtOrder.objects.get(pk=ordt,by__user__company=kampuni)

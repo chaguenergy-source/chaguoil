@@ -1229,7 +1229,7 @@
         </div>
     </div>
 
-  {% if addOrder  %}
+  {% if addOrder or cust.debt_limit == 0  %}
     <!--A CREDIT/DEBIT ORDER MODAL -->
     <div class="modal fade" id="credit_debt_order" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog animate" role="document">
@@ -1468,7 +1468,7 @@
           </div>
         </div>
       </div>
-       {% endif %}
+  {% endif %}
 
     <!-- Kuedit Mteja ................................................................ -->
 <div class="modal fade" id="wateja-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
