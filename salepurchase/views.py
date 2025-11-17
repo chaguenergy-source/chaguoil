@@ -1186,8 +1186,8 @@ def fuelsales(request):
                         sale.delete()
                         data = {
                             'success':False,
-                            'msg_swa':'Rekodi ya mauzo haijafanikiwa kwa sababu mteja huyu amewekwa katika ukomo wa oda lakini hakuna oda iliyopatikana',
-                            'msg_eng':'The customer is set to limited credit/debt order but no order record found for customer '
+                            'msg_swa':'Rekodi ya mauzo haijafanikiwa ukomo wa mkopo umefika mwisho',
+                            'msg_eng': 'the customer debt limit has reached its maximum allowed limit'
                         }
 
                         return JsonResponse(data)
