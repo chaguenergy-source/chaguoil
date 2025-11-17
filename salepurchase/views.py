@@ -679,9 +679,18 @@ def save_credit_order(request):
                         order.consumed = deni
                     order.save()
 
-                if float(customer.debt_limit) == float(0)  or not consume.exists() :       
+                if float(customer.debt_limit) == float(0)  or not consume.exists()  or useri.admin:      
                     customer.debt_limit = debt_limit
                     customer.save()
+                else:
+                    if justLimit:
+                        data = {
+                            'success': False,
+                            'swa': 'Huwezi kuweka kikomo cha deni kwa mteja huyu kwa sasa kwani ana deni linalosubiri kulipwa',
+                            'eng': 'You cannot set debt limit to this customer now because he has pending debt'
+                        }
+                        return JsonResponse(data)
+
                     
 
                 if topUp:
