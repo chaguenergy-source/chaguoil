@@ -57,9 +57,10 @@ def customers(request):
   for c in cust:
       denitr = fuelSales.objects.filter(customer=c.id,amount__gt=F('payed'))
       if not allcust:
-          if not st:
+          if not st and not general:
               st = todo['shell'].id
-          denitr = denitr.filter(by__Interprise=st)
+          if st:    
+            denitr = denitr.filter(by__Interprise=st)
 
       deni = denitr.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'] or 0
       wateja.append({

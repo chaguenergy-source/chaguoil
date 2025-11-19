@@ -74,7 +74,7 @@
               </div>
               <div class="col-6">
                 <select class="form-control form-control-sm" id="station-selector" title="{% if useri.langSet == 0 %}Chagua Kituo{% else %}Select Station{% endif %}">
-                  {% if general or not kituo %}
+                  {% if  not kituo %}
                     <option value="all" selected>{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
                     {% for station in stations %}
                       <option value="{{station.id}}">{{station.name}}</option>
