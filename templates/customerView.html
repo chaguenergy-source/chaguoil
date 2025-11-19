@@ -304,7 +304,13 @@
                                     <sup>*</sup>
                                 </label>
                                 <input type="datetime-local" class="form-control" name="sa_date" id="sa_date" aria-describedby="helpId" placeholder="">
+                            <script>
+                                var today = new Date().toISOString().slice(0, 16);
+                                document.getElementById("sa_date").setAttribute('max', today);
+                            </script>
                             </div>
+
+
                     <div class="form-group">
                         <label  for="sale_opt">
                         {% if useri.langSet == 0 %}Namna ya Kuuza{% else %} Sales Option{% endif %} 
@@ -378,10 +384,14 @@
 
 
              </div>
+
+
             <div class="table-responsive mt-3">
-                <h6 class="weight600">
+                <h6 class="weight600 ">
                     {% if useri.langSet == 0 %}Ufupisho{% else %}Summary{% endif %}
+
                 </h6>
+
                 <table class="table-sm table" >
                     <thead>
                         <tr>
@@ -572,8 +582,8 @@
                             <div class="col-5 ">
                                 {% if useri.langSet == 0 %}Balansi{% else %}Order balance{% endif %} <span class="text-primary">({{currencii}})</span> 
                             </div>
-                            <div class="col-7 text-right {% if lastCd.due > 0 %}green {% endif %}" id="TotSaPrice">
-                                 {{lastCd.due|floatformat:'-2'|intcomma}}
+                            <div class="col-7 text-right {% if lastCd.balance > 0 %}green {% endif %}" id="TotSaPrice">
+                                 {{lastCd.balance|floatformat:'-2'|intcomma}}
                             </div>
                         </div>  
                         {% endif %}                      
@@ -615,7 +625,7 @@
                 </div>
 
                 <div class="col-5">
-                    {% if useri.langSet == 0 %}Alokunywa{% else %}Cunsumption{% endif %}
+                    {% if useri.langSet == 0 %}Alokunywa{% else %}Consumption{% endif %}
                 </div>
                 <div class="col-7">
                     {{lastCd.consumed | floatformat:'-2'|intcomma}} 
@@ -625,7 +635,7 @@
                     {% if useri.langSet == 0 %}Alobakiza{% else %}Balance{% endif %}
                 </div>
                 <div class="col-7">
-                    {{lastCd.due | floatformat:'-2'|intcomma}} 
+                    {{lastCd.balance | floatformat:'-2'|intcomma}} 
                 </div>
                 
                 {% if lastCd.paid %} 
@@ -672,7 +682,52 @@
            
             <div class="row mt-3" id="customerSummary" >
                 <div class="col-lg-6 ">
-                    <h6 class="weight600"> {% if useri.langSet == 0 %}Ufupisho {%else%} Summary {% endif %} </h6>
+
+            <div class="row py-2 station-selector-row">
+              <div class="col-4 col-md-2">
+                  <strong>{% if useri.langSet == 0 %} Kituo{% else %} Station{% endif %}</strong> 
+              </div>
+              <div class="col-8 col-md-10" >
+                <select class="form-control form-control-sm {% if kituo %} bluePrint weight600 {% endif %}  " id="station-selector" title="{% if useri.langSet == 0 %}Chagua Kituo{% else %}Select Station{% endif %}">
+                  {% if  not kituo %}
+                    <option value="all" selected>{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                    {% for station in stations %}
+                      <option value="{{station.id}}">{{station.name}}</option>
+                    {% endfor %}
+                  {% else %}
+                    <option value="{{kituo.id}}" selected>{{kituo.name}}</option>
+                    {% if useri.admin or useri.ceo %}
+                     
+                      {% for station in stations %}
+                        {% if station.id != kituo.id %}
+                          <option value="{{station.id}}">{{station.name}}</option>
+                        {% endif %}
+                      {% endfor %}
+
+                      {% if stations %}
+                        <option value="all">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                      {% endif %}
+                    {% endif %}
+                  {% endif %}
+                </select>
+              </div>
+            </div>
+          
+            <script>
+                $('#station-selector').change(function() {
+                    const stationId = $(this).val();
+                    let url = new URL(window.location.href);
+                    if (stationId === "all") {
+                    url.searchParams.delete("st");
+                    } else {
+                    url.searchParams.set("st", stationId);
+                    }
+                    window.location.href = url.toString();
+                });
+            </script>
+
+                <h6 class="weight600 "> {% if useri.langSet == 0 %}Muhtasari wa Taarifa za Mteja{% else %}Customer Statement Summary{% endif %}    </h6>    
+
                     <div class="table-responsive ">
                         <table class="table table-sm fontColor smallFont border "  >
                             <thead>
@@ -688,7 +743,7 @@
                                 <tr class="fontColor" >
                                     <td  class="pl-1" >
                                         <span>
-                                             <script>document.write(moment().format('MMMM, YYYY'))</script>
+                                                <script>document.write(moment().format('MMMM, YYYY'))</script>
                                         </span>
                                     </td>
                                     <td>{{thereIsThis}}</td>
@@ -729,13 +784,27 @@
        {% if totD > 0 %}
         <div class="row">
             <div class="col-lg-6">
-                <div class="alert alert-warning">
-                    <strong>
-                        {% if useri.langSet == 0 %}Ukomo wa Deni:{% else %}Debt Limit:{% endif %}
-                    </strong>
-                    <span style="color:var(--text-primary)">{{cust.debt_limit|floatformat:'-2'|intcomma}} {{currencii}}</span>
+                <div class="alert alert-warning smallFont">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>
+                            {% if useri.langSet == 0 %}Ukomo wa Mkopo:{% else %}Loan Limit:{% endif %}
+                        </strong>
+                        <span class=" font-weight-bold">{{cust.debt_limit|floatformat:'-2'|intcomma}} {{currencii}}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>
+                            {% if useri.langSet == 0 %}Deni Jumla:{% else %}Total Debt:{% endif %}
+                        </strong>
+                        <span class=" font-weight-bold">{{totD|floatformat:'-2'|intcomma}} {{currencii}}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>
+                            {% if useri.langSet == 0 %}Salio la Mkopo:{% else %}Loan Balance:{% endif %}
+                        </strong>
+                        <span class=" font-weight-bold green" >{{custBalance|floatformat:'-2'|intcomma}} {{currencii}}</span>
+                    </div>
                 </div>
-            </div>
+            </div>    </div>
         </div>
       {% endif %}
 
@@ -806,7 +875,7 @@
                                 <td rowspan="2" >{% if useri.langSet == 0 %}Jina la Deleva{% else %}Driver Name {% endif %}</td>
                                 <td rowspan="2" >{% if useri.langSet == 0 %}Gari/Chombo{% else %} Vihecle{% endif %}</td>
                                 <td rowspan="2" > {% if useri.langSet == 0 %}MpangoZamu{% else %} Session{% endif %}</td>
-                                {% if general %}
+                                {% if not kituo %}
                                     <td rowspan="2" > {% if useri.langSet == 0 %}Kituo{% else %} Station{% endif %}</td>
                                 {% endif %}
                                 <td rowspan="2" > {% if useri.langSet == 0 %}Na{% else %} By{% endif %}</td>
@@ -851,7 +920,7 @@
                             <td>{{ row.sale.vihecle }}</td>
                             <td>{{ row.sale.session.session.name }}</td>
 
-                            {% if general %}
+                            {% if not kituo %}
                                 <td>{{ row.sale.by.Interprise.name }}</td>
                             {% endif %} 
 
@@ -879,7 +948,7 @@
                         {% endfor %}
 
                         <tr>
-                            <th colspan="{% if general %}8{%else%}7{%endif%}" >{% if useri.langSet == 0 %}Jumla{% else %} Total {% endif %}</th>
+                            <th colspan="{% if not kituo %}8{%else%}7{%endif%}" >{% if useri.langSet == 0 %}Jumla{% else %} Total {% endif %}</th>
                             {% for fuel in totSummary.fuels %}
                                 <th>{{ fuel.qty|floatformat:'-2'|intcomma }}</th>
                                 <th>{{ fuel.price|floatformat:'-2'|intcomma }}</th>
@@ -915,7 +984,7 @@
                                 <td rowspan="2" >{% if useri.langSet == 0 %}Jina la Deleva{% else %}Driver Name {% endif %}</td>
                                 <td rowspan="2" >{% if useri.langSet == 0 %}Gari/Chombo{% else %} Vihecle{% endif %}</td>
                                 <td rowspan="2" > {% if useri.langSet == 0 %}MpangoZamu{% else %} Session{% endif %}</td>
-                                {% if general %}
+                                {% if not kituo %}
                                     <td rowspan="2" > {% if useri.langSet == 0 %}Kituo{% else %} Station{% endif %}</td>
                                 {% endif %}
                                 <td rowspan="2" > {% if useri.langSet == 0 %}Na{% else %} By{% endif %}</td>
@@ -960,7 +1029,7 @@
                             <td>{{ row.sale.driver }}</td>
                             <td>{{ row.sale.vihecle }}</td>
                             <td>{{ row.sale.session.session.name }}</td>
-                            {% if general %}
+                            {% if not kituo %}
                                 <td>{{ row.sale.by.Interprise.name }}</td>
                             {% endif %}
                             <td >{{ row.sale.by.user.user.first_name | title }} {{ row.sale.by.user.user.last_name | title }}</td>
@@ -986,7 +1055,7 @@
                         {% endfor %}
 
                         <tr>
-                            <th colspan="{% if general %}8{%else%}7{%endif%}" >{% if useri.langSet == 0 %}Jumla{% else %} Total {% endif %}</th>
+                            <th colspan="{% if not kituo %}8{%else%}7{%endif%}" >{% if useri.langSet == 0 %}Jumla{% else %} Total {% endif %}</th>
                             {% for fuel in totSummary_prev.fuels %}
                                 <th>{{ fuel.qty|floatformat:'-2'|intcomma }}</th>
                                 <th>{{ fuel.price|floatformat:'-2'|intcomma }}</th>
@@ -1926,7 +1995,7 @@
 {% endblock %}
 
 {% block mteja %}
-   <select name="important_customer" id="important_customer" class="form-control">
+   <select name="important_customer" id="important_customer" class="form-control" title="{% if useri.langSet == 0 %}Chagua Mteja Muhimu{% else %}Select Important Customer{% endif %}">
       <option value="{{cust.id}}">{{cust.jina|title}}</option>
    </select>
 {% endblock %}

@@ -66,8 +66,52 @@
              </div>
 
            </div>
+
+          <div class="col-md-6">
+            <div class="row py-2 custom-margin">
+              <div class="col-6 text-right">
+                {% if useri.langSet == 0 %} Kituo{% else %} Station{% endif %}
+              </div>
+              <div class="col-6">
+                <select class="form-control form-control-sm" id="station-selector" title="{% if useri.langSet == 0 %}Chagua Kituo{% else %}Select Station{% endif %}">
+                  {% if general or not kituo %}
+                    <option value="all" selected>{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                    {% for station in stations %}
+                      <option value="{{station.id}}">{{station.name}}</option>
+                    {% endfor %}
+                  {% else %}
+                    <option value="{{kituo.id}}" selected>{{kituo.name}}</option>
+                    {% if useri.admin or useri.ceo %}
+                     
+                      {% for station in stations %}
+                        {% if station.id != kituo.id %}
+                          <option value="{{station.id}}">{{station.name}}</option>
+                        {% endif %}
+                      {% endfor %}
+
+                      {% if stations %}
+                        <option value="all">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                      {% endif %}
+                    {% endif %}
+                  {% endif %}
+                </select>
+              </div>
+            </div>
+          </div>
                         
           </div>
+
+
+          <script>
+            $('#station-selector').change(function(){
+                var station = $(this).val();
+                if(station == 'all'){
+                  window.location.href="/salepurchase/customers?allst=1"
+                }else{
+                  window.location.href="/salepurchase/customers?st="+station
+                }
+            })
+          </script>
 
       <div class="table-responsive">
                 <table id="all_staffs" class=" smallFont"  >

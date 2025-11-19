@@ -48,12 +48,18 @@ def customers(request):
   todo = todoFunct(request)
   cust = todo['customers']
   general = todo['general']
+  shell = todo['shell']
+  allcust = int(request.GET.get('allst',0))
+  st = int(request.GET.get('st',0))
+
   wateja = []
   madeni = 0
   for c in cust:
       denitr = fuelSales.objects.filter(customer=c.id,amount__gt=F('payed'))
-      if not general:
-          denitr = denitr.filter(by__Interprise=todo['shell'])
+      if not allcust:
+          if not st:
+              st = todo['shell'].id
+          denitr = denitr.filter(by__Interprise=st)
 
       deni = denitr.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'] or 0
       wateja.append({
@@ -62,13 +68,20 @@ def customers(request):
       })
 
       madeni += deni
+  stations = Interprise.objects.filter(company=todo['kampuni'].id)
+  kituo = shell
+  if allcust:
+      kituo = None
+  if st:
+    kituo = Interprise.objects.get(pk=st,company=todo['kampuni'])    
 
-      
 
   todo.update({
+      'stations':stations,
       'isCustomer':True,
       'wateja':wateja,
-      'madeni':madeni
+      'madeni':madeni,
+        'kituo':kituo,
   })
   return render(request,'customers.html',todo)
 
@@ -80,17 +93,24 @@ def ViewCustomer(request):
     shell = todo['shell']
     kampuni = todo['kampuni']
     general = todo['general']
+    # allcust = int(request.GET.get('allst',0))
+    st = int(request.GET.get('st',0))
 
 
     leo = datetime.datetime.now().astimezone()
     thisMonth = leo.strftime('%Y-%m-01 00:00:00%z') 
+    kituo = None
+    if st:
+        kituo = Interprise.objects.get(pk=st,company=todo['kampuni'])    
     #   print(int(leo.strftime('%m')))
 
     cust = wateja.objects.get(Q(Interprise__company=kampuni)|Q(allEntp=True),pk=i)
 
     saleAll = fuelSales.objects.filter(customer=cust.id,by__Interprise__company=kampuni).annotate(due=F('amount')-F('payed')).order_by('-pk')
     saleLst = saleList.objects.filter(sale__in=saleAll).order_by('theFuel')
-    cdOrder =   creditDebtOrder.objects.filter(customer=cust.id,by__user__company=kampuni).annotate(due=F('amount')-F('consumed'),credit=F('paid')-F('consumed')).order_by('pk')
+    cdOrder =   creditDebtOrder.objects.filter(customer=cust.id,by__user__company=kampuni).annotate(
+        balance=F('amount')-F('consumed'),
+        due=F('amount')-F('consumed'),credit=F('paid')-F('consumed')).order_by('pk')
     lastCd = cdOrder.last()
     hasLastCd = cdOrder.filter(due__gt=0).exists()
 
@@ -105,8 +125,8 @@ def ViewCustomer(request):
     # sale.code = TCode({'code':code,'shell':shell.id})
 
     # sale.Invo_no = int(code)   
-    if not general:
-        saleAll = saleAll.filter(by__Interprise=shell)
+    if st:
+        saleAll = saleAll.filter(by__Interprise=kituo)
 
     saleMonth = saleAll.filter(date__gte=thisMonth)
  
@@ -190,7 +210,11 @@ def ViewCustomer(request):
     sale_data=getsale_data(saleMonth)
     totSummary_prev = thetotSummary(sale_prev)
     totSummary = thetotSummary(saleMonth)
-   
+
+    stations = Interprise.objects.filter(company=todo['kampuni'].id)
+    custBalance = float(debtprev+debt) - float(cust.debt_limit)
+
+  
 
     todo.update({
         'isCustomer':True,
@@ -207,7 +231,9 @@ def ViewCustomer(request):
         'totprev':totprev,
         'prevsale':sale_data_prev,
         'paidprev':paidprev,
-
+        'stations':stations,
+        'kituo':kituo,
+        'custBalance':custBalance,
         'totSummary':totSummary,
         'totSummary_prev':totSummary_prev,
 
@@ -235,6 +261,7 @@ def orderPayments(request):
         kampuni = todo['kampuni']
         general = todo['general']
 
+
         cust = wateja.objects.get(Q(Interprise__company=kampuni)|Q(allEntp=True), pk=i)
 
         orders = creditDebtOrder.objects.filter(customer=cust.id, by__user__company=kampuni).annotate(
@@ -255,8 +282,8 @@ def orderPayments(request):
             total_debt=Sum(F('amount') - F('payed'))
         )['total_debt'] or 0
 
-        if not general:
-            orders = orders.filter(by__Interprise=shell)
+        # if not general:
+        #     orders = orders.filter(by__Interprise=shell)
 
         num = orders.count()
         
@@ -279,10 +306,12 @@ def orderPayments(request):
 
         total_due = (totals['total_amount'] or 0) - (totals['total_consumed'] or 0)
         total_credit = (totals['total_paid'] or 0) - (totals['total_consumed'] or 0)
+        custBalance = float(totD) - float(cust.debt_limit)
 
         todo.update({
             'isCustomer': True,
             'isOrderPayments': True,
+            'custBalance': custBalance,
             'cust': cust,
             'orders': page,
             'hasLastCd': hasLastCd,
@@ -498,7 +527,7 @@ def ViewOrder(request):
 
         payAfter = payment_records.exclude(pay__in=payments).distinct('pay') 
         
-
+        custBalance = float(totD) - float(customer.debt_limit)
         todo.update({
             'isCustomer': True,
             'isOrderView': True,
@@ -523,6 +552,7 @@ def ViewOrder(request):
             'total_sales_debt': total_sales_debt,
             'total_payments': total_payments,
             'totD':totD,
+            'custBalance':custBalance,
             # Counts
             'sales_count': sales_invoices.count(),
             'payments_count': payments.count(),
@@ -562,6 +592,12 @@ def customerAttachments(request):
 
         cdOrder =   creditDebtOrder.objects.filter(customer=cust.id,by__user__company=kampuni).annotate(due=F('amount')-F('consumed'),credit=F('paid')-F('consumed')).order_by('-pk')
         lastCd = cdOrder.first()
+        totD = fuelSales.objects.filter(
+            customer=cust,
+            by__Interprise__company=kampuni
+        ).aggregate(
+            total_debt=Sum(F('amount') - F('payed'))
+        )['total_debt'] or 0
 
         # Add new credit debt order if the last order amount = consumed
         addNewOrder = not cdOrder.exists() or (lastCd and lastCd.amount == lastCd.consumed) if not general else False
@@ -577,6 +613,8 @@ def customerAttachments(request):
             'addOrder':addNewOrder,
             'lastCd':lastCd,
             'newcode':newcode,
+            'totD':totD,
+            'custBalance': float(totD) - float(cust.debt_limit),
         })
         
         return render(request, 'custattach.html', todo)
