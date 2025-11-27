@@ -3118,7 +3118,8 @@ def  lipaInvo(request):
                   ac=int(request.POST.get('ac'))
                   pall=int(request.POST.get('all',0))
                   isCredit = int(request.POST.get('isCredit',0))
-           
+                  manager = todo['manager']
+                  useri = todo['useri']
 
                   paid_amo = float(request.POST.get('pay_amo'))  
                   pay_d = request.POST.get('date')
@@ -3129,7 +3130,7 @@ def  lipaInvo(request):
                   cheo = todo['cheo']
                   shell = cheo.Interprise
                   kampuni = todo['kampuni']
-                  useri = todo['useri']
+                 
                   acc = PaymentAkaunts.objects.get(pk=ac,Interprise__company=kampuni)
                   if not (useri.admin or acc.aina=='Cash'):
 
@@ -3162,7 +3163,7 @@ def  lipaInvo(request):
                      cust = wateja.objects.get(pk=value,Interprise__company=kampuni.id)
                      bill = fuelSales.objects.filter(customer=cust,payed__lt=F('amount'))
                      total_deni = float(bill.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'] or 0)
-                     print('is reching here')       
+                          
                      custOders = creditDebtOrder.objects.filter(customer=cust,paid__lt=F('amount')).order_by('-pk')
                      custOder = custOders.first() if custOders.exists() else None
                      order_due = float(custOder.amount - custOder.paid) if custOder is not None else 0
@@ -3171,7 +3172,7 @@ def  lipaInvo(request):
                      ilolipwa = float(bill.aggregate(lipwa=Sum('payed'))['lipwa'] or 0)
                      malipo = float(paid_amo+ilolipwa) 
                      kiasi = float(bill.aggregate(kiasi=Sum('amount'))['kiasi'] or 0)
-                     print('is reching here 2')
+                     
                   else:    
                         
                         bill = fuelSales.objects.get(by__Interprise=shell,pk=value)
@@ -3180,8 +3181,6 @@ def  lipaInvo(request):
                         kiasi = float(bill.amount) 
                         kutoka =f"INVO-{bill.code} Sales"
                         
-                  manager = todo['manager']
-                  useri = todo['useri']
 
 
                   after={
@@ -3194,7 +3193,7 @@ def  lipaInvo(request):
                   prepaid_order = total_deni < paid_amo and order_due > 0
                 #   print(prepaid_order,total_deni, paid_amo, order_due)
                   weka = wekaCash()
-                  print('is reaching here 3')
+                  
                   if (malipo <= kiasi and malipo>0) or prepaid_order: 
                         lipwaAmo = paid_amo
                         wekakwa= acc
@@ -3267,8 +3266,8 @@ def  lipaInvo(request):
                                     'msg_eng' : 'Invoice Payment was not recorded, because the paid amount exceeds the invoice amount',
                               }     
                   return JsonResponse(after)
-            except Exception as err:
-                  print('error in payment',err)
+            except:
+                #   print('error in payment',err)
                   data={
                          
                                     'success':False,
