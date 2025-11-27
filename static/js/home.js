@@ -262,19 +262,21 @@ const dashBoard = d =>{
         const credDebCardsDiv = document.getElementById('creditorsDebtorsData');
         const creditorsTotal = Creditors.reduce((acc, curr) => acc + Number(curr.due), 0);  
         const debtorsTotal = Debtors.reduce((acc, curr) => acc + Number(curr.due), 0);
+        const customersCount =  new Set(Debtors.map(item => item.customer_id)).size;
+        const suppliersCount =  new Set(Creditors.map(item => item.vendor_id)).size;
 
         const netBalance = debtorsTotal - creditorsTotal;
       
         const cd = `
         <a href="/salepurchase/customers" class="detail-item">
                         <span> ${lang('Wadaiwa', 'Debtors')} :</span>
-                        <span class="smallerFont"> ${lang('Wateja', 'Customers')} ${Debtors.length} </span> |
+                        <span class="smallerFont"> ${lang('Wateja', 'Customers')} ${customersCount} </span> |
                         <span style="font-weight: bold;"> <span class="text-primary weight200">${hela}.</span> ${debtorsTotal.toLocaleString()}</span>
                     </a>
 
                     <a href="${isAdmin?'/salepurchase/vendors' : '#'}" class="detail-item">
                         <span> ${lang('Wadai', 'Creditors')} :</span>
-                        <span class="smallerFont"> ${lang('Wasambazaji', 'Suppliers')} ${Creditors.length} </span> |
+                        <span class="smallerFont"> ${lang('Wasambazaji', 'Suppliers')} ${suppliersCount.length} </span> |
                         <span style="font-weight: bold; color: var(--danger-color);"><span class="text-primary weight200">${hela}.</span> ${creditorsTotal.toLocaleString()}</span>
                     </a>
 

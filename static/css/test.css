@@ -1,76 +1,136 @@
+/* Mitindo ya Msingi */
+.stock-movement-report {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f6f9;
-        margin: 20px;
-        color: #333;
-    }
+.report-title {
+    color: #1a2a47; /* Bluu iliyokolea */
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+}
 
-    .customer-page {
-        max-width: 1100px;
-        margin: auto;
-        padding: 15px;
-    }
+/* Kadi za Jumla */
+.card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+.card h3 {
+    color: #343a40;
+    margin-top: 0;
+    border-bottom: 1px dashed #ced4da;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
 
-    .section {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
-        padding: 20px;
-    }
+/* Muhtasari wa Stoo */
+.summary-grid {
+    display: flex;
+    justify-content: space-around;
+    gap: 15px;
+}
+.summary-item {
+    flex: 1;
+    padding: 15px;
+    border-radius: 6px;
+    background-color: #f1f3f5;
+    text-align: center;
+}
+.summary-item .label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+.summary-item .value {
+    display: block;
+    font-size: 1.2em;
+    font-weight: 700;
+    padding: 4px 0;
+}
+/* Kadi ya Stoo ya Sasa */
+.current-stock {
+    background-color: #e6f7ff; /* Rangi nyepesi ya bluu */
+    border: 2px solid #007bff; /* Msisitizo wa Bluu */
+}
+.current-stock .value {
+    font-size: 1.4em;
+    color: #007bff;
+}
 
-    /* VICHWA VYA HABARI */
-    h2 {
-        color: #007bff;
-        border-bottom: 2px solid #e9ecef;
-        padding-bottom: 10px;
-        margin-top: 0;
-        margin-bottom: 20px;
-    }
+/* Rangi za Bidhaa */
+.petrol {
+    color: #28a745; /* Kijani */
+}
+.diesel {
+    color: #007bff; /* Bluu */
+}
 
-    /* JEDWALI KUU (MUHTASARI WA KIFEDHA) */
-    .summary-table, .invoice-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-    }
+/* Mienendo ya Kina */
+.details-section {
+    display: flex;
+    gap: 20px;
+}
+.movement-card {
+    flex: 1;
+}
+.movement-card h4 {
+    color: #495057;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
 
-    .summary-table th, .summary-table td, .invoice-table th, .invoice-table td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
+.movement-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr; /* Kolamu tatu: Jina, Petrol, Dizeli */
+    padding: 8px 0;
+    border-bottom: 1px dotted #e9ecef;
+    align-items: center;
+}
+.movement-row:last-child {
+    border-bottom: none;
+}
+.movement-row span:nth-child(2),
+.movement-row span:nth-child(3) {
+    text-align: right;
+    font-weight: 500;
+}
 
-    .summary-table th {
-        background-color: #f8f9fa;
-        color: #6c757d;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
+.header-row {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    padding: 10px 0;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    border-bottom: 2px solid #dee2e6;
+}
 
-    .summary-table .value-row {
-        font-weight: bold;
-    }
+/* Rangi ya Zero Inayotahadharisha */
+.zero-alert {
+    background-color: #fff0f0; /* Rangi nyepesi ya nyekundu */
+}
+.zero-value {
+    color: #dc3545 !important; /* Nyekundu kwa msisitizo! */
+    font-weight: 700 !important;
+}
 
-    .debt-value {
-        color: #dc3545; /* Rangi nyekundu kwa Deni */
-        font-weight: bold;
-    }
-
-    .invoice-table th {
-        background-color: #007bff;
-        color: white;
-    }
-
-    /* TAARIFA ZA MTEJA */
-    .customer-details p {
-        margin: 5px 0;
-        font-size: 16px;
-    }
-
-    .customer-details strong {
-        display: inline-block;
-        width: 100px; /* Kuweka uwiano */
-        color: #6c757d;
-    }
+/* Mitindo ya Inflow na Outflow */
+.value-in {
+    /* Kijani kwa kuongezeka */
+}
+.value-out {
+    /* Inaweza kuwa rangi tofauti, hapa tunatumia Petrol/Diesel color */
+}

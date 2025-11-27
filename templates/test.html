@@ -6,97 +6,72 @@
 
 {% block page_content %}
 
-<div class="customer-page">
-    
-    <div class="section customer-details">
-        <h2>Taarifa za Mteja</h2>
-        <p><strong>Jina:</strong> Masunga Miyata</p>
-        <p><strong>Anwani:</strong> Nguzunguru Mawe Simau</p>
-        <p><strong>Simu:</strong> +255769554222, +255684432112</p>
-        <p><strong>Barua Pepe:</strong> masunga@gmail.com</p>
+<div class="stock-movement-report">
+    <h2 class="report-title">⛽ Ripoti ya Mienendo ya Stoo</h2>
+
+    <div class="summary-section card">
+        <h3>📊 Muhtasari wa Stoo</h3>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span class="label">Stoo ya Kuanzia:</span>
+                <span class="value petrol">2,091.91 Ltrs</span>
+                <span class="value diesel">915.36 Ltrs</span>
+            </div>
+            <div class="summary-item current-stock">
+                <span class="label">Stoo ya Sasa:</span>
+                <span class="value petrol">2,741.09 Ltrs</span>
+                <span class="value diesel">915.361 Ltrs</span>
+            </div>
+        </div>
     </div>
 
-    <div class="section merged-summary">
-        <h2>Muhtasari wa Agizo na Matumizi</h2>
-        
-        <p>Agizo la Kikomo (Limited Order): <span style="color: green; font-weight: bold;">Ndiyo</span></p>
-        <p>Agizo la Sasa: ORD-01/0001</p>
+    <div class="details-section">
+        <h3>📈 Mienendo ya Kina</h3>
 
-        <table class="summary-table">
-            <thead>
-                <tr>
-                    <th>Kipengele</th>
-                    <th>Thamani (TZS)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>**Kikomo (Limit) cha Agizo**</td>
-                    <td class="value-row">3,000,000</td>
-                </tr>
-                <tr>
-                    <td>Baki (Balance) la Kikomo</td>
-                    <td class="value-row">2,600,000</td>
-                </tr>
+        <div class="inflow-card movement-card card">
+            <h4>Kuingia Stoo (Inflow)</h4>
+            <div class="movement-row header-row">
+                <span>Muamala</span>
+                <span class="petrol">Petroli</span>
+                <span class="diesel">Dizeli</span>
+            </div>
+            <div class="movement-row">
+                <span>Kupokelewa</span>
+                <span class="petrol value-in">0.00</span>
+                <span class="diesel value-in">0.00</span>
+            </div>
+            <div class="movement-row">
+                <span>Kutoka Stoo Nyingine</span>
+                <span class="petrol value-in">0.00</span>
+                <span class="diesel value-in">0.00</span>
+            </div>
+        </div>
 
-                <tr>
-                    <td>**Jumla ya Matumizi (Consumption)**</td>
-                    <td class="value-row">400,000</td>
-                </tr>
-                <tr>
-                    <td>Jumla ya Malipo (Paid)</td>
-                    <td class="value-row">100,000</td>
-                </tr>
-                <tr>
-                    <td>**Jumla ya Deni (Debt) Lililobaki**</td>
-                    <td class="debt-value">300,000</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="outflow-card movement-card card">
+            <h4>Kutoka Stoo (Outflow)</h4>
+            <div class="movement-row header-row">
+                <span>Muamala</span>
+                <span class="petrol">Petroli</span>
+                <span class="diesel">Dizeli</span>
+            </div>
+            <div class="movement-row">
+                <span>Mauzo (Sales)</span>
+                <span class="petrol value-out">155.574</span>
+                <span class="diesel value-out">0.00</span>
+            </div>
+            <div class="movement-row zero-alert">
+                <span>Upotevu (Wastage)</span>
+                <span class="petrol value-out zero-value">0.00</span>
+                <span class="diesel value-out zero-value">0.00</span>
+            </div>
+            <div class="movement-row zero-alert">
+                <span>Matumizi ya Ndani</span>
+                <span class="petrol value-out zero-value">0.00</span>
+                <span class="diesel value-out zero-value">0.00</span>
+            </div>
+        </div>
+
     </div>
-    
-    <div class="section invoices-details">
-        <h2>Taarifa za Ankara (Invoices)</h2>
-        <p>Orodha ya Ankara za Deni (Miezi Iliyopita)</p>
-        
-        <table class="invoice-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Tarehe/Saa</th>
-                    <th>Ankara</th>
-                    <th>Jina la Dereva</th>
-                    <th>Gari</th>
-                    <th>Bei ya Dizeli</th>
-                    <th>Jumla</th>
-                    <th>Malipo</th>
-                    <th>Deni</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>14/10/2025 23:20</td>
-                    <td>INV-01/00086</td>
-                    <td>Maduhu John</td>
-                    <td>Fuso TY192AH</td>
-                    <td>3,250</td>
-                    <td>400,000.00</td>
-                    <td>100,000.00</td>
-                    <td class="debt-value">300,000.00</td>
-                </tr>
-            </tbody>
-            <tfoot>
-                 <tr>
-                    <td colspan="6" style="text-align: right; font-weight: bold;">Jumla</td>
-                    <td style="font-weight: bold;">400,000.00</td>
-                    <td style="font-weight: bold;">100,000.00</td>
-                    <td class="debt-value">300,000.00</td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-
 </div>
 
 {% endblock %}

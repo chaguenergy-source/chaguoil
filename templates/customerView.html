@@ -828,12 +828,16 @@
             </li>
 
             <li class="nav-item">
+                <a class="nav-link {% block customer_statement_active %}{% endblock %}" data-show="customer_statement" href="/salepurchase/customerStatement?cust={{ cust.id }}">{% if useri.langSet == 0 %}Taarifa za Mteja{% else %}Customer Statement{% endif %}</a>    
+            </li>
+
+            <li class="nav-item">
                 <a class="nav-link  {% block attachments_active %}  {% endblock %}" data-show="attachments" href="/salepurchase/customerAttachments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Viambatisho{% else %}Attachments{% endif %}</a>
             </li>    
         </ul>
 
 
-            {% block thisMonthInvo %}
+        {% block thisMonthInvo %}
 
         <script>
             $('.report_show').click(function(){
@@ -881,7 +885,7 @@
                                 <td rowspan="2" > {% if useri.langSet == 0 %}Na{% else %} By{% endif %}</td>
 
                                 {% for fuel in sale.0.fuels %}
-                                    <td colspan=3 >{{ fuel.fuel }}   </td>
+                                    <td colspan=3 >{{ fuel.fuel|title }}   </td>
                                   
                                 {% endfor %}
 
@@ -991,7 +995,7 @@
 
 
                                 {% for fuel in prevsale.0.fuels %}
-                                    <td colspan=3 >{{ fuel.fuel }} </td>
+                                    <td colspan=3 >{{ fuel.fuel | title }} </td>
                                   
                                 {% endfor %}
 
@@ -1177,7 +1181,7 @@
                             
                                "
 
-                        data-debt="{{totD}}" data-hasOrder="{% if cust.limited_order %}1{% else %}0{% endif %}" name="lipwa" id="lipa_kiasi" class="form-control money-fomat" placeholder="{{totD|floatformat:'-2'|intcomma}}" aria-describedby="helpId">
+                        data-debt="{% if lastCd and lastCd.paid < lastCd.amount %}{{lastCd.bal_deni}}{% else %}{{totD}}{% endif %}" data-hasOrder="{% if cust.limited_order %}1{% else %}0{% endif %}" name="lipwa" id="lipa_kiasi" class="form-control money-fomat" placeholder="{% if totD > 0 %}{{totD|floatformat:'-2'|intcomma}}{% else %} {% if lastCd and lastCd.paid < lastCd.amount %}{{lastCd.bal_deni|floatformat:'-2'|intcomma}}{% else %}0{% endif %}{% endif %}" aria-describedby="helpId">
 
                         <div class="input-group-prepend">
                             <button type="button" onclick="$('#kama_change').toggle(400)" class="input-group-text btn btn-light btn-sm latoFont" id="basic-addon1">{% if useri.langSet == 0 %} Chenji {% else %} Change {% endif %} 
@@ -1216,7 +1220,7 @@
                     <div class="row mb-3 classic_div" id="kama_change" style="display: none;">
                         <div class="col-md-6">
                             <div class="form-groupn mb-3">
-                                <label for="kiasi_lipwa">{% if useri.langSet == 0 %} Kiasi Kilicotolewa {% else %} Payed Cash Amount {% endif %}</label>
+                                <label for="kiasi_lipwa">{% if useri.langSet == 0 %} Kiasi Kilichotolewa {% else %} Payed Cash Amount {% endif %}</label>
                                 <div class="show_curency_block show_curency position-absolute text-danger   px-3" style="display: none ;">
                                     <label class="mt-1 text-danger" for=""></label> 
                                     <div class="box-pointer d-inline "></div>
@@ -2014,11 +2018,12 @@ $('body').on("submit", "#savepaymentForm" ,function(e){
             const invo = Number('{{cust.id}}'),
                     url = $(this).attr("action"),
                     ac = Number($('#malipo-akaunti').val()),
-                    pay_amo = Number($('#lipa_kiasi').val())||Number('{{totD}}'),
+                    amo = Number('{% if lastCd and lastCd.paid < lastCd.amount %}{{lastCd.bal_deni}}{% else %}{{totD}}{% endif %}'),
+                    pay_amo = Number($('#lipa_kiasi').val())||Number(amo),
                     isCredit = Number($('#lipa_kiasi').data('hasorder')),
                     date = $('#pay_d').val(),
-                    amo = Number('{{totD}}'),
-                    desc = $('#lipaElezo').val()
+                    
+                    desc = $('#lipaElezo').val(),
                     data = {
                     data:{ 
                         all:1,

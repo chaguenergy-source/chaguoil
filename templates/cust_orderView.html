@@ -107,47 +107,28 @@
           </thead>
           <tbody>
            
-            {% for p in payments %}
+            {% for p in allPayments %}
             <tr>
-              <td><script>document.write(moment('{{ p.tarehe|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script></td>
+              <td><script>document.write(moment('{{ p.payment.tarehe|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script></td>
               <td>
                
-                {% if p.Akaunt %}
-                    {{ p.Akaunt.Akaunt_name }}  
+                {% if p.payment.Akaunt %}
+                    {{ p.payment.Akaunt.Akaunt_name }}  
             
                 {% endif %}
 
-                {% if p.by %}
+                {% if p.payment.by %}
 
-                    {{ p.by.Interprise.name }}  
+                    {{ p.payment.by.Interprise.name }}  
             
                 {% endif %}
             
             </td>
-              <td class="text-right">{{ p.Amount|floatformat:'-2'|intcomma }}</td>
+              <td class="text-right">{{ p.payment.Amount|floatformat:'-2'|intcomma }}</td>
             </tr>
             {% endfor %}
             
-            {% for p in payAfter %}
-            <tr>
-              <td><script>document.write(moment('{{ p.tarehe|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script></td>
-              <td>
-               
-                {% if p.pay.Akaunt %}
-                    {{ p.pay.Akaunt.Akaunt_name }}  
-            
-                {% endif %}
-
-                {% if p.pay.by %}
-
-                    {{ p.pay.by.Interprise.name }}  
-            
-                {% endif %}
-            
-            </td>
-              <td class="text-right">{{ p.pay.Amount|floatformat:'-2'|intcomma }}</td>
-            </tr>
-            {% endfor %}
+    
 
 
 
@@ -200,9 +181,9 @@
          
                 <td>
                     {% if t.sale %}
-                        {% if useri.langSet == 0 %}Matumizi{% else %}Consumption{% endif %}
+                        {% if useri.langSet == 0 %}Matumizi{% else %}Use{% endif %}
                     {% else %}
-                         {% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}
+                         {% if useri.langSet == 0 %}Malipo{% else %}Pay{% endif %}
                     {% endif %}
                    
                 </td>

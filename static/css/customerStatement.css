@@ -1,0 +1,5 @@
+.customer-statement-report .section-title{font-weight:600;margin-bottom:8px}
+#statementResults table th{font-size:14px}
+#statementResults table td{font-size:14px}
+#statementResults .table-responsive{max-height:420px;overflow:auto}
+.smallFont{font-size:14px}

@@ -1,4 +1,3 @@
-
 {% extends 'index.html' %}
 {% load static %}
 {% block page_content %}
@@ -54,46 +53,33 @@
                  <div class="row" id="staxnFilter">
                       
                         <div class="form-group col-md-4">
-                            <div class="input-group " title="{% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}" >
-                               <span class="input-group-prepand rounded-left border py-1 px-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
-							     <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
-                                </svg>
-                            </span>
-                            
-                            <select class="custom-select bluePrint smallerFont filter" name="staxnF" id="staxnF">
-                                {% for st in staxns %}
-
-                                 {% if st.Interprise == shell and  not general %}
-                                   <option value='{{st.Interprise.id}}' selected>{{st.Interprise.name}}</option> 
-                                 {% else %}
-                                  <option value='{{st.Interprise.id}}' >{{st.Interprise.name}}</option> 
-                                 {% endif %}
-                     
-                                {% endfor %}
-
-                                {% if useri.ceo or useri.admin %}
-
-                                    {% if general %}
-                                        <option value=0 selected>{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option>  
-                                    {% else %}    
-                                        <option value=0 >{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option> 
-                                    {% endif %} 
-                                
-                                {% endif %}
-
-                            </select>
-                                <span type="button" onclick="$('#OtherFilterFilter').toggle(300)" class="input-group-append rounded-left d-md-none border py-1 px-2">
-                                 <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-down">
-                                    <polyline points="7 13 12 18 17 13">
-                                    </polyline><polyline points="7 6 12 11 17 6"></polyline>
+                            <!-- Accessible label for the select -->
+                            <label for="staxnF" class="sr-only">
+                                {% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}
+                            </label>
+                            <div class="input-group" title="{% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}">
+                                <span class="input-group-prepand rounded-left border py-1 px-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
+                                        <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
                                     </svg>
-                            </span>
+                                </span>
+                                <select class="custom-select bluePrint smallerFont filter" name="staxnF" id="staxnF">
+                                    {% for st in staxns %}
+                                        {% if st.Interprise == shell and  not general %}
+                                            <option value='{{st.Interprise.id}}' selected>{{st.Interprise.name}}</option> 
+                                        {% else %}
+                                            <option value='{{st.Interprise.id}}'>{{st.Interprise.name}}</option> 
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if useri.ceo or useri.admin %}
+                                        {% if general %}
+                                            <option value=0 selected>{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option>
+                                        {% else %}
+                                            <option value=0>{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option>
+                                        {% endif %}
+                                    {% endif %}
+                                </select>
                             </div>
-
-
-
-
                         </div>    
 
                                          
@@ -111,19 +97,14 @@
                                                     </svg>
                                         </span>
                                         
-                                        <select class="custom-select bluePrint filter smallerFont" name="SessF" id="SessF">
+                                        <select class="custom-select bluePrint filter smallerFont"
+                                                name="SessF"
+                                                id="SessF"
+                                                title="{% if useri.langSet == 0 %}Mpango Zamu{% else %}Session Shift{% endif %}">
                                             {% for s in sexns %}
-
-                                            
-                                            <option value="{{s.name}}"  >{{s.name}}</option> 
-                                        
-                                
+                                                <option value="{{s.name}}">{{s.name}}</option>
                                             {% endfor %}
-
-                                        
-                                        <option selected value='' >{% if useri.langSet == 0 %}Yote{% else %}All{% endif %}</option> 
-                                                                        
-
+                                            <option selected value=''>{% if useri.langSet == 0 %}Yote{% else %}All{% endif %}</option>
                                         </select>
                                         </div>
                                         
@@ -136,18 +117,14 @@
                                             $
                                         </span>
                                         
-                                        <select class="custom-select bluePrint smallerFont filter" name="satype" id="satype">
-                                            
-
-                                            
-                                            <option value=1 >{% if useri.langSet == 0 %} Mhusika wa Pampu{% else %} Pump Attendant{% endif %}</option> 
-                                            <option value=2 >{% if useri.langSet == 0 %}Wateja Muhimu{% else %}Credit Orders sales{% endif %}</option> 
-                                        
-                                
-                                        
-
-                                        
-                                            <option value=0 selected >{% if useri.langSet == 0 %}Yote{% else %}All{% endif %}</option> 
+                                        <!-- Add a visually hidden label for the sales type select -->
+<label for="satype" class="sr-only">
+    {% if useri.langSet == 0 %}Aina ya Mauzo{% else %}Sales Type{% endif %}
+</label>
+<select class="custom-select bluePrint smallerFont filter" name="satype" id="satype">
+    <option value=1 >{% if useri.langSet == 0 %} Mhusika wa Pampu{% else %} Pump Attendant{% endif %}</option> 
+    <option value=2 >{% if useri.langSet == 0 %}Wateja Muhimu{% else %}Credit Orders sales{% endif %}</option> 
+    <option value=0 selected >{% if useri.langSet == 0 %}Yote{% else %}All{% endif %}</option> 
                                                                         
 
                                         </select>
@@ -271,7 +248,7 @@
                                             }
 
                                         
-                                        
+        
                                         " class="btn btn-secondary btn-sm latoFont smallerFont">
                                         {% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}
                                     </button>
@@ -443,12 +420,12 @@
 
 
 
-                                <button type="button" data-chart="pay" class="btn border-secondary btn-sm riportOn " data-r="#salePay" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Akaunti za malipo{% else %}Payments Accounts{% endif %}">
+                                <!-- <button type="button" data-chart="pay" class="btn border-secondary btn-sm riportOn " data-r="#salePay" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Akaunti za malipo{% else %}Payments Accounts{% endif %}">
                                     <svg width=".95em" height=".95em" viewBox="0 0 16 16" class="bi bi-credit-card-2-back" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                                         <path fill-rule="evenodd" d="M14 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2z"/>
                                         <path d="M11 5.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1zM1 9h14v2H1V9z"/>
                                     </svg>
-                                </button>
+                                </button> -->
                             </div>
                     </div>
                     
@@ -557,7 +534,7 @@
                         </div>
 
                         <!-- SALES PAYMENTS DETAILS -->
-                        <div class="DetailsTable" id="salePay">
+                        <!-- <div class="DetailsTable" id="salePay">
                                 <h6 class="weight600 smallFont mt-3" id="payHead" >
                                     {% if useri.langSet == 0 %}Malipo ya Mauzo{% else %}Sales Payments{% endif %}
                                 </h6>
@@ -583,7 +560,7 @@
 
                                     </table>
                                 </div>     
-                        </div>
+                        </div> -->
                 </div>
 
                 <div id="MoreDetails" class="mt-4 DetailsTable" >

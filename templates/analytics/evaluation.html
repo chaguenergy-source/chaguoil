@@ -1,4 +1,3 @@
-
 {% extends 'index.html' %}
 {% load static %}
 {% block page_content %}
@@ -54,42 +53,45 @@
                  <div class="row" id="staxnFilter">
                       
                         <div class="form-group col-md-4">
-                            <div class="input-group " title="{% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}" >
-                               <span class="input-group-prepand rounded-left border py-1 px-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
-							     <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
-                                </svg>
-                            </span>
-                            
-                            <select class="custom-select bluePrint smallerFont filter" name="staxnF" id="staxnF">
-                                {% for st in staxns %}
-
-                                 {% if st.Interprise == shell and  not general %}
-                                   <option value='{{st.Interprise.id}}' selected>{{st.Interprise.name}}</option> 
-                                 {% else %}
-                                  <option value='{{st.Interprise.id}}' >{{st.Interprise.name}}</option> 
-                                 {% endif %}
-                     
-                                {% endfor %}
-
-                                {% if useri.ceo or useri.admin %}
-
-                                    {% if general %}
-                                        <option value=0 selected>{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option>  
-                                    {% else %}    
-                                        <option value=0 >{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option> 
-                                    {% endif %} 
-                                
-                                {% endif %}
-
-                            </select>
-                                <span type="button" onclick="$('#OtherFilterFilter').toggle(300)" class="input-group-append rounded-left d-md-none border py-1 px-2">
-                                 <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-down">
-                                    <polyline points="7 13 12 18 17 13">
-                                    </polyline><polyline points="7 6 12 11 17 6"></polyline>
+                            <!-- Add a label for accessibility -->
+                            <label for="staxnF" class="sr-only">
+                                {% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}
+                            </label>
+                            <div class="input-group" title="{% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}">
+                                <span class="input-group-prepand rounded-left border py-1 px-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
+                                        <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
                                     </svg>
-                            </span>
-                            </div>
+                                </span>
+                                <select class="custom-select bluePrint smallerFont filter" name="staxnF" id="staxnF">
+                                    {% for st in staxns %}
+
+                                     {% if st.Interprise == shell and  not general %}
+                                       <option value='{{st.Interprise.id}}' selected>{{st.Interprise.name}}</option> 
+                                     {% else %}
+                                      <option value='{{st.Interprise.id}}' >{{st.Interprise.name}}</option> 
+                                     {% endif %}
+                         
+                                    {% endfor %}
+
+                                    {% if useri.ceo or useri.admin %}
+
+                                        {% if general %}
+                                            <option value=0 selected>{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option>  
+                                        {% else %}    
+                                            <option value=0 >{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option> 
+                                        {% endif %} 
+                                    
+                                    {% endif %}
+
+                                </select>
+                                    <span type="button" onclick="$('#OtherFilterFilter').toggle(300)" class="input-group-append rounded-left d-md-none border py-1 px-2">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-down">
+                                        <polyline points="7 13 12 18 17 13">
+                                        </polyline><polyline points="7 6 12 11 17 6"></polyline>
+                                        </svg>
+                                </span>
+                                </div>
 
 
 

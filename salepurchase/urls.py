@@ -68,6 +68,8 @@ urlpatterns=[
         path('customerAttachments',views.customerAttachments, name='customerAttachments'),
         path('orderPayments',views.orderPayments, name='orderPayments'),
         path('ViewOrder',views.ViewOrder, name='ViewOrder'),
+        path('customerStatement',views.customerStatement, name='customerStatement'),
+        path('customerStatementData',views.customerStatementData, name='customerStatementData'),
      
 
 ]

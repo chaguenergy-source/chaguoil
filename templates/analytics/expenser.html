@@ -1,4 +1,3 @@
-
 {% extends 'index.html' %}
 {% load static %}
 {% block page_content %}
@@ -44,7 +43,7 @@
 <div class="table-data">
     <div class="analytical">
           <h6 class="weight600" > <span class="pr-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-filter">
+              <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather icon-svg feather-filter">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                 </svg>
           </span> {% if useri.langSet == 0 %}Kuchuja{% else %}Filter{% endif %}</h6>       
@@ -54,46 +53,40 @@
                  <div class="row" id="staxnFilter">
                       
                         <div class="form-group col-md-4">
-                            <div class="input-group " title="{% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}" >
-                               <span class="input-group-prepand rounded-left border py-1 px-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
-							     <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
-                                </svg>
-                            </span>
-                            
-                            <select class="custom-select bluePrint smallerFont filter" name="staxnF" id="staxnF">
-                                {% for st in staxns %}
-
-                                 {% if st.Interprise == shell and  not general %}
-                                   <option value='{{st.Interprise.id}}' selected>{{st.Interprise.name}}</option> 
-                                 {% else %}
-                                  <option value='{{st.Interprise.id}}' >{{st.Interprise.name}}</option> 
-                                 {% endif %}
-                     
-                                {% endfor %}
-
-                                {% if useri.ceo or useri.admin %}
-
-                                    {% if general %}
-                                        <option value=0 selected>{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option>  
-                                    {% else %}    
-                                        <option value=0 >{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option> 
-                                    {% endif %} 
-                                
-                                {% endif %}
-
-                            </select>
-                                <span type="button" onclick="$('#OtherFilterFilter').toggle(300)" class="input-group-append rounded-left d-md-none border py-1 px-2">
-                                 <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-down">
-                                    <polyline points="7 13 12 18 17 13">
-                                    </polyline><polyline points="7 6 12 11 17 6"></polyline>
+                            <!-- Accessible label for the select -->
+                            <label for="staxnF" class="sr-only">
+                                {% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}
+                            </label>
+                            <div class="input-group" title="{% if useri.langSet == 0 %}Kituo/Vituo{% else %}Stations{% endif %}">
+                                <span class="input-group-prepand rounded-left border py-1 px-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
+                                        <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
                                     </svg>
-                            </span>
+                                </span>
+                                
+                                <select class="custom-select bluePrint smallerFont filter" name="staxnF" id="staxnF">
+                                    {% for st in staxns %}
+                                        {% if st.Interprise == shell and  not general %}
+                                            <option value='{{st.Interprise.id}}' selected>{{st.Interprise.name}}</option> 
+                                        {% else %}
+                                            <option value='{{st.Interprise.id}}'>{{st.Interprise.name}}</option> 
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if useri.ceo or useri.admin %}
+                                        {% if general %}
+                                            <option value=0 selected>{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option>  
+                                        {% else %}    
+                                            <option value=0>{% if useri.langSet == 0 %}Vyote{% else %}All{% endif %}</option> 
+                                        {% endif %} 
+                                    {% endif %}
+                                </select>
+                                <span type="button" onclick="$('#OtherFilterFilter').toggle(300)" class="input-group-append rounded-left d-md-none border py-1 px-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-down">
+                                        <polyline points="7 13 12 18 17 13">
+                                        </polyline><polyline points="7 6 12 11 17 6"></polyline>
+                                        </svg>
+                                </span>
                             </div>
-
-
-
-
                         </div>    
 
                                          
@@ -218,7 +211,7 @@
                                             }
 
                                         
-                                        
+        
                                         " class="btn btn-secondary btn-sm latoFont smallerFont">
                                         {% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}
                                     </button>
@@ -379,8 +372,8 @@
                                 <!-- <button type="button" data-chart="cust" id="TankEvaluateBtn" class="btn border-secondary btn-sm riportOn " data-r="#TankEvaluate" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Mchanganuo Kwa Matanki ya Mafuta{% else %}Analysis and Evaluation By Tanks{% endif %}">
                                       <svg xmlns="http://www.w3.org/2000/svg" height="1.2em" viewBox="0 -960 960 960" width="1.2em" fill="currentColor">
                                            <path d="M160-120q-17 0-28.5-11.5T120-160q0-17 11.5-28.5T160-200h40v-240h-40q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h40v-240h-40q-17 0-28.5-11.5T120-800q0-17 11.5-28.5T160-840h640q17 0 28.5 11.5T840-800q0 17-11.5 28.5T800-760h-40v240h40q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440h-40v240h40q17 0 28.5 11.5T840-160q0 17-11.5 28.5T800-120H160Zm320-200q50 0 85-34.5t35-83.5q0-39-22.5-67T480-620q-75 86-97.5 114.5T360-438q0 49 35 83.5t85 34.5Z"/>
-                                        </svg>
-                                    </button> -->
+                                    </svg>
+                                </button> -->
 
                                 <button type="button" data-chart="st"  id="saleByAttBtn" class="btn border-secondary btn-sm riportOn " data-r="#stationEvaluate" data-riport="1" data-val="0" title="{% if useri.langSet == 0 %}Matumizi na Kituo{% else %}Expense By Station{% endif %}">
                                      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" style="fill: currentColor;">
@@ -553,4 +546,16 @@
 
 {% endblock %}
 {% block analytics %} active  {% endblock %}
+<style>
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+}
+</style>
 

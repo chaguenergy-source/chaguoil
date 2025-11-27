@@ -92,7 +92,7 @@ const init = Number($('#generalSaleR tr').length==0)
 
                 hide = !init && !show
 
-                // console.log({init,show,hide,check});
+               
 
         tr+=`<tr class="${r.id>3?'table-info':''}"  ${hide?'style="display:none"':''}   id="dataRow${r.id}" >
             <td> <a type="button" data-val=${r.id} class="bluePrint viewDetails" >${r.rname} </a> </td>
@@ -282,7 +282,7 @@ const detailReport = () =>{
         detSummaryTable({sale,saL})
         OverallTable({sale,saL})
         dateSaleTable({sale,saL})
-        salePay({pay,payRec,sale})
+        // salePay({pay,payRec,sale})
 
         $('#riportChatRist .btn-secondary').addClass('btn-light').removeClass('btn-secondary')
         $('#riportChatRist button').first().addClass('btn-secondary').removeClass('btn-light')
@@ -1050,84 +1050,85 @@ const OverallTable = d =>{
 
 }
 
-const salePay = d =>{
-        const {pay,sale} = d,
-        phd = lang('Malipo ya Mauzo','Sales Payments'),
-        custPay = pay.filter(c=>c.cust!=null),
-        totAmo = pay.reduce((a,b)=>a+Number(b.Amount),0),
-        custDue = Number(custPay[Number(custPay.length)-1]?.rem),
-        totDue = sale.reduce((a,b)=>a+Number(b.due),0),
+// const salePay = d =>{
+//         const {pay,sale} = d,
+//         phd = lang('Malipo ya Mauzo','Sales Payments'),
+//         custPay = pay.filter(c=>c.cust!=null),
+//         totAmo = pay.reduce((a,b)=>a+Number(b.Amount),0),
+//         custDue = Number(custPay[Number(custPay.length)-1]?.rem),
+//         totDue = sale.reduce((a,b)=>a+Number(b.due),0),
        
-        totreqAmo =  custDue+totAmo
+//         totreqAmo =  custDue+totAmo
         
        
 
- const  {st} = filters(),
+//  const  {st} = filters(),
         
-        acc = [0,1],
-        payb = acc.map(p=>custAttpay(p))
+//         acc = [0,1],
+//         payb = acc.map(p=>custAttpay(p))
 
-              function custAttpay(p){
+//               function custAttpay(p){
                    
-                   const payf = p?p=>p.cust!=null:p=>p.pAtt!=null,
-                        saleP = sale.filter(payf),
-                        paymt = pay.filter(payf),
-                         pAmo = paymt.reduce((a,b)=>a+Number(b.Amount),0),
-                         rem = Number(paymt[Number(paymt.length)-1]?.rem), 
-                         loss = saleP.reduce((a,b)=>a+Number(b.due),0),
+//                    const payf = p?p=>p.cust!=null:p=>p.pAtt!=null,
+//                         saleP = sale.filter(payf),
+//                         paymt = pay.filter(payf),
+//                          pAmo = paymt.reduce((a,b)=>a+Number(b.Amount),0),
+//                          rem = Number(paymt[Number(paymt.length)-1]?.rem), 
+//                          loss = saleP.reduce((a,b)=>a+Number(b.due),0),
                         
-                         reqAmo =   p?rem+pAmo:saleP.reduce((a,b)=>a+Number(b.amount),0),    
-                        dt = {
+//                          reqAmo =   p?rem+pAmo:saleP.reduce((a,b)=>a+Number(b.amount),0),    
+//                         dt = {
                             
-                            val:p,
-                            name:p?lang('Wateja','Customer'):lang('MWahusika wa Pampu','Pump Attendants'),
-                            amount:pAmo,
-                            payT:paymt.filter(pm=>!pm.saRec).length,
-                            reqAmo,
-                            rem,
-                            loss
+//                             val:p,
+//                             name:p?lang('Wateja','Customer'):lang('MWahusika wa Pampu','Pump Attendants'),
+//                             amount:pAmo,
+//                             payT:paymt.filter(pm=>!pm.saRec).length,
+//                             reqAmo,
+//                             rem,
+//                             loss
 
-                    }  
+//                     }  
                     
-                    return dt
-              }
+//                     return dt
+//               }
 
-        SAOBJ.push({name:'pay',title:lang(`Malipo ya mauzo kutoka Wahusika wa pampu na wateja Muhimu`,`Credit customer and pump attendats sales payments`),data:payb})      
+//         SAOBJ.push({name:'pay',title:lang(`Malipo ya mauzo kutoka Wahusika wa pampu na wateja Muhimu`,`Credit customer and pump attendats sales payments`),data:payb})      
 
-              let rw='', payTT = 0;
-              payb.forEach(p=>{
-                let payT = 0;
-                if(p.amount){payT=p.payT; payTT+=payT;}
-                 rw+=`<tr>
-                        <td><a type="button" class="bluePrint moreDetails" data-val=${p.val} data-hasamo=${p.amount}  data-pay=1 >${p.name}</a> </td>
-                        <td>${Number(payT).toLocaleString()}</td>
-                        <td>${Number(p.reqAmo).toLocaleString()}</td>
-                        <td>${Number(p.amount).toLocaleString()}</td>
-                        <td>${p.val?Number(p.rem).toLocaleString():'--'}</td>
-                        <td class="${p.loss<0?'green':p.loss>0?'brown':''}" >${Number(Math.abs(p.loss)).toLocaleString()}</td>
-                    </tr>`
-              })
+//               let rw='', payTT = 0;
+//               payb.forEach(p=>{
+//                 let payT = 0;
+//                 if(p.amount){payT=p.payT; payTT+=payT;}
+//                  rw+=`<tr>
+//                         <td><a type="button" class="bluePrint moreDetails" data-val=${p.val} data-hasamo=${p.amount}  data-pay=1 >${p.name}</a> </td>
+//                         <td>${Number(payT).toLocaleString()}</td>
+//                         <td>${Number(p.reqAmo).toLocaleString()}</td>
+//                         <td>${Number(p.amount).toLocaleString()}</td>
+//                         <td>${p.val?Number(p.rem).toLocaleString():'--'}</td>
+//                         <td class="${p.loss<0?'green':p.loss>0?'brown':''}" >${Number(Math.abs(p.loss)).toLocaleString()}</td>
+//                     </tr>`
+//               })
 
-              rw+=`
-                    <tr class="weight600 smallFont" >
-                        <td> ${lang('Jumla','Total')} </td>
-                        <td> ${payTT} </td>
-                        <td>${Number(totreqAmo).toLocaleString()}</td>
-                        <td>${Number(totAmo).toLocaleString()}</td>
-                        <td>${Number(custDue).toLocaleString()}</td>
-                        <td class="${totDue>0?'brown':totDue<0?'green':''}" >${Number(Math.abs(totDue)).toLocaleString()}</td>
-                    </tr>
-              `
-              $('#payHead').text(phd)
-              $('#paymntData').html(rw)
+//               rw+=`
+//                     <tr class="weight600 smallFont" >
+//                         <td> ${lang('Jumla','Total')} </td>
+//                         <td> ${payTT} </td>
+//                         <td>${Number(totreqAmo).toLocaleString()}</td>
+//                         <td>${Number(totAmo).toLocaleString()}</td>
+//                         <td>${Number(custDue).toLocaleString()}</td>
+//                         <td class="${totDue>0?'brown':totDue<0?'green':''}" >${Number(Math.abs(totDue)).toLocaleString()}</td>
+//                     </tr>
+//               `
+//               $('#payHead').text(phd)
+//               $('#paymntData').html(rw)
             
               
        
-}
+// }
 
 
 
 // More info....//
+
 $('body').on('click','.moreDetails',function(){
  const att = Number($(this).data('att')) || 0 ,
        cust = Number($(this).data('cust')) || 0 ,
@@ -1534,12 +1535,13 @@ const saleLCustomer = d =>{
                                 </div>
                                 
                                 `
-                // ListData = AttSa.map(sa=>mapList(sa))       
+                // ListData = AttSa.map(sa=>mapList(sa))     
+                const only_used_fuel = AttSaL.map(s=>s.theFuel_id)  
                 function  mapListDt(d){
 
                     const saLst = AttSaL.filter(a=>a.sale_id===d.id),
-                           atF = FUEL.map(f=>attendFuel(f))
-             
+                        //    atF = FUEL.map(f=>attendFuel(f))
+                        atF = FUEL.filter(f=>only_used_fuel.includes(f.fuel)).map(f=>attendFuel(f))
                     function  attendFuel(f){
                         
                         const fAtsaL = saLst.filter(a=>a.theFuel_id===f.fuel) ,
@@ -1570,13 +1572,15 @@ const saleLCustomer = d =>{
 
                 }  
 
+
+                  
             const  flter = st=>moment(st.date).format(formt),
             Stxns = [... new Set(AttSa.map(st=>flter(st)))],
                 StationData = (at) =>{
                 const ftr = a=>moment(a.date).format(formt)===at,
                         Atsa = AttSa.filter(a=>ftr(a)),
                     AtsaL = AttSaL.filter(a=>ftr(a)),
-                    atF = FUEL.map(f=>StaxnFuel(f))
+                    atF = FUEL.filter(f=>only_used_fuel.includes(f.fuel)).map(f=>StaxnFuel(f))
                     
                 function  StaxnFuel(f){
                     
@@ -1604,6 +1608,7 @@ const saleLCustomer = d =>{
                     fuel: atF,
                     //   st:Atsa[0].st,
                     cust:Atsa[0].cust,
+                   
                     sales,
                     payed,
                     due,
@@ -1621,7 +1626,8 @@ const saleLCustomer = d =>{
 
                     let fn = '',fr='',tr='',rcount = 0,totr=''
 
-    FUEL.forEach(fl=>{
+    
+    FUEL.filter(f=>only_used_fuel.includes(f.fuel)).forEach(fl=>{
         const fSales = AttSaL.filter(f=>f.theFuel_id===fl.fuel)
         fn+=`<td class="pl-1" colspan=3 >${fl.fname} </td>`
         fr+=`<td>${lang('Kiasi','Qty')}<span class="text-primary">LTRS</span></td>
@@ -1637,6 +1643,7 @@ const saleLCustomer = d =>{
         `      
     })
 
+   
     ListData.forEach(att=>{
         let frw = ''
         const prof = Number(att.payed) - Number(att.cost)
@@ -1662,7 +1669,7 @@ const saleLCustomer = d =>{
                         <td class="text-capitalize" > <a type="button" data-sa=${att.id} class="bluePrint viewSale" >INVO-${att.code}</a></td>         
                         <td class="text-capitalize" > <a type="button"  class="bluePrint viewSession" >${att.driver}</a></td>         
                         <td class="text-capitalize" > <a type="button"  class="bluePrint viewSession" >${att.vihecle}</a></td>         
-                        <td class="text-capitalize" > <a type="button" data-ses=${att.session_id} class="bluePrint viewSession" >${att.ses}</a></td>         
+                        <td class="text-capitalize" > <a type="button" data-ses=${att.by_id} class="bluePrint text-capitalize" >${att.byFn} ${att.byLn}</a></td>         
                     `:
                     `
                        <td class="text-capitalize" > <a type="button" data-format="${formt}" data-month="${att.name}" data-cust=${att.cust} data-date="${att.name}" class="bluePrint moreDetails" >${att.name}</a></td>         
@@ -1672,8 +1679,7 @@ const saleLCustomer = d =>{
 
                  ${frw} 
                 <td>${Number(att.totAmo).toLocaleString()}</td>         
-                <td>${Number(att.disc).toLocaleString()}</td>         
-                <td>${Number(att.sales).toLocaleString()}</td>         
+                      
                 <td>${Number(att.payed).toLocaleString()}</td> 
 
                         
@@ -1698,7 +1704,7 @@ const saleLCustomer = d =>{
                         <td class="pl-1" rowspan=2 >${lang('Ankara','Invoice')} </td>
                         <td class="pl-1" rowspan=2 >${lang('Jina la Deleva','Driver Name')} </td>
                         <td class="pl-1" rowspan=2 >${lang('Gari/Chombo','Vihecle')} </td>
-                        <td class="pl-1" rowspan=2 >${lang('Mpango Zamu','Session')} </td>                 
+                        <td class="pl-1" rowspan=2 >${lang('Na','By')} </td>                 
                         `:`
                         <td class="pl-1" rowspan=2 >${lang('Mwezi','Month')} </td>
                         <td class="pl-1" rowspan=2 >${lang('Ankara','Invoices')} </td>
@@ -1708,12 +1714,10 @@ const saleLCustomer = d =>{
                     ${fn}
 
                     <td class="pl-1" rowspan=2 >${lang(' Jumla','Total')}<span class="text-primary">${fedha}</span> </td>
-                    <td class="pl-1" rowspan=2 >${lang('Punguzo','Discount')} <span class="text-primary">${fedha}</span></td>
-
-                    <td class="pl-1" rowspan=2 >${lang('Inayolipwa','Payable')}<span class="text-primary">${fedha}</span> </td>
+              
                     
                     <td class="pl-1" rowspan=2 >${lang('Ilolipwa','Paid')} <span class="text-primary">${fedha}</span></td>
-                    <td class="pl-1" rowspan=2 >${lang('Deni','Outstanding')}<span class="text-primary">${fedha}</span> </td>
+                    <td class="pl-1" rowspan=2 >${lang('Deni','Debt')}<span class="text-primary">${fedha}</span> </td>
                   
                     </tr>
 
@@ -1732,8 +1736,7 @@ const saleLCustomer = d =>{
                                    
                                     ${totr}
                                      <td class="text-capitalize" >${Number(totSale).toLocaleString()}</td> 
-                                     <td class="text-capitalize" >${Number(disc).toLocaleString()}</td> 
-                                     <td class="text-capitalize" >${Number(Payable).toLocaleString()}</td> 
+                            
                                      <td class="text-capitalize" >${Number(totPay).toLocaleString()}</td> 
 
                                      <td class=" ${totBonus>0?'green':''} ${totBonus<0?'brown':'' } " >${Number(totBonus).toLocaleString()}</td>         
@@ -2201,12 +2204,12 @@ const paymentsView = d =>{
           payMnt = thePay.filter(payf),
           Tsale = theSale.filter(payf)
 
-          console.log({payMnt})
+         
    
     const    totAmo = payMnt.reduce((a,b)=>a+Number(b.Amount),0),
-        custDue = val?Number(payMnt[Number(payMnt.length)-1]?.rem):0,
-        totDue = Tsale.reduce((a,b)=>a+Number(b.due),0),
-        totreqAmo =  custDue+totAmo,
+            custDue = val?Number(payMnt[Number(payMnt.length)-1]?.rem):0,
+            totDue = Tsale.reduce((a,b)=>a+Number(b.due),0),
+            totreqAmo =  custDue+totAmo,
         
         invoAmo = Tsale.reduce((a,b)=>a+Number(b.amount),0),
         postDue = totreqAmo - invoAmo,
@@ -2824,7 +2827,7 @@ const custmPayList = d =>{
                                         return dt
                             }
 
-                            // console.log(tbData);
+                           
 
 
                             let  tr = ``
@@ -3064,7 +3067,6 @@ $('body').on('click','.riportListChatOn, .chartType',function(){
       }
      $('#MoredetailRHeading a').prop('hidden',chart)
 
-        // console.log({chart,inGeneral,VOBJ,thereIsfuel})    
         
 
 })

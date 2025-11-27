@@ -704,13 +704,19 @@ const moreDetails = () =>{
     $('#MoredetailRHeading span').html(VOBJ.title)
    
     //  create the table to display all the expenses in the VOBJ.data
-    const {data} = VOBJ
+    const {data} = VOBJ,
+        {st} = filters()
+        let filteredData = data;
+        if (st) {
+            filteredData = data.filter(e => e.st === st);
+        }
+    // console.log(filteredData);
     let tr = '' 
-    data.reverse().forEach((d,i)=>{
+    filteredData.reverse().forEach((d,i)=>{
         tr+=`<tr>
             <td>${i + 1}</td>
-            <td>${moment(d.tarehe).format('DD/MM/YYYY HH:mm')}</td>
-            <td>${d.stationName}</td>
+           
+            ${!st?`<td>${d.stationName}</td>`:''}
             <td>${d.expN}</td>
             <td>${d.maelezo}</td>
             <td>${d.givenTo}</td>
@@ -720,17 +726,17 @@ const moreDetails = () =>{
     })
 
     // add the total row below
-    const totalExp = Number(data.reduce((a,b)=>a+Number(b.kiasi),0))||0
+    const totalExp = Number(filteredData.reduce((a,b)=>a+Number(b.kiasi),0))||0
     tr+=`<tr class="table-info weight600">
-        <td colspan="7">${lang('Jumla','Total')}</td>
+        <td colspan="${st?5:6}">${lang('Jumla','Total')}</td>
         <td>${Number(totalExp.toFixed(2)).toLocaleString()}</td>
     </tr>`
     const table = `<table class="table table-bordered table-sm" >
                     <thead>
                         <tr class="smallFont">
                             <th>#</th>
-                            <th>${lang('Tarehe','Date')}</th>
-                            <th>${lang('Kituo','Station')}</th>
+                          
+                            ${!st?`<th>${lang('Kituo','Station')}</th>`:''}
                             <th>${lang('Matumizi','Expense')}</th>
                             <th>${lang('Maelezo','Description')}</th>
                             <th>${lang('Aliyekabidhiwa','Recipient')}</th>

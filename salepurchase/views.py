@@ -38,6 +38,7 @@ from django.conf import settings
 from account.todos import Todos,confirmMailF,invoCode,TCode
 from django.views.decorators.http import require_POST
 import json
+from django.utils.dateparse import parse_datetime
 def todoFunct(request):
   usr = Todos(request)
   return usr.todoF()
@@ -107,10 +108,11 @@ def ViewCustomer(request):
 
     cust = wateja.objects.get(Q(Interprise__company=kampuni)|Q(allEntp=True),pk=i)
 
-    saleAll = fuelSales.objects.filter(customer=cust.id,by__Interprise__company=kampuni).annotate(due=F('amount')-F('payed')).order_by('-pk')
+    saleAll = fuelSales.objects.filter(Q(date__gte=thisMonth)|Q(payed__lt=F('amount')),customer=cust.id,by__Interprise__company=kampuni).annotate(due=F('amount')-F('payed')).order_by('-pk')
     saleLst = saleList.objects.filter(sale__in=saleAll).order_by('theFuel')
     cdOrder =   creditDebtOrder.objects.filter(customer=cust.id,by__user__company=kampuni).annotate(
         balance=F('amount')-F('consumed'),
+        bal_deni = F('amount') - F('paid'),
         due=F('amount')-F('consumed'),credit=F('paid')-F('consumed')).order_by('pk')
     lastCd = cdOrder.last()
     hasLastCd = cdOrder.filter(due__gt=0).exists()
@@ -267,6 +269,7 @@ def orderPayments(request):
 
         orders = creditDebtOrder.objects.filter(customer=cust.id, by__user__company=kampuni).annotate(
             balance=F('amount')-F('consumed'),
+            bal_deni = F('amount') - F('paid'),
             credit=F('paid')-F('consumed'),
             deni = F('consumed') - F('paid')
         ).order_by('-pk')
@@ -352,6 +355,7 @@ def ViewOrder(request):
         # Get customer details
         customer = order.customer
         orders = creditDebtOrder.objects.filter(customer=customer.id, by__user__company=kampuni).annotate(
+            bal_deni = F('amount') - F('paid'),
             balance=F('amount')-F('consumed'),
             credit=F('paid')-F('consumed'),
             deni = F('consumed') - F('paid')
@@ -477,12 +481,12 @@ def ViewOrder(request):
                     
 
                     deni = 0 if paye >= (deni+float(theAmo)) else float(deni+float(theAmo))
-                    paye = paye - theAmo if paye >= deni else 0
+                    paye = paye - float(theAmo) if paye >= deni else 0
 
                     transactions_by_date.append({
                         'sale': sale,
                         'pay':None,
-                        'cr': round(paye,2) if paye > 0 else 0,
+                        'cr': round(paye,2) if float(round(paye,2) )> 0 else 0,
                         'dr': round(deni,2),
                         'balance': round(blc, 2)
                     })
@@ -493,16 +497,19 @@ def ViewOrder(request):
               
             if daily_payments.exists():
                 for pay in daily_payments:
+                    paye = float(float(paye) + float(pay.Amount))- deni
                     deni = 0 if deni==0 or float(pay.Amount) >= deni else float(deni - float(pay.Amount))
-                    paye = paye + pay.Amount
+                    
                     transactions_by_date.append({
                         'sale': None,
                         'pay':pay,
-                        'cr': round(paye,2) if paye > 0 else 0,
+                        'cr': round(paye,2) if float(round(paye,2)) > 0 else round(float(pay.Amount),2),
                         'dr': round(deni,2),
                         'balance': round(blc, 2)
                     })
+
                     
+                   
                     
 
         # Calculate totals for sales_fuel_summary
@@ -527,6 +534,24 @@ def ViewOrder(request):
         payment_percentage = (order.paid / order.amount * 100) if order.amount > 0 else 0
 
         payAfter = payment_records.exclude(pay__in=payments).distinct('pay') 
+        allPayments = []
+        for p in payments:
+            allPayments.append({
+                'payment': p,
+                'date': p.tarehe,
+                'type': 'prepayment'
+            })
+
+        for p in payAfter:
+            allPayments.append({
+                'payment': p.pay,
+                'date': p.pay.tarehe,
+                'type': 'payment'
+            })
+
+        # Sort by date in descending order
+        Allpaymnts = sorted(allPayments, key=lambda x: x['date'], reverse=False)
+
         
         custBalance = float(totD) - float(customer.debt_limit)
         todo.update({
@@ -536,6 +561,7 @@ def ViewOrder(request):
             'customer': customer,
             'sales_invoices': sales_invoices,
             'payments': payments,
+            'allPayments': Allpaymnts,
             'payment_records': payment_records.order_by('pk'),
             'payAfter':payAfter,
             'sales_fuel_summary': sales_fuel_summary,
@@ -591,7 +617,7 @@ def customerAttachments(request):
         # Get all attachments for this customer
         attach = attachments.objects.filter(cust=cust).order_by('-pk')
 
-        cdOrder =   creditDebtOrder.objects.filter(customer=cust.id,by__user__company=kampuni).annotate(due=F('amount')-F('consumed'),credit=F('paid')-F('consumed')).order_by('-pk')
+        cdOrder =   creditDebtOrder.objects.filter(customer=cust.id,by__user__company=kampuni).annotate(due=F('amount')-F('consumed'),bal_deni = F('amount') - F('paid'),credit=F('paid')-F('consumed')).order_by('-pk')
         lastCd = cdOrder.first()
         totD = fuelSales.objects.filter(
             customer=cust,
@@ -621,6 +647,277 @@ def customerAttachments(request):
         return render(request, 'custattach.html', todo)
     except:
         return render(request, 'pagenotFound.html')
+
+        
+
+@login_required(login_url='login')
+def customerStatement(request):
+    try:
+        cust_id = int(request.GET.get('cust', 0))
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        general = todo['general']
+        useri = todo['useri']
+
+
+
+        cust = wateja.objects.get(pk=cust_id, Interprise__company=kampuni) 
+        todo.update({
+            'isCustomer': True,
+            'isCustomerStatement': True,
+            'cust': cust,
+        })
+
+        stxns = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni.id).distinct('by__Interprise')
+        todo.update({
+            'stations': stxns,
+        })
+
+        return render(request, 'customer_statement.html', todo)
+
+    except:
+        todo = todoFunct(request)
+        return render(request, 'pagenotFound.html', todo)  
+      
+
+
+@login_required(login_url='login')
+def customerStatementData(request):
+    """Return JSON data for customer statement.
+    Expects POST params: cust, dur, from, to, station
+    """
+    try:
+        cust_id = int(request.POST.get('cust', 0))
+        dur = request.POST.get('dur', 'this_month')
+        tFr = request.POST.get('tFr', '')
+        tTo = request.POST.get('tTo', '')
+        station = int(request.POST.get('station', 0) or 0)
+
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        general = todo['general']
+        useri = todo['useri']
+        cust = wateja.objects.get(pk=cust_id, Interprise__company=kampuni)
+
+        # determine date range
+     
+
+        # sales for customer in range
+        sales_qs = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__gte=tFr, recDate__lte=tTo).order_by('pk')
+        payments_qs = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__gte=tFr, tarehe__lte=tTo).order_by('pk')
+        lastPay  = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__lt=tFr).order_by('pk').last()
+      
+        invo_payed = CustmDebtPayRec.objects.filter(pay = lastPay,sale__recDate__lt=tFr).order_by('pk')
+        opening_balance = float(lastPay.Amount if lastPay else 0)
+        opening_balance -= float(invo_payed.aggregate(total=Sum('Apay'))['total'] or 0)
+        last_payed_invo = invo_payed.last() if invo_payed.exists() else None
+        # print('start', opening_balance)
+
+        if last_payed_invo:
+            rem_debt = last_payed_invo.Debt - last_payed_invo.Apay
+            opening_balance -= float(rem_debt)
+            invo_payed_sales = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__lt=tFr, pk__gt=last_payed_invo.sale.pk)
+            total_invo_amo = float(invo_payed_sales.aggregate(total=Sum('amount'))['total'] or 0)
+            opening_balance -= total_invo_amo
+            # print('after invo', opening_balance)
+
+
+            
+            cdorder_obj = last_payed_invo.sale.cdorder
+            if cdorder_obj:
+                # Safely get the cdorder date (may be None)
+
+                allInvo_before_tFr = fuelSales.objects.filter(cdorder=cdorder_obj, recDate__lt=tFr)
+                firstInvo = allInvo_before_tFr.order_by('pk').first()
+                cd_date = getattr(cdorder_obj, 'date', None)
+                # Build Q only with non-None values to avoid ValueError
+                # print(cd_date,firstInvo.recDate if firstInvo else None)
+                q = Q(cdOrder=cdorder_obj)                
+                if cd_date is not None:
+                    q |= Q(tarehe__gt=cd_date, customer=cust)
+                else:
+                    if firstInvo:
+                        q |= Q(tarehe__gt=firstInvo.recDate, customer=cust)
+
+                tot_pay_cd = wekaCash.objects.filter(q, tarehe__lt=tFr).aggregate(total=Sum('Amount'))['total'] or 0
+                opening_balance = float(tot_pay_cd)
+                
+                
+                
+                total_invo_cd_amo = float(allInvo_before_tFr.aggregate(total=Sum('amount'))['total'] or 0)
+                opening_balance -= total_invo_cd_amo
+                # print('after cdorder', opening_balance)
+            # else:
+            #     # No cdorder linked; sum payments for the customer before tFr only
+            #     tot_pay_cd = wekaCash.objects.filter(customer=cust, tarehe__lt=tFr).aggregate(total=Sum('Amount'))['total'] or 0
+            #     opening_balance = float(tot_pay_cd)
+              
+            #     # No cdorder-related invoices to subtract
+            #     allInvo_before_tFr = fuelSales.objects.none()
+            #     print('after no cdorder', opening_balance)
+                
+          
+        # fuel summary: group by fuel type using saleList
+        fuel_summary = []
+        sale_items = saleList.objects.filter(sale__in=sales_qs)
+        fuelSummaryData = sale_items if not station else sale_items.filter(sale__by__Interprise__pk=station)
+        fuel_agg = fuelSummaryData.values('theFuel__name').annotate(total_qty=Sum('qty_sold'), total_amount=Sum(F('qty_sold') * F('sa_price')))
+        for fa in fuel_agg:
+            fuel_summary.append({
+                'fuel': fa.get('theFuel__name'),
+                'qty': float(fa.get('total_qty') or 0),
+                'amount': float(fa.get('total_amount') or 0),
+                'avg_price': float(fa.get('total_amount') or 0) / float(fa.get('total_qty') or 1)
+            })
+
+        # payments summary grouped by date and account
+        payments_summary = []
+        
+        for p in payments_qs:
+           
+            acct = p.Akaunt.Akaunt_name if p.Akaunt else '' 
+           
+            payments_summary.append({
+                'date': p.tarehe,
+                'account': acct,
+                'amount': float(getattr(p, 'Amount', 0) or 0)
+            })
+
+        # transactions ledger: combine sales and payments sorted by date
+        txs = []
+        for s in sale_items:
+            # compute qty and amount for this sale
+            # items = saleList.objects.filter(sale=s)
+            # qty = items.aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
+            # amount = float(getattr(s, 'amount', 0) or 0)
+            txs.append({
+                'st': s.sale.by.Interprise.pk,
+                'pay':False,
+                'use':True,
+                'opening':False,
+                'date': s.sale.date,
+                'type':'Tumia' if useri.langSet == 0 else 'Use',
+                'station': str(getattr(s.sale.by, 'Interprise', '') or ''),
+                'details': f'INVO-{s.sale.code}',
+                'driver': getattr(s.sale, 'driver', '') or '',
+                'vehicle': getattr(s.sale, 'vihecle', '') or '',
+                'recorded_by':f'{s.sale.by.user.user.first_name} {s.sale.by.user.user.last_name}',
+                'fuel_price': float(s.sa_price),
+                'qty': float(s.qty_sold),
+                'amount': float(s.qty_sold*s.sa_price),
+                'fuelN':s.theFuel.name
+            })
+
+        for p in payments_qs:
+            txs.append({
+                'st': p.Interprise.pk,
+                'pay':True,
+                'use':False,
+                'opening':False,
+                'date': p.tarehe,
+                'type': 'LipA' if useri.langSet == 0 else 'Pay',
+                'station': str(getattr(p, 'Interprise', '')) or '',
+                'details': p.Akaunt.Akaunt_name if p.Akaunt else '',
+                'driver': '',
+                'vehicle': '',
+                'recorded_by': f'{p.by.user.first_name} {p.by.user.last_name}',
+                'fuel_price': 0,
+                'qty': 0,
+                'amount': float(getattr(p, 'Amount', 0) or 0),
+                'fuelN':''
+            })
+
+          
+        if opening_balance != 0:
+            date_val = parse_datetime(tFr) if isinstance(tFr, str) else tFr
+            if date_val is None and isinstance(tFr, str):
+                try:
+                    date_val = datetime.datetime.fromisoformat(tFr)
+                except Exception:
+                    date_val = tFr
+
+            txs.append({
+                'st': 0,
+                'pay': False,
+                'use': False,
+                'opening': True,
+                'date': date_val,
+                'type': 'Kianzio' if useri.langSet == 0 else 'Opening',
+                'station': '',
+                'details': '',
+                'driver': '',
+                'vehicle': '',
+                'recorded_by': '',
+                'fuel_price': 0,
+                'qty': 0,
+                'amount': opening_balance,
+                'fuelN': ''
+            })  
+
+
+        txs_sorted = sorted(txs, key=lambda x: x.get('date'))
+
+        # running balance (credit reduces balance)
+        # print(opening_balance)
+        credit = opening_balance
+        transactions = []
+        running = abs(credit) if credit < 0 else 0
+        
+        running =(running - credit) if credit > 0 else running
+
+        
+        for t in txs_sorted:
+            amt = float(t.get('amount') or 0)
+            if t.get('use'):
+                running += amt
+                credit -= amt
+                
+            if t.get('pay'):
+                running -= amt
+                credit += amt
+            
+            debt = running if running > 0 else 0.0
+            
+            transactions.append({
+                'st': t.get('st'),
+                'pay': t.get('pay'),
+                'use': t.get('use'),
+                'opening': t.get('opening'),
+                'date': t.get('date'),
+                'type': t.get('type'),
+                'station': t.get('station'),
+                'details': t.get('details'),
+                'driver': t.get('driver'),
+                'vehicle': t.get('vehicle'),
+                'recorded_by': t.get('recorded_by'),
+                'fuel_price': t.get('fuel_price'),
+                'qty': t.get('qty'),
+                'amount': amt,
+                'credit': credit if credit > 0 else 0.0,
+                'debt': debt,
+                'fuelN':t.get('fuelN'),
+            })
+
+        kituo = 'Vyote' if useri.langSet == 0 else 'All Stations'
+        if station:
+            st_obj = Interprise.objects.get(pk=station,company=kampuni)
+            kituo = str(st_obj.name)
+
+         # prepare final data    
+
+        data = {
+            'success': True,
+            'kituo': kituo,
+            'fuel_summary': fuel_summary,
+            'payments_summary': payments_summary,
+            'transactions': transactions,
+        }
+
+        return JsonResponse(data, safe=True)
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
 
 @login_required(login_url='login')
 def LimitOrderSet(request):
@@ -747,6 +1044,7 @@ def save_credit_order(request):
                     payRec.Amount = paid
                     payRec.Akaunt = acc
                     payRec.before = accAmo
+                    payRec.customer = customer
                     if NewOda:
                         payRec.After = float(float(accAmo) + float(paid))
                     else:
@@ -2831,30 +3129,46 @@ def  lipaInvo(request):
                   cheo = todo['cheo']
                   shell = cheo.Interprise
                   kampuni = todo['kampuni']
-
+                  useri = todo['useri']
                   acc = PaymentAkaunts.objects.get(pk=ac,Interprise=shell.id)
+                  if not (useri.admin or manager):
+                        data = {
+                            'pay':True,  
+                            'success':False,
+                            'msg_swa' : 'Huna ruhusa ya kufanya malipo ya ankara tafadhari wasiliana na uongozi' ,
+                            'msg_eng' : 'You have no permission to make invoice payment please contact admin',
+                      }
+                        return JsonResponse(data)
 
                   ilolipwa = 0
                   malipo = 0
                   kiasi = 0
                   bill = None 
                   cust = None
+                  custOder = None
+                  order_due = 0
+                  total_deni = 0
 
                   if pall:
                      cust = wateja.objects.get(pk=value,Interprise__company=kampuni.id)
                      bill = fuelSales.objects.filter(customer=cust,payed__lt=F('amount'))
-              
+                     total_deni = float(bill.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'] or 0)
+
+                     custOders = creditDebtOrder.objects.filter(customer=cust,paid__lt=F('amount')).order_by('-pk')
+                     custOder = custOders.first() if custOders.exists() else None
+                     order_due = float(custOder.amount - custOder.paid) if custOder is not None else 0
+
                      kutoka = cust.jina
-                     ilolipwa = float(bill.aggregate(lipwa=Sum('payed'))['lipwa'])
+                     ilolipwa = float(bill.aggregate(lipwa=Sum('payed'))['lipwa'] or 0)
                      malipo = float(paid_amo+ilolipwa) 
-                     kiasi = float(bill.aggregate(kiasi=Sum('amount'))['kiasi'])
+                     kiasi = float(bill.aggregate(kiasi=Sum('amount'))['kiasi'] or 0)
                   else:    
                         
                         bill = fuelSales.objects.get(by__Interprise=shell,pk=value)
                         ilolipwa = float(bill.payed)
                         malipo =   float(paid_amo+ilolipwa) 
                         kiasi = float(bill.amount) 
-                        kutoka = bill.theFuel.name+" Sales"
+                        kutoka =f"INVO-{bill.code} Sales"
                         
                   manager = todo['manager']
                   useri = todo['useri']
@@ -2867,93 +3181,81 @@ def  lipaInvo(request):
                         'msg_eng' : 'Invoice Payment recorded succefully',
                   }
             
-                  if  useri.admin or manager:
-                  
-                        if malipo <= kiasi and malipo>0:
-                            #   bill.akaunt = PaymentAkaunts.objects.get(pk=ac,Interprise=duka.Interprise.id)   
-
-                            #   if  malipo != float(bill.amount):
-                            #         bill.due_date = pay_d
-                              lipwaAmo = paid_amo
-
-                              wekakwa= acc
-                              beforweka=float(wekakwa.Amount)    
-                              weka = wekaCash()
-                              weka.Akaunt = wekakwa
-                              weka.Amount = float(lipwaAmo)
-                              weka.before = beforweka               
-                              weka.After = float(beforweka + lipwaAmo) 
-                              weka.kutoka = kutoka
-                              weka.maelezo = desc
-                              weka.tarehe = datetime.datetime.now(tz=timezone.utc)
-                              weka.by=useri
-                              weka.Interprise=shell
-                              weka.mauzo=True
-                              weka.tInvo = len(bill)
-                              weka.tDebt = float(bill.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'])
-                            #   if pall:
-                              weka.customer = cust
-                            #   else:
-                            #     weka.sales = bill
-                              if not wekakwa.onesha:
-                                    weka.usiri =True               
-                              wekakwa.Amount = float(beforweka + lipwaAmo)   
-                              wekakwa.save()              
-                              weka.save()
-
-                              if not pall: 
-                                bill.payed = malipo
-                                bill.save()
-                              else:
-                                  for b in bill.order_by('pk'):
-                                      if paid_amo > 0:  
-                                        deni = float(b.amount - b.payed)
-                                        lipwa = float(b.payed)
-                                        theP = paid_amo
-                                        if deni < paid_amo:
-                                            b.payed = float(lipwa + deni)
-                                            paid_amo = paid_amo - deni
-                                            theP = deni
-                                        else:
-                                            b.payed = float(lipwa + paid_amo)
-                                            paid_amo = 0  
-                                            exit  
-                                        b.save()
-
-                                        if b.cdorder is not None:
-                                            cdOd = b.cdorder
-                                            cdOd.paid = float(float(cdOd.paid)+float(theP))
-                                            cdOd.save()
-
-                                        custP = CustmDebtPayRec()  
-                                        custP.sale = b
-                                        custP.pay = weka   
-                                        custP.Debt =  deni 
-                                        custP.Apay =  float(theP)
-                                        custP.save()
-                                          
-                                        
+                  prepaid_order = total_deni < paid_amo and order_due > 0
+                  print(prepaid_order,total_deni, paid_amo, order_due)
+                  weka = wekaCash()
+                  if (malipo <= kiasi and malipo>0) or prepaid_order: 
+                        lipwaAmo = paid_amo
+                        wekakwa= acc
+                        beforweka=float(wekakwa.Amount)    
+                        
+                        weka.Akaunt = wekakwa
+                        weka.Amount = float(lipwaAmo)
+                        weka.before = beforweka               
+                        weka.After = float(beforweka + lipwaAmo) 
+                        weka.kutoka = kutoka
+                        weka.maelezo = desc
+                        weka.tarehe = datetime.datetime.now(tz=timezone.utc)
+                        weka.by=useri
+                        weka.Interprise=shell
+                        weka.mauzo=True
+                        weka.tInvo = len(bill)
+                        weka.tDebt = float(bill.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'] or 0)
+                        weka.customer = cust
+                        if prepaid_order:
+                            weka.cdOrder = custOder
+                            custOder.paid = float(float(custOder.paid) + paid_amo) if order_due <= paid_amo else float(custOder.amount)
+                            custOder.prepaid_order = True if order_due <= paid_amo else False
+                            custOder.save()
+                        if not wekakwa.onesha:
+                            weka.usiri =True               
+                        wekakwa.Amount = float(beforweka + lipwaAmo)   
+                        wekakwa.save()              
+                        weka.save()
 
 
 
-                            #   acc.Amount = float(float(acc.Amount)+lipwaAmo)
-                            #   acc.save()
-                              
+                        if not pall: 
+                            bill.payed = malipo
+                            bill.save()
                         else:
+                            for b in bill.order_by('pk') if bill.exists() else []:
+                                if paid_amo > 0:  
+                                    deni = float(b.amount - b.payed)
+                                    lipwa = float(b.payed)
+                                    theP = paid_amo
+                                    if deni < paid_amo:
+                                        b.payed = float(lipwa + deni)
+                                        paid_amo = paid_amo - deni
+                                        theP = deni
+                                    else:
+                                        b.payed = float(lipwa + paid_amo)
+                                        paid_amo = 0  
+                                        exit  
+                                    b.save()
+
+                                    if b.cdorder is not None:
+                                        cdOd = b.cdorder
+                                        cdOd.paid = float(float(cdOd.paid)+float(theP))
+                                        cdOd.save()
+
+                                    custP = CustmDebtPayRec()  
+                                    custP.sale = b
+                                    custP.pay = weka   
+                                    custP.Debt =  deni 
+                                    custP.Apay =  float(theP)
+                                    custP.save()
+                                    
+
+                        
+                  else:
                               after={
                                     'pay':True,  
                                     'success':False,
                                     'msg_swa' : 'Data za Malipo ya ankara hazijafanikiwa  kutokana na kiasi kinacholipwa kuzidi kiasi halisi cha ankara' ,
                                     'msg_eng' : 'Invoice Payment was not recorded, because the paid amount exceeds the invoice amount',
                               }     
-                  else:
-                        after={
-                                    'pay':True,  
-                                    'success':False,
-                                    'msg_swa' : 'Data za Malipo ya ankara hazijafanikiwa  kutokana na akaunti ya malipo kutokutambulika tafadhari jaribu tena kwa usahihi' ,
-                                    'msg_eng' : 'Invoice Payment was not recorded, because The selected payment account does not exists please again to submit payment correctly',
-                              }
-                  return JsonResponse(after)    
+                  return JsonResponse(after)
             except:
                   data={
                          

@@ -70,6 +70,8 @@ def getsaler(request):
                                                                                                              pAtt_lname=F('shiftBy__by__user__last_name'),
                                                                                                              st=F('by__Interprise'),
                                                                                                              stName=F('by__Interprise__name'),
+                                                                                                             byFn=F('by__user__user__first_name'),
+                                                                                                             byLn=F('by__user__user__last_name')
                                                                                                             )
       
       sL = saleList.objects.filter(sale__date__gte=tFr,sale__date__lte=tTo,sale__by__Interprise__company=kampuni).annotate(ses=F('sale__session__session__name'),
@@ -414,7 +416,8 @@ def homePageData(request):
 
       Debtors = fuelSales.objects.filter(
         by__Interprise__company=kampuni,
-        payed__lt=F('amount')
+        payed__lt=F('amount'),
+        customer__isnull=False
       ).annotate(due=F('amount') - F('payed'))
 
       if not general:
