@@ -3118,8 +3118,7 @@ def  lipaInvo(request):
                   ac=int(request.POST.get('ac'))
                   pall=int(request.POST.get('all',0))
                   isCredit = int(request.POST.get('isCredit',0))
-                  manager = todo['manager']
-                  useri = todo['useri']
+                
 
                   paid_amo = float(request.POST.get('pay_amo'))  
                   pay_d = request.POST.get('date')
@@ -3127,6 +3126,8 @@ def  lipaInvo(request):
                   
                   kutoka = ''
                   todo = todoFunct(request)
+                  manager = todo['manager']
+                  useri = todo['useri']
                   cheo = todo['cheo']
                   shell = cheo.Interprise
                   kampuni = todo['kampuni']
