@@ -30,7 +30,7 @@ ALLOWED_HOSTS = ['*','34.61.173.58']
 # =======================================================
 
 GS_BUCKET_NAME = 'chagufilling'
-GS_FILE_OVERWRITE = False
+GS_FILE_OVERWRITE = True
 GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
 

@@ -3245,7 +3245,7 @@ def  lipaInvo(request):
                                         exit  
                                     b.save()
 
-                                    if b.cdorder is not None:
+                                    if b.cdorder is not None and not prepaid_order:
                                         cdOd = b.cdorder
                                         cdOd.paid = float(float(cdOd.paid)+float(theP))
                                         cdOd.save()

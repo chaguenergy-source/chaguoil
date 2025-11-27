@@ -249,10 +249,11 @@ document.addEventListener('DOMContentLoaded', function(){
         <td class="text-right">${r.use?escapeHtml(r.fuelN||''):'----'}</td>
         <td class="text-right">${r.use?formatNumber(r.fuel_price||0):'-----'}</td>
         <td class="text-right">${r.use?formatNumber(r.qty||0):'-----'}</td>
-        <td class="text-right">${formatNumber(r.amount||0)}</td>
-        <td class="text-right">${formatNumber(r.credit||0)}</td>
+
+        <td class="text-right">${(r.use||r.amount<=0)?formatNumber(r.amount||0):'-----'}</td>
+        <td class="text-right">${(!r.use)&&r.amount>0?formatNumber(r.amount||0):'-----'}</td>
       
-        <td class="text-right">${formatNumber(r.debt||0)}</td>
+        <td class="text-right">${Number(r.debt).toFixed(2)>0?'-': ''}${formatNumber(r.debt>0?r.debt:r.credit||0)}</td>
       `;
       tbody.appendChild(tr);
     });
