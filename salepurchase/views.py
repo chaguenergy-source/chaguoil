@@ -3266,8 +3266,8 @@ def  lipaInvo(request):
                                     'msg_eng' : 'Invoice Payment was not recorded, because the paid amount exceeds the invoice amount',
                               }     
                   return JsonResponse(after)
-            except:
-                #   print('error in payment',err)
+            except Exception as err:
+                  print('error in payment',err)
                   data={
                          
                                     'success':False,
