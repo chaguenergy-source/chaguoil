@@ -170,32 +170,43 @@
           <div id="TheReportData">
             <div id="statementResults">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-6 ">
                     <h6 class="section-title">{% if useri.langSet == 0 %}Muhtasari wa Matumizi ya Mafuta{% else %}Fuel Consumption Summary{% endif %}</h6>
-                  
-                    <table class="table table-sm table-striped" id="fuelSummaryTable">
-                        <thead>
-                            <tr>
-                                <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
-                                <th class="text-right">{% if useri.langSet == 0 %}Bei {% else %}Price{% endif %}</th>
-                                <th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %}</th>
-                                <th class="text-right">{% if useri.langSet == 0 %}Thamani{% else %}Amount{% endif %}</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                  <div class="table-responsive card px-2">
+                        <table class="table table-sm table-striped" id="fuelSummaryTable">
+                            <thead>
+                                <tr>
+                                    <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                                    <th class="text-right">{% if useri.langSet == 0 %}Bei {% else %}Price{% endif %}</th>
+                                    <th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %}</th>
+                                    <th class="text-right">{% if useri.langSet == 0 %}Thamani{% else %}Amount{% endif %}</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>                    
+                  </div>
+
                 </div>
                 <div class="col-md-6">
-                    <h6 class="section-title">{% if useri.langSet == 0 %}Malipo kwa Tarehe na Akaunti{% else %}Payments by Date and Account{% endif %}</h6>
-                    <table class="table table-sm table-striped" id="paymentsSummaryTable">
-                        <thead>
-                            <tr><th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th><th>{% if useri.langSet == 0 %}Akaunti{% else %}Account{% endif %}</th><th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}</th></tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <h6 class="section-title">{% if useri.langSet == 0 %}Malipo kwa Ujumla{% else %}Payments{% endif %}</h6>
+                   
+                    <div class="card p-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{% if useri.langSet == 0 %}Malipo Yote{% else %}Total Paid{% endif %}</strong>
+                                <div class="small text-muted">{% if useri.langSet == 0 %}Jumla ya malipo yaliyofanywa{% else %}Sum of all payments made{% endif %}</div>
+                            </div>
+                            <div class="h4 m-0 text-success">
+                                <span id="totalPaidAmount">0.00</span>
+                                <span class="text-primary">{{currencii}}</span>
+                            </div>
+                        </div>
+
+                      
+                    </div>
                 </div>
 
-                <div class="col-md-12">
+                <div class="col-md-12 mt-3">
                     <h6 class="section-title">{% if useri.langSet == 0 %}Deni/Salio{% else %}Debt/Balance{% endif %}</h6>
                     <div class="alert alert-info" id="deni_au_balance" >
                         <strong>{% if useri.langSet == 0 %}Salio/Deni:{% else %}Debt/Balance:{% endif %}</strong>

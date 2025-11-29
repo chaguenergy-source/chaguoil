@@ -465,10 +465,26 @@ def ViewOrder(request):
         blc = order.amount
         deni = float(0)
         transactions_by_date = []
+        prevOdaPay = CustmDebtPayRec.objects.filter(Q(pay__cdOrder=order)|Q(pay__tarehe__gte=order.date),sale__customer=customer).exclude(sale__cdorder=order).order_by('pk')
+        paidDebt = float(prevOdaPay.aggregate(total=Sum('Apay'))['total'] or 0)
+        deni = paidDebt
+
+        # print(paidDebt)
+        if deni > 0:
+            transactions_by_date.append({
+                'date': order.date,
+                'sale': None,
+                'pay': None,
+                'cr': 0,
+                'dr': round(deni,2),
+                'balance': round(0, 2)
+            })
+
         for trans_date in unique_dates:
             # Add sales invoices for this date
             daily_sales = fuel_sold.filter(sale__date = trans_date )
             daily_payments = wekaCash.objects.filter(Q(customer=customer)|Q(cdOrder=order), tarehe = trans_date)
+            
 
 
             if daily_sales.exists():
@@ -480,10 +496,11 @@ def ViewOrder(request):
                     
                     
 
-                    deni = 0 if paye >= (deni+float(theAmo)) else float(deni+float(theAmo))
+                    deni = 0 if paye >= (deni+float(theAmo)) else float(deni+float(theAmo)- float(paye))
                     paye = paye - float(theAmo) if paye >= deni else 0
 
                     transactions_by_date.append({
+                        'date':None,
                         'sale': sale,
                         'pay':None,
                         'cr': round(paye,2) if float(round(paye,2) )> 0 else 0,
@@ -501,6 +518,7 @@ def ViewOrder(request):
                     deni = 0 if deni==0 or float(pay.Amount) >= deni else float(deni - float(pay.Amount))
                     
                     transactions_by_date.append({
+                        'date':None,
                         'sale': None,
                         'pay':pay,
                         'cr': round(paye,2) if float(round(paye,2)) > 0 else round(float(pay.Amount),2),
@@ -964,7 +982,7 @@ def LimitOrderSet(request):
 @login_required(login_url='login')
 def save_credit_order(request):
     if request.method == "POST":
-        try:
+        # try:
             todo = todoFunct(request)
             useri = todo['useri']
             manager = todo['manager']
@@ -1007,11 +1025,15 @@ def save_credit_order(request):
                     order.code = TCode({'code': new_code, 'shell': customer.id})
                     order.save()
                     order.date = datetime.datetime.now(tz=timezone.utc)
+                    other_consume = consume.filter(~Q(cdorder=None)).aggregate(sumi=Sum('deni'))['sumi'] or 0
+                    if float(other_consume) > float(0):
+                        order.paid = float(float(paid) - float(other_consume)) if float(float(paid) - float(other_consume)) > 0 else 0
 
-                    if consume.exists():
+                    if consume.filter(cdorder=None).exists():
                         deni = consume.aggregate(sumi=Sum('deni'))['sumi'] or 0
                         if float(deni) > float(order.amount):
                            order.amount = float(deni)
+                           
                         order.consumed = deni
                     order.save()
 
@@ -1069,7 +1091,12 @@ def save_credit_order(request):
                                     b.payed = float(lipwa + paid_amo)
                                     paid_amo = 0  
                                     exit 
-                                b.cdorder = order     
+                                if b.cdorder is None:    
+                                    b.cdorder = order
+                                else:
+                                    updatePayed = b.cdorder
+                                    updatePayed.paid = float(float(updatePayed.paid) + float(theP))    
+                                    updatePayed.save()    
                                 b.save()
 
                                 # if b.cdorder is not None:
@@ -1119,13 +1146,13 @@ def save_credit_order(request):
                     'eng': 'You have no permission for this action'
                 }
             return JsonResponse(data)
-        except Exception:
-            data = {
-                'success': False,
-                'swa': 'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena baadaye',
-                'eng': 'The action was unsuccessfully please try again later'
-            }
-            return JsonResponse(data)
+        # except Exception:
+        #     data = {
+        #         'success': False,
+        #         'swa': 'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena baadaye',
+        #         'eng': 'The action was unsuccessfully please try again later'
+        #     }
+        #     return JsonResponse(data)
     else:
         return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
 
@@ -1410,7 +1437,6 @@ def saveReceive(request):
         return JsonResponse(data)
 
 
-
 @login_required(login_url='login')
 def fuelsales(request):
     if request.method == "POST":
@@ -1544,16 +1570,18 @@ def fuelsales(request):
                 if cdOrder.exists():
                     
                     if float(lcdorder.amount) < float(float(lcdorder.consumed)+float(amo)):
-                        fuelSales.objects.filter(pk=sale.id).delete()
-                        data = {
-                            'success':False,
-                            'msg_swa':'Kiasi cha mafuta kimezidi kiwango cha ukomo kilichowekwa',
-                            'msg_eng':'the fuel amount exceeds the order limit set for customer'
-                        }
+                        lcdorder.amount = float(float(lcdorder.consumed) + float(amo))
+                        lcdorder.save()
+                        custm.limited_order = False
+                        custm.save()
+                        # fuelSales.objects.filter(pk=sale.id).delete()
+                        # data = {
+                        #     'success':False,
+                        #     'msg_swa':'Kiasi cha mafuta kimezidi kiwango cha ukomo kilichowekwa',
+                        #     'msg_eng':'the fuel amount exceeds the order limit set for customer'
+                        # }
 
-                        return JsonResponse(data)
-
-
+                        # return JsonResponse(data)
 
 
                     if lcdorder.paid > lcdorder.consumed:
@@ -3129,10 +3157,11 @@ def  lipaInvo(request):
                   manager = todo['manager']
                   useri = todo['useri']
                   cheo = todo['cheo']
-                  shell = cheo.Interprise
+                #   shell = cheo.Interprise
                   kampuni = todo['kampuni']
                  
                   acc = PaymentAkaunts.objects.get(pk=ac,Interprise__company=kampuni)
+                  shell = acc.Interprise
                   if not (useri.admin or acc.aina=='Cash'):
 
                     data = {

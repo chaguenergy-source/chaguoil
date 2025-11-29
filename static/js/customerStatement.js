@@ -196,28 +196,10 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   function renderPaymentsSummary(rows){
-    const tbody = document.querySelector('#paymentsSummaryTable tbody');
-    tbody.innerHTML = '';
-    if(rows.length === 0){
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="3">No payments data</td>`;
-      tbody.appendChild(tr);
-      return;
-    }
-    rows.forEach(r => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${moment(r.date).format('DD/MM/YYYY')}</td><td>${escapeHtml(r.account||r.acc||'')}</td><td class="text-right">${formatNumber(r.amount||0)}</td>`;
-      tbody.appendChild(tr);
-    });
-    // Add total row
-    const totalAmount = rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-    const trTotal = document.createElement('tr');
-    trTotal.innerHTML = `
-      <td><strong>${lang('Jumla', 'Total')}</strong></td>
-      <td></td>
-      <td class="text-right"><strong>${formatNumber(totalAmount)}</strong></td>
-    `;
-    tbody.appendChild(trTotal);
+    const tpaid = document.querySelector('#totalPaidAmount');
+   
+    tpaid.textContent = formatNumber(rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0));
+
   }
 
   function renderTransactions(rows){

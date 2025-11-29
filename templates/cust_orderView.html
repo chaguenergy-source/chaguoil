@@ -164,7 +164,7 @@
                 <th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}<span class="text-primary">({{currencii}})</span></th>
                
                 <th class="text-right">{% if useri.langSet == 0 %}Malipo{% else %}Credit{% endif %}<span class="text-primary">({{currencii}})</span></th>
-                <th class="text-right">{% if useri.langSet == 0 %}Stakabadhi{% else %}Balance{% endif %}<span class="text-primary">({{currencii}})</span></th>
+                <th class="text-right">{% if useri.langSet == 0 %}Salio{% else %}Balance{% endif %}<span class="text-primary">({{currencii}})</span></th>
                 <th class="text-right">{% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %}<span class="text-primary">({{currencii}})</span></th>
             </tr>
           </thead>
@@ -174,16 +174,20 @@
                 <td>
                   {% if t.sale %}
                     <script>document.write(moment('{{ t.sale.sale.date|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script>
-                  {% else %}
+                  {% elif t.pay %}
                     <script>document.write(moment('{{ t.pay.tarehe|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script>
+                  {% else %}
+                      <script>document.write(moment('{{ t.date|date:"r" }}').format('DD/MM/YYYY HH:mm'))</script>
                   {% endif %}
                 </td>
          
                 <td>
                     {% if t.sale %}
                         {% if useri.langSet == 0 %}Matumizi{% else %}Use{% endif %}
-                    {% else %}
+                    {% elif t.pay %}
                          {% if useri.langSet == 0 %}Malipo{% else %}Pay{% endif %}
+                    {% else %}
+                         {% if useri.langSet == 0 %}Kufungua{% else %}Opening{% endif %}
                     {% endif %}
                    
                 </td>
@@ -191,8 +195,10 @@
                 <td>
                   {% if t.sale %}
                     <span class="text-primary">{{ t.sale.sale.by.Interprise.name }}</span>
-                  {% else %}
+                  {% elif t.pay %}
                       <span class="text-primary">{{t.pay.Interprise.name}}</span>
+                  {% else %}
+                      -----
                   {% endif %}
                 </td>
 
@@ -201,10 +207,13 @@
                 <td>
                   {% if t.sale %}
                     <a href="/salepurchase/viewFuelSales?i={{ t.sale.sale.id }}">SA-{{ t.sale.sale.code }}</a>
-                  {% else %}
+                  {% elif t.pay %}
                       <span class="bluePrint">{{t.pay.Akaunt.Akaunt_name}}</span>
+                  {% else %}
+                     {% if useri.langSet == 0 %}Deni la Nyuma{% else %}Opening Debt{% endif %}
                   {% endif %}
                 </td>
+
                 {% if t.sale %}
                     <td>{{t.sale.sale.driver}}</td>
                     <td>{{t.sale.sale.vihecle}}</td>
@@ -219,12 +228,25 @@
                    
                    <td>---</td> 
                    <td>---</td> 
-                   <td>{{t.pay.by.user.first_name | title }} {{ t.pay.by.user.last_name | title }}</td> 
+                   <td>
+                    {% if t.pay or t.sale %}
+                      {{t.pay.by.user.first_name | title }} {{ t.pay.by.user.last_name | title }}
+                    {% else %}
+                      ---
+                    {% endif %}
+                  </td> 
 
                    <td class="text-right">---</td> 
                    <td class="text-right">---</td> 
                    <td class="text-right">---</td> 
-                   <td class="text-right">{{t.pay.Amount|floatformat:'-2'|intcomma }}</td> 
+                   <td class="text-right">
+                    {% if t.pay %}
+                      {{t.pay.Amount|floatformat:'-2'|intcomma }}
+                    {% else %}
+                      0
+                    {% endif %}
+
+                  </td> 
                    
                    
                     

@@ -124,7 +124,7 @@
 
         
 
-        {% if not general %}
+        
 
         <hr>
        
@@ -146,7 +146,7 @@
                          {% if useri.langSet == 0 %}Oda Mpya{% else %}New Order{% endif %}
                     </button>
                     {% else %}
-                       {% if lastCd.amount == lastCd.paid %}
+                       {% if lastCd.paid >= lastCd.consumed %}
                         <button type="button" 
                             class="btn btn-outline-success btn-sm" 
                             title="{% if useri.langSet == 0 %}Ongeza Fedha{% else %}Top Up{% endif %}" 
@@ -163,7 +163,7 @@
                        {% endif %}
                     {% endif %}
 
-                    
+                    {% if not general %}
                     {% if cust.debt_limit == 0 or  cust.limited_order and not hasLastCd %}
 
                         <button type="button" 
@@ -186,6 +186,7 @@
                             </svg>
                         {% if useri.langSet == 0 %}Ankara Mpya{% else %}New Invoice{% endif %}
                     </button>
+                    {% endif %}
                 </div>
                 
                 <div class="btn-group mt-2" role="group">
@@ -248,7 +249,7 @@
         </div>
 
 
-
+         {% if not general %}
          <select hidden  name="allFuel" id="allFuel">
             <option value=0 >------</option> 
             {% for f in allfuel %}
@@ -566,7 +567,7 @@
                             <div class="col-5 ">
                                 {% if useri.langSet == 0 %}Oda{% else %}Order{% endif %}#
                             </div>
-                            <div class="col-7 text-right" id="TotSaPrice">
+                            <div class="col-7 text-right" id="OrderCode">
                                 ORD-{{lastCd.code}}
                             </div>
                         </div>  
@@ -574,7 +575,7 @@
                             <div class="col-5 ">
                                 {% if useri.langSet == 0 %}Kikomo cha Oda{% else %}Order Limit{% endif %} <span class="text-primary">({{currencii}})</span> 
                             </div>
-                            <div class="col-7 text-right" id="TotSaPrice">
+                            <div class="col-7 text-right" id="OrderLimit">
                                 {{lastCd.amount|floatformat:'-2'|intcomma}}
                             </div>
                         </div>  
@@ -582,7 +583,7 @@
                             <div class="col-5 ">
                                 {% if useri.langSet == 0 %}Balansi{% else %}Order balance{% endif %} <span class="text-primary">({{currencii}})</span> 
                             </div>
-                            <div class="col-7 text-right {% if lastCd.balance > 0 %}green {% endif %}" id="TotSaPrice">
+                            <div class="col-7 text-right {% if lastCd.balance > 0 %}green {% endif %}" id="OrderBalance">
                                  {{lastCd.balance|floatformat:'-2'|intcomma}}
                             </div>
                         </div>  
@@ -595,6 +596,34 @@
         <div id="there_is_err" class="brown d-flex" >
               
         </div>
+        <!-- Add a confirm that the amount to be paid exceeds the order balance -->
+        <div id="LimitExceeded" data-balance="{{lastCd.balance}}" data-haslimit="{% if cust.limited_order %}1{% else %}0{% endif %}" >
+            <div class="alert alert-warning" id="limitExceededAlert" style="display: none;">
+                <strong>{% if useri.langSet == 0 %}Onyo!{% else %}Warning!{% endif %}</strong>
+                <p class="mt-2">
+                    {% if useri.langSet == 0 %}
+                        Kiasi kinachorudi kuzidi ukomo wa oda. Tafadhali thibitisha Kupanua ukomo wa oda.
+                    {% else %}
+                        The amount exceeds the order balance. Please confirm to extend the order limit.
+                    {% endif %}
+                </p>
+                
+                <div class="custom-control custom-checkbox mt-3 cursor-pointer">  
+                    <input type="checkbox" class="custom-control-input cursor-pointer" id="confirmLimitExtension">
+                    <label class="custom-control-label cursor-pointer" for="confirmLimitExtension">
+                        {% if useri.langSet == 0 %}
+                            Nakubali Kupanua ukomo wa oda
+                        {% else %}
+                            I agree to extend the order limit
+                        {% endif %}
+                    </label>
+                </div>
+            </div>
+
+         
+        </div>
+
+
             <p class="text-right">
                 <button id="saveBtn" data-cust="{{cust.id}}" type="button" class="btn btn-primary btn-sm">
                     Save

@@ -47,7 +47,7 @@ $('body').on('keyup','.fuelSalesSet',function(){
 
 
  const setAmo  = () =>{
-        const {mv} = trT()
+        const {mv,hasLimited,odBalance} = trT()
          let tot = 0
 
           $('#saRows tr').each(function(){
@@ -58,10 +58,16 @@ $('body').on('keyup','.fuelSalesSet',function(){
              totT = Number($(`#totPrice${pos}`).val()) || 0,
              qtyT = Number(totT/price)
              tot+=totT
-
-            //  $(`#saQty${pos}`).val(qtyT.toFixed(3))
+           
              
           })
+
+            // console.log({hasOrder,odBalance,tot,limitExeed:tot<odBalance});
+            if(hasLimited&&tot>odBalance){
+                $('#limitExceededAlert').show()
+            }else{
+                $('#limitExceededAlert').hide()
+            }
 
           $('#there_is_err').html('')
 
@@ -72,9 +78,10 @@ $('body').on('keyup','.fuelSalesSet',function(){
 const trT = () =>{
          const  rlen = $('#saRows').children('tr').length,
                 lpos = $('#saRows').children('tr').last().data('pos'),
-                mv = Number($('#sale_opt').val()) == 2
-
-                return {lpos,rlen,mv}
+                mv = Number($('#sale_opt').val()) == 2,
+                hasLimited = Number($('#LimitExceeded').data('haslimit')),
+                odBalance = Number($('#LimitExceeded').data('balance'))||0
+                return {lpos,rlen,mv,hasLimited,odBalance}
 }
 
    $('#addPubtn').click(function(){
@@ -196,12 +203,13 @@ $('body').on('click','.rowRemoveBtn',function(){
 
     }
 })
-
+// Save Sale Btn ...........................//
 $('#saveBtn').click(function(){
     const cust = Number($(this).data('cust')),
            url = '/salepurchase/fuelsales',
-           {mv} = trT(),
+           {mv,hasLimited,odBalance} = trT(),
            saDate = $('#sa_date').val(),
+           acceptExceed = Number($('#confirmLimitExtension').prop('checked')),
            cont = Number($('#containerSale').val()),
            rcvd = $('#Custom_driver').val(),
            phone = $('#Driver_phone').val(),
@@ -214,7 +222,30 @@ $('#saveBtn').click(function(){
                         </svg>    
                     </span>`
 
+            // get the total amount of sold fuel
+            let totAmo = 0
+            $('#saRows tr').each(function(){
+             const pos = Number($(this).data('pos')),
+             saPrice = Number(mv?$(`#safrm_tank${pos}`).find('option:selected').data('saprice'):$(`#sa_pumpSt${pos}`).find('option:selected').data('saprice')),
+             price = Number($(`#saPrice${pos}`).val()) || saPrice || 0,
+
+             totT = Number($(`#totPrice${pos}`).val()) || 0,
+             qtyT = Number(totT/price)
+             totAmo+=totT
+           
+             
+          })
+
+          
+          if(hasLimited&&totAmo>odBalance&&!acceptExceed){
+            $('#there_is_err').html(arert+lang('Kiasi cha jumla ya mauzo kinazidi salio la oda. Tafadhali thibitisha kueneza ukomo wa oda','The total amount of sales exceeds the order balance. Please confirm to extend the order limit '))
+            redborder('#LimitExceeded')
+            return
+          }
+
+
            let err = 0 ,exceed = 0
+
            if(saDate&&(cont||!mv)&&rcvd&&vihecle){
              $('#loadMe').modal('show')
                 const saDt = []
