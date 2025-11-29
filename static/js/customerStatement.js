@@ -259,21 +259,21 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
   function clearTables(){
-    document.querySelectorAll('#fuelSummaryTable tbody, #paymentsSummaryTable tbody, #transactionsTable tbody').forEach(tb=>tb.innerHTML='');
+    document.querySelectorAll('#fuelSummaryTable tbody,  #transactionsTable tbody').forEach(tb=>tb.innerHTML='');
   }
   function showLoadingRows(){
     const fuel = document.querySelector('#fuelSummaryTable tbody');
     fuel.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
-    const pay = document.querySelector('#paymentsSummaryTable tbody');
-    pay.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+    // const pay = document.querySelector('#paymentsSummaryTable tbody');
+    // pay.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
     const tx = document.querySelector('#transactionsTable tbody');
     tx.innerHTML = '<tr><td colspan="13">Loading...</td></tr>';
   }
   function showErrorRows(){
     const fuel = document.querySelector('#fuelSummaryTable tbody');
     fuel.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
-    const pay = document.querySelector('#paymentsSummaryTable tbody');
-    pay.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
+    // const pay = document.querySelector('#paymentsSummaryTable tbody');
+    // pay.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
     const tx = document.querySelector('#transactionsTable tbody');
     tx.innerHTML = '<tr><td colspan="13">Error loading data</td></tr>';
   }
