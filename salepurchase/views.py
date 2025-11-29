@@ -1030,7 +1030,7 @@ def save_credit_order(request):
                         order.paid = float(float(paid) - float(other_consume)) if float(float(paid) - float(other_consume)) > 0 else 0
 
                     if consume.filter(cdorder=None).exists():
-                        deni = consume.aggregate(sumi=Sum('deni'))['sumi'] or 0
+                        deni = consume.filter(cdorder=None).aggregate(sumi=Sum('deni'))['sumi'] or 0
                         if float(deni) > float(order.amount):
                            order.amount = float(deni)
                            
