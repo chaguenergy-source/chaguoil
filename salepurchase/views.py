@@ -723,7 +723,7 @@ def customerStatementData(request):
         # sales for customer in range
         sales_qs = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__gte=tFr, recDate__lte=tTo).order_by('pk')
         payments_qs = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__gte=tFr, tarehe__lte=tTo).order_by('pk')
-        lastPay  = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__lt=tFr).order_by('pk').last()
+        lastPay  = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__lt=tFr).exclude(Amount=0).order_by('pk').last()
       
         invo_payed = CustmDebtPayRec.objects.filter(pay = lastPay,sale__recDate__lt=tFr).order_by('pk')
         opening_balance = float(lastPay.Amount if lastPay else 0)
@@ -731,16 +731,15 @@ def customerStatementData(request):
         last_payed_invo = invo_payed.last() if invo_payed.exists() else None
         # print('start', opening_balance)
 
-        if last_payed_invo:
+        if  last_payed_invo:
             rem_debt = last_payed_invo.Debt - last_payed_invo.Apay
             opening_balance -= float(rem_debt)
             invo_payed_sales = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__lt=tFr, pk__gt=last_payed_invo.sale.pk)
             total_invo_amo = float(invo_payed_sales.aggregate(total=Sum('amount'))['total'] or 0)
             opening_balance -= total_invo_amo
             # print('after invo', opening_balance)
+         
 
-
-            
             cdorder_obj = last_payed_invo.sale.cdorder
             if cdorder_obj:
                 # Safely get the cdorder date (may be None)
@@ -773,7 +772,12 @@ def customerStatementData(request):
             #     # No cdorder-related invoices to subtract
             #     allInvo_before_tFr = fuelSales.objects.none()
             #     print('after no cdorder', opening_balance)
-                
+        else:
+            # No payments before tFr; sum all invoices before tFr as debt
+            allInvo_before_tFr = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__lt=tFr)
+            total_invo_amo = float(allInvo_before_tFr.aggregate(total=Sum('amount'))['total'] or 0)
+            opening_balance -= total_invo_amo
+            # print('after no pay', opening_balance)
           
         # fuel summary: group by fuel type using saleList
         fuel_summary = []
@@ -934,6 +938,7 @@ def customerStatementData(request):
         return JsonResponse(data, safe=True)
 
     except Exception as e:
+        print(e)
         return JsonResponse({'success': False, 'error': str(e)})
 
 

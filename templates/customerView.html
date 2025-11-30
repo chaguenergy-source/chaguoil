@@ -851,13 +851,12 @@
 
             {% endblock %}
 
-
             <li class="nav-item">
-                <a class="nav-link  {% block order_payments_active %}  {% endblock %}" data-show="order_payments" href="/salepurchase/orderPayments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Oda na Malipo{% else %}Order & Payments{% endif %}</a>
+                <a class="nav-link {% block customer_statement_active %}{% endblock %}" data-show="customer_statement" href="/salepurchase/customerStatement?cust={{ cust.id }}">{% if useri.langSet == 0 %}Taarifa za Mteja{% else %}Customer Statement{% endif %}</a>    
             </li>
 
             <li class="nav-item">
-                <a class="nav-link {% block customer_statement_active %}{% endblock %}" data-show="customer_statement" href="/salepurchase/customerStatement?cust={{ cust.id }}">{% if useri.langSet == 0 %}Taarifa za Mteja{% else %}Customer Statement{% endif %}</a>    
+                <a class="nav-link  {% block order_payments_active %}  {% endblock %}" data-show="order_payments" href="/salepurchase/orderPayments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Oda na Malipo{% else %}Order & Payments{% endif %}</a>
             </li>
 
             <li class="nav-item">

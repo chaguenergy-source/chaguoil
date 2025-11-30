@@ -94,12 +94,14 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link  {% block order_payments_active %}  {% endblock %}" data-show="order_payments" href="/salepurchase/orderPayments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Oda na Malipo{% else %}Order & Payments{% endif %}</a>
+                <a class="nav-link active" data-show="customer_statement" href="/salepurchase/customer_statement?cust={{ cust.id }}">{% if useri.langSet == 0 %}Taarifa za Mteja{% else %}Customer Statement{% endif %}</a>    
             </li>
 
             <li class="nav-item">
-                <a class="nav-link active" data-show="customer_statement" href="/salepurchase/customer_statement?cust={{ cust.id }}">{% if useri.langSet == 0 %}Taarifa za Mteja{% else %}Customer Statement{% endif %}</a>    
+                <a class="nav-link  {% block order_payments_active %}  {% endblock %}" data-show="order_payments" href="/salepurchase/orderPayments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Oda na Malipo{% else %}Order & Payments{% endif %}</a>
             </li>
+
+
 
             <li class="nav-item">
                 <a class="nav-link  {% block attachments_active %}  {% endblock %}" data-show="attachments" href="/salepurchase/customerAttachments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Viambatisho{% else %}Attachments{% endif %}</a>
@@ -188,7 +190,7 @@
 
                 </div>
                 <div class="col-md-6">
-                    <h6 class="section-title">{% if useri.langSet == 0 %}Malipo kwa Ujumla{% else %}Payments{% endif %}</h6>
+                    <h6 class="section-title">{% if useri.langSet == 0 %}Muhtasari wa Malipo kwa Ujumla{% else %}Payments Summary{% endif %}</h6>
                    
                     <div class="card p-2">
                         <div class="d-flex justify-content-between align-items-center mb-2">
