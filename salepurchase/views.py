@@ -2111,7 +2111,7 @@ def SesList(request):
     todo.update({
         'tr':ses,
         'isSession':True,
-        
+         "page":page,
         'p_num':page_num,
         'pages':pg_number,
         'bil_num':num,

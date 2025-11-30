@@ -1395,6 +1395,7 @@
                         
 
                         pumps.push({
+                            init,
                             final,
                             pmp
                         })
@@ -1592,18 +1593,31 @@
               remarks = $('#shiftRemarks').val(),
               shiftTo = moment($('#tToshift').val()).format(),
               url = $(this).attr('action'),
-             
+              
               totrep = totreport($(`.final_read`)),
 
               pumps = totrep.pumps,
               unfilled = totrep.unfilled
+
+            $('.final_read').removeClass('redborder');
+            const invalidPumps = pumps.filter(p => Number(p.final) < Number(p.init));
+            if (invalidPumps.length) {
+                invalidPumps.forEach(p => {
+                    // mark corresponding input red (inputs have id="pump{p.id}")
+                    $(`#pump${p.pmp}`).addClass('redborder');
+                });
+                $('#errorAret').fadeIn(500);
+                const msg = lang('Mita za pampu hazijatolewa kwa usahihi', 'Pump readings are not correctly filled');
+                toastr.error(msg, lang('Haikufanikiwa', 'Error'), { timeOut: 3000 });
+                return;
+            }
 
               const totf = totrep.tot_amo,
               totexcl = totrep.exctot,
 
               netreqAmo = totf - totexcl
 
-
+             
            
             const data = {
                 data:{
@@ -1621,7 +1635,7 @@
                 url
             }
 
-            console.log('submited');
+            // console.log('submited');
 
           if(shiftTo<=moment().format() && shiftTo!='' && ((totpay==netreqAmo) || lossprof) && !unfilled ){
 

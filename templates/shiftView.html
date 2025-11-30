@@ -32,7 +32,7 @@
     {% include 'headingShifts.html' %} 
 
     <div class="row ">
-        <div class="col-md-4  border-right" >
+        <div class="col-md-3  border-right" >
             <header class="border-bottom  ">
                 <div class="row classic_div py-2">
 
@@ -52,14 +52,14 @@
                        
                      </div> 
                        
-                              <input type="text" name="code" id="code" placeholder=" {% if useri.langSet == 0 %}  Andika no ya Mauzo {% else %} write Sales no.. {% endif %}" class="form-control smallFont">
+                              <!-- <input type="text" name="code" id="code" placeholder=" {% if useri.langSet == 0 %}  Andika no ya Mauzo {% else %} write Sales no.. {% endif %}" class="form-control smallFont">
                         <div class="input-group-append">
                             <button type="submit" class="btn btn-secondary smallerFont btn-sm pt-2">
                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                                  </svg>
                             </button>
-                        </div>  
+                        </div>   -->
                        
                        
                     </div>
@@ -122,13 +122,13 @@
                <div>
               
                    {% if tr.has_previous %}
-                     <a href="{% url 'viewShift' %}?page=1&i={{trf.id}}" type="button"  class="btn btn-default border0">
+                     <a href="{% url 'viewShift' %}?page=1&i={{trf.id}}" title="{% if useri.langSet == 0 %}Ukurasa wa kwanza{% else %}First Page{% endif %}" type="button"  class="btn btn-default border0">
                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-left" viewBox="0 0 16 16">
                          <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
                        </svg>
                        </a>
                  
-                       <a href="{% url 'viewShift' %}?page={{tr.previous_page_number}}&i={{trf.id}}" type="button"  class="btn btn-default  border0">
+                       <a href="{% url 'viewShift' %}?page={{tr.previous_page_number}}&i={{trf.id}}" type="button" title="{% if useri.langSet == 0 %}Ukurasa wa Nyuma{% else %}Previous Page{% endif %}" class="btn btn-default  border0">
                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
                            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
                          </svg>
@@ -136,13 +136,13 @@
                      {% endif %}
                  
                    {% if tr.has_next %}
-                       <a href="{% url 'viewShift' %}?page={{tr.next_page_number}}&i={{trf.id}}" type="button" class="btn btn-default border0">
+                       <a href="{% url 'viewShift' %}?page={{tr.next_page_number}}&i={{trf.id}}" type="button" class="btn btn-default border0" title="{% if useri.langSet == 0 %}Ukurasa Unaofuata{% else %}Next Page{% endif %}" >
                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
                            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
                          </svg>
                        </a>
                  
-                       <a href="{% url 'viewShift' %}?page={{pages}}&i={{trf.id}}" type="button"  class="btn btn-default border0" >
+                       <a href="{% url 'viewShift' %}?page={{pages}}&i={{trf.id}}" type="button"  class="btn btn-default border0" title="{% if useri.langSet == 0 %}Ukurasa wa Mwisho{% else %}Last Page{% endif %}" >
                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-right" viewBox="0 0 16 16">
                            <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
                          </svg>
@@ -156,7 +156,7 @@
                </div>             
                </div> 
         </div>
-        <div class="col-md-8"  >
+        <div class="col-md-9"  >
             
             <div  class="table-responsive pt-3 px-md-2 " id="invo_box" >
 
