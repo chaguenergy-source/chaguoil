@@ -3972,7 +3972,8 @@ def endshift(request):
 
             return JsonResponse(data)
                 
-        except:
+        except Exception as err:
+            print('error end shift',err)
             data = {
                 'success':False,
                 'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena',
