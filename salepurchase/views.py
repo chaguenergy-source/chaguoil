@@ -3772,7 +3772,7 @@ def endshift(request):
                 
                 inch = InterprisePermissions.objects.get(pk=incharge)
                 
-                sh = shifts.objects.get(Q(record_by=cheo)|Q(record_by__Interprise__owner=useri),pk=shift,by=inch.user)
+                sh = shifts.objects.get(record_by__Interprise=shell,pk=shift,by=inch.user)
                 
                 
 
