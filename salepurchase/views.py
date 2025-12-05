@@ -4236,8 +4236,8 @@ def deleteCDSales(request):
         order_id = json.loads(request.POST.get('cd_order_ids', '[]'))
         if not (manager or useri.admin):
             return JsonResponse({'success': False, 'eng': 'Permission denied.', 'swa': 'Ruhusa haijarusiwa.'})
-
-        saleL = saleList.objects.filter(Q(shift__shift__To=None)|Q(shift__shift__isnull=True),pk__in=order_id, shift__shift__record_by__Interprise=shell.id)
+        print(order_id)  
+        saleL = saleList.objects.filter(Q(shift__shift__To=None)|Q(shift__shift__isnull=True),pk__in=order_id, sale__by__Interprise=shell.id)
         if saleL.exists():
             for saL in saleL:
 
