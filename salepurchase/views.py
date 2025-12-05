@@ -4270,7 +4270,8 @@ def deleteCDSales(request):
             }
             return JsonResponse(data)
 
-    except:
+    except Exception as err:
+        print(err) 
         data = {
             'success':False,
             'swa':'Kitendo hakikufanikiwa tafadhari jaribu tena',
