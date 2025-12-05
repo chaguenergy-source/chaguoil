@@ -950,6 +950,72 @@
         </div>
     </div>
 
+    {% if useri.admin and has_no_shift %}
+        <!-- Delete Invoice Confirmation Modal -->
+    <div class="modal fade" id="deleteInvoiceModal" tabindex="-1" role="dialog" aria-labelledby="deleteInvoiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteInvoiceModalLabel">
+                        {% if useri.langSet == 0 %}Confirm Deletion{% else %}Confirm Deletion{% endif %}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        {% if useri.langSet == 0 %}
+                            Je, una uhakika wa kufuta ankara hii? Hatua hii haiwezi kutengenezwa.
+                        {% else %}
+                            Are you sure you want to delete this invoice? This action cannot be undone.
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        {% if useri.langSet == 0 %}Ghairi{% else %}Cancel{% endif %}
+                    </button>
+                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger">
+                        {% if useri.langSet == 0 %}Futa{% else %}Delete{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#confirmDeleteBtn').click(function(){
+            const invo = Number('{{trf.id}}');
+            const saListIds = ['{% for sl in saList %}{{sl.id}}{% if not forloop.last %},{% endif %}{% endfor %}'];
+            const url = '/salepurchase/deleteCDSales';
+            
+           
+            const data = {
+              data: {
+                cd_order_ids: JSON.stringify(saListIds)
+              },
+              url
+            };
+            $("#deleteInvoiceModal").modal('hide');
+            $("#loadMe").modal('show');
+            const sendIt = POSTREQUEST(data);
+            sendIt.then(resp => {
+              $('#loadMe').modal('hide');
+              hideLoading();
+              const msg = lang(resp.swa, resp.eng);
+              if(resp.success){
+                toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000});
+                location.replace(`/salepurchase/soldFuel`);
+              } else {
+                toastr.error(msg, lang('Haikufanikiwa','Error '), {timeOut: 2000});
+              }
+            });
+        })
+    </script>
+
+    {% endif %}
+
 
 
 
@@ -957,6 +1023,7 @@
 
 {% block additionaljs %}
 <script>
+
 
      $('body').on("submit", "#savepaymentForm" ,function(e){
                     e.preventDefault();

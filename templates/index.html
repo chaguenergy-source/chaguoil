@@ -1327,7 +1327,7 @@
 								
 								name="set_pump" id="set_pump">
 									<option data-station=0 value=0 selected>-----------</option>
-									{% for p in tr_pump %}
+									{% for p in settPump %}
 		
 										<option class="bluePrint" data-station="{{p.station.id}}" data-reading="{{p.readings}}"  data-price="{{p.tank.price}}" data-incharge="{{p.Incharge.user.first_name|title}}  {{p.Incharge.user.last_name|title}}" data-incharger="{{p.Incharge.id}}" value={{p.id}}>{{p.station.name}} {{p.name}}</option>
 		

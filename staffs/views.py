@@ -72,6 +72,7 @@ def addStaff(request):
         if not usr.exists() or (usr.exists() and edit):
                 usrr = None
                 if edit:
+                    
                     usrr = UserExtend.objects.get(pk=usrd,company=kampuni.id)
                     user = usrr.user
                     user.first_name = f_name
@@ -100,6 +101,8 @@ def addStaff(request):
                           'id':pm.id
                       }
                     return JsonResponse(data)
+                
+
                 user = User.objects.create_user(email=email,username=email,first_name=f_name, 
                                                 last_name=l_name, password='nnPQWWEAdauiias' )
                 ext = UserExtend()
@@ -192,7 +195,8 @@ def addStaff(request):
 
       return JsonResponse(data)
 
-    except:
+    except Exception as err:
+      print(err)
       data = {
             'success':False,
             'msg_eng':'The action was not successfully due to error try again correctly',
@@ -249,7 +253,10 @@ def permit(request):
         if useri.admin:
             perm = InterprisePermissions.objects.get(pk=usr,Interprise__company=kampuni.id)
             userr = perm.user
-            if not userr.hakikiwa and allow and check:
+            has_once_allowed = InterprisePermissions.objects.filter(user=userr.id,default=True)
+
+            if not userr.hakikiwa and allow and check and not has_once_allowed.exists():
+                  
                   hostname = os.environ.get("HOST", default="cfspump.com")
                  
                   cfm = {
@@ -268,8 +275,18 @@ def permit(request):
                   userr.staff =  True 
                   userr.pwdResets = True
                   userr.save()
+            permited = InterprisePermissions.objects.filter(user=userr.id,Interprise=shell.id)
+            if permited.exists():
+               perm = permited.last()      
+            else:
+                  perm = InterprisePermissions()
+                  perm.Interprise = shell
+                  perm.user = userr
+                  perm.cheo = perm.cheo
+                  perm.save() 
                   
 
+            
             if allow:
               perm.Allow =  check 
               perm.save()
@@ -279,15 +296,6 @@ def permit(request):
                 perm.pumpIncharge =  check 
                 perm.save()
              
-              if shell != perm.Interprise and check:
-                    pm = InterprisePermissions()
-                    pm.Interprise = shell
-                    pm.user = userr
-                    pm.cheo = perm.cheo
-                    pm.pumpIncharge =  check
-                    pm.save()  
-
-
 
             if manager:
               perm.fullcontrol =  check 
@@ -325,7 +333,8 @@ def permit(request):
            }     
         return JsonResponse(data) 
         
-  except:
+  except Exception as err :
+     print(err)
      data = {
          'msg_eng':'The action was not successfully due to error try again correctly',
          'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena kwa usahihi'

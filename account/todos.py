@@ -54,6 +54,7 @@ class Todos:
         payacc = PaymentAkaunts.objects.filter(Interprise__company=kampuni.id).order_by('pk')
         tumizi = matumizi.objects.filter(owner__company=kampuni.id,duration=0)
         tr_pump =  fuel_pumps.objects.filter(tank__Interprise__company=kampuni)
+        settPump = tr_pump
        
        
         pumpAttend = None
@@ -76,15 +77,16 @@ class Todos:
            shell = cheo.Interprise
            payacc = payacc.exclude(Q(aina="Cash") & ~Q(Interprise=shell.id))
            manager = cheo.fullcontrol
-           tr_pump = fuel_pumps.objects.filter(tank__Interprise=shell.id)
-           
+           settPump = fuel_pumps.objects.filter(tank__Interprise=shell.id)
+           tr_pump = settPump.filter(Incharge__isnull=False)
+
            pumpAttend =  shifts.objects.filter(record_by__Interprise=shell.id,To=None)
 
            
            tanksSup = tanksSup.filter(Interprise=shell)
            tanks = tanks.filter(Interprise=shell.id)
 
-        disp = tr_pump.distinct('station')
+        disp = settPump.distinct('station')
         fuel_price = tanks.distinct('fuel')
       #   tr_tank = tanks.filter(moving=True)
         tankContainer = tr_tank.distinct('tank')
@@ -103,6 +105,7 @@ class Todos:
         'shell_tanks':shell_tanks,
         'admin':admin,
         'disp':disp,
+        'settPump':settPump,
         'payacc':payacc,
         'matumizi':tumizi,
         'manager':manager,

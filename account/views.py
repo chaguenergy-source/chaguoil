@@ -345,8 +345,16 @@ def confirmMailPwdFoggot(request):
       confirm.save()
 
       userI = User.objects.get(email__icontains=mail)
+      allowedUser = InterprisePermissions.objects.filter(user__user=userI.id,Allow=True).exists()
+      if not allowedUser:
+        data = {
+          'success':False,
+          'msg_eng':'You have no permissions to reset password please contact system administrator',
+          'msg_swa':'Huna ruhusa ya kuweka upya neno la siri tafadhari wasiliana na msimamizi wa mfumo'
+        }
+        return JsonResponse(data)
+      
       UserExtend.objects.filter(user=userI.id).update(pwdResets=True)
-
       auth.login(request, userI)
 
       data = {
@@ -385,6 +393,7 @@ def changePwd(request):
          userI.save()
 
          useri.pwdResets = False
+         useri.hakikiwa = True
          useri.save()
       else:
         data = {
@@ -403,7 +412,7 @@ def changePwd(request):
    
 @login_required(login_url='login')
 def passWordResset(request):
-  # try:
+  try:
       todo = todoFunct(request)
       lang = int(request.GET.get('lang',0))
       
@@ -415,22 +424,25 @@ def passWordResset(request):
         })
         return render(request,'passReset.html',todo)
       else:
-        return redirect('/userdash')
-  # except:
-  #       return redirect('/')
+        if InterprisePermissions.objects.filter(user=useri.id,Allow=True).exists():
+          return redirect('/userdash')
+        else:
+          return redirect('/')
+  except:
+        return redirect('/')
   
 
 @login_required(login_url='login')
 def userdash(request):
-      #  try:
-        todo = todoFunct(request)
-        useri = todo['useri']
-        
+       try:
+          todo = todoFunct(request)
+          useri = todo['useri']
+          
 
-        return render(request, 'home.html',todo)
+          return render(request, 'home.html',todo)
 
-      #  except:
-      #     return render(request, 'pagenotFound.html')
+       except:
+          return render(request, 'pagenotFound.html')
 
 @login_required(login_url='login')
 def enterstation(request):

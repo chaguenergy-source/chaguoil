@@ -3337,7 +3337,7 @@ def viewFuelSales(request):
 
     attach = attachments.objects.filter(sales=trf.id)
     saL = saleList.objects.filter(sale=trf).annotate(amounti=F('sa_price_og')*F('qty_sold'),pamo=F('sa_price')*F('qty_sold'))
-
+    has_no_shift = saL.filter(shift__shift__isnull=True).exists()
    
     akaunts = wekaCash.objects.filter(sales=trf.id,saRec=False).order_by('-pk')
 
@@ -3349,7 +3349,7 @@ def viewFuelSales(request):
     todo.update({
         'attach':attach,
         'trf':trf,
-        
+         'has_no_shift':has_no_shift,
         'isSalesView':True,
         'malipo':akaunts,  
         'baki':baki,
@@ -4237,7 +4237,7 @@ def deleteCDSales(request):
         if not (manager or useri.admin):
             return JsonResponse({'success': False, 'eng': 'Permission denied.', 'swa': 'Ruhusa haijarusiwa.'})
 
-        saleL = saleList.objects.filter(pk__in=order_id,shift__shift__To=None, shift__shift__record_by__Interprise=shell.id)
+        saleL = saleList.objects.filter(Q(shift__shift__To=None)|Q(shift__shift__isnull=True),pk__in=order_id, shift__shift__record_by__Interprise=shell.id)
         if saleL.exists():
             for saL in saleL:
 
