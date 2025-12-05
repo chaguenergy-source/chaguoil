@@ -993,9 +993,7 @@
             '{% if not forloop.last %},{% endif %}'
             '{% endfor %}';
             const url = '/salepurchase/deleteCDSales';
-            console.log(saListIds);
-            return;
-           
+          
             const data = {
               data: {
                 cd_order_ids: JSON.stringify(saListIds)
