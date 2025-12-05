@@ -987,9 +987,14 @@
     <script>
         $('#confirmDeleteBtn').click(function(){
             const invo = Number('{{trf.id}}');
-            const saListIds = ['{% for sl in saList %}{{sl.id}}{% if not forloop.last %},{% endif %}{% endfor %}'];
+            const saListIds = [] 
+            '{% for sl in saList %}'
+               saListIds.push(Number('{{sl.id}}'))  
+            '{% if not forloop.last %},{% endif %}'
+            '{% endfor %}';
             const url = '/salepurchase/deleteCDSales';
-            
+            console.log(saListIds);
+            return;
            
             const data = {
               data: {
