@@ -1,0 +1,144 @@
+.payment-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    border: 1px solid #dee2e6;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+    flex: 1;
+}
+
+.filter-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+    font-size: 14px;
+}
+
+.filter-group select,
+.filter-group input {
+    /* padding: 10px 12px; */
+    border: 2px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.filter-group input[type="date"] {
+    width: 100%;
+}
+
+#applyFilters {
+    align-self: flex-end;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#applyFilters:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: translateY(-2px);
+}
+
+.payment-actions {
+    margin-bottom: 10px;
+    text-align: right;
+}
+
+#approvePayments {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#approvePayments:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+    transform: translateY(-2px);
+}
+
+#paymentsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#paymentsTable th,
+#paymentsTable td {
+    padding: 15px 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+#paymentsTable th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+#paymentsTable tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+#paymentsTable tbody tr:hover {
+    background-color: #e3f2fd;
+    transition: background-color 0.3s ease;
+}
+
+#customDateRange {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .payment-filters {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .filter-group {
+        min-width: auto;
+        flex: none;
+    }
+    #customDateRange {
+        flex-direction: column;
+        gap: 10px;
+    }
+    #paymentsTable th,
+    #paymentsTable td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+}

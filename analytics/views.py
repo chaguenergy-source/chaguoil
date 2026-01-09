@@ -58,7 +58,7 @@ def getsaler(request):
 
       fl = fuel_tanks.objects.filter(Interprise__company=kampuni).annotate(fname=F('fuel__name')).distinct('fuel').values('fuel','fname')
 
-      sale = fuelSales.objects.filter(date__gte=tFr,date__lte=tTo,by__Interprise__company=kampuni).order_by('-pk').annotate(ses=F('session__session__name'),
+      sale = fuelSales.objects.filter(date__gte=tFr,date__lte=tTo,by__Interprise__company=kampuni,mobile_pay=False).order_by('-pk').annotate(ses=F('session__session__name'),
                                                                                                             pAtt=F('shiftBy__by'),
                                                                                                             shCode = F('shiftBy__code'),
                                                                                                             cust=F('customer'),
@@ -74,7 +74,7 @@ def getsaler(request):
                                                                                                              byLn=F('by__user__user__last_name')
                                                                                                             )
       
-      sL = saleList.objects.filter(sale__date__gte=tFr,sale__date__lte=tTo,sale__by__Interprise__company=kampuni).annotate(ses=F('sale__session__session__name'),
+      sL = saleList.objects.filter(sale__date__gte=tFr,sale__date__lte=tTo,sale__by__Interprise__company=kampuni,sale__mobile_pay=False).annotate(ses=F('sale__session__session__name'),
                                                                                                                            cust=F('sale__customer'),
                                                                                                                            shell=F('sale__by__Interprise'),
                                                                                                                            date=F('sale__date'),
@@ -142,7 +142,7 @@ def getEvaluation(request):
       todo = todoFunct(request)
       
       kampuni = todo['kampuni']
-      sale = fuelSales.objects.filter(date__gte=tFr,date__lte=tTo,by__Interprise__company=kampuni).annotate(st=F('by__Interprise'))
+      sale = fuelSales.objects.filter(date__gte=tFr,date__lte=tTo,by__Interprise__company=kampuni,mobile_pay=False).annotate(st=F('by__Interprise'))
       saL = saleList.objects.filter(sale__in=sale).annotate(st=F('sale__by__Interprise'),date=F('sale__date'),fuelName=F('theFuel__name'),fuelId=F('theFuel'))
       puch = PuList.objects.filter(pu__date__gte=tFr,pu__date__lte=tTo,pu__vendor__compan=kampuni).annotate(date=F('pu__date'),closed=F('pu__closed'),fuelName=F('Fuel__name'),fuelId=F('Fuel'),st=F('pu__vendor'))
       recv = receivedFuel.objects.filter(receive__date__gte=tFr,receive__date__lte=tTo,receive__by__Interprise__company=kampuni).annotate(st=F('receive__by__Interprise'),date=F('receive__date'),fuelName=F('Fuel__name'),fuelId=F('Fuel'),toTank=F('To__name'))
@@ -174,7 +174,7 @@ def getEvaluation(request):
             transfr = transFromTo.objects.filter(transfer__date__gte=OpnDate,transfer__date__lt=tFr,transfer__record_by__Interprise__company=kampuni,From__tank=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
             trTo = transFromTo.objects.filter(transfer__date__gte=OpnDate,transfer__date__lt=tFr,transfer__record_by__Interprise__company=kampuni,to=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
             transf = transfr - trTo
-            sold = saleList.objects.filter(sale__date__gte=OpnDate,sale__date__lt=tFr,sale__by__Interprise__company=kampuni,tank=tk).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
+            sold = saleList.objects.filter(sale__date__gte=OpnDate,sale__date__lt=tFr,sale__by__Interprise__company=kampuni,tank=tk,sale__mobile_pay=False).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
             used = rekodiMatumizi.objects.filter(tarehe__gte=OpnDate,tarehe__lt=tFr,Interprise__company=kampuni,fromShift__pump__tank=tk).aggregate(sumi=Sum('fuel_qty'))['sumi'] or 0
             opening = (opening + recevd) - (transf + sold + used)
         else:
@@ -191,7 +191,7 @@ def getEvaluation(request):
             transfr = transFromTo.objects.filter(transfer__date__gte=tFr,transfer__date__lt=OpnDate,transfer__record_by__Interprise__company=kampuni,From__tank=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
             trTo = transFromTo.objects.filter(transfer__date__gte=tFr,transfer__date__lt=OpnDate,transfer__record_by__Interprise__company=kampuni,to=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
             transf = transfr - trTo
-            sold = saleList.objects.filter(sale__date__gte=tFr,sale__date__lt=OpnDate,sale__by__Interprise__company=kampuni,tank=tk).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
+            sold = saleList.objects.filter(sale__date__gte=tFr,sale__date__lt=OpnDate,sale__by__Interprise__company=kampuni,tank=tk,sale__mobile_pay=False).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
             used = rekodiMatumizi.objects.filter(tarehe__gte=tFr,tarehe__lt=OpnDate,Interprise__company=kampuni,fromShift__pump__tank=tk).aggregate(sumi=Sum('fuel_qty'))['sumi'] or 0
             opening = (tankOp.stick - recevd) + (transf + sold + used)
 
@@ -206,7 +206,7 @@ def getEvaluation(request):
             transfr = transFromTo.objects.filter(transfer__date__gt=closingDate,transfer__date__lte=tTo,transfer__record_by__Interprise__company=kampuni,From__tank=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
             trTo = transFromTo.objects.filter(transfer__date__gt=closingDate,transfer__date__lte=tTo,transfer__record_by__Interprise__company=kampuni,to=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
             transf = transfr - trTo
-            sold = saleList.objects.filter(sale__date__gt=closingDate,sale__date__lte=tTo,sale__by__Interprise__company=kampuni,tank=tk).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
+            sold = saleList.objects.filter(sale__date__gt=closingDate,sale__date__lte=tTo,sale__by__Interprise__company=kampuni,tank=tk,sale__mobile_pay=False).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
             used = rekodiMatumizi.objects.filter(tarehe__gt=closingDate,tarehe__lte=tTo,Interprise__company=kampuni,fromShift__pump__tank=tk).aggregate(sumi=Sum('fuel_qty'))['sumi'] or 0
             closing = (tnkClosing.stick + recevd) - (transf + sold + used)
 
@@ -359,7 +359,8 @@ def homePageData(request):
         Sales = fuelSales.objects.filter(
           date__gte=tFr,
           date__lte=tTo,
-          by__Interprise__company=kampuni
+          by__Interprise__company=kampuni,
+          mobile_pay=False
         ).annotate(due=F('amount') - F('payed'))
 
         saL = saleList.objects.filter(
@@ -417,7 +418,8 @@ def homePageData(request):
         Debtors = fuelSales.objects.filter(
           by__Interprise__company=kampuni,
           payed__lt=F('amount'),
-          customer__isnull=False
+          customer__isnull=False,
+          mobile_pay=False
         ).annotate(due=F('amount') - F('payed'))
 
         if not general:
@@ -461,7 +463,7 @@ def homePageData(request):
               transfr = transFromTo.objects.filter(transfer__date__gte=OpnDate,transfer__date__lt=tFr,transfer__record_by__Interprise__company=kampuni,From__tank=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
               trTo = transFromTo.objects.filter(transfer__date__gte=OpnDate,transfer__date__lt=tFr,transfer__record_by__Interprise__company=kampuni,to=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
               transf = transfr - trTo
-              sold = saleList.objects.filter(sale__date__gte=OpnDate,sale__date__lt=tFr,sale__by__Interprise__company=kampuni,tank=tk).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
+              sold = saleList.objects.filter(sale__date__gte=OpnDate,sale__date__lt=tFr,sale__by__Interprise__company=kampuni,tank=tk,sale__mobile_pay=False).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
               used = rekodiMatumizi.objects.filter(tarehe__gte=OpnDate,tarehe__lt=tFr,Interprise__company=kampuni,fromShift__pump__tank=tk).aggregate(sumi=Sum('fuel_qty'))['sumi'] or 0
               opening = (opening + recevd) - (transf + sold + used)
           else:
@@ -478,7 +480,7 @@ def homePageData(request):
               transfr = transFromTo.objects.filter(transfer__date__gte=tFr,transfer__date__lt=OpnDate,transfer__record_by__Interprise__company=kampuni,From__tank=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
               trTo = transFromTo.objects.filter(transfer__date__gte=tFr,transfer__date__lt=OpnDate,transfer__record_by__Interprise__company=kampuni,to=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
               transf = transfr - trTo
-              sold = saleList.objects.filter(sale__date__gte=tFr,sale__date__lt=OpnDate,sale__by__Interprise__company=kampuni,tank=tk).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
+              sold = saleList.objects.filter(sale__date__gte=tFr,sale__date__lt=OpnDate,sale__by__Interprise__company=kampuni,tank=tk,sale__mobile_pay=False).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
               used = rekodiMatumizi.objects.filter(tarehe__gte=tFr,tarehe__lt=OpnDate,Interprise__company=kampuni,fromShift__pump__tank=tk).aggregate(sumi=Sum('fuel_qty'))['sumi'] or 0
               opening = (tankOp.stick - recevd) + (transf + sold + used)
 

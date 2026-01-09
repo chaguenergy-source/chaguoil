@@ -414,7 +414,7 @@
                                         {% if s.exclude.cashB %}
                                         <tr >
                                            
-                                            <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Iliyotoka{% else %}Cash Out Before{% endif %}</td>
+                                            <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Ilowekwa Benki{% else %}Cash Deposit {% endif %}</td>
                                             <td style="font-size: 15px;"  ></td>
                                             <td style="font-size: 15px;"  >{{s.exclude.cashBA|floatformat:'-2'|intcomma}}</td>
                                         </tr>
@@ -683,7 +683,7 @@
                                 <td>{{TotEXP|floatformat:'-2'|intcomma}}</td>
                              </tr>
                              <tr>
-                                <td> {% if useri.langSet == 0 %}Pesa Iliyotoka{% else %}Cash Deposit before  {% endif %}</td>
+                                <td> {% if useri.langSet == 0 %}Pesa Iliyowekwa Benki{% else %}Cash Deposit   {% endif %}</td>
                                 <td>{{TotCAB|floatformat:'-2'|intcomma}}</td>
                              </tr>
                              <tr class="grey" >

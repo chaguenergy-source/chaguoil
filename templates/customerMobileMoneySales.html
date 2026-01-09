@@ -1,0 +1,547 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block page_content %}
+
+
+<div class="head-title ">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Mauzo na Malipo Kwa Simu{% else %} Mobile Payments Sales{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+
+</div>  
+
+<div class="table-data"  >
+    
+    <div class="order fontColor ">
+
+        {% include 'headingInvoice.html' %} 
+
+   
+    
+        <form method="POST" class="form-group">
+            <h5>
+                
+                
+                {% if useri.langSet == 0 %}Mauzo ya Mafuta Malipo Kwa Simu{% else %}Fuel Sales - Mobile Money Payment{% endif %}</h5>
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6 col-lg-4">
+                    <!-- Date Time field with today as muximum date  -->
+                    <div class="form-field my-3">
+                        <label for="saleDate" class="brown" >{% if useri.langSet == 0 %} Tarehe ya Mauzo <span class="required">*</span>{% else %} Sale Date <span class="required">*</span>{% endif %}</label>
+                        <input type="datetime-local" id="saleDate" name="saleDate"  required class="form-control">
+                    </div>
+
+                    <script>
+                            var today = new Date().toISOString().slice(0, 16);
+                            document.getElementById("saleDate").setAttribute('max', today);
+                    </script>
+                
+
+                <div class="form-field my-3">
+                    <label for="customerName" class="brown" >{% if useri.langSet == 0 %} Jina la Mteja <span class="required">*</span>{% else %} Customer Name <span class="required">*</span>{% endif %}</label>
+                    <input type="text" id="customerName" name="customerName" required class="form-control">
+                </div>
+
+                <!-- phone number field -->
+                <div class="form-field">
+                    <label for="phoneNumber">{% if useri.langSet == 0 %} Namba ya Simu {% else %} Phone Number {% endif %}</label>
+                    <input type="text" id="phoneNumber" name="phoneNumber"  class="form-control">
+                </div>
+            
+
+                                
+
+
+                            <div class="form-group my-3">
+                                <label  for="sale_opt">
+                                {% if useri.langSet == 0 %}Namna ya Kuuza{% else %} Sales Option{% endif %} 
+                                    <sup>*</sup>
+                            </label>
+                                <select class="form-control btn-sm" name="sale_opt" onchange="const saOpt=$(this).val();$('.sale_opt').prop('hidden',1);$(`.sale_opt${saOpt}`).prop('hidden',0);$(`.showFuel`).text('------')" id="sale_opt">
+                            
+                                <option value=1 >{% if useri.langSet == 0 %}Kutoka kwenye pampu{% else %}From Pump{% endif %}</option>
+                                <!-- <option value=2 >{% if useri.langSet == 0 %}Kutoka kwenye Tanki{% else %}From Tank{% endif %}</option> -->
+                                
+                                </select>
+                            </div>
+
+                            <!-- SALE DIRECTLY FROM TANK -->
+                            <div class="sale_opt sale_opt2" hidden id="sale_opt2">
+
+                                <div class="row">
+                                    <div class="col-6">
+                                <div class="form-group">
+                                    <label class="brown" for="containerSale">{% if useri.langSet == 0 %}Kontena{% else %}Container{% endif %} <sup>*</sup> </label>
+                                        <select class=" form-control bluePrint border selectpicker tankContainers" 
+                                        
+                                            data-live-search="true" name="containerSale" id="containerSale">
+                                                <option value=0 selected>-----------</option>
+                                                {% for t in tankContainer %}
+                                                <option data-by="{{t.tank.by.id}}" value={{t.tank.id}}>{{t.tank.name}}</option>
+                                                {% endfor %}
+                                        </select>
+
+                                    </div>
+                                    </div>
+
+                                    <div class="col-6">
+                                                <div class="form-group">
+                                                    <label for="tank_incharge2" class="brown" >
+                                                        {% if useri.langSet == 0 %}Mhusika{% else %}Incharge{% endif %} <sup>*</sup>
+                                                    </label>
+                                                
+                                                    <select
+                                                        onchange="$(this).selectpicker('setStyle', 'bluePrint')"
+                                                        class=" form-control selectpicker border btn-sm" data-live-search="true" name="tank_incharge2" id="tank_incharge2">
+                                                            <option value=0 selected>-----------</option>
+                                
+                                                            {% for u in tr_by %}
+                                                            
+                                                                <option value={{u.id}}>{{u.user.first_name|title}}  {{u.user.last_name|title}}</option>
+                                
+                                                            {%endfor%}
+                                
+                                                        
+                                                    </select>
+                                                    
+                                                </div>
+                                    </div>
+                                </div>
+                            
+
+                                
+                                    
+                                    
+
+                                
+
+                            </div>
+
+                                
+
+                        </div>
+            </div>
+
+            
+        <div class="hidden_selects">
+            {% if not general %}
+                    <select hidden  name="allFuel" id="allFuel">
+                        <option value=0 >------</option> 
+                        {% for f in allfuel %}
+                        <option value={{f.id}} >{{f.name}}</option> 
+                        {% endfor %}
+                    </select>
+
+                    <select hidden class=" bluePrint btn-sm" 
+                                    name="sa_pumpSt" id="sa_pumpSt"  >
+                                        <option data-station=0 value=0 selected>-----------</option>
+                                        {% for p in tr_pump %}
+                                            <option class="bluePrint"   data-saprice="{{p.tank.price}}"  data-fuel="{{p.tank.fuel.id}}" data-fname="{{p.tank.fuel.name}}" data-tank="{{p.tank.id}}" data-station="{{p.station.id}}" data-incharge="{{p.Incharge.user.first_name|title}}  {{p.Incharge.user.last_name|title}}" data-incharger="{{p.Incharge.id}}" value={{p.id}}>{{p.station.name}} {{p.name}}</option>
+                                        {%endfor%}
+                                                        
+                    </select> 
+
+                    <select data-pos=1 data-filter="sa_pumpSt" id="Pdispensa" hidden class=" form-control   bluePrint btn-sm"  >
+                                            <option value=0 selected>-----------</option>
+                                            {% for dis in disp %}
+                                                <option class="bluePrint" data-disp="{{dis.station.id}}" value={{dis.id}}>{{dis.station.name}}</option>
+                                            {%endfor%}
+                                        
+                    </select>
+                        <select hidden class=" form-control bluePrint safrm_tank btn-sm" 
+                            name="safrm_tank" data-pos=1 id="safrm_tank">
+                            <option value=0 selected>-----------</option>
+                            {% for t in tr_tank %}
+                                <option data-qty="{{t.qty}}" data-saprice="{{t.price}}" data-tank="{{t.tank.id}}" data-fuel="{{t.fuel.id}}" data-fname="{{t.fuel.name}}" data-price="{{t.price}}" data-name="{{t.name}}" value={{t.id}}>{{t.name}}</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}         
+        </div>
+            
+            
+                        
+                    <h6 class="weight600 ">
+                        {% if useri.langSet == 0 %}Ufupisho{% else %}Summary{% endif %}
+
+                    </h6>
+                <div class="table-responsive mt-3">
+                    <table class="table-sm table" >
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th class="sale_opt sale_opt1" > {% if useri.langSet == 0 %}Dispensa{% else %}Dispensa{% endif %}</th>
+                                <th class="sale_opt sale_opt1" > {% if useri.langSet == 0 %}Pampu{% else %}Pump{% endif %}</th>
+                                <th hidden class="sale_opt sale_opt2" > {% if useri.langSet == 0 %}Tanki{% else %}Tank{% endif %}</th>
+                                <th> {% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                                <th class="sale_opt sale_opt1"> {% if useri.langSet == 0 %}Mhusika{% else %}Attendand{% endif %}</th>
+
+                                <th> {% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">LTRS</span></th>
+                                <th>  {% if useri.langSet == 0 %}Bei/Kuuza{% else %}Sales/Price{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                                
+                            
+                                <th> {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                                <th> {% if useri.langSet == 0 %}Ondoa{% else %}Remove{% endif %} </th>
+                            </tr>
+                            </thead>
+                        <tbody id="saRows" >
+                            <tr data-pos=1 class="saRow" >
+                                <td class="IndexNo" data-pos=1 >1</td>
+                                <td  class="mx-1 sale_opt sale_opt1"  >
+                                                
+                                <select data-pos=1 data-filter="sa_pumpSt1" id="dispe12" class=" form-control DispensaSelector  bluePrint btn-sm"  >
+                                    <option value=0 selected>-----------</option>
+                                    {% for dis in disp %}
+
+                                        <option class="bluePrint" data-disp="{{dis.station.id}}" value={{dis.id}}>{{dis.station.name}}</option>
+
+                                    {%endfor%}
+                                
+                                </select>
+
+                                </td>
+
+                                <td  class="mx-1 sale_opt sale_opt1"  >
+                                        <select class="tr_pumpSt form-control pmpSelect  bluePrint btn-sm" 
+                                            
+                                                data-pos=1
+                                                name="sa_pumpSt1" id="sa_pumpSt1"  >
+                                                    <option data-station=0 value=0 selected>-----------</option>
+                                                    {% for p in tr_pump %}
+
+                                                    <option class="bluePrint"   data-saprice="{{p.tank.price}}"  data-fuel="{{p.tank.fuel.id}}" data-fname="{{p.tank.fuel.name}}" data-tank="{{p.tank.id}}" data-station="{{p.station.id}}" data-incharge="{{p.Incharge.user.first_name|title}}  {{p.Incharge.user.last_name|title}}" data-incharger="{{p.Incharge.id}}" value={{p.id}}>{{p.station.name}} {{p.name}}</option>
+
+                                                    {%endfor%}
+                                                
+                                        </select> 
+                                                <div class="showError ">
+                                                    
+                                        </div>
+                                </td>
+
+                                <td  class="mx-1 sale_opt sale_opt2" hidden >
+                                    <select class=" form-control bluePrint safrm_tank btn-sm" 
+                                        
+                                        name="safrm_tank1" data-pos=1 id="safrm_tank1">
+                                            <option value=0 selected>-----------</option>
+                                            {% for t in tr_tank %}
+                                                <option data-qty="{{t.qty}}" data-saprice="{{t.price}}" data-tank="{{t.tank.id}}" data-fuel="{{t.fuel.id}}" data-fname="{{t.fuel.name}}" data-price="{{t.price}}" data-name="{{t.name}}" value={{t.id}}>{{t.name}}</option>
+                                            {% endfor %}
+                                </select>
+                                </td>
+
+                                <td>
+                                    <span class="showFuel brown" id="showFuel1">------</span>
+                                </td>  
+                                <td class=" sale_opt sale_opt1" >
+                                    <span class="fuel_disp bluePrint showAttend"  id="showAttend1">------</span>
+                                </td>  
+
+
+                            <td>
+                                <div class="input-group  " >     
+                                           
+                                        <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                            <label class="mt-1 text-danger " for="saQty1"></label> 
+                                        <div class="box-pointer d-inline "></div>
+                                        </div>
+                                        <input type="number" data-pos=1   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.0000001"  data-qty=1  id="saQty1" name="saQty1"  class=" money-fomat btn-sm form-control fuelSalesSet  weight600">
+                                    
+                                </div>    
+                            </td>    
+
+                            <td>
+                                
+                                    <div class="input-group  " >     
+                                               
+                                        <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                            <label class="mt-1 text-danger " for="saQty1"></label> 
+                                        <div class="box-pointer d-inline "></div>
+                                        </div>
+                                        <input type="number" data-price=1 data-pos=1   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="saPrice1" name="saPrice1"  class=" money-fomat btn-sm form-control fuelSalesSet weight600">
+                                    
+                                </div>    
+                            </td>   
+
+
+
+                                <td>
+                                    <div class="input-group  " > 
+                                
+                                       <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                            <label class="mt-1 text-danger " for="totPrice1"></label> 
+                                            <div class="box-pointer d-inline "></div>
+                                        </div>
+                                           <input type="number" style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.001" data-pos=1 id="totPrice1" name="totPrice1" data-tprice=1 class="form-control money-fomat btn-sm weight600 fuelSalesSet">
+                                      </div>
+                                
+                                  </td> 
+                            
+                            <td>
+                                <a type="button" data-pos=1 class="brown rowRemoveBtn text-danger" >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus-circle">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                                    </svg>
+                                    </a>                             
+                            </td>
+                    
+                            </tr>
+
+                        </tbody> 
+               
+               
+                                 
+            </table>
+                </div>
+
+                <div class="text-right">
+                    <a href="#" type="button" id="addPubtn" class="text-primary smallerFont">
+                        +{% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}
+                    </a>
+                </div>
+
+
+                <!-- Add total amount summary  -->
+                <div class="row mt-3">
+                    <div class="col-md-6"></div>
+                    <div class="col-md-6  ">
+                        <div class="card" id="totalSummaryCard">
+                            <div class="card-body p-2">
+                          <h5 class=" row mx-1 my-2" >
+                            <div class="col-4 ">
+                                {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">({{currencii}})</span> 
+                            </div>
+                            <div class="col-8 text-right" id="TotSaPrice">
+                                0
+                            </div>
+                        </h5>
+                        </div>
+                        
+                    </div>
+                </div>
+                 </div>
+                <!-- Payment accounts -->
+                 <div class="row mt-3">
+                    <div class="col-md-6"></div>
+                    <div class="col-md-6">
+                      <h6 class="mt-3" >
+                         {% if useri.langSet == 0 %}Malipo {% else %}Payments{% endif %}
+                      </h6>
+
+                        <div class="border p-2">
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        {% if useri.langSet == 0 %}Akaunti{% else %}Account{% endif %}
+                                    </div>
+                                    <div class="col-6">
+                                        {% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %} <span class="text-primary">(TZS)</span>
+                                    </div>
+    
+                                </div>
+    
+                                {% for p in payacc %}
+                                {% if p.aina != 'Cash' %}
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <a href="#" class="smallFont" >{{p.Akaunt_name}}</a>
+    
+                                        
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                            <label class="mt-1 text-danger " for="payacc"></label> 
+                                        <div class="box-pointer d-inline "></div>
+                                        </div>
+                                        <input type="number" data-val={{p.id}}  class="money-fomat btn-sm form-control payacc">
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endfor %}      
+                                <hr>
+
+                                <h5 class="row" id="payTotalRow" > 
+                                    <div class="col-6">{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %}</div>
+                                    <div class="col-6"  id="showtotpay" >0</div>
+                                </h5>
+
+
+                               
+
+
+
+                                </div>
+
+                        
+                      </div>
+                     
+
+                      
+                       <script>
+                        // <!-- Payments total calculation script -->
+                        $('.payacc').on('input',function(){
+                            let totalPay=0;
+                            let exceed=0;
+                            let totalSale = 0;
+                            $('#saRows tr').each(function(){
+                                    const pos = Number($(this).data('pos')),
+                                    totAmo = Number($(`#totPrice${pos}`).val()) || 0 ;
+                                    totalSale+=totAmo;
+                            })
+
+
+
+                            $('.payacc').each(function(){
+                                let val=$(this).val();
+                                if(val){
+                                    totalPay+=parseFloat(val);
+                                }
+                            });
+
+                            if(totalPay==totalSale){
+                              $('#totalSummaryCard').removeClass('redborder');
+                              $('#payTotalRow').removeClass('redborder');
+                            }
+
+                            $('#showtotpay').text(totalPay.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'));
+
+                           
+                           
+                        })
+                        
+                       </script>
+    
+                  
+                </div>
+            
+                
+                <div class="form-group text-right mt-4">
+                    <button type="submit" class="btn btn-primary btn-sm px-4" id="saveFuelSaleMobileBtn" name="saveFuelSaleMobileBtn">
+                        {% if useri.langSet == 0 %}Hifadhi Mauzo{% else %}Save Sale{% endif %}
+                    </button>
+                </div>
+            
+        </form>
+
+       
+
+    </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+  <script src="{% static 'js/sales.js' %}" ></script>
+  <script>
+    // Save Fuel Sale Mobile Money Payment
+    $('#saveFuelSaleMobileBtn').on('click',function(e){
+        e.preventDefault();
+
+        let totalSale=0
+               const saDt = []
+                $('#saRows tr').each(function(){
+                        const pos = Number($(this).data('pos')),
+                        saPrice = Number($(`#sa_pumpSt${pos}`).find('option:selected').data('saprice')),
+                        price = Number($(`#saPrice${pos}`).val()) || saPrice || 0,
+                        qty = Number($(`#saQty${pos}`).val()) || 0 ,
+                        totAmo = Number($(`#totPrice${pos}`).val()) || 0 ,
+                        tnk =  Number($(`#safrm_tank${pos}`).val()) || 0 ,
+                        tnkQty = Number($(`#safrm_tank${pos}`).find('option:selected').data('qty')) || 0,
+                        pmp = Number($(`#sa_pumpSt${pos}`).val()) || 0 
+                        totalSale+=totAmo;
+                        saDt.push({
+                            pos,price,qty,tnk,tnkQty,pmp,totAmo
+                        })                            
+                       
+
+                      })
+
+        let totalPay=0;
+        const payAcc = []
+        $('.payacc').each(function(){
+            const val=Number($(this).val())||0;
+            if(val){
+                payAcc.push({
+                    accId:$(this).data('val'),
+                    amount:val
+                });
+                totalPay+=parseFloat(val);
+            }
+        });
+
+       
+        
+        const date = moment($('#saleDate').val()).format();
+        const name = $('#customerName').val();
+        const phone = $('#phoneNumber').val();
+
+
+        if(totalPay<totalSale){
+            alert('{% if useri.langSet == 0 %}Kiasi cha malipo ni kidogo kuliko jumla ya mauzo. Tafadhali hakikisha malipo yamefanywa kikamilifu.{% else %}The total payment is less than the total sale. Please ensure full payment is made.{% endif %}');
+            redborder('#totalSummaryCard');
+            redborder('#payTotalRow');
+            return;
+        }
+
+        if(totalSale<=0){
+            alert('{% if useri.langSet == 0 %}Hakuna mauzo ya kuhifadhi. Tafadhali ongeza mauzo kabla ya kuhifadhi.{% else %}No sales to save. Please add sales before saving.{% endif %}');
+            
+            return;
+        }
+
+        if(totalPay>totalSale){
+            alert('{% if useri.langSet == 0 %}Kiasi cha malipo ni kikubwa kuliko jumla ya mauzo. Tafadhali hakikisha malipo ni sawa na jumla ya mauzo.{% else %}The total payment is more than the total sale. Please ensure payments equal the total sale.{% endif %}');
+            redborder('#totalSummaryCard');
+            redborder('#payTotalRow');
+            return;
+        }
+
+       
+
+      const data = {
+        data:{pay:JSON.stringify(payAcc),sale:JSON.stringify(saDt),saDate:date,name,phone},
+        url:'/salepurchase/saveFuelSaleMobileMoney',
+      }
+
+      $('#loadMe').modal('show');
+
+      const sendIt = POSTREQUEST(data);
+      sendIt.done(function(res){
+        $('#loadMe').modal('hide');
+        hideLoading()
+        const msg = lang(res.msg_swa, res.msg_eng);
+        if(res.success){
+            
+            toastr.success(msg,lang('Imefanikiwa','Success'),{ "closeButton": true ,timeOut: 5000});
+            window.location.reload();
+        }else{
+             toastr.error(msg,lang('Haikufanikiwa','Failed'),{ "closeButton": true ,timeOut: 5000});
+        }
+      }).fail(function(err){
+        $('#loadMe').modal('hide');
+        hideLoading()
+        toastr.error(lang('Hitilafu ya seva. Jaribu tena baadaye.','Server error. Please try again later.'),lang('Haikufanikiwa','Failed'),{ "closeButton": true ,timeOut: 5000});
+      })
+      ;
+
+    });
+  </script>
+{% endblock %}  
+
+{% block customers %} active  {% endblock %}

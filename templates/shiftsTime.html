@@ -1,44 +1,25 @@
-{% extends 'index.html' %}
+{% extends 'shiftsActivity.html' %}
 {% load humanize %}
-{% block page_content %}
 
-<div class="head-title">
-    <div class="left">
-        
-        {% include 'heading.html' %}
-        <ul class="breadcrumb">
-            <li>
-                <a href="#">Dashboard</a>
-            </li>
-            <li>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-            </li>
-           
 
-            <li>
-                <a class="active" href="#"> {% if useri.langSet == 0 %}Mpango wa Zamu{% else %} Shifts Session{% endif %}</a>
-            </li>             
-        </ul>
-    </div>
+{% block tab_shifts %}active{% endblock %}
+{% block activityHead %} {% if useri.langSet == 0 %}Mpango wa Zamu{% else %} Shifts Session{% endif %}{% endblock %}
     
 
 
-    {% if useri.admin %}
+{% block actionBtn %}
+  {% if useri.admin %}
     <button data-toggle="modal" data-target="#addSessionModal" class="btn btn-default btn-download">
         <!-- <i class='bx bxs-cloud-download' ></i> -->
         <span class="text"> {% if useri.langSet == 0 %} Ongeza Mpango{% else %}Add Session{% endif %}</span>
     </button>
     {% endif %}
+{% endblock %}
 
-</div>
 
 
-<div class="table-data">
-    <div class="order">
-        {% include 'headingShifts.html' %}     
-
+{% block shiftactivity %}     
+{% include 'headingShifts.html' %}    
       <div class="head">
         <h5 >
 
@@ -109,12 +90,6 @@
                 </tbody>
             </table>
       </div>
-
-
-     
-    </div>
-</div>
-
 
 
 <!-- Modal -->

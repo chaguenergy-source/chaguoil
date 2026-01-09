@@ -351,14 +351,15 @@ def kutoaPesa(request):
             useri = todo['useri']
             admin = todo['admin']
             manager = todo['manager']
+            kampuni = todo['kampuni']
             #  kuapdate inapoenda
             if manager or useri.admin : 
                 # entp=cheo.Interprise
-                toakwa= PaymentAkaunts.objects.get(pk=acid)
+                toakwa= PaymentAkaunts.objects.get(pk=acid,Interprise__company=kampuni)
                 beforweka=toakwa.Amount
                 akaunti = toakwa # Initialize the other destination account ...............//
                 if ac:
-                    akaunti=PaymentAkaunts.objects.get(pk=idn)
+                    akaunti=PaymentAkaunts.objects.get(pk=idn,Interprise__company=kampuni)
 
                 # PaymentAkaunts.objects.filter(pk=acid).update(Amount=baki)
 

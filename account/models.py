@@ -164,7 +164,7 @@ class wateja(models.Model):
     Interprise = models.ForeignKey(Interprise,on_delete=models.SET_NULL,null=True,blank=True)
     limited_order = models.BooleanField(default=False)
     debt_limit = models.DecimalField(max_digits=20,decimal_places=7,default=0)
-
+    toIgnore = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
 class wasambazaji(models.Model):
       compan = models.ForeignKey(company,on_delete = models.CASCADE)
@@ -416,13 +416,14 @@ class fuelSales(models.Model):
     vihecle=models.CharField(max_length=700,blank=True)
     customer = models.ForeignKey(wateja, on_delete=models.CASCADE,null=True)
     phone = models.CharField(max_length=200,blank=True)
-    
+    customer_name = models.CharField(max_length=500,blank=True) #This is for mobile money sales where customer is not registered
     amount = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     payed = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     recDate = models.DateTimeField(null=True)
     date = models.DateTimeField(null=True) 
     shiftBy = models.ForeignKey(shifts,on_delete=models.SET_NULL,null=True,blank=True) 
     cdorder = models.ForeignKey(creditDebtOrder,on_delete=models.SET_NULL,null=True,blank=True) 
+    mobile_pay = models.BooleanField(default=False)
 
 
 class saleList(models.Model):    
@@ -507,7 +508,6 @@ class wekaCash(models.Model):
     shift = models.ForeignKey(shifts,on_delete=models.CASCADE,null=True)
     biforeShift = models.BooleanField(default=False)
     giveTo = models.CharField(max_length=500,blank=True,null=True)
-    
     sales = models.ForeignKey(fuelSales,on_delete=models.CASCADE,null=True)
     customer = models.ForeignKey(wateja,on_delete=models.CASCADE,null=True)
 
@@ -522,7 +522,7 @@ class wekaCash(models.Model):
     kuhamishaNje = models.BooleanField(default=False)
     mtaji = models.BooleanField(default=False)
     cdOrder = models.ForeignKey(creditDebtOrder,on_delete=models.CASCADE,null=True)
-
+    admin_approval = models.BooleanField(default=False)  
     # huduma_nyingine = models.ForeignKey(HudumaNyingine,on_delete=models.SET_NULL,null=True)
 
 class  toaCash(models.Model):
@@ -545,11 +545,12 @@ class  toaCash(models.Model):
     personal = models.BooleanField(default=False)
 
     matumizi = models.ForeignKey(rekodiMatumizi,on_delete=models.SET_NULL,null=True)
-
+    admin_approval = models.BooleanField(default=False)
 #INCASE OF BILL PAYMENT......................................//
     # pu = models.BooleanField(default=False)
     bill = models.ForeignKey(wasambazaji,on_delete=models.SET_NULL,null=True)
-
+   
+    
 class CustmDebtPayRec(models.Model):
     pay =  models.ForeignKey(wekaCash, on_delete=models.CASCADE,blank=True, null=True)
     sale = models.ForeignKey(fuelSales, on_delete=models.CASCADE,blank=True, null=True)

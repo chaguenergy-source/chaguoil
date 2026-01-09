@@ -192,7 +192,7 @@
                          </div>
                          <div class="col-9 text-primary ">
                             <a href="/salepurchase/SessionView?i={{trf.session.id}}">
-                                <u>{{trf.session.session.name}}</u> 
+                                <u>{{trf.session.session.name}}</u> {{trf.session.id}}
                              </a>
                          </div>
 
@@ -613,7 +613,8 @@
                          </div>
                       
                          {% endif %}
-                         {% if exclude.cashBA > 0 %}
+                         {% if exclude.cashBDepoAmo > 0 %}
+                     
                            <hr>
                          <div class="table-responsive">
                             <strong>{% if useri.langSet == 0 %}Pesa Iliyotoka{% else %} Cash Deposit Before{% endif %}</strong>
@@ -635,7 +636,7 @@
                                       
                                         {% for cb in exclude.cashB %}
                                         
-                                    
+                                          {% if not cb.sales %}
                                         <tr>
                                             <td>{{forloop.counter}}</td>
                                             <td>
@@ -643,7 +644,7 @@
                                                     document.write(moment('{{cb.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
                                                 </script>
                                             </td>
-                                            <td class="brown">{{cb.Akaunt.Akaunt_name | title}}</td>
+                                            <td class="bluePrint">{{cb.Akaunt.Akaunt_name}}</td>
                                             <td >{{cb.giveTo}}</td>
                                             <td >{{cb.maelezo}}</td>
             
@@ -654,12 +655,69 @@
                                             <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
                                         </tr>
                                         
-            
+                                         {% endif %}
                                         {% endfor %}
             
                                         <tr>
                                             <th colspan="5" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
-                                             <th>{{exclude.cashBA | floatformat:'-2'  | intcomma}}</th>
+                                             <th>{{exclude.cashBDepoAmo | floatformat:'-2'  | intcomma}}</th>
+                                        </tr>
+                                    </tbody>
+                                  </table>
+            
+            
+                         </div>
+                      
+                         {% endif %}
+
+                         {% if exclude.cashMobAmo > 0 %}
+                     
+                           <hr>
+                         <div class="table-responsive">
+                            <strong>{% if useri.langSet == 0 %}Malipo ya Wateja Kwa Simu{% else %}Customer Mobile Payments{% endif %}</strong>
+                            <table class="table table-bordered smallFont table-sm">
+                                <thead>
+                                    <tr class="smallFont" >
+                                        <th>#</th>
+                                        <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+            
+                                        <th>{% if useri.langSet == 0 %}Akaunti{% else %}Account  {% endif %} </th>
+                                        <th>{% if useri.langSet == 0 %}Mteja{% else %} Customer{% endif %} </th>
+                                        <!-- <th>{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %} </th> -->
+                                        <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
+                                        
+                                        </tr>
+                                </thead>
+                           
+                                    <tbody>
+                                      
+                                        {% for cb in exclude.cashB %}
+                                        
+                                          {% if  cb.sales %}
+                                        <tr>
+                                            <td>{{forloop.counter}}</td>
+                                            <td>
+                                                <script>
+                                                    document.write(moment('{{cb.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                                </script>
+                                            </td>
+                                            <td class="bluePrint">{{cb.Akaunt.Akaunt_name }}</td>
+                                            <!-- <td >{{cb.giveTo}}</td> -->
+                                            <td >{{cb.maelezo}}</td>
+            
+                                            <td>{{cb.Amount|floatformat:'-2'|intcomma}}</td>
+            
+                                            <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                            <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                            <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
+                                        </tr>
+                                        
+                                        {% endif %}
+                                        {% endfor %}
+            
+                                        <tr>
+                                            <th colspan="4" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                             <th>{{exclude.cashMobAmo | floatformat:'-2'  | intcomma}}</th>
                                         </tr>
                                     </tbody>
                                   </table>
@@ -758,7 +816,7 @@
                                         {% if exclude.cashB %}
                                         <tr >
                                            
-                                            <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Iliyotoka{% else %}Cash Out Before{% endif %}</td>
+                                            <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Cash Iliyowekwa Benki{% else %}Cash Deposit{% endif %}</td>
                                             <td style="font-size: 15px;"  ></td>
                                             <td style="font-size: 15px;"  >{{exclude.cashBA|floatformat:'-2'|intcomma}}</td>
                                         </tr>
@@ -874,7 +932,45 @@
 
 </div>
 
-    
+{% if isLastsh  %}
+    <!-- confirm the shift delete modal -->
+    <div class="modal fade" id="deleteShiftModal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+      <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              {% if useri.langSet == 0 %}Futa Zamu{% else %}Delete Shift {%endif%}
+            </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+            <form id="deleteShiftForm" action="/salepurchase/deleteAttach" method="post">
+                 {% csrf_token %}
+                 <input type="hidden" name="shift_id" id="shift_id" value="">
+                 <input type="hidden" name="sh" value="{{trf.id}}" >
+                 <p>
+                   {% if useri.langSet == 0 %}Una uhakika unataka kufuta Zamu hii?{% else %}Are you sure you want to delete this Shift?{% endif %}
+                 </p>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" id="deleteShiftBtn" class="btn btn-danger">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                      </svg>
+                    </button>
+                  </div>
+            </form>
+            </div>
+        </div>
+      </div>
+    </div>
+{% endif %}
+
 
     <!-- Modal Attachments -->
     <div class="modal fade" id="addAttachment" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
@@ -958,6 +1054,39 @@
 
 {% block additionaljs %}
 <script>
+
+    // Delete Shift
+    '{% if isLastsh  %}'
+    $('body').on("click", "#deleteShiftForm" ,function(e){
+        e.preventDefault();
+        const shift_id = Number('{{trf.id}}')
+        $('#deleteShiftModal').modal('hide');
+        $("#loadMe").modal('show');
+        const data = {
+            data:{
+                shift_id,
+                closed:1
+            },
+            url:"/salepurchase/deleteShift"
+        }
+
+        const sendIt = POSTREQUEST(data)
+        sendIt.then(resp=>{
+            $('#loadMe').modal('hide')
+            hideLoading()
+            const msg = lang(resp.swa,resp.eng)
+            if(resp.success){
+                toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000});
+                setTimeout(() => {
+                    location.replace(`/salepurchase/theshifts`)
+                }, 1500);
+            }else{
+                toastr.error(msg, lang('Haikufanikiwa','Error '), {timeOut: 2000});
+            }
+    })
+
+})
+    '{% endif %}'
 
      $('body').on("submit", "#savepaymentForm" ,function(e){
                     e.preventDefault();

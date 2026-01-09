@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }).catch(error => {
        $('#loadMe').modal('hide');
         hideLoading();
-      console.error('Error:', error);
+      // console.error('Error:', error);
     });
 
     // show loading state
@@ -278,9 +278,8 @@ document.addEventListener('DOMContentLoaded', function(){
     tx.innerHTML = '<tr><td colspan="13">Error loading data</td></tr>';
   }
 
-  function formatNumber(v){
-    return Number(v||0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
+
+
   function formatDateISO(d){
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth()+1).padStart(2,'0');

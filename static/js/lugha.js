@@ -34,7 +34,9 @@ function hideLoading() {
   })
 }
 
-
+  function formatNumber(v){
+    return Number(v||0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
 
 function redborder(el){
   $(el).addClass('redborder')
@@ -97,6 +99,7 @@ $('#attachform').submit(function(e){
 
 
 })
+
 
 
 

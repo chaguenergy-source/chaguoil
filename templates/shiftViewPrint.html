@@ -69,7 +69,7 @@
                     {% if useri.langSet == 0 %}Mpango Zamu {% else %}Shift Session{% endif %}
                  </div>
                  <div class="col-9 text-primary ">
-                    <a href="/salepurchase/SessionView?i={{trf.session.session.name}}">
+                    <a href="/salepurchase/SessionView?i={{{{trf.session.id}}}}">
                         <u>{{trf.session.session.name}}</u> 
                      </a>
                  </div>
@@ -477,7 +477,7 @@
                  </div>
               
                  {% endif %}
-                 {% if exclude.cashBA > 0 %}
+                 {% if exclude.cashBDepoAmo > 0 %}
                    <hr>
                  <div class="table-responsive">
                     <strong>{% if useri.langSet == 0 %}Pesa Iliyotoka{% else %} Cash Deposit Before{% endif %}</strong>
@@ -499,7 +499,7 @@
                               
                                 {% for cb in exclude.cashB %}
                                 
-                            
+                                 {% if not cb.sales %}
                                 <tr>
                                     <td>{{forloop.counter}}</td>
                                     <td>
@@ -507,7 +507,7 @@
                                             document.write(moment('{{cb.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
                                         </script>
                                     </td>
-                                    <td class="brown">{{cb.Akaunt.Akaunt_name | title}}</td>
+                                    <td class="bluePrint">{{cb.Akaunt.Akaunt_name}}</td>
                                     <td >{{cb.giveTo}}</td>
                                     <td >{{cb.maelezo}}</td>
     
@@ -518,12 +518,68 @@
                                     <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
                                 </tr>
                                 
-    
+                                 {% endif %}
                                 {% endfor %}
     
                                 <tr>
                                     <th colspan="5" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
-                                     <th>{{exclude.cashBA | floatformat:'-2'  | intcomma}}</th>
+                                     <th>{{exclude.cashBDepoAmo | floatformat:'-2'  | intcomma}}</th>
+                                </tr>
+                            </tbody>
+                          </table>
+    
+    
+                 </div>
+              
+                 {% endif %}
+
+                 {% if exclude.cashMobAmo > 0 %}
+                   <hr>
+                 <div class="table-responsive">
+                    <strong>{% if useri.langSet == 0 %}Malipo ya Wateja Kwa Simu{% else %}Customer Mobile Payments{% endif %}</strong>
+                    <table class="table table-bordered smallFont table-sm">
+                        <thead>
+                            <tr class="smallFont" >
+                                <th>#</th>
+                                <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+    
+                                <th>{% if useri.langSet == 0 %}Akaunti{% else %}Account  {% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Mteja{% else %} Customer{% endif %} </th>
+                                <!-- <th>{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %} </th> -->
+                                <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
+                                
+                                </tr>
+                        </thead>
+                   
+                            <tbody>
+                              
+                                {% for cb in exclude.cashB %}
+                                
+                                 {% if  cb.sales %}
+                                <tr>
+                                    <td>{{forloop.counter}}</td>
+                                    <td>
+                                        <script>
+                                            document.write(moment('{{cb.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                        </script>
+                                    </td>
+                                    <td class="bluePrint">{{cb.Akaunt.Akaunt_name}}</td>
+                                    <!-- <td >{{cb.giveTo}}</td> -->
+                                    <td >{{cb.maelezo}}</td>
+    
+                                    <td>{{cb.Amount|floatformat:'-2'|intcomma}}</td>
+    
+                                    <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
+                                </tr>
+                                
+                                 {% endif %}
+                                {% endfor %}
+    
+                                <tr>
+                                    <th colspan="4" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                     <th>{{exclude.cashMobAmo | floatformat:'-2'  | intcomma}}</th>
                                 </tr>
                             </tbody>
                           </table>
@@ -620,7 +676,7 @@
                                 {% if exclude.cashB %}
                                 <tr >
                                    
-                                    <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Iliyotoka{% else %}Cash Out Before{% endif %}</td>
+                                    <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Ilowekwa Benki{% else %}Cash Deposit{% endif %}</td>
                                     <td style="font-size: 15px;"  ></td>
                                     <td style="font-size: 15px;"  >{{exclude.cashBA|floatformat:'-2'|intcomma}}</td>
                                 </tr>

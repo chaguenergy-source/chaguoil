@@ -39,6 +39,7 @@ from account.todos import Todos,confirmMailF,invoCode,TCode
 from django.views.decorators.http import require_POST
 import json
 from django.utils.dateparse import parse_datetime
+import traceback
 def todoFunct(request):
   usr = Todos(request)
   return usr.todoF()
@@ -86,6 +87,72 @@ def customers(request):
         'kituo':kituo,
   })
   return render(request,'customers.html',todo)
+
+
+@login_required(login_url='login')
+def toApprovalPayments(request):
+    try:
+        todo = todoFunct(request)
+        shell = todo['shell']
+        kampuni = todo['kampuni']
+        useri = todo['useri']
+        general = todo['useri']
+
+        pym = wekaCash.objects.filter(Q(customer__isnull=False)|Q(sales__mobile_pay=True)|Q(kuhamisha=True)|Q(biforeShift=True),Interprise__company=kampuni,admin_approval=False,Amount__gt=0)
+        toa = toaCash.objects.filter(kuhamisha=True,Akaunt__aina__icontains="Cash",Interprise__company=kampuni,admin_approval=False,Amount__gt=0) 
+        if not general:
+            pym = pym.filter(Interprise=shell.id)
+
+        todo.update({
+            'mobile_pym':len(pym.filter(sales__mobile_pay=True)),
+            'customer_pym':len(pym.filter(customer__isnull=False)),
+            'cashDeposit':len(toa),
+            'cashDepositBefore':len(pym.filter(biforeShift=True,shift__isnull=False,sales__mobile_pay__isnull=True)),
+            'isToApprovalPayments':True
+        })   
+        return todo
+    
+    except Exception as err:
+        traceback.print_exc() 
+        return {'success':False}
+
+
+@login_required(login_url='login')
+def set_ignore_amount(request):
+    try:
+        if request.method == 'POST':
+            todo = todoFunct(request)
+          
+            kampuni = todo['kampuni']
+            
+            useri = todo['useri']
+
+            if not useri.admin:
+                data = {
+                    'success': False,
+                    'eng': 'You do not have permission to perform this action.',
+                    'swa': 'Huna ruhusa ya kufanya kitendo hiki.'
+
+                }
+                return JsonResponse(data)
+
+          
+            ignoreAmount = float(request.POST.get('ignoreAmount', 0))
+            custId = int(request.POST.get('cust',0))
+
+            custm = wateja.objects.get(pk=custId,Interprise__company=kampuni)
+            custm.toIgnore = ignoreAmount
+            custm.save()
+
+
+            return JsonResponse({'success': True, 'eng': 'Ignore amount updated successfully.','swa':'Kiasi cha kupuuza kimefanikiwa kusasishwa.'})
+        else:
+            return JsonResponse({'success': False, 'eng': 'Invalid request method.', 'swa': 'Njia ya ombi si sahihi.'})
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'eng': 'An error occurred while updating ignore amount.', 'swa': 'Kulitokea hitilafu wakati wa kusasisha kiasi cha kupuuza.'})
+
 
 @login_required(login_url='login')
 def ViewCustomer(request):
@@ -252,8 +319,22 @@ def ViewCustomer(request):
 
     })
     return render(request,'customerView.html',todo)
-  except:
+  except Exception as err:
+      print(err)
+      traceback.print_exc()
+     
       return render(request,'pagenotFound.html')
+
+
+@login_required(login_url='login')
+def mobileMoneySales(request):
+    try:
+        todo = todoFunct(request)
+        return render(request, 'customerMobileMoneySales.html', todo)
+    except Exception as err:
+        print(err)
+        traceback.print_exc() 
+        return render(request, 'pagenotFound.html')
 
 @login_required(login_url='login')
 def orderPayments(request):
@@ -465,6 +546,7 @@ def ViewOrder(request):
         blc = order.amount
         deni = float(0)
         transactions_by_date = []
+        
         prevOdaPay = CustmDebtPayRec.objects.filter(Q(pay__cdOrder=order)|Q(pay__tarehe__gte=order.date),sale__customer=customer).exclude(sale__cdorder=order).order_by('pk')
         paidDebt = float(prevOdaPay.aggregate(total=Sum('Apay'))['total'] or 0)
         deni = paidDebt
@@ -618,7 +700,9 @@ def ViewOrder(request):
 
         return render(request, html, todo)
         
-    except:
+    except Exception as err :
+        print(err)
+        traceback.print_exc() 
         return render(request, 'pagenotFound.html')
 
 @login_required(login_url='login')
@@ -724,15 +808,16 @@ def customerStatementData(request):
         sales_qs = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__gte=tFr, recDate__lte=tTo).order_by('pk')
         payments_qs = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__gte=tFr, tarehe__lte=tTo).order_by('pk')
         lastPay  = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__lt=tFr).exclude(Amount=0).order_by('pk').last()
-      
+        # print('First Pay',lastPay.Amount if lastPay is not None else 0)
         invo_payed = CustmDebtPayRec.objects.filter(pay = lastPay,sale__recDate__lt=tFr).order_by('pk')
         opening_balance = float(lastPay.Amount if lastPay else 0)
         opening_balance -= float(invo_payed.aggregate(total=Sum('Apay'))['total'] or 0)
         last_payed_invo = invo_payed.last() if invo_payed.exists() else None
         # print('start', opening_balance)
-
+        # print('payed_invo',invo_payed.last())
         if  last_payed_invo:
             rem_debt = last_payed_invo.Debt - last_payed_invo.Apay
+            # print('RemDebt',rem_debt)
             opening_balance -= float(rem_debt)
             invo_payed_sales = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__lt=tFr, pk__gt=last_payed_invo.sale.pk)
             total_invo_amo = float(invo_payed_sales.aggregate(total=Sum('amount'))['total'] or 0)
@@ -743,7 +828,6 @@ def customerStatementData(request):
             cdorder_obj = last_payed_invo.sale.cdorder
             if cdorder_obj:
                 # Safely get the cdorder date (may be None)
-
                 allInvo_before_tFr = fuelSales.objects.filter(cdorder=cdorder_obj, recDate__lt=tFr)
                 firstInvo = allInvo_before_tFr.order_by('pk').first()
                 cd_date = getattr(cdorder_obj, 'date', None)
@@ -757,12 +841,12 @@ def customerStatementData(request):
                         q |= Q(tarehe__gt=firstInvo.recDate, customer=cust)
 
                 tot_pay_cd = wekaCash.objects.filter(q, tarehe__lt=tFr).aggregate(total=Sum('Amount'))['total'] or 0
-                opening_balance = float(tot_pay_cd)
+                # opening_balance = float(tot_pay_cd)
                 
                 
                 
                 total_invo_cd_amo = float(allInvo_before_tFr.aggregate(total=Sum('amount'))['total'] or 0)
-                opening_balance -= total_invo_cd_amo
+                # opening_balance -= total_invo_cd_amo
                 # print('after cdorder', opening_balance)
             # else:
             #     # No cdorder linked; sum payments for the customer before tFr only
@@ -777,7 +861,23 @@ def customerStatementData(request):
             allInvo_before_tFr = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__lt=tFr)
             total_invo_amo = float(allInvo_before_tFr.aggregate(total=Sum('amount'))['total'] or 0)
             opening_balance -= total_invo_amo
-            # print('after no pay', opening_balance)
+
+            
+            theLastPay = CustmDebtPayRec.objects.filter(sale__customer = cust,pay__tarehe__lt=lastPay.tarehe).order_by('pk') if lastPay is not None else None
+            if theLastPay is not None and theLastPay.exists():    
+                payTr = theLastPay.last().pay
+                pmnts = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust),tarehe__gte=payTr.tarehe,tarehe__lt=tFr)
+                # for pym in pmnts:
+                    # print('Payment',pym.Amount)
+
+                baybalance = float(pmnts.aggregate(total=Sum('Amount'))['total'] or 0)
+                payedInvo = float(CustmDebtPayRec.objects.filter(sale__customer=cust,pay__tarehe__gte = payTr.tarehe,pay__tarehe__lt=tFr).aggregate(total=Sum('Apay'))['total'] or 0)
+                opening_balance = float(baybalance-payedInvo)
+
+                # print('Last Paid',payTr.Amount)
+                # print('Pay Balance',baybalance)
+                # print('apayedInvo', payedInvo)
+            # print('Cust', cust.jina)
           
         # fuel summary: group by fuel type using saleList
         fuel_summary = []
@@ -939,6 +1039,7 @@ def customerStatementData(request):
 
     except Exception as e:
         print(e)
+        traceback.print_exc() 
         return JsonResponse({'success': False, 'error': str(e)})
 
 
@@ -987,7 +1088,7 @@ def LimitOrderSet(request):
 @login_required(login_url='login')
 def save_credit_order(request):
     if request.method == "POST":
-        # try:
+        try:
             todo = todoFunct(request)
             useri = todo['useri']
             manager = todo['manager']
@@ -1104,10 +1205,6 @@ def save_credit_order(request):
                                     updatePayed.save()    
                                 b.save()
 
-                                # if b.cdorder is not None:
-                                #     cdOd = b.cdorder
-                                #     cdOd.paid = float(float(cdOd.paid)+float(theP))
-                                #     cdOd.save()
 
                                 custP = CustmDebtPayRec()  
                                 custP.sale = b
@@ -1151,13 +1248,15 @@ def save_credit_order(request):
                     'eng': 'You have no permission for this action'
                 }
             return JsonResponse(data)
-        # except Exception:
-        #     data = {
-        #         'success': False,
-        #         'swa': 'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena baadaye',
-        #         'eng': 'The action was unsuccessfully please try again later'
-        #     }
-        #     return JsonResponse(data)
+        except Exception as err:
+            print(err)
+            traceback.print_exc() 
+            data = {
+                'success': False,
+                'swa': 'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena baadaye',
+                'eng': 'The action was unsuccessfully please try again later'
+            }
+            return JsonResponse(data)
     else:
         return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
 
@@ -1376,7 +1475,7 @@ def saveReceive(request):
                         if tnkExist.count() == 1:
                             trsf = transFromTo.objects.filter(pump__tank=tnkTo,shift__shift__session=Lses)
                             used = rekodiMatumizi.objects.filter(fromShift__pump__tank=tnkTo,fromShift__shift__session=Lses)
-                            sold = saleList.objects.filter(shift__shift__session=Lses,shift__pump__tank=tnkTo)
+                            sold = saleList.objects.filter(shift__shift__session=Lses,shift__pump__tank=tnkTo,sale__mobile_pay=False)
                             AsoldB = saleOnReceive.objects.filter(ses=Lses).exclude(receive__receive=rcv)
                             recevd = receivedFuel.objects.filter(receive__ses=Lses,To=tnkTo).exclude(receive=rcv)
                             # To get the sold fuel sum the sold + transfered + used then take the initial tank reading before session and substract the sum  
@@ -1440,6 +1539,128 @@ def saveReceive(request):
         }
 
         return JsonResponse(data)
+
+
+@login_required(login_url='login')
+def saveFuelSaleMobileMoney(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            useri = todo['useri']
+            manager = todo['manager']
+            cheo = todo['cheo']
+            kampuni = todo['kampuni']
+            shell = todo['shell']
+
+            if useri.admin or manager:
+                custN = request.POST.get('name')
+                date = request.POST.get('saDate')
+                phone = request.POST.get('phone')
+          
+                saleDt = json.loads(request.POST.get('sale'))
+                payDt = json.loads(request.POST.get('pay'))
+
+                # Save the mobile money payment details
+                sale = fuelSales()
+                sale.by = cheo
+                entry = fuelSales.objects.filter(by__Interprise=shell)
+                code = invoCode(entry)
+                sale.code = TCode({'code':code,'shell':shell.id})
+                sale.Invo_no = int(code)   
+                sale.recDate = datetime.datetime.now(tz=timezone.utc)
+                sale.date = date
+                sale.mobile_pay = 1
+                sale.customer_name = custN  
+                if phone != '':
+                    sale.phone = phone
+                sale.save()    
+                amo = 0
+                for sa in saleDt:
+                    saL = saleList()
+                    saL.sale = sale
+                    theF = None
+                    cost = 0
+                    pr_og = 0
+                    
+                    pmp = fuel_pumps.objects.get(pk=sa['pmp'],tank__Interprise=shell)
+                    saL.shift = shiftPump.objects.filter(pump=pmp,shift__To=None).exclude(shift=None).order_by('pk').last()
+                    saL.tank = pmp.tank
+                    theF = pmp.tank.fuel
+                    cost = float(pmp.tank.cost)  
+                    pr_og = float(pmp.tank.price)   
+
+                    saL.theFuel =  theF
+                    saL.qty_sold = float(sa['totAmo']/sa['price'])   
+                    saL.sa_price = float(sa['price'])
+                    saL.sa_price_og = pr_og
+                    saL.cost_sold = cost
+                    saL.save()
+
+                    amo += (sa['totAmo'])
+                sale.amount = float(amo)
+                sale.payed = float(amo)
+                sale.save()
+
+                # To save the payment records in wekaCash there are few important things to consider
+                # 1.One customer can take two different fuel from different pump attendand but make payment at once
+                # 2.The customer may use more than one payment account means with different accounts
+                # 3. The payment should be recorded against each pump attendant shift
+
+
+                
+                # Save the payment details
+                # Pump attendants ...//
+                                # ...existing code...
+                # Retrieve distinct shiftPump records for the current shell
+                pmpAtt = shiftPump.objects.filter(pump__tank__Interprise=shell, shift__To=None).exclude(shift=None).distinct('shift')
+                
+                # Iterate through each pump attendant
+                for pmpA in pmpAtt:
+                    amo = saleList.objects.filter(shift__shift=pmpA.shift.id, shift__pump__tank__Interprise=shell, sale=sale).aggregate(sumi=Sum(F('qty_sold') * F('sa_price')))['sumi'] or 0
+                    if amo > 0:
+
+                        for pay in payDt:
+                            pay_acc = pay['accId']
+                            pay_amount = float(pay['amount'])
+                            to_be_paid = pay_amount if pay_amount <= amo else float(amo)
+                            acc = PaymentAkaunts.objects.get(pk=pay_acc, Interprise__company=kampuni)
+                            accAmo = float(acc.Amount)
+                
+                            payRec = wekaCash()
+                            payRec.Interprise = shell
+                            payRec.tarehe = datetime.datetime.now(tz=timezone.utc)
+                            payRec.Amount = to_be_paid
+                            payRec.maelezo = f'{sale.customer_name} {sale.phone}'
+                            payRec.by = useri
+                            payRec.sales = sale
+                            payRec.biforeShift = True
+                            
+                            payRec.shift = pmpA.shift
+                            payRec.Akaunt = acc
+                            payRec.before = accAmo
+                            payRec.After = float(accAmo + to_be_paid)
+                            acc.Amount = float(float(acc.Amount) + to_be_paid)
+                            acc.save()
+                
+                            payRec.save()
+
+
+
+                data = {
+                    'success':True,
+                    'msg_swa':'Taarifa za mauzo zimehifadhiwa kikamilifu',
+                    'msg_eng':'Fuel sales recorded successfully'
+                }
+                return JsonResponse(data)
+        except Exception as e:
+            print(e)
+            print(traceback.format_exc())
+            data = {
+                'success':False,
+                'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena baadaye',
+                'msg_eng':'The action was unsuccessfully please try again later'
+            } 
+            return JsonResponse(data)
 
 
 @login_required(login_url='login')
@@ -1591,6 +1812,14 @@ def fuelsales(request):
 
                     if lcdorder.paid > lcdorder.consumed:
                         Od_balance = float(float(lcdorder.paid) - float(lcdorder.consumed))
+                        # print('paid',lcdorder.paid)
+                        # print('consumed',lcdorder.consumed)
+                        # print('Amount',lcdorder.amount)
+                        # print('customer',lcdorder.customer.jina)
+                        # print('ID',lcdorder.id)
+                        # print('Balance',Od_balance)
+
+                        
                         if Od_balance >= float(amo):
                             sale.payed = float(amo)
                         else:
@@ -2031,6 +2260,7 @@ def shList(request):
         'p_num':page_num,
         'pages':pg_number,
         'bil_num':num,
+        'approval':toApprovalPayments(request)
     })
 
     return todo
@@ -2115,6 +2345,7 @@ def SesList(request):
         'p_num':page_num,
         'pages':pg_number,
         'bil_num':num,
+        'approval':toApprovalPayments(request)
     })
 
     return todo
@@ -2167,6 +2398,162 @@ def shiftsDate(request):
      todo =  SesList(request)
      return render(request,'SessionsList.html',todo)
     
+@login_required(login_url='login')
+def customerPayments(request):
+     stations = None
+     todo =  todoFunct(request)
+     useri = todo['useri']
+     kampuni = todo['kampuni']
+     shell = todo['shell']
+     if useri.admin or useri.ceo:
+         stations= Interprise.objects.filter(company=kampuni)
+     todo.update({
+        'stations':stations,
+        'approval':toApprovalPayments(request)
+     }) 
+
+     return render(request,'shiftCustomerPayments.html',todo)
+
+    
+@login_required(login_url='login')
+def customerDebtPayments(request):
+     stations = None
+     todo =  todoFunct(request)
+     useri = todo['useri']
+     kampuni = todo['kampuni']
+     shell = todo['shell']
+     if useri.admin or useri.ceo:
+         stations= Interprise.objects.filter(company=kampuni)
+     todo.update({
+        'stations':stations,
+        'approval':toApprovalPayments(request)
+     }) 
+
+     return render(request,'shiftCustomerDebtPay.html',todo)
+
+@login_required(login_url='login')
+def CashDepositBefore(request):
+     stations = None
+     todo =  todoFunct(request)
+     useri = todo['useri']
+     kampuni = todo['kampuni']
+     shell = todo['shell']
+     if useri.admin or useri.ceo:
+         stations= Interprise.objects.filter(company=kampuni)
+     todo.update({
+        'stations':stations,
+        'approval':toApprovalPayments(request)
+     }) 
+
+     return render(request,'shiftCashDepositBefore.html',todo)
+
+@login_required(login_url='login')
+def CashDeposit(request):
+     stations = None
+     todo =  todoFunct(request)
+     useri = todo['useri']
+     kampuni = todo['kampuni']
+     shell = todo['shell']
+     if useri.admin or useri.ceo:
+         stations= Interprise.objects.filter(company=kampuni)
+     todo.update({
+        'stations':stations,
+        'approval':toApprovalPayments(request)
+     }) 
+
+     return render(request,'shiftCashDeposit.html',todo)
+
+
+ 
+
+@login_required(login_url='login')
+def getShiftCustomerMobilePayments(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            shell = todo['shell']
+            kampuni = todo['kampuni']
+            tFr = request.POST.get('tFr')
+            tTo = request.POST.get('tTo')
+            mob = int(request.POST.get('mob',0))
+            debt_pay = int(request.POST.get('debt_pay',0))
+            CdepoB = int(request.POST.get('CdepoB',0))
+            cashD = int(request.POST.get('cashD',0))
+            from_session = int(request.POST.get('from_session',0))
+            pay_ids = json.loads(request.POST.get('pay_ids','[]'))
+            useri = todo['useri']
+            # print(tFr,tTo)
+            payments = wekaCash.objects.filter(Interprise__company=kampuni,Amount__gt=0).annotate(
+                stN=F('Interprise__name'),
+                st=F('Interprise'),
+                account_name = F('Akaunt__Akaunt_name'),
+                custN = F('customer__jina'),
+                BFname = F('by__user__first_name'),
+                BLname = F('by__user__last_name'),
+                attFname = F('shift__by__user__first_name'),
+                attLname = F('shift__by__user__last_name')
+            ).order_by('-pk')
+
+            if from_session:
+                payments = payments.filter(pk__in=pay_ids)
+            else:
+                payments = payments.filter(tarehe__range=[tFr,tTo])
+
+            if mob:
+                payments = payments.filter(sales__mobile_pay=True)
+
+            if debt_pay:
+                payments = payments.filter(customer__isnull=False)    
+                
+            if CdepoB:
+                payments = payments.filter(biforeShift=True,sales__mobile_pay__isnull=True)    
+
+            if cashD:
+                payments = toaCash.objects.filter(kuhamisha=True,Interprise__company=kampuni,Amount__gt=0).annotate(
+                stN=F('Interprise__name'),
+                st=F('Interprise'),
+                account_name = F('Akaunt__Akaunt_name'),
+                
+                BFname = F('by__user__first_name'),
+                BLname = F('by__user__last_name'),
+                
+            ).order_by('-pk')
+
+                if from_session:
+                    payments = payments.filter(pk__in=pay_ids)
+                else:
+                    payments = payments.filter(tarehe__range=[tFr,tTo])
+
+                # payments = payments.filter(kuhamisha=True,sales__mobile_pay__isnull=True)    
+
+
+            if not useri.admin and not useri.ceo:
+                payments = payments.filter(Interprise=shell.id)
+
+            
+            data = {
+                'success':True,
+                'payments':list(payments.values()),
+                'isadmin':useri.admin 
+            }
+            return JsonResponse(data)
+
+        except Exception as err:
+            print(err)
+            traceback.print_exc() 
+            data = {
+                'success':False,
+                'swa':'Haikufanikiwa',
+                'eng':'Bad Request'
+            }
+            return JsonResponse(data)            
+    else:
+        data = {
+            'success':False,
+            'swa':'Haikufanikiwa',
+            'eng':'Bad Request'
+        }
+        return JsonResponse(data)
 
 @login_required(login_url='login')
 def theshiftsTime(request):
@@ -2181,7 +2568,8 @@ def theshiftsTime(request):
         shT = shT.filter(Interprise=shell.id)
     todo.update({
         'shT':shT,
-        'isShiftTime':True
+        'isShiftTime':True,
+        'approval':toApprovalPayments(request)
     })
 
     return render(request,'shiftsTime.html',todo)
@@ -2525,7 +2913,7 @@ def SessionView(request):
 
     for fl in Fld:
 
-        sale = saleList.objects.filter(sale__session=ss,sale__shiftBy=None,theFuel=fl.Fuel.id).annotate(amount=F('qty_sold')*F('sa_price'))
+        sale = saleList.objects.filter(sale__session=ss,sale__shiftBy=None,theFuel=fl.Fuel.id,sale__mobile_pay=False).annotate(amount=F('qty_sold')*F('sa_price'))
 
         tr = transFromTo.objects.filter(shift__shift__session=ss,shift__Fuel=fl.Fuel.id).annotate(worth=F('qty')*F('saprice'))
         exp = rekodiMatumizi.objects.filter(fromShift__shift__session=ss,Fuel=fl.Fuel.id)
@@ -2581,7 +2969,7 @@ def SessionView(request):
 
     for s in shft:
          
-        sale = saleList.objects.filter(shift__shift=s,sale__shiftBy=None).annotate(amount=F('qty_sold')*F('sa_price'))
+        sale = saleList.objects.filter(shift__shift=s,sale__shiftBy=None,sale__mobile_pay=False).annotate(amount=F('qty_sold')*F('sa_price'))
         tr = transFromTo.objects.filter(shift__shift=s).annotate(worth=F('qty')*F('saprice'))
         exp = rekodiMatumizi.objects.filter(fromShift__shift=s)
         cashB = wekaCash.objects.filter(shift=s.id,biforeShift=True)
@@ -2708,8 +3096,10 @@ def savaAdjst(request):
             move = int(request.POST.get('move',0))
             cont = int(request.POST.get('cont',0))
             op = int(request.POST.get('op',0))
+            simpleAdjst = int(request.POST.get('simpleAdjst',0))
             desc = request.POST.get('desc')
             general = todo['general']
+            
             shell = todo['shell']
             cheo = todo['cheo']
             kampuni = todo['kampuni']
@@ -2718,47 +3108,62 @@ def savaAdjst(request):
 
             if useri.admin or manager:
                 Sup = UserExtend.objects.get(pk=op,tankSup=True)
-                
-                adj = adjustments()
-                entry = adjustments.objects.filter(Interprise=shell)
-                code = invoCode(entry)
+                if not simpleAdjst:
+                    adj = adjustments()
+                    entry = adjustments.objects.filter(Interprise=shell)
+                    code = invoCode(entry)
 
-                adj.code = TCode({'code':code,'shell':shell.id}) 
+                    adj.code = TCode({'code':code,'shell':shell.id}) 
 
-                adj.Invo_no = int(code)
-                adj.tarehe = datetime.datetime.now(tz=timezone.utc)
-                adj.operator =  Sup
-                adj.by = cheo
-                adj.Interprise = shell
-                adj.maelezo = desc
-                if move:
-                    TankContainer = tankContainer.objects.get(pk=cont,compan=kampuni)
-                    adj.container = TankContainer
-                else:
+                    adj.Invo_no = int(code)
+                    adj.tarehe = datetime.datetime.now(tz=timezone.utc)
+                    adj.operator =  Sup
+                    adj.by = cheo
+                    adj.Interprise = shell
+                    adj.maelezo = desc
+                    if move:
+                        TankContainer = tankContainer.objects.get(pk=cont,compan=kampuni)
+                        adj.container = TankContainer
+                    else:
+                        
+                        Lses = shiftSesion.objects.filter(session__Interprise=shell).last()
+                        
+                        if Lses.complete if Lses else False:
+                            sesAdj = adjustments.objects.filter(session=Lses)
+                            if not sesAdj.exists():
+                                adj.session = Lses
                     
-                    Lses = shiftSesion.objects.filter(session__Interprise=shell).last()
-                    
-                    if Lses.complete:
-                        sesAdj = adjustments.objects.filter(session=Lses)
-                        if not sesAdj.exists():
-                            adj.session = Lses
-                
-                adj.save()
+                    adj.save()
 
                 for t in tanks:
-                    TAdj = tankAdjust()
+                    
                     tankAdj = fuel_tanks.objects.get(pk=t['val'],Interprise__company=kampuni)
-                    init = float(tankAdj.qty)
                     stick = float(t['stick'])
-                    TAdj.adj = adj
-                    TAdj.tank = tankAdj
-                    TAdj.read=init
-                    TAdj.stick = stick
-                    TAdj.fuel = tankAdj.fuel
-                    TAdj.diff = float(stick-init)
-                    TAdj.cost = float(tankAdj.cost)
-                    TAdj.price = float(tankAdj.price)
-                    TAdj.save()
+                    if not simpleAdjst:
+                        TAdj = tankAdjust()
+                        init = float(tankAdj.qty)
+                        
+                        TAdj.adj = adj
+                        TAdj.tank = tankAdj
+                        TAdj.read=init
+                        TAdj.stick = stick
+                        TAdj.fuel = tankAdj.fuel
+                        TAdj.diff = float(stick-init)
+                        TAdj.cost = float(tankAdj.cost)
+                        TAdj.price = float(tankAdj.price)
+                        TAdj.save()
+                    if simpleAdjst and float(tankAdj.qty) != stick:
+
+                            tank_adjust = tankAdjust.objects.filter(tank=tankAdj).order_by('pk').last()
+
+                            lastAdj = float(tank_adjust.stick)
+                            tankqy =  float(tankAdj.qty)
+                            init = float(lastAdj - tankqy)
+                            
+                            tank_adjust.read = float(init-float(tank_adjust.diff))
+                            tank_adjust.stick = init
+                            tank_adjust.diff = float(stick - lastAdj)
+                            tank_adjust.save()
 
                     tankAdj.qty = stick
                     tankAdj.save()
@@ -2767,7 +3172,7 @@ def savaAdjst(request):
                     'success':True,
                     'swa':'Taarifa za marekebisho kwenye tanki yamehifadhiwa kikamilifu',
                     'eng':'Tank Fuel adjustment saved successfully',
-                    'id': adj.id
+                    'id': adj.id if not simpleAdjst else None
                 }
 
                 return JsonResponse(data)
@@ -2782,7 +3187,9 @@ def savaAdjst(request):
                 }
 
           
-        except:
+        except Exception as err :
+            print(f"Error in savaAdjst: {err}")
+            traceback.print_exc() 
             data = {
                 'success':False,
                 'swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena kwa usahihi',
@@ -2984,7 +3391,9 @@ def viewShift(request):
     if not general:
         shell = todo['shell']
         sh = shifts.objects.get(pk=val,record_by__Interprise=shell.id)
-        
+    isLastsh = shifts.objects.filter(record_by__Interprise=sh.record_by.Interprise).last() == sh  
+
+    # print(isLastsh)  
 
     if sh.To is  None:
         shby = InterprisePermissions.objects.get(user=sh.by,Interprise=shell.id)
@@ -2994,15 +3403,17 @@ def viewShift(request):
 
     attach = attachments.objects.filter(Q(shift=sh.id)|Q(session=sh.session.id))
  
-    sale = saleList.objects.filter(shift__shift=sh,sale__shiftBy=None).annotate(amount=F('qty_sold')*F('sa_price'))
+    sale = saleList.objects.filter(shift__shift=sh,sale__shiftBy=None,sale__mobile_pay__isnull=True).annotate(amount=F('qty_sold')*F('sa_price'))
     tr = transFromTo.objects.filter(shift__shift=sh).annotate(worth=F('qty')*F('saprice'))
     exp = rekodiMatumizi.objects.filter(fromShift__shift=sh)
     cashB = wekaCash.objects.filter(shift=sh.id,biforeShift=True)
 
 
 
-    exclude = {
+    exclude = { 
         'cashB':cashB,
+        'cashMobAmo':cashB.filter(sales__mobile_pay=True).aggregate(Amo=Sum('Amount'))['Amo'] or 0,
+        'cashBDepoAmo':cashB.filter(sales__mobile_pay__isnull=True).aggregate(Amo=Sum('Amount'))['Amo'] or 0,
         'cashBA':cashB.aggregate(Amo=Sum('Amount'))['Amo'] or 0,
         'trAmo':tr.aggregate(Amo=Sum('worth'))['Amo'] or 0,
 
@@ -3062,7 +3473,8 @@ def viewShift(request):
          'exp':exp,
          'trd':tr,
          'exclude':exclude,
-        'isShiftView':True
+        'isShiftView':True,
+        'isLastsh':isLastsh
     })
 
     html = 'shiftView.html'
@@ -3141,6 +3553,128 @@ def viewFuelReceive(request):
         return render(request,html,todo)
     except:
         return render(request,'pagenotFound.html')
+
+# Payment Approval ..........................................//
+@login_required(login_url='login')
+def  approveShiftCustomerMobilePayments(request):
+    if request.method == 'POST':
+        try:   
+            payIds = json.loads(request.POST.get('payment_ids'))
+            todo = todoFunct(request)
+            kampuni = todo['kampuni']
+            useri = todo['useri']
+            cashD = int(request.POST.get('cashD',0))
+           
+            if not useri.admin:
+                data = {
+                    'success':False,
+                    'msg_swa' : 'Huna ruhusa ya kuidhinisha malipo ya wateja tafadhari wasiliana na uongozi' ,
+                    'msg_eng' : 'You have no permission to approve customer payments please contact admin',
+                }
+                return JsonResponse(data)
+            for pid in payIds:
+                pay = None
+                if cashD:
+                    pay = toaCash.objects.get(pk=pid,Interprise__company=kampuni)
+                else:    
+                    pay = wekaCash.objects.get(pk=pid,Interprise__company=kampuni)
+                pay.admin_approval = True
+                pay.save()
+            data = {
+                'success':True,
+                'swa':'Malipo ya mteja yameidhinishwa kikamilifu',
+                'eng':'Customer payment approved successfully',
+            }
+            return JsonResponse(data)
+        except Exception as err:
+            print(f"Error in DeletePayMents: {err}")
+            traceback.print_exc() 
+            data = {
+                'success':False,
+                'swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena kwa usahihi',
+                'eng':'the action was not successfully please try again correctly'
+            }
+            return JsonResponse(data)          
+
+
+# Delete Payments .........................................//
+@login_required(login_url='login')
+def  DeletePayMents(request):
+    if request.method == 'POST':
+        try:
+            payId=int(request.POST.get('payId'))
+            customerId=int(request.POST.get('customerId',0))
+            tr = int(request.POST.get('tr',0))
+            todo = todoFunct(request)
+            kampuni = todo['kampuni']
+            useri = todo['useri']
+            manager = todo['manager']
+            if not useri.admin:
+                data = {
+                    'success':False,
+                    'msg_swa' : 'Huna ruhusa ya kufuta malipo ya wateja tafadhari wasiliana na uongozi' ,
+                    'msg_eng' : 'You have no permission to delete customer payments please contact admin',
+                }
+                return JsonResponse(data)
+            pay = None
+            if customerId: 
+                pay = wekaCash.objects.get(pk=payId,Interprise__company=kampuni,customer=customerId)
+
+                cust = wateja.objects.get(pk=customerId,Interprise__company=kampuni)
+                payRecs = CustmDebtPayRec.objects.filter(pay=pay)
+                hasCdOd = pay.cdOrder
+                if hasCdOd is not None:
+                    hasCdOd.paid = float(float(hasCdOd.paid) - float(pay.Amount)) if float(hasCdOd.paid )- float(pay.Amount) >=0 else 0
+                    hasCdOd.prepaid_order = False
+                    hasCdOd.save()      
+
+                for pr in payRecs:
+                    sale = pr.sale
+                    sale.payed = float(float(sale.payed) - float(pr.Apay))
+                    sale.save()
+                    paid_cdOd = sale.cdorder
+                    if paid_cdOd is not None and hasCdOd is None:
+                        paid_cdOd.paid = float(float(paid_cdOd.paid) - float(pr.Apay))
+                        paid_cdOd.prepaid_order = False
+                        paid_cdOd.save()
+                payRecs.delete()
+                pay.delete()
+            
+            if tr:
+                pay = toaCash.objects.get(pk=payId,Interprise__company=kampuni,kuhamisha=True)   
+                fromAc = wekaCash.objects.filter(kutoka__icontains=pay.Akaunt.Akaunt_name,Interprise__company=kampuni,tarehe__gte=pay.tarehe,Amount=float(pay.Amount)).order_by('pk').first()
+                toAcc = pay.Akaunt
+                toAcc.Amount = float(float(toAcc.Amount) - float(pay.Amount)) if float(toAcc.Amount) - float(pay.Amount) >=0 else 0
+                toAcc.save()
+                # print(fromAc)
+                if fromAc:
+                    fromAcAcc = fromAc.Akaunt
+                    fromAcAcc.Amount = float(float(fromAcAcc.Amount) + float(pay.Amount)) 
+                    fromAcAcc.save()
+                    fromAc.delete()  
+                pay.delete()
+                  
+
+            data = {
+                'success':True,
+                'swa':'Malipo ya mteja yamefutwa kikamilifu',
+                'eng':'Customer payment deleted successfully',
+                
+            }
+            return JsonResponse(data)
+
+
+        except Exception as err :
+            print(f"Error in DeletePayMents: {err}")
+            traceback.print_exc() 
+            data = {
+                'success':False,
+                'swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena kwa usahihi',
+                'eng':'the action was not successfully please try again correctly'
+            }
+            return JsonResponse(data)
+            
+
 # pay  INVOINCE .........................................//
 @login_required(login_url='login')
 def  lipaInvo(request):
@@ -3151,7 +3685,8 @@ def  lipaInvo(request):
                   ac=int(request.POST.get('ac'))
                   pall=int(request.POST.get('all',0))
                   isCredit = int(request.POST.get('isCredit',0))
-                
+                  edit = int(request.POST.get('edit',0))
+                  
 
                   paid_amo = float(request.POST.get('pay_amo'))  
                   pay_d = request.POST.get('date')
@@ -3184,6 +3719,15 @@ def  lipaInvo(request):
                             'msg_eng' : 'You have no permission to make invoice payment please contact admin',
                       }
                         return JsonResponse(data)
+                  
+                  if edit and not useri.admin:
+                      data = {
+                        'success':False,
+                        'msg_swa' : 'Huna ruhusa ya kufanya malipo ya ankara tafadhari wasiliana na uongozi' ,
+                        'msg_eng' : 'You have no permission to make invoice payment please contact admin',
+                      }  
+
+                      return JsonResponse(data)
 
                   ilolipwa = 0
                   malipo = 0
@@ -3193,6 +3737,24 @@ def  lipaInvo(request):
                   custOder = None
                   order_due = 0
                   total_deni = 0
+                  weka = wekaCash()
+                  if edit:
+                    weka = wekaCash.objects.get(pk=edit,Interprise__company=kampuni,customer=value)
+                    #  clear all prev paid invoices amount 
+                    prevPays = CustmDebtPayRec.objects.filter(pay=weka)
+                    
+                    for pp in prevPays:
+                        sale = pp.sale
+                        sale.payed = float(float(sale.payed) - float(pp.Apay))
+                        sale.save()
+                        paid_cdOd = sale.cdorder
+                        if paid_cdOd is not None:
+                            paid_cdOd.paid = float(float(paid_cdOd.paid) - float(pp.Apay))
+                            paid_cdOd.prepaid_order = False
+                            paid_cdOd.save()
+                    prevPays.delete()
+                    
+                     
 
                   if pall:
                      cust = wateja.objects.get(pk=value,Interprise__company=kampuni.id)
@@ -3202,13 +3764,22 @@ def  lipaInvo(request):
                      custOders = creditDebtOrder.objects.filter(customer=cust,paid__lt=F('amount')).order_by('-pk')
                      custOder = custOders.first() if custOders.exists() else None
                      order_due = float(custOder.amount - custOder.paid) if custOder is not None else 0
+                     if not custOder and  total_deni < paid_amo and not edit:
+                        data = {
+                            'pay':True,  
+                            'success':False,
+                            'msg_swa' : 'kiasi kilicholipwa kimezidi fedha inayodaiwa' ,
+                            'msg_eng' : 'The paid amount exceeds the total due amount',
+                      }
+                        return JsonResponse(data)
+
 
                      kutoka = cust.jina
                      ilolipwa = float(bill.aggregate(lipwa=Sum('payed'))['lipwa'] or 0)
                      malipo = float(paid_amo+ilolipwa) 
                      kiasi = float(bill.aggregate(kiasi=Sum('amount'))['kiasi'] or 0)
                      
-                  else:    
+                  if not (pall or edit):    
                         
                         bill = fuelSales.objects.get(by__Interprise=shell,pk=value)
                         ilolipwa = float(bill.payed)
@@ -3227,9 +3798,9 @@ def  lipaInvo(request):
             
                   prepaid_order = total_deni < paid_amo and order_due > 0
                 #   print(prepaid_order,total_deni, paid_amo, order_due)
-                  weka = wekaCash()
                   
-                  if (malipo <= kiasi and malipo>0) or prepaid_order: 
+                  
+                  if ((malipo <= kiasi  and malipo>0) or prepaid_order) or edit: 
                         lipwaAmo = paid_amo
                         wekakwa= acc
                         beforweka=float(wekakwa.Amount)    
@@ -3240,18 +3811,29 @@ def  lipaInvo(request):
                         weka.After = float(beforweka + lipwaAmo) 
                         weka.kutoka = kutoka
                         weka.maelezo = desc
-                        weka.tarehe = datetime.datetime.now(tz=timezone.utc)
+                        if not edit:
+                            weka.tarehe = datetime.datetime.now(tz=timezone.utc)
                         weka.by=useri
                         weka.Interprise=shell
                         weka.mauzo=True
-                        weka.tInvo = len(bill)
+                        weka.tInvo = len(bill) if bill.exists() else 0
                         weka.tDebt = float(bill.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'] or 0)
                         weka.customer = cust
-                        if prepaid_order:
+                        if prepaid_order and not edit:
                             weka.cdOrder = custOder
                             custOder.paid = float(float(custOder.paid) + paid_amo) if order_due <= paid_amo else float(custOder.amount)
                             custOder.prepaid_order = True if order_due <= paid_amo else False
                             custOder.save()
+                        if edit and weka.cdOrder is not None:
+                            cdOd = weka.cdOrder
+                            pay_diff = float(paid_amo - float(weka.Amount))
+                            cdOd.paid = float(float(cdOd.paid)+float(pay_diff))
+                            cdOd.prepaid_order = prepaid_order
+                            cdOd.save()
+                            if float(cdOd.paid) > float(cdOd.amount):
+                                cdOd.amount = float(cdOd.paid)
+                                cdOd.save()
+
                         if not wekakwa.onesha:
                             weka.usiri =True               
                         wekakwa.Amount = float(beforweka + lipwaAmo)   
@@ -3292,7 +3874,6 @@ def  lipaInvo(request):
                                     custP.save()
                                     
 
-                        
                   else:
                               after={
                                     'pay':True,  
@@ -3303,6 +3884,7 @@ def  lipaInvo(request):
                   return JsonResponse(after)
             except Exception as err:
                   print('error in payment',err)
+                  traceback.print_exc()
                   data={
                          
                                     'success':False,
@@ -3458,7 +4040,9 @@ def addAttach(request):
                     'msg_swa':'Hauna ruhusa ya kitendo hiki kwa sasa tafadhari wasiliana na mhusika',
                     'msg_eng':'You have no permission for this action please contact admin'
                 }
-        except:
+        except Exception as err:
+            print(f"Error in addAttach: {err}")
+            traceback.print_exc()
             data = {
                 'success':False,
                 'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena baadaye',
@@ -3719,7 +4303,7 @@ def get_shift_data(request):
 
     shift = shifts.objects.get(pump=shpump,To=None)
 
-    sale = saleList.objects.filter(shift__shift=shift,sale__shiftBy=None).aggregate(Sum('qty_sold'))['qty_sold__sum'] or 0
+    sale = saleList.objects.filter(shift__shift=shift,sale__shiftBy=None,sale__mobile_pay=False).aggregate(Sum('qty_sold'))['qty_sold__sum'] or 0
     tr = TransferFuel.objects.filter(shift=shift.id).aggregate(Sum('qty'))['qty__sum'] or 0
     exp = rekodiMatumizi.objects.filter(fromShift=shift.id)
     exp_fuel = exp.aggregate(Sum('fuel_qty'))['fuel_qty__sum'] or 0
@@ -3825,7 +4409,7 @@ def endshift(request):
                     pmpsh.save()
 
                
-                    sale = saleList.objects.filter(shift=pmpsh.id,sale__customer__Interprise__company=kampuni).aggregate(Sum('qty_sold'))['qty_sold__sum'] or 0
+                    sale = saleList.objects.filter(shift=pmpsh.id,sale__customer__Interprise__company=kampuni,sale__mobile_pay=False).aggregate(Sum('qty_sold'))['qty_sold__sum'] or 0
                     tr = transFromTo.objects.filter(shift=pmpsh.id).aggregate(Sum('qty'))['qty__sum'] or 0
                     exp = rekodiMatumizi.objects.filter(fromShift=pmpsh.id)
 
@@ -3923,7 +4507,7 @@ def endshift(request):
                                 TheTnk=soldBreceive.filter(tank=rt.tank)
                                 BsoldCost = float(TheTnk.aggregate(sumi=Sum(F('qty')*F('cost')))['sumi'] or 0)
                                 BsoldQty = float(TheTnk.aggregate(sumi=Sum('qty'))['sumi'] or 0)
-                                shiftSale = saleList.objects.filter(sale__session=ses,shift__pump__tank=rt.tank,shiftBy__session=ses)
+                                shiftSale = saleList.objects.filter(sale__session=ses,shift__pump__tank=rt.tank,shiftBy__session=ses,sale__mobile_pay=False)
                                 SoldQty = float(shiftSale.aggregate(sumi=Sum('qty_sold'))['sumi'] or 0)
                                 soldAfterRc = float(SoldQty - BsoldQty)
                                 Soldcost = soldAfterRc * float(rt.tank.cost) 
@@ -3974,6 +4558,7 @@ def endshift(request):
                 
         except Exception as err:
             print('error end shift',err)
+            traceback.print_exc() 
             data = {
                 'success':False,
                 'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena',
@@ -4040,7 +4625,7 @@ def theshiftsAttend(request):
 
   todo.update({
  
-   
+      'approval':toApprovalPayments(request),
       'Incharges':shiftAttend,
       'isShiftAttend':True,
      
@@ -4076,7 +4661,7 @@ def StartEndShift(request):
 
             # print(spancer_shp.count())
 
-            sale = saleList.objects.filter(shift__shift=shift.id,sale__shiftBy=None).annotate(amount=F('qty_sold')*F('sa_price'))
+            sale = saleList.objects.filter(shift__shift=shift.id,sale__shiftBy=None,sale__mobile_pay=False).annotate(amount=F('qty_sold')*F('sa_price'))
             tr = transFromTo.objects.filter(shift__shift=shift.id).annotate(worth=F('qty')*F('saprice'))
             exp = rekodiMatumizi.objects.filter(fromShift__shift=shift.id)
 
@@ -4087,6 +4672,8 @@ def StartEndShift(request):
 
             exclude = {
                 'cashB':cashB,
+                'cashBmobA':cashB.filter(sales__mobile_pay=True).aggregate(Amo=Sum('Amount'))['Amo'] or 0,
+                'cashBcashD':cashB.filter(sales__mobile_pay__isnull=True).aggregate(Amo=Sum('Amount'))['Amo'] or 0,
                 'cashBA':cashB.aggregate(Amo=Sum('Amount'))['Amo'] or 0,
                 'trAmo':tr.aggregate(Amo=Sum('worth'))['Amo'] or 0,
                 # 'salep':sale.aggregate(Sum('payed'))['payed__sum'] or 0,
@@ -4153,13 +4740,42 @@ def deleteShift(request):
         manager = todo['manager']
         useri = todo['useri']
         shift_id = int(request.POST.get('shift_id', 0))
+        isClosed = int(request.POST.get('closed', 0))
+
         if not (manager or useri.admin):
             return JsonResponse({'success': False, 'eng': 'Permission denied.', 'swa': 'Ruhusa haijarusiwa.'})
         if not shift_id:
             return JsonResponse({'success': False, 'eng': 'No shift ID provided.', 'swa': 'Hakuna ID ya zamu iliyotolewa.'})
         
-        shiftToD = shifts.objects.get(pk=shift_id, record_by__Interprise=shell.id,To=None)
+        shiftToD = shifts.objects.get(pk=shift_id, record_by__Interprise=shell.id,To=None) if not isClosed else shifts.objects.get(pk=shift_id, record_by__Interprise=shell.id)
+
         ses = shiftToD.session
+        isLastshift = shifts.objects.filter(record_by__Interprise=shiftToD.record_by.Interprise).last() == shiftToD
+        if isClosed and not isLastshift:
+            data = {
+                'success':False,
+                'eng':'Only the last closed shift can be deleted.',
+                'swa':'Zamu iliyofungwa ya mwisho tu ndiyo inaweza kufutwa.'
+            }
+            return JsonResponse(data)
+
+        if isClosed and isLastshift:
+            shpmps = shiftPump.objects.filter(shift=shiftToD)
+            for sp in shpmps:
+                fuel_flow = sp.final - sp.initial
+                tank = sp.pump.tank
+                tank.qty = float(float(tank.qty) + float(fuel_flow))
+                tank.save()
+
+                pmp = sp.pump
+                pmp.readings = float(sp.initial)
+                pmp.save()
+
+            #delete the session adj    
+            adjustments.objects.filter(session=ses,container=None).delete()    
+
+
+
         sale = saleList.objects.filter(shift__shift=shiftToD.id)
         for s in sale:
             theSale = s.sale
@@ -4179,6 +4795,9 @@ def deleteShift(request):
                 if IsCreditor is not None:
                     IsCreditor.consumed = float(float(IsCreditor.consumed) - float(saleAmo))
                     IsCreditor.save()
+                    custm = IsCreditor.customer
+                    custm.limited_order = True
+                    custm.save()
 
                 theSale.delete()
 
@@ -4223,6 +4842,7 @@ def deleteShift(request):
         else:
             return JsonResponse({'success': False, 'eng': 'No shift deleted.', 'swa': 'Hakuna zamu iliyofutwa.'})
     except Exception as e:
+        traceback.print_exc() 
         return JsonResponse({'success': False, 'eng': f'Error: {str(e)}'})
 
 @login_required(login_url='login')
@@ -4236,13 +4856,14 @@ def deleteCDSales(request):
         order_id = json.loads(request.POST.get('cd_order_ids', '[]'))
         if not (manager or useri.admin):
             return JsonResponse({'success': False, 'eng': 'Permission denied.', 'swa': 'Ruhusa haijarusiwa.'})
-        print(order_id)  
+        # print(order_id)  
         saleL = saleList.objects.filter(Q(shift__shift__To=None)|Q(shift__shift__isnull=True),pk__in=order_id, sale__by__Interprise=shell.id)
         if saleL.exists():
             for saL in saleL:
 
                     sale = saL.sale
                     accs = wekaCash.objects.filter(sales=sale.id)
+                    
                     for ac in accs:
                         acc = ac.Akaunt
                         acc.Amount = float(float(acc.Amount) - float(sale.payed))
@@ -4252,6 +4873,9 @@ def deleteCDSales(request):
                     if IsCreditor is not None:
                         IsCreditor.consumed = float(float(IsCreditor.consumed) - float(sale.amount))
                         IsCreditor.save()
+                        custm = IsCreditor.customer
+                        custm.limited_order = True
+                        custm.save()
 
                     sale.delete()  
                 
@@ -4272,6 +4896,7 @@ def deleteCDSales(request):
 
     except Exception as err:
         print(err) 
+        traceback.print_exc() 
         data = {
             'success':False,
             'swa':'Kitendo hakikufanikiwa tafadhari jaribu tena',
@@ -4325,16 +4950,36 @@ def deleteCashDeposit(request):
             })
         
         deleted_count = 0
+
         for deposit in cash_deposits:
             # Reduce amount from payment account
+            isDeleted = False
             if deposit.Akaunt:
                 acc = deposit.Akaunt
                 acc.Amount = float(float(acc.Amount) - float(deposit.Amount))
                 acc.save()
+            isMobilePay = deposit.sales.mobile_pay if deposit.sales else False
             
+            if isMobilePay:
+                # if mobile pay delete the corresponding sales but if two shifts involved do not delete and throw error and end for loop
+                sale = deposit.sales
+                saL = saleList.objects.filter(sale=sale.id,shift__shift__To__isnull=False)
+                if saL.exists():
+                    return JsonResponse({
+                        'success': False, 
+                        'eng': 'Cannot delete deposit linked to sales from ended shifts.',
+                        'swa': 'Haiwezi kufuta amana inayohusiana na mauzo kutoka zamu zilizomalizika.'
+                    })
+                else:
+                    sale.delete()
+                    isDeleted = True
+                    deleted_count += 1
+                    
+
             # Delete the deposit
-            deposit.delete()
-            deleted_count += 1
+            if not isDeleted:
+                deposit.delete()
+                deleted_count += 1
         
         if deleted_count > 0:
             return JsonResponse({
@@ -4350,6 +4995,8 @@ def deleteCashDeposit(request):
             })
             
     except Exception as e:
+        print(e)
+        traceback.print_exc() 
         return JsonResponse({
             'success': False, 
             'eng': f'Error: {str(e)}',
@@ -4724,7 +5371,7 @@ def addpump(request):
 @login_required(login_url='login')
 def cashOut(request):
     if request.method == "POST":
-        # try:
+        try:
             shift = int(request.POST.get('shift'))
             amoC = float(request.POST.get('amoC'))
             To_acco = int(request.POST.get('To_acco',0))
@@ -4831,13 +5478,14 @@ def cashOut(request):
 
             return JsonResponse(data)
 
-        # except:
-        #     data = {
-        #         'success':False,
-        #         'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena',
-        #         'msg_eng':'The action was not successfully please try again',
-        #     }
-        #     return JsonResponse(data)
+        except Exception as err:
+            print(err)
+            data = {
+                'success':False,
+                'msg_swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena',
+                'msg_eng':'The action was not successfully please try again',
+            }
+            return JsonResponse(data)
     
 
 @login_required(login_url='login')
@@ -4851,7 +5499,7 @@ def addcustomer(request):
              admin = todo['admin']
              manager = todo['manager']
              shell = todo['shell']
-
+             kampuni = todo['kampuni']
              if useri.admin or manager:  
 
                 name=request.POST.get('jina')
@@ -4865,11 +5513,11 @@ def addcustomer(request):
                 edit=int(request.POST.get('edit',0))
                 valued=int(request.POST.get('valued',0))
                 un = int(request.POST.get('u',0))
-
+                  
                 
 
                 teja=wateja()
-                wtj = wateja.objects.filter(pk=valued)
+                wtj = wateja.objects.filter(added_by__company=kampuni,pk=valued)
                 if edit and wtj.exists() and useri.admin:
                     teja = wtj.last()
                 else:
@@ -5538,7 +6186,7 @@ def search_records(request):
                 model = Purchases
                 qs = model.objects.filter(code__endswith=num, record_by__company=kampuni)
                 result = qs.last()
-            elif prefix == 'SHF':
+            elif prefix == 'SHF' or prefix == 'SHIFT' or prefix == 'SHFT' or prefix == 'SH':
                 model = shifts
                 qs = model.objects.filter(code__endswith=num, record_by__Interprise__company=kampuni)
                 if not general and shell:

@@ -150,12 +150,14 @@ const trT = () =>{
                                 </div>
                         </td>                      
                     
-                         <td>
+                      <td>
+                         <div class="input-group  " > 
                             <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
                                     <label class="mt-1 text-danger " for="saPrice1"></label> 
                                 <div class="box-pointer d-inline "></div>
                             </div>
-                            <input type="number" data-pos=${pos} step=0.001 id="totPrice${pos}" name="totPrice${pos}" data-tprice=1  class="form-control money-fomat btn-sm weight600 fuelSalesSet">
+                            <input type="number" style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)" data-pos=${pos} step=0.001 id="totPrice${pos}" name="totPrice${pos}" data-tprice=1  class="form-control money-fomat btn-sm weight600 fuelSalesSet">
+                           </div>
                         </td> 
                         
                         <td>

@@ -78,13 +78,13 @@
                                                 {% if useri.langSet == 0 %}Mauzo{%else%}Sales{%endif%}
                                         {%endif%}
 
-                                        {% if w.huduma %}
-                                                {% if useri.langSet == 0 %}Huduma{%else%}Service{%endif%}
+                                        {% if w.cdOrder %}
+                                                {% if useri.langSet == 0 %}Malipo ya Order{%else%}Order Payment{%endif%}
                                         {%endif%}
                                         {% if w.kuhamisha %}
                                                 {{w.kutoka}}
                                         {%endif%}
-                                        {% if not w.huduma and not w.mauzo and not w.kuhamisha and not w.biforeShift %}
+                                        {% if not w.huduma and not w.mauzo and not w.kuhamisha and not w.biforeShift  and not w.cdOrder %}
                                                 {% if useri.langSet == 0 %}Mtaji{%else%}Capital{%endif%}
                                         {%endif%}
                                     </u>
@@ -94,21 +94,24 @@
 
                                   <td class="text-left px-2" >
                                     {% if w.customer %} 
-                                      {% if useri.langSet == 0 %} 
-                                         Malipo ya ankara mauzo ya mafuta kutoka kwa  
-                                      {%else%} 
-                                         Invoice payment Fuel sales from
-                                      {%endif%}<a href="/salepurchase/ViewCustomer?i={{w.customer.id}}">{{w.customer.jina|title}}</a> 
-                                    {% endif %} 
-                                    
-                                    <!-- {% if w.sales %}
-                                      {% if useri.langSet == 0 %} 
-                                         Malipo ya ankara <a href="/salepurchase/viewFuelSales?i={{w.sales.id}}">SA-{{w.sales.code}}</a> mauzo ya mafuta kutoka kwa  
-                                      {%else%} 
-                                         Invoice <a href="/salepurchase/viewFuelSales?i={{w.sales.id}}">SA-{{w.sales.code}}</a>  payment Fuel sales from
-                                      {%endif%}<a href="/salepurchase/ViewCustomer?i={{w.sales.customer.id}}">{{w.sales.customer.jina|title}}</a> 
+                                     {% if w.cdOrder %}
+                                         {% if useri.langSet == 0 %} 
+                                          Malipo ya order kwa  
+                                        {%else%} 
+                                          Order payment from
+                                        {%endif%}
+                                     {% else %}
+                                        {% if useri.langSet == 0 %} 
+                                          Malipo ya ankara mauzo ya mafuta kutoka kwa  
+                                        {%else%} 
+                                          Invoice payment Fuel sales from
+                                        {%endif%}
+                                      {% endif %}
+                                         <a href="/salepurchase/ViewCustomer?i={{w.customer.id}}">{{w.customer.jina|title}}</a> 
 
-                                    {% endif %} -->
+                                      {% endif %} 
+                                    
+                                    
 
                                     {% if w.shift and not w.biforeShift %}
                                         {% if useri.langSet == 0 %} 

@@ -127,6 +127,48 @@
         
 
         <hr>
+
+        <!-- IGNORE THIS FOR A WHILE  -->
+        {% if cust.limited_order and inloss %}
+            <div class="row" id="IgnoreAmountPanel">
+                <div class="col-md-5 row">
+                    
+
+                    <div class="col-5">
+                        {% if useri.langSet == 0 %}Kiasi cha Kupuuza{% else %}Amount to Ignore{% endif %}
+                    </div>
+                    <div class="col-7">
+                        <span id="setIgnoreAmount">{{cust.toIgnore|default:0|floatformat:'-2'|intcomma}}</span>
+                        {% if useri.admin %}
+                        | <button class="btn btn-light btn-sm text-primary" data-toggle="modal" data-target="#setIgnoreModal" title="{% if useri.langSet == 0 %}Weka{% else %}Set{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        {% endif %}
+                    </div>
+ 
+                 {% if cust.toIgnore >= lastCd.balance %}
+                    <div class="col-5 weight600 mt-2">
+                        {% if useri.langSet == 0 %}Salio la Kupuuza{% else %}Remaining to Ignore{% endif %}
+                    </div>
+                    <div class="col-7 weight600 mt-2">
+                      <span id="remainingIgnoreAmount">{{lastCd.balance|default:0|floatformat:'-2'|intcomma}}</span>    | <button type="button" class="btn btn-warning btn-sm" id="ignoreRemainingBtn" data-toggle="modal" data-target="#ignoreRemainingModal">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" fill="currentColor" class="bi bi-check-circle mr-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                            </svg>
+                                {% if useri.langSet == 0 %}Puuza Salio{% else %}Ignore Remaining{% endif %}
+                            </button>
+                    </div>
+
+
+                    {% endif %}
+            </div>
+           </div>
+           <hr>
+        {% endif %}
        
         <div class="d-flex justify-content-end align-items-center mb-4 bg-light p-3 rounded">
             <div class="btn-toolbar" role="toolbar">
@@ -146,7 +188,8 @@
                          {% if useri.langSet == 0 %}Oda Mpya{% else %}New Order{% endif %}
                     </button>
                     {% else %}
-                       {% if lastCd.paid >= lastCd.consumed %}
+                   
+                       {% if lastCd.paid >= lastCd.consumed and cust.limited_order %}
                         <button type="button" 
                             class="btn btn-outline-success btn-sm" 
                             title="{% if useri.langSet == 0 %}Ongeza Fedha{% else %}Top Up{% endif %}" 
@@ -298,93 +341,89 @@
             </h5>
              
                 <div class="row">
-                <div class="col-md-5">
-                            <div class="form-group mb-3">
-                                <label class="brown" for="sa_date">
-                                    {% if useri.langSet == 0 %}Tarehe Muda{% else %}Date Time{% endif %}
-                                    <sup>*</sup>
-                                </label>
-                                <input type="datetime-local" class="form-control" name="sa_date" id="sa_date" aria-describedby="helpId" placeholder="">
-                            <script>
-                                var today = new Date().toISOString().slice(0, 16);
-                                document.getElementById("sa_date").setAttribute('max', today);
-                            </script>
-                            </div>
+                    <div class="col-md-5">
+                                <div class="form-group mb-3">
+                                    <label class="brown" for="sa_date">
+                                        {% if useri.langSet == 0 %}Tarehe Muda{% else %}Date Time{% endif %}
+                                        <sup>*</sup>
+                                    </label>
+                                    <input type="datetime-local" class="form-control" name="sa_date" id="sa_date" aria-describedby="helpId" placeholder="">
+                                <script>
+                                    var today = new Date().toISOString().slice(0, 16);
+                                    document.getElementById("sa_date").setAttribute('max', today);
+                                </script>
+                                </div>
 
 
-                    <div class="form-group">
-                        <label  for="sale_opt">
-                        {% if useri.langSet == 0 %}Namna ya Kuuza{% else %} Sales Option{% endif %} 
-                            <sup>*</sup>
-                    </label>
-                        <select class="form-control btn-sm" name="sale_opt" onchange="const saOpt=$(this).val();$('.sale_opt').prop('hidden',1);$(`.sale_opt${saOpt}`).prop('hidden',0);$(`.showFuel`).text('------')" id="sale_opt">
-                       
-                        <option value=1 >{% if useri.langSet == 0 %}Kutoka kwenye pampu{% else %}From Pump{% endif %}</option>
-                        <option value=2 >{% if useri.langSet == 0 %}Kutoka kwenye Tanki{% else %}From Tank{% endif %}</option>
+                        <div class="form-group">
+                            <label  for="sale_opt">
+                            {% if useri.langSet == 0 %}Namna ya Kuuza{% else %} Sales Option{% endif %} 
+                                <sup>*</sup>
+                        </label>
+                            <select class="form-control btn-sm" name="sale_opt" onchange="const saOpt=$(this).val();$('.sale_opt').prop('hidden',1);$(`.sale_opt${saOpt}`).prop('hidden',0);$(`.showFuel`).text('------')" id="sale_opt">
                         
-                        </select>
-                    </div>
-
-                    <!-- SALE DIRECTLY FROM TANK -->
-					<div class="sale_opt sale_opt2" hidden id="sale_opt2">
-
-                        <div class="row">
-                            <div class="col-6">
-                           <div class="form-group">
-                              <label class="brown" for="containerSale">{% if useri.langSet == 0 %}Kontena{% else %}Container{% endif %} <sup>*</sup> </label>
-                                <select class=" form-control bluePrint border selectpicker tankContainers" 
-                                   
-                                    data-live-search="true" name="containerSale" id="containerSale">
-                                        <option value=0 selected>-----------</option>
-                                        {% for t in tankContainer %}
-                                        <option data-by="{{t.tank.by.id}}" value={{t.tank.id}}>{{t.tank.name}}</option>
-                                        {% endfor %}
-                                </select>
-
-                            </div>
-                            </div>
-
-                            <div class="col-6">
-                                        <div class="form-group">
-                                            <label for="tank_incharge2" class="brown" >
-                                                {% if useri.langSet == 0 %}Mhusika{% else %}Incharge{% endif %} <sup>*</sup>
-                                            </label>
-                                        
-                                             <select
-                                                onchange="$(this).selectpicker('setStyle', 'bluePrint')"
-                                                class=" form-control selectpicker border btn-sm" data-live-search="true" name="tank_incharge2" id="tank_incharge2">
-                                                    <option value=0 selected>-----------</option>
-                        
-                                                    {% for u in tr_by %}
-                                                    
-                                                        <option value={{u.id}}>{{u.user.first_name|title}}  {{u.user.last_name|title}}</option>
-                        
-                                                    {%endfor%}
-                        
-                                                
-                                             </select>
-                                            
-                                        </div>
-                            </div>
+                            <option value=1 >{% if useri.langSet == 0 %}Kutoka kwenye pampu{% else %}From Pump{% endif %}</option>
+                            <option value=2 >{% if useri.langSet == 0 %}Kutoka kwenye Tanki{% else %}From Tank{% endif %}</option>
+                            
+                            </select>
                         </div>
-					
 
-						
-							  
-                               
+                        <!-- SALE DIRECTLY FROM TANK -->
+                        <div class="sale_opt sale_opt2" hidden id="sale_opt2">
 
-                           
+                            <div class="row">
+                                <div class="col-6">
+                            <div class="form-group">
+                                <label class="brown" for="containerSale">{% if useri.langSet == 0 %}Kontena{% else %}Container{% endif %} <sup>*</sup> </label>
+                                    <select class=" form-control bluePrint border selectpicker tankContainers" 
+                                    
+                                        data-live-search="true" name="containerSale" id="containerSale">
+                                            <option value=0 selected>-----------</option>
+                                            {% for t in tankContainer %}
+                                            <option data-by="{{t.tank.by.id}}" value={{t.tank.id}}>{{t.tank.name}}</option>
+                                            {% endfor %}
+                                    </select>
 
-					</div>
+                                </div>
+                                </div>
 
-	                    
+                                <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="tank_incharge2" class="brown" >
+                                                    {% if useri.langSet == 0 %}Mhusika{% else %}Incharge{% endif %} <sup>*</sup>
+                                                </label>
+                                            
+                                                <select
+                                                    onchange="$(this).selectpicker('setStyle', 'bluePrint')"
+                                                    class=" form-control selectpicker border btn-sm" data-live-search="true" name="tank_incharge2" id="tank_incharge2">
+                                                        <option value=0 selected>-----------</option>
+                            
+                                                        {% for u in tr_by %}
+                                                        
+                                                            <option value={{u.id}}>{{u.user.first_name|title}}  {{u.user.last_name|title}}</option>
+                            
+                                                        {%endfor%}
+                            
+                                                    
+                                                </select>
+                                                
+                                            </div>
+                                </div>
+                            </div>
+                        
 
+                            
+                                
+                                
+
+                            
+
+                        </div>
+
+                            
+
+                    </div>
                 </div>
-
-
-
-
-             </div>
 
 
             <div class="table-responsive mt-3">
@@ -490,12 +529,14 @@
 
 
                          <td>
+                             <div class="input-group  " >   
                                    <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
                                         <label class="mt-1 text-danger " for="totPrice1"></label> 
                                     <div class="box-pointer d-inline "></div>
                                     </div>
-                            <input type="number" step="0.001" data-pos=1 id="totPrice1" name="totPrice1" data-tprice=1 class="form-control money-fomat btn-sm weight600 fuelSalesSet">
-                        </td> 
+                               <input type="number" step="0.001" style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  data-pos=1 id="totPrice1" name="totPrice1" data-tprice=1 class="form-control money-fomat btn-sm weight600 fuelSalesSet">
+                               </div>
+                            </td> 
                         
                         <td>
                             <a type="button" data-pos=1 class="brown rowRemoveBtn text-danger" >
@@ -833,10 +874,11 @@
                         <span class=" font-weight-bold green" >{{custBalance|floatformat:'-2'|intcomma}} {{currencii}}</span>
                     </div>
                 </div>
-            </div>    </div>
+            </div>    
         </div>
+        
       {% endif %}
-
+</div>
         <ul class="nav nav-tabs smallerFont mt-3 d-flex">
             <li class="nav-item">
                 <a class="nav-link report_show {% block thisMonth_active %} active {% endblock %}"  data-show="this_Month"  href="{% block ViewCust %}#{% endblock %}">{% if useri.langSet == 0 %}Mwezi Huu{% else %} This Month{% endif %}</a>
@@ -1117,10 +1159,10 @@
 
 
     </div>
-    </div>
+</div>
 
   
-  </div>    
+    
 
 
 
@@ -1747,7 +1789,7 @@
     </div>
   </div>
 
-  {% if  lastCd.amount == lastCd.paid %}
+  {% if lastCd.paid >= lastCd.consumed  and cust.limited_order  %}
                         <!-- Top Up Modal -->
                         <div class="modal fade" id="topUpModal" tabindex="-1" role="dialog" aria-labelledby="topUpModalLabel" aria-hidden="true">
                             <div class="modal-dialog" role="document">
@@ -2023,7 +2065,130 @@
       </div>
     </div>
 
-    
+    {% if cust.limited_order %}
+          
+            <!-- Modal to Set Ignore Amount -->
+            <div class="modal fade" id="setIgnoreModal" tabindex="-1" role="dialog" aria-labelledby="setIgnoreLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="setIgnoreLabel">
+                                {% if useri.langSet == 0 %}Weka Kiasi cha Kupuuza{% else %}Set Ignore Amount{% endif %}
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="setIgnoreForm">
+                                <div class="form-group">
+                                    <label for="ignoreAmountInput" class="brown">
+                                        {% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">{{currencii}}</span>
+                                    </label>
+                                    <input type="number" class="form-control money-fomat" id="ignoreAmountInput" step="0.01" placeholder="{{cust.toIgnore|default:0|floatformat:'-2'|intcomma}}">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal to Ignore Remaining Amount -->
+            <div class="modal fade" id="ignoreRemainingModal" tabindex="-1" role="dialog" aria-labelledby="ignoreRemainingLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="ignoreRemainingLabel">
+                                {% if useri.langSet == 0 %}Puuza Salio{% else %}Ignore Remaining Amount{% endif %}
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>
+                                {% if useri.langSet == 0 %}
+                                    Je, unakubaliana kumuishia oda kwa mteja huyu?
+                                {% else %}
+                                    Are you sure you want to end this order for the customer?
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="button" id="confirmIgnoreBtn" class="btn btn-warning">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+            $('#setIgnoreForm').on('submit', function(e) {
+                e.preventDefault();
+                const ignoreAmount = parseFloat($('#ignoreAmountInput').val()) || 0;
+                const orderId = Number('{{lastCd.id}}');
+                const cust = Number('{{cust.id}}');
+                const data = {
+                    data: {
+                        orderId,
+                        ignoreAmount,
+                        cust
+                    },
+                    url: '/salepurchase/set_ignore_amount'
+                };
+                
+                $('#setIgnoreModal').modal('hide');
+                $('#loadMe').modal('show');
+                
+                const sendIt = POSTREQUEST(data);
+                sendIt.then(function(res) {
+                    $('#loadMe').modal('hide');
+                    hideLoading();
+                    const msg = lang(res.swa, res.eng);
+                    
+                    if(res.success) {
+                        toastr.success(msg, lang('Imefanikiwa', 'Success'), {timeOut: 2000});
+                        location.reload();
+                    } else {
+                        toastr.error(msg, lang('Imeshindikana', 'Failed'), {timeOut: 2000});
+                    }
+                });
+            });
+
+            $('#confirmIgnoreBtn').on('click', function() {
+                const orderId = Number('{{lastCd.id}}');
+                
+                const data = {
+                    data: {
+                        orderId,
+                        action: 'end_order'
+                    },
+                    url: '/salepurchase/ignore_remaining_amount'
+                };
+                
+                $('#ignoreRemainingModal').modal('hide');
+                $('#loadMe').modal('show');
+                
+                const sendIt = POSTREQUEST(data);
+                sendIt.then(function(res) {
+                    $('#loadMe').modal('hide');
+                    hideLoading();
+                    const msg = lang(res.swa, res.eng);
+                    
+                    if(res.success) {
+                        toastr.success(msg, lang('Imefanikiwa', 'Success'), {timeOut: 2000});
+                        location.reload();
+                    } else {
+                        toastr.error(msg, lang('Imeshindikana', 'Failed'), {timeOut: 2000});
+                    }
+                });
+            });
+            </script>
+    {% endif %}
 
 
 {% endblock %}

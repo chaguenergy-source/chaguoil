@@ -1,0 +1,237 @@
+{% extends 'shiftsActivity.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{% static 'css/customerPayments.css' %}">
+{% endblock %}
+
+{% block activityHead %}
+   {% if useri.langSet == 0 %}Kutoa Cash kutoka Shift{% else %}Cash Deposit Before Shift{% endif %}
+{% endblock %}
+
+{% block tab_deposits_before %}active{% endblock %}
+
+ {% block shiftactivity %} 
+
+   <div class="head">
+        <h5 >
+               <!-- a stack of money svg -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.35em" height="1.35em" fill="currentColor" viewBox="0 0 16 16" class="me-2">
+                    <path d="M1 3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1H1zm7 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                    <path d="M0 5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V5zm3 0a2 2 0 0 1-2 2v4a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V7a2 2 0 0 1-2-2H3z"/>
+                </svg>
+                
+                {% if useri.langSet == 0 %}Kutoa Cash kutoka Shift{% else %}Cash Deposit Before Shift{% endif %}</h5>
+      </div>
+
+
+
+<!-- <div class="payment-actions">
+    <button id="approvePayments" class="btn btn-success">
+        {% if useri.langSet == 0 %}Hakiki Yote{% else %}Approve All{% endif %} (<span id="unapprovedCount">0</span>)
+    </button>
+</div> -->
+
+<div id="paymentSummary">
+
+     <div class="payment-filters ">
+
+    {% csrf_token %}
+
+     <div class="filter-group">
+        <label>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}:</label>
+        <div class="input-group">
+            <select id="stationFilter" class="form-control">
+                {% if not general %}
+                        <option value="{{shell.id}}">{{shell.name}}</option>
+                        
+                        {% if useri.admin or useri.ceo %}
+                            
+                        {% for station in stations %}
+                            {% if station != shell %}
+                                <option value="{{ station.id }}">{{ station.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        <option value=0 >{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                        {% endif %}
+                 {% else %}   
+                    <option value=0 >{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                    {% for station in stations %}
+                        <option value="{{ station.id }}">{{ station.name }}</option>
+                    {% endfor %}
+                 {% endif %}    
+
+            </select>
+
+                <div class="input-group-append dropdown">
+                                
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="{% if useri.langSet == 0 %}Fungua chaguo{% else %}Toggle options{% endif %}" aria-label="{% if useri.langSet == 0 %}Fungua chaguo{% else %}Toggle options{% endif %}">
+                            <span class="sr-only">{% if useri.langSet == 0 %}Fungua chaguo{% else %}Toggle options{% endif %}</span>
+                        </button>
+                        
+                        <div class="dropdown-menu" id="common_duration" >
+                            <a class="dropdown-item duration-option" type="button" onclick="createArray('{% if useri.langSet == 0  %}Wiki Ilopita {% else %}Last Week {% endif %}',moment().startOf('isoWeek').subtract(1,'days').startOf('isoWeek').format(),moment().startOf('isoWeek').subtract(1,'days').endOf('isoWeek').format())" data-value="this_month">{% if useri.langSet == 0 %}Wiki Ilopita {% else %}Last Week{% endif %}</a>
+                            <a class="dropdown-item duration-option" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwezi ulopita{% else %}Last Month{% endif %}',moment().startOf('month').subtract(1,'days').startOf('month').format(),moment().startOf('month').subtract(1,'days').endOf('month').format())" data-value="last_month">{% if useri.langSet == 0 %}Mwezi Uliopita{% else %}Last Month{% endif %}</a>
+                            <!-- <a class="dropdown-item duration-option" type="button" data-value="this_year">{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}</a> -->
+                            <a class="dropdown-item duration-option"  type="button" data-toggle="modal" data-target="#durationModal" id="custom_date_select" data-value="custom_date">{% if useri.langSet == 0 %}Weka Muda{% else %}Custom Date{% endif %}</a>
+                        
+                        </div>
+                </div>
+
+        </div>
+    </div>
+
+    <div class="filter-group">
+        <!-- <label> {% if useri.langSet == 0 %}Aina ya Malipo{% else %}Payment Type{% endif %}:</label>
+        <select id="paymentTypeFilter" class="form-control">
+            <option value="all"> {% if useri.langSet == 0 %}Malipo yote{% else %}All Payments{% endif %}</option>
+            <option value="mobile"> {% if useri.langSet == 0 %}Malipo ya Simu{% else %}Mobile Payment{% endif %}</option>
+            <option value="debt"> {% if useri.langSet == 0 %}Malipo ya Madeni{% else %}Debt Payment{% endif %}</option>
+        </select> -->
+    </div>
+    </div>
+
+
+    <h6 class="weight600" > 
+        {% if useri.langSet == 0 %}Muhtasari wa Pesa Ilitoka Kwenye Shift {% else %}Cash Deposit Before  Summary {% endif %} 
+    </h6>
+    <div class="table-responsive">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>{% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Rekodi{% else %}Records{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Uhakiki{% else %}Approval{% endif %}</th>
+                </tr>
+               
+            </thead>
+            <tbody id="paymentSummaryBody">
+               
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="paymentDetails" class="mt-4" style="display:none">
+    <div >
+        <button class="btn btn-sm btn-outline-secondary" id="backToSummary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H3.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L3.707 7.5H11.5a.5.5 0 0 1 .5.5z"/>
+            </svg>
+            {% if useri.langSet == 0 %}Rudi{% else %}Back{% endif %}
+        </button>
+        <h6 id="paymentDetailsTitle"  class="d-inline weight600 ml-2">{% if useri.langSet == 0 %}Maelezo ya Malipo{% else %}Payment Details{% endif %}</h6>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div></div>
+        <div class="btn-group" role="group" id="payControlBtns" >
+            {% if useri.admin %} 
+            <button id="approveAllPayments"  data-toggle="modal" data-target="#confirmApprovalModal" disabled class="btn btn-success smallFont weight200 btn-sm" >
+                {% if useri.langSet == 0 %}Hakiki {% else %}Approve {% endif %} (<span id="unapprovedCount">0</span>)
+            </button>
+            {% endif %}
+
+            <button id="printPayments" class="btn btn-secondary btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M2.5 1A1.5 1.5 0 0 0 1 2.5v3A1.5 1.5 0 0 0 2.5 7h1v1h6v-1h1A1.5 1.5 0 0 0 15 5.5v-3A1.5 1.5 0 0 0 13.5 1h-11zM2 2.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-3z"/>
+                    <path d="M2 7v3a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 14 10V7H2z"/>
+                </svg>
+                {% if useri.langSet == 0 %}Chapisha{% else %}Print{% endif %}
+            </button>
+        </div>
+    </div>
+
+
+        <div class="table-responsive"  id="paymentsTable">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        {% if useri.admin %}
+                        <th class=" cursor-pointer text-center " >
+                            <input type="checkbox" class="cursor-pointer" id="selectAllPayments" data-ckeckall=1 title="{% if useri.langSet == 0 %}Chagua Yote{% else %}Select All{% endif %}">
+                        </th>
+                        {% endif %}
+
+                        <th>#</th>
+                        <th>{% if useri.langSet == 0 %}TareheMuda{% else %}DateTime{% endif %}</th>
+                        
+                        <th> {% if useri.langSet == 0 %}Aliyetoa{% else %}Attendand{% endif %}</th>
+                        <th> {% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</th>
+                        <th> {% if useri.langSet == 0 %}Na{% else %}By{% endif %}</th>
+                        <th> {% if useri.langSet == 0 %}Maelezo{% else %}Remarks{% endif %}</th>
+                        <th> {% if useri.langSet == 0 %}Akaunti{% else %}Account{% endif %}</th>
+                        <th> {% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} {{currencii}} </th>
+                        <th> {% if useri.langSet == 0 %}Hali{% else %}Status{% endif %}</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentsBody"></tbody>
+            </table>    
+        </div>    
+</div>
+
+
+
+<!-- Add duration Modal -->
+<div class="modal fade" id="durationModal" tabindex="-1" role="dialog" aria-labelledby="durationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="durationModalLabel">{% if useri.langSet == 0 %}Chagua Muda{% else %}Select Duration{% endif %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+            <label for="durationName">{% if useri.langSet == 0 %}Jina la Muda{% else %}Duration Name{% endif %}:</label>
+            <input type="text" id="durationName" class="form-control"> 
+        </div>
+        <div class="form-group">
+            <label for="startDate">{% if useri.langSet == 0 %}Tarehe ya Kuanza{% else %}Start Date{% endif %}:</label>
+            <input type="date" id="startDate" class="form-control"> 
+        </div>
+        <div class="form-group">
+            <label for="endDate">{% if useri.langSet == 0 %}Tarehe ya Kumaliza{% else %}End Date{% endif %}:</label>
+            <input type="date" id="endDate" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Fungua{% else %}Close{% endif %}</button>
+        <button type="button" class="btn btn-primary" id="customDateSubmit">{% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Confirmation Modal for Approval -->
+<div class="modal fade" id="confirmApprovalModal" tabindex="-1" role="dialog" aria-labelledby="confirmApprovalModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmApprovalModalLabel">{% if useri.langSet == 0 %}Thibitisha Malipo{% else %}Confirm Payments{% endif %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        {% if useri.langSet == 0 %}Je, unahakika unataka kuthibitisha malipo ?{% else %}Are you sure you want to approve  payments?{% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Hapana{% else %}No{% endif %}</button>
+        <button type="button" class="btn btn-primary" id="confirmApprovePayments">{% if useri.langSet == 0 %}Ndiyo{% else %}Yes{% endif %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+ {% endblock %}
+
+{% block additionaljs %} 
+
+<script src="{% static 'js/shiftCashDepositBefore.js' %}"></script>
+
+{% endblock %}

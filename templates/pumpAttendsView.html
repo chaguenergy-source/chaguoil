@@ -407,90 +407,170 @@
   
 
               {% if sale %}
-               
-             <div class="mt-4 table-responsive">
-                
-                  
-                <div class="mb-2 row">
-                        <div class="col-8">
-                            <strong>{% if useri.langSet == 0 %}Mauzo Wateja wa Mikopo/Kutanguzia {% else %}Credit/Debit Order Sales {% endif %}</strong> 
+                <div class="mt-4 table-responsive">
+                    
+                    
+                    <div class="mb-2 row">
+                            <div class="col-8">
+                                <strong>{% if useri.langSet == 0 %}Mauzo Wateja wa Mikopo/Kutanguzia {% else %}Credit/Debt Order Sales {% endif %}</strong> 
+                            </div>
+
+                            <div class="col-4 text-right">
+                            <button type="button" title="{% if useri.langSet == 0 %}Futa{% else %}Delete{% endif %}" id="delete-cd-orders-btn" class="btn btn-light btn-sm" disabled onclick="confirmDeleteCDOrders()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+                                </svg>
+                            </button>
+                            </div>  
                         </div>
 
-                        <div class="col-4 text-right">
-                        <button type="button" title="{% if useri.langSet == 0 %}Futa{% else %}Delete{% endif %}" id="delete-cd-orders-btn" class="btn btn-light btn-sm" disabled onclick="confirmDeleteCDOrders()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
-                            </svg>
-                        </button>
-                        </div>  
-                    </div>
 
+                    <table class="table table-bordered smallFont table-sm">
+                        <thead>
+                            <tr class="smallFont" >
+                                <th><input type="checkbox" id="select-all-expenses" onclick="toggleAllCDOrder(this)"></th>
 
-                <table class="table table-bordered smallFont table-sm">
-                    <thead>
-                        <tr class="smallFont" >
-                            <th><input type="checkbox" id="select-all-expenses" onclick="toggleAllCDOrder(this)"></th>
+                                <th>#</th>
+                                <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
 
-                            <th>#</th>
-                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Mauzo{% else %} Sales{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Pampu{% else %} Pampu{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Mteja{% else %} Customer{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %} <span class="text-primary">(TZS)</span> </th>
 
-                            <th>{% if useri.langSet == 0 %}Mauzo{% else %} Sales{% endif %} </th>
-                            <th>{% if useri.langSet == 0 %}Pampu{% else %} Pampu{% endif %} </th>
-                            <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %} </th>
-                            <th>{% if useri.langSet == 0 %}Mteja{% else %} Customer{% endif %} </th>
-                            <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %} <span class="text-primary">(TZS)</span> </th>
-
-                            <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">Liters</span> </th>
-                            <th>{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">(TZS)</span> </th>
-                            <!-- <th>{% if useri.langSet == 0 %}Malipo{% else %}Paid{% endif %} <span class="text-primary">(TZS)</span> </th> -->
-                        </tr>
-                    </thead>
-               
-                        <tbody>
-                            {% for s in sale %}
-                            <tr>
-                                <td><input type="checkbox" class="cd_order-checkbox" name="cd_order_ids" value="{{s.id}}" onchange="updateDeleteButtonState_cd()"></td>
-
-                                <td>{{forloop.counter}}</td>
-                                <td>
-                                    <script>
-                                        document.write(moment('{{s.sale.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
-                                    </script>
-                                </td>
-                                <td><a href="/salepurchase/viewFuelSales?i={{s.sale.id}}">SA-{{s.sale.code}}</a></td>
-
-                                <td class="bluePrint" >{{s.shift.pump.station.name}} {{s.shift.pump.name}}</td>
-                                <td class="brown" >{{s.shift.Fuel.name}}</td>
-
-                                <td>{{s.sale.customer.jina | title}}</td>
-                                
-
-                                <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
-                                <td>{{s.qty_sold|floatformat:'-2'|intcomma}}</td>
-                                <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
-                                
+                                <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">Liters</span> </th>
+                                <th>{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">(TZS)</span> </th>
+                                <!-- <th>{% if useri.langSet == 0 %}Malipo{% else %}Paid{% endif %} <span class="text-primary">(TZS)</span> </th> -->
                             </tr>
+                        </thead>
+                
+                            <tbody>
+                                {% for s in sale %}
+                                <tr>
+                                    <td><input type="checkbox" class="cd_order-checkbox" name="cd_order_ids" value="{{s.id}}" onchange="updateDeleteButtonState_cd()"></td>
 
-                            {% endfor %}
+                                    <td>{{forloop.counter}}</td>
+                                    <td>
+                                        <script>
+                                            document.write(moment('{{s.sale.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                        </script>
+                                    </td>
+                                    <td><a href="/salepurchase/viewFuelSales?i={{s.sale.id}}">SA-{{s.sale.code}}</a></td>
 
-                            <tr class="weight600 smallFont" >
-                                <td colspan="8" > {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} </td>
-                               
-                                 <td>{{exclude.sale | floatformat:'-2'  | intcomma}}</td>
-                                 
-                                 <td>{{exclude.saleA | floatformat:'-2'  | intcomma}}</td>
-                              
-                            </tr>
-                           
-                        </tbody>
-                      </table>
+                                    <td class="bluePrint" >{{s.shift.pump.station.name}} {{s.shift.pump.name}}</td>
+                                    <td class="brown" >{{s.shift.Fuel.name}}</td>
+
+                                    <td>{{s.sale.customer.jina | title}}</td>
+                                    
+
+                                    <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.qty_sold|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                    
+                                </tr>
+
+                                {% endfor %}
+
+                                <tr class="weight600 smallFont" >
+                                    <td colspan="8" > {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} </td>
+                                
+                                    <td>{{exclude.sale | floatformat:'-2'  | intcomma}}</td>
+                                    
+                                    <td>{{exclude.saleA | floatformat:'-2'  | intcomma}}</td>
+                                
+                                </tr>
+                            
+                            </tbody>
+                        </table>
 
 
-             </div>
-
-    
-
+                </div>
              {% endif %}
+
+              {% if mobilePaySale %}
+                <div class="mt-4 table-responsive">
+                    
+                    
+                    <div class="mb-2 row">
+                            <div class="col-8">
+                                <strong>{% if useri.langSet == 0 %}Mauzo Wateja wa Mikopo/Kutanguzia {% else %}Credit/Debt Order Sales {% endif %}</strong> 
+                            </div>
+
+                            <div class="col-4 text-right">
+                            <button type="button" title="{% if useri.langSet == 0 %}Futa{% else %}Delete{% endif %}" id="delete-cd-orders-btn" class="btn btn-light btn-sm" disabled onclick="confirmDeleteCDOrders()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+                                </svg>
+                            </button>
+                            </div>  
+                        </div>
+
+
+                    <table class="table table-bordered smallFont table-sm">
+                        <thead>
+                            <tr class="smallFont" >
+                                <th><input type="checkbox" id="select-all-expenses" onclick="toggleAllCDOrder(this)"></th>
+
+                                <th>#</th>
+                                <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+
+                                <th>{% if useri.langSet == 0 %}Mauzo{% else %} Sales{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Pampu{% else %} Pampu{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Mafuta{% else %} Fuel{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Mteja{% else %} Customer{% endif %} </th>
+                                <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %} <span class="text-primary">(TZS)</span> </th>
+
+                                <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">Liters</span> </th>
+                                <th>{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">(TZS)</span> </th>
+                                <!-- <th>{% if useri.langSet == 0 %}Malipo{% else %}Paid{% endif %} <span class="text-primary">(TZS)</span> </th> -->
+                            </tr>
+                        </thead>
+                
+                            <tbody>
+                                {% for s in sale %}
+                                <tr>
+                                    <td><input type="checkbox" class="cd_order-checkbox" name="cd_order_ids" value="{{s.id}}" onchange="updateDeleteButtonState_cd()"></td>
+
+                                    <td>{{forloop.counter}}</td>
+                                    <td>
+                                        <script>
+                                            document.write(moment('{{s.sale.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                        </script>
+                                    </td>
+                                    <td><a href="/salepurchase/viewFuelSales?i={{s.sale.id}}">SA-{{s.sale.code}}</a></td>
+
+                                    <td class="bluePrint" >{{s.shift.pump.station.name}} {{s.shift.pump.name}}</td>
+                                    <td class="brown" >{{s.shift.Fuel.name}}</td>
+
+                                    <td>{{s.sale.customer.jina | title}}</td>
+                                    
+
+                                    <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.qty_sold|floatformat:'-2'|intcomma}}</td>
+                                    <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                    
+                                </tr>
+
+                                {% endfor %}
+
+                                <tr class="weight600 smallFont" >
+                                    <td colspan="8" > {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} </td>
+                                
+                                    <td>{{exclude.sale | floatformat:'-2'  | intcomma}}</td>
+                                    
+                                    <td>{{exclude.saleA | floatformat:'-2'  | intcomma}}</td>
+                                
+                                </tr>
+                            
+                            </tbody>
+                        </table>
+
+
+                </div>
+             {% endif %}
+
+
 
              {% if trd %}
                <hr>
@@ -757,7 +837,8 @@
                        
           
              {% endif %}
-             {% if exclude.cashBA > 0 %}
+            
+             {% if exclude.cashBcashD > 0 %}
                <hr>
              <div class="table-responsive">
                   <div class="mb-2 row">
@@ -792,7 +873,7 @@
                           
                             {% for cb in exclude.cashB %}
                             
-                        
+                            {% if not cb.sales  %}
                             <tr>
                                 <td><input type="checkbox" class="cashDeposit-checkbox" name="cashDeposit_ids" value="{{cb.id}}" onchange="updateDeleteButtonStateCashDeposit()"></td>
 
@@ -812,13 +893,83 @@
                                 <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
                                 <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
                             </tr>
-                            
+                            {% endif %}
 
                             {% endfor %}
 
                             <tr>
                                 <th colspan="6" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
-                                 <th>{{exclude.cashBA | floatformat:'-2'  | intcomma}}</th>
+                                 <th>{{exclude.cashBcashD | floatformat:'-2'  | intcomma}}</th>
+                            </tr>
+                        </tbody>
+                      </table>
+
+
+             </div>
+          
+             {% endif %}
+
+             {% if exclude.cashBmobA > 0 %}
+               <hr>
+             <div class="table-responsive">
+                  <div class="mb-2 row">
+                    <div class="col-8">
+                        <strong>{% if useri.langSet == 0 %}Malipo kwa Simu{% else %} Customers Mobile Payments{% endif %}</strong>
+                    </div>
+                    <div class="col-4 text-right">
+                        <button type="button" id="delete_cash_Deposit_btn" class="btn btn-light btn-sm" disabled onclick="confirmDeleteCashDeposit()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+                            </svg>
+                        </button>                                            
+                    </div>
+
+                </div>
+                <table class="table table-bordered smallFont table-sm">
+                    <thead>
+                        <tr class="smallFont" >
+                            <th><input type="checkbox" id="select-all-cashDeposits" onclick="toggleAllCashDeposits(this)"></th>
+                            <th>#</th>
+                            <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Akaunti{% else %}Account  {% endif %} </th>
+                            <th>{% if useri.langSet == 0 %}Mteja{% else %} Customer{% endif %} </th>
+                            <!-- <th>{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %} </th> -->
+                            <th>{% if useri.langSet == 0 %}Kiasi{% else %} Amount{% endif %} <span class="text-primary">({{currencii}})</span> </th>
+                            
+                            </tr>
+                    </thead>
+               
+                        <tbody>
+                          
+                            {% for cb in exclude.cashB %}
+                            
+                            {% if  cb.sales %}
+                            <tr>
+                                <td><input type="checkbox" class="cashDeposit-checkbox" name="cashDeposit_ids" value="{{cb.id}}" onchange="updateDeleteButtonStateCashDeposit()"></td>
+
+                                <td>{{forloop.counter}}</td>
+                                <td>
+                                    <script>
+                                        document.write(moment('{{cb.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                                    </script>
+                                </td>
+                                <td class="text-primary">{{cb.Akaunt.Akaunt_name }}</td>
+                                <!-- <td >{{cb.giveTo}}</td> -->
+                                <td >{{cb.maelezo}}</td>
+
+                                <td>{{cb.Amount|floatformat:'-2'|intcomma}}</td>
+
+                                <!-- <td>{{s.sa_price|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.amount|floatformat:'-2'|intcomma}}</td>
+                                <td>{{s.payed|floatformat:'-2'|intcomma}}</td> -->
+                            </tr>
+                            {% endif %}
+
+                            {% endfor %}
+
+                            <tr>
+                                <th colspan="5" >{% if useri.langSet == 0 %}Jumla {% else %}Total  {% endif %}</th>
+                                 <th>{{exclude.cashBmobA | floatformat:'-2'  | intcomma}}</th>
                             </tr>
                         </tbody>
                       </table>
@@ -916,7 +1067,7 @@
                             {% if exclude.cashB %}
                             <tr >
                                
-                                <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Iliyotoka{% else %}Cash Out Before{% endif %}</td>
+                                <td style="font-size: 15px;"> {% if useri.langSet == 0 %}Pesa Iliyowekwa Bank{% else %}Cash Deposit {% endif %}</td>
                                 <td style="font-size: 15px;"  ></td>
                                 <td style="font-size: 15px;"  >{{exclude.cashBA|floatformat:'-2'|intcomma}}</td>
                             </tr>
@@ -959,6 +1110,7 @@
                                 </div>
     
                                 {% for p in payacc %}
+                                {% if p.aina == 'Cash' %}
                                 <div class="row mb-2">
                                     <div class="col-6">
                                         <a href="#" class="smallFont" >{{p.Akaunt_name}}</a>
@@ -973,7 +1125,7 @@
                                         <input type="number" data-val={{p.id}}  class="money-fomat btn-sm form-control payacc">
                                     </div>
                                 </div>
-    
+                                {% endif %}
                                 {% endfor %}      
                                 
                                 <hr>
