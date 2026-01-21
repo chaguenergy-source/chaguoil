@@ -358,7 +358,7 @@
                                 </div>
     
                                 {% for p in payacc %}
-                                {% if p.aina != 'Cash' %}
+                                {% if p.aina != 'Cash' and not p.supv_acc %}
                                 <div class="row mb-2">
                                     <div class="col-6">
                                         <a href="#" class="smallFont" >{{p.Akaunt_name}}</a>
@@ -490,7 +490,12 @@
         const date = moment($('#saleDate').val()).format();
         const name = $('#customerName').val();
         const phone = $('#phoneNumber').val();
-
+         
+        if(name==''){
+            alert('{% if useri.langSet == 0 %}Andika Jina la mteja.{% else %}Write customer name please{% endif %}');
+            redborder('#customerName');   
+            return         
+        }
 
         if(totalPay<totalSale){
             alert('{% if useri.langSet == 0 %}Kiasi cha malipo ni kidogo kuliko jumla ya mauzo. Tafadhali hakikisha malipo yamefanywa kikamilifu.{% else %}The total payment is less than the total sale. Please ensure full payment is made.{% endif %}');

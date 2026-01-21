@@ -295,6 +295,21 @@
 
                         </div>
                     </li>
+                    <li class="row py-1" >
+                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Usimamizi Kudipositi{% else %}Cash Deposit Supervisor{% endif %}:</div>
+                        <div class="col-6 col-lg-9">
+                            
+                            <label class="switch">
+                                {% if s.user.acc_supv %}
+                                <input type="checkbox" checked data-dsup=1 >
+                                {% else %}
+                                <input type="checkbox" data-dsup=1 >
+                                {% endif %}
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                    </li>
 
 
                     <script>
@@ -310,7 +325,9 @@
                                 sup = Number($(this).data('sup')) || 0,
                                 pu = Number($(this).data('pu')) || 0,
                                 exp = Number($(this).data('exp')) || 0,
+                                dsup = Number($(this).data('dsup')) || 0,
                                 cust = Number($(this).data('cust')) || 0;
+
 
                                 data = {
                                     data:{
@@ -323,6 +340,7 @@
                                         sup,
                                         pu,
                                         exp,
+                                        dsup,
                                         cust,
                                     user},
                                     url:'/staffs/permit'
@@ -335,7 +353,7 @@
 
                                         if(resp.success){
                                             toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success '), {timeOut: 2000});
-                                            if(ceo)location.reload()
+                                            if(ceo||dsup)location.reload()
                                         }else{
                                                 $('#loadMe').modal('hide')   
                                                 toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});

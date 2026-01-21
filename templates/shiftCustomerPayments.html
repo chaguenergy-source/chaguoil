@@ -43,13 +43,13 @@
         <div class="input-group">
             <select id="stationFilter" class="form-control">
                 {% if not general %}
-                        <option value="{{shell.id}}">{{shell.name}}</option>
+                        <option value="{{shell.id}}" data-stxn="{{shell.name}}" >{{shell.name}}</option>
                         
                         {% if useri.admin or useri.ceo %}
                             
                         {% for station in stations %}
                         {% if station != shell %}
-                            <option value="{{ station.id }}">{{ station.name }}</option>
+                            <option value="{{ station.id }}" data-stxn="{{station.name}}" >{{ station.name }}</option>
                         {% endif %}
                         {% endfor %}
                         <option value=0 >{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
@@ -57,7 +57,7 @@
                  {% else %}   
                     <option value=0 >{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
                     {% for station in stations %}
-                        <option value="{{ station.id }}">{{ station.name }}</option>
+                        <option value="{{ station.id }}" data-stxn="{{station.name}}" >{{ station.name }}</option>
                     {% endfor %}
                  {% endif %}    
 

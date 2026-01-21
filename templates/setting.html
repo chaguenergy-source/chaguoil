@@ -93,6 +93,78 @@
 
 
         </div>
+     {% if useri.admin and not general %}
+       <hr>
+		 <div class="row px-3" >
+                        <div class="col-6 col-lg-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign mr-1" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v12M9 9h6a2 2 0 0 1 0 4H9m6 4H9a2 2 0 0 1 0-4h6"/>
+                            </svg>
+                            {% if useri.langSet == 0 %}Usimamizi Kudipositi{% else %}Cash Deposit Supervisor{% endif %}:
+                        </div>
+                        <div class="col-6 col-lg-9">
+                            
+                            <label class="switch">
+                                {% if useri.acc_supv %}
+                                <input type="checkbox" checked data-dsup=1 >
+                                {% else %}
+                                <input type="checkbox" data-dsup=1 >
+                                {% endif %}
+                                <span class="slider"></span>
+                            </label>
+
+                        </div>
+                </div>
+
+                     <script>
+                        $('.switch input').change(function(){
+                            $('#loadMe').modal('show')
+                            const check = Number($(this).is(':checked')),
+                                
+                               
+                                user = Number('{{cheo.id}}'),
+                               
+                                dsup = Number($(this).data('dsup')) || 0,
+                           
+
+
+                                data = {
+                                    data:{
+                                        check,
+                                        allow:0,
+                                        manager:0,
+                                        incharge:0,
+                                        ceo:0,
+                                        op:0,
+                                        sup:0,
+                                        pu:0,
+                                        exp:0,
+                                        dsup,
+                                        cust:0,
+                                    user},
+                                    url:'/staffs/permit'
+                                }
+                                
+                                sendIt = POSTREQUEST(data)
+                                sendIt.then(resp=>{
+                                    $('#loadMe').modal('hide')
+                                    hideLoading()
+
+                                        if(resp.success){
+                                            toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success '), {timeOut: 2000});
+                                            location.reload()
+                                        }else{
+                                                $('#loadMe').modal('hide')   
+                                                toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});
+
+                                        }
+                                })
+
+
+                        })
+                    </script>
+     {% endif %}   
     </div>
 
 

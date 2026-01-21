@@ -1,4 +1,4 @@
-let payData = [],isAdmin = false,customerId = 0,payId=0;
+let payData = [],isAdmin = false,customerId = 0,payId=0,useData={};
 const filters = () =>{
     const  st = Number($('#stationFilter').val()),
          
@@ -164,6 +164,7 @@ $('body').on('click','.moreDetails',function(){
     const val = $(this).data('report');
     customerId = 0;
     const data = payData.filter(d=>d.id===val)[0];
+    useData = data
     renderPaymentDetails(data);
     
 })
@@ -173,7 +174,7 @@ $('body').on('click','.customerLink',function(){
     customerId = 1;
     const data = payData.filter(d=>d.id===val)[0];
     // console.log(customerId);
-
+    useData = data
     renderPaymentDetails(data);
     
 })
@@ -232,8 +233,9 @@ const renderPaymentDetails = d =>{
 
                     <td> <a type="button"   data-custid="${p.customer_id}" data-report=${id} class="customerLink">${formatNumber(p.before) || ''}</a></td> 
                    <td data-custid="${p.customer_id}" data-report=${id} class="customerLink" >${formatNumber(p.After) || 0}</td>
-                    <td> <a type="button"   data-custid="${p.customer_id}" data-report=${id} class="customerLink text-primary">${p.kwenda || ''}</a></td> 
+                    <td> <a type="button"   data-custid="${p.customer_id}" data-report=${id} class="customerLink text-primary">${p.To_acc || p.kwenda || ''}</a></td> 
                     
+                    <td data-custid="${p.customer_id}" data-report=${id} class="customerLink text-capitalize" >${p.depoTo_id?`${p.supFname} ${p.supLname}`:'Admin'}</td>
                     <td data-custid="${p.customer_id}" data-report=${id} class="customerLink" >${formatNumber(p.Amount) || 0}</td>
                     
                     <td>
@@ -249,7 +251,7 @@ const renderPaymentDetails = d =>{
     //add a total row 
     const totalAmount = filteredPayments?.reduce((a,b)=>a+Number(b.Amount),0) || 0;
     tr += `<tr class="smallFont font-weight-bold">
-                <td colspan="${isAdmin ? 8 : 7}">Total</td>
+                <td colspan="${isAdmin ? 9 : 8}">Total</td>
                 <td>${formatNumber(totalAmount)}</td>
                 <td> ${approvedCount}/${filteredPayments?.length || 0} ${lang('uhakiki','Approval')}</td>
             </tr>`
@@ -443,3 +445,58 @@ function sesStorage() {
     sessionStorage.setItem('simplifiedObjects', JSON.stringify(simplifiedObjects));
 
 }
+
+
+// Print the Report ......//
+$('#printPayments').click(function(){
+   const  {tFr,tTo} = useData
+   
+   const ddiff = moment(tTo).diff(moment(tFr), 'days')
+   const repoDura = ddiff>1?`${moment(tFr).format('DD/MM/YYYY')} - ${moment(tTo).format('DD/MM/YYYY')}`:moment(tTo).format('DD/MM/YYYY')
+   const heading = `<h2>${lang('Kutoa Pesa','Cash Deposit:')} ${repoDura}  </h2>`
+   const userN = $('#user_userName').val()
+   const {st} = filters()
+   const Kituo = st?$('#stationFilter').find('option:selected').data('stxn'):lang('Vituo Vyote','All Stations')
+   const statementDetails = `<div class="row my-3">
+                            <div class="col-6 row">
+                             
+                                  
+                                <div class="col-5">
+                                    ${lang('Kituo','Station')}:  
+                                </div>
+                                <div class="col-7 ">
+                                    ${Kituo}  
+                                </div>
+                                  
+                                <div class="col-5">
+                                    ${lang('Imetolewa','Issued on')}:  
+                                </div>
+                                <div class="col-7 ">
+                                    ${moment().format('DD/MM/YYYY HH:mm')}  
+                                </div>
+
+                                <div class="col-5">
+                                    ${lang('Imetolewa na','Issued by')}:  
+                                </div>
+                                <div class="col-7 text-capitalize">
+                                    ${userN}    
+                                </div>
+
+                            </div>
+
+
+                     </div>           
+  `
+  const theReportData = document.getElementById('paymentsTable').innerHTML;
+  // document.body.innerHTML = heading + customerDetails.outerHTML + statementDetails + theReportData;
+
+  const reportData = heading + statementDetails + theReportData ;
+     const printWindow = window.open('', '', 'height=600,width=1000');
+    printWindow.document.write(company_header);
+    printWindow.document.write(`${reportData}`); 
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+
+  
+});

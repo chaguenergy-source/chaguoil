@@ -1,4 +1,4 @@
-let payData = [],isAdmin = false;
+let payData = [],isAdmin = false,useData={};
 const filters = () =>{
     const  st = Number($('#stationFilter').val()),
          
@@ -162,6 +162,7 @@ const createtr = () =>{
 $('body').on('click','.moreDetails',function(){
     const val = $(this).data('report'),
             data = payData.filter(d=>d.id===val)[0]
+            useData = data
     renderPaymentDetails(data)
     
 })
@@ -346,3 +347,57 @@ function sesStorage() {
     sessionStorage.setItem('simplifiedObjects', JSON.stringify(simplifiedObjects));
 
 }
+
+// Print the Report ......//
+$('#printPayments').click(function(){
+   const  {tFr,tTo} = useData
+   
+   const ddiff = moment(tTo).diff(moment(tFr), 'days')
+   const repoDura = ddiff>1?`${moment(tFr).format('DD/MM/YYYY')} - ${moment(tTo).format('DD/MM/YYYY')}`:moment(tTo).format('DD/MM/YYYY')
+   const heading = `<h2>${lang('Malipo ya Wateja kwa Simu','Customer Mobile payments:')} ${repoDura}  </h2>`
+   const userN = $('#user_userName').val()
+   const {st} = filters()
+   const Kituo = st?$('#stationFilter').find('option:selected').data('stxn'):lang('Vituo Vyote','All Stations')
+   const statementDetails = `<div class="row my-3">
+                            <div class="col-6 row">
+                             
+                                  
+                                <div class="col-5">
+                                    ${lang('Kituo','Station')}:  
+                                </div>
+                                <div class="col-7 ">
+                                    ${Kituo}  
+                                </div>
+                                  
+                                <div class="col-5">
+                                    ${lang('Imetolewa','Issued on')}:  
+                                </div>
+                                <div class="col-7 ">
+                                    ${moment().format('DD/MM/YYYY HH:mm')}  
+                                </div>
+
+                                <div class="col-5">
+                                    ${lang('Imetolewa na','Issued by')}:  
+                                </div>
+                                <div class="col-7 text-capitalize">
+                                    ${userN}    
+                                </div>
+
+                            </div>
+
+
+                     </div>           
+  `
+  const theReportData = document.getElementById('paymentsTable').innerHTML;
+  // document.body.innerHTML = heading + customerDetails.outerHTML + statementDetails + theReportData;
+
+  const reportData = heading + statementDetails + theReportData ;
+     const printWindow = window.open('', '', 'height=600,width=1000');
+    printWindow.document.write(company_header);
+    printWindow.document.write(`${reportData}`); 
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+
+  
+});

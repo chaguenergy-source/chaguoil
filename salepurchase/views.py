@@ -1,7 +1,7 @@
 
 # Create your views here.
 from django.shortcuts import render,redirect
-from account.models import UserExtend,ToContena,PuList,Purchases,creditDebtOrder,CustmDebtPayRec,saleList,saleOnReceive,toaCash,tr_supervisor,shiftsTime,transFromTo,tankAdjust,adjustments,pumpTemper,PumpStation,notifications,fuelPriceChange,shiftSesion,tankContainer,shiftPump,rekodiMatumizi,attachments,fuelSales,receiveFromTr,TransferFuel,receivedFuel,ReceveFuel,transfer_from,PhoneMailConfirm,wekaCash,shifts,wateja,wasambazaji,fuel,fuel_pumps,fuel_tanks,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
+from account.models import UserExtend,ToContena,PuList,Purchases,creditDebtOrder,DepositTo,CustmDebtPayRec,saleList,saleOnReceive,toaCash,tr_supervisor,shiftsTime,transFromTo,tankAdjust,adjustments,pumpTemper,PumpStation,notifications,fuelPriceChange,shiftSesion,tankContainer,shiftPump,rekodiMatumizi,attachments,fuelSales,receiveFromTr,TransferFuel,receivedFuel,ReceveFuel,transfer_from,PhoneMailConfirm,wekaCash,shifts,wateja,wasambazaji,fuel,fuel_pumps,fuel_tanks,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
 # Create your views here.
 from django.contrib import messages
 from django.contrib.auth.models import User, auth
@@ -2509,13 +2509,17 @@ def getShiftCustomerMobilePayments(request):
                 payments = payments.filter(biforeShift=True,sales__mobile_pay__isnull=True)    
 
             if cashD:
-                payments = toaCash.objects.filter(kuhamisha=True,Interprise__company=kampuni,Amount__gt=0).annotate(
+                payments = toaCash.objects.filter(kuhamisha=True,Akaunt__supv_acc=False,Interprise__company=kampuni,Amount__gt=0).annotate(
                 stN=F('Interprise__name'),
                 st=F('Interprise'),
                 account_name = F('Akaunt__Akaunt_name'),
                 
                 BFname = F('by__user__first_name'),
                 BLname = F('by__user__last_name'),
+                supFname = F('depoTo__supv__user__first_name'),
+                supLname = F('depoTo__supv__user__last_name'),
+                To_acc = F('depoTo__weka__Akaunt__Akaunt_name')
+
                 
             ).order_by('-pk')
 
@@ -5379,6 +5383,8 @@ def cashOut(request):
             desc = request.POST.get('desc')
             FromPmp = int(request.POST.get('FromPmp',0))
             FrmAcc = int(request.POST.get('FrmAcc',0))
+            depo_to = int(request.POST.get('depo_to',0))
+            depo_sup = int(request.POST.get('depo_sup',0))
             todo = todoFunct(request)
    
             useri = todo['useri']
@@ -5397,9 +5403,33 @@ def cashOut(request):
 
             if (useri.admin or manager) and not general:
                 fA = None
-                acount = PaymentAkaunts.objects.get(pk=To_acco,Interprise__company=kampuni.id)
+                acount = None
+                depoSupv = None
+                if depo_to == 2:
+                    acount=PaymentAkaunts.objects.get(pk=To_acco,Interprise__company=kampuni.id)
+                if depo_to == 1:
+                   supv_acc = PaymentAkaunts.objects.filter(Interprise__company=kampuni.id,supv_acc=True)
+                   depoSupv = UserExtend.objects.get(Q(acc_supv=True)|Q(admin=True),pk=depo_sup,company=kampuni.id)
+                   if supv_acc.exists():
+                      acount = supv_acc.last()
+                   else:
+                      acount = PaymentAkaunts()
+                      acount.Interprise = shell
+                      acount.Akaunt_name = "SUPERVISOR"
+                      acount.Amount = float(0)
+                      acount.addedDate = datetime.datetime.now(tz=timezone.utc)
+                      acount.aina = 'Supervisor'
+                      acount.supv_acc = True
+                      acount.onesha = True
+                      acount.save()
 
+
+                depoTo = None 
                 if not FromPmp:
+                    depoTo = DepositTo()
+                    depoTo.supv = depoSupv
+                    depoTo.save()
+
                     fA = PaymentAkaunts.objects.get(pk=FrmAcc,Interprise=shell.id)
                     fA_Amo = float(fA.Amount) 
                     if float(fA_Amo) >= float(amoC):
@@ -5425,10 +5455,11 @@ def cashOut(request):
                         toa.tarehe = datetime.datetime.now(tz=timezone.utc)
                         toa.by=useri
                         toa.Interprise=fA.Interprise
-                        
+                        toa.admin_approval = useri.admin
                         toa.kuhamisha = True
 
                         toa.kuhamishaNje =  acount.Interprise is not fA.Interprise
+                        toa.depoTo = depoTo
                         toa.save()
 
                     else:
@@ -5452,7 +5483,7 @@ def cashOut(request):
                 weka.Amount =amoC
                 weka.before = ac_Amo
                 weka.After = afterAmo
-
+                weka.admin_approval = useri.admin 
                 if FromPmp:
                     sh = shifts.objects.get(pk=shift,record_by__Interprise=shell.id)
                     weka.shift = sh
@@ -5466,6 +5497,10 @@ def cashOut(request):
                 weka.giveTo = giveTo
                 weka.maelezo = desc 
                 weka.save()
+
+                if depoTo is not None:
+                    depoTo.weka = weka
+                    depoTo.save()
 
             
             else:

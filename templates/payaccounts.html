@@ -73,14 +73,16 @@
           </div>
 
       <div class="table-responsive">
-            <table id="all_payAcc" class=" smallFont"  >
+            <table id="all_payAcc" class="smallFont"  >
                 <thead>
                 <tr>
                     <th>{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
                     <th>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %} </th>
                     <th>{% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %}</th>
-                    <th>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">(TZS)</span> </th>
-                    <td> {% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %}</td>
+                    <th>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                    {% if useri.admin %}
+                      <td> {% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %}</td>
+                    {% endif %}  
                 </tr>
                 </thead>
 
@@ -93,34 +95,44 @@
                              <td class="text-primary">  {{s.Interprise.name}} </td>
                             <td> {{s.aina}} </td>
                            
-                            <td> {{s.Amount  | floatformat:'-2' | intcomma}} </td>
+                            <td> 
+                              {% if s.no_amount %}
+                                 0
+                              {% else %}
+                               {{s.Amount  | floatformat:'-2' | intcomma}} 
+                              {% endif %} 
+                            </td>
+
+                            {% if useri.admin %}
                             <td>
                                 <button class="btn btn-light btn-sm edit_btn"  data-toggle="modal" data-target="#editAkaunting"
-                                data-val="{{s.id}}"
-                                data-name="{{s.Akaunt_name}}" 
-                                data-amount="{{s.Amount}}" 
-                                data-aina="{{s.aina}}" 
-                                data-onesha="{{s.onesha}}" 
-                              
-                                style="font-size: 16;"  title="Edit" >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>                                   
-                           </button>
+                                    data-val="{{s.id}}"
+                                    data-name="{{s.Akaunt_name}}" 
+                                    data-amount="{{s.Amount}}" 
+                                    data-aina="{{s.aina}}" 
+                                    data-onesha="{% if s.onesha %}1{% else %}{% endif %}" 
+                                    data-no_amo = "{% if s.no_amount %}1{% else %}0{% endif %}"
+                                    style="font-size: 16;"  title="Edit" >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>    
+                                                            
+                              </button>
 
                            
                                 <span class="place" hidden data-place="#ac_id">{{s.id}}</span>
                                 <span class="place" hidden data-place="#ac_amaount">{{s.Amount}}</span>
                                 <span class="place" hidden data-place="#Akaunt-name2">{{s.Akaunt_name}}</span>
-                            <span class="place" hidden data-place="#jina_la_akaumti">{{s.Akaunt_name}}<sub class="text-primary">({{s.aina}})</sub></span>
-                            <span class="place" hidden data-place="#aina_ya_Akaunt2">{{s.aina}}</span>
-                            <span class="place" hidden data-place="#Akaunt-amount2">{{s.Amount}}</span>
-                            <span class="place" hidden data-place="#ac_kiasi"><span class="smallerFont"></span> {{s.Amount|floatformat:'-2'|intcomma}}</span>
-                            <span class="place" hidden data-place="#amountCash">{{s.Amount}}</span>
-                            <span class="onesha" hidden >{{s.onesha}}</span>
+                                <span class="place" hidden data-place="#jina_la_akaumti">{{s.Akaunt_name}}<sub class="text-primary">({{s.aina}})</sub></span>
+                                <span class="place" hidden data-place="#aina_ya_Akaunt2">{{s.aina}}</span>
+                                <span class="place" hidden data-place="#Akaunt-amount2">{{s.Amount}}</span>
+                                <span class="place" hidden data-place="#ac_kiasi"><span class="smallerFont"></span> {{s.Amount|floatformat:'-2'|intcomma}}</span>
+                                <span class="place" hidden data-place="#amountCash">{{s.Amount}}</span>
+                                <span class="onesha" hidden >{{s.onesha}}</span>
 
                             </td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                    
@@ -135,7 +147,8 @@
 
 
 
-<!-- aDD PYMENT ACCOUNT.... -->
+<!-- aDD PYMENT ACCOUNT.... --> 
+ {% if useri.admin %}
 <div class="modal fade" id="addAkaunting" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog animate" role="document">
       <div class="modal-content border-0">
@@ -224,7 +237,7 @@
         
               $(this).siblings('.show_curency').fadeOut(100)
              "
-             type="number" placeholder="0" class="form-control robotoFont"  id="Akaunt-amount" />
+             type="number" placeholder="0" step="0.001" class="form-control robotoFont"  id="Akaunt-amount" />
             </div>
   
             <div class="custom-control py-3 custom-checkbox">
@@ -252,8 +265,9 @@
       </div>
     </div>
   </div>
-
+{% endif %}
     <!-- TRANSACTIONS NA MIAMALA SCRIPT IN AKAUNTING.JS ..............................................................-->
+     {% if useri.admin %}
     <div class="modal fade" id="editAkaunting" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog animate" role="document">
           <div class="modal-content border-0">
@@ -313,7 +327,7 @@
                   </div>
                   <div class="col-12 pt-2">
                       <h6  style="text-align: right;" >
-                      <span class="smallerFont text-primary">TZS:</span>
+                      <span class="smallerFont text-primary">{{currencii}}:</span>
                       <label for="" id="ak_amounti" class="font-weight-bold"></label>
     
                       </h6>
@@ -331,7 +345,7 @@
           <h6 id="jina_la_akaumti" class=" d-inline py-2"></h6>
           
           <span  class="float-right font-weight-bold">
-            <span class="text-primary latoFont">TZS.</span>
+            <span class="text-primary latoFont">{{currencii}}.</span>
             <span id="ac_kiasi"> </span>
           </span>
         </div>
@@ -390,32 +404,18 @@
                     <div class="show_curency_inline show_curency position-absolute text-danger   px-3" style="display: none ;">
     
                       <label class="mt-1" for=""></label> 
-                    <div class="box-pointer d-inline "></div>
+                        <div class="box-pointer d-inline "></div>
                       </div>
-                      <input onclick="
-                      if($(this).val()==0){
-                        $(this).val('')
-          
-                    
-                      }else if($(this).val()!=0 && $(this).val()!=''){
-                          $(this).siblings('.show_curency').fadeIn(100)
-                      }
-                      "
-                      onkeyup="
-                      if($(this).val()!=''){
-                      $(this).siblings('.show_curency').children('label').html( floatValue($(this).val())+'/=' )
-                      $(this).siblings('.show_curency').fadeIn(100)
-                      
-                      }
-                      "
+                      <input
+                     
                       onblur="
                       if($(this).val()==''){
                       $(this).val(0)
                       
                       }
           
-                      $(this).siblings('.show_curency').fadeOut(100)
-                      " type="number" placeholder="0" id="kiasiKuweka" class="form-control clear-to-zero smallFont">
+                      
+                      " type="number" step="0.001" placeholder="0" id="kiasiKuweka" class="form-control money-fomat clear-to-zero smallFont">
                   </div>
                 </div>
     
@@ -504,26 +504,14 @@
                     <div class="input-group input-group-sm  ">
                       <div class="input-group-prepend">
                         <!-- <span class="input-group-text smallerFont bg-default" >Tzs.</span> -->
-                        <input type="text" value="TZS:"  class="made-input text-primary smallerFont" disabled style="width:50px;border:0">
+                        <input type="text" value="{{currencii}}:"  class="made-input text-primary smallerFont" disabled style="width:50px;border:0">
                       </div>
     
-                    <div class="show_curency_inline show_curency position-absolute text-danger   px-3" style="display: none ;">
-    
-                      <label class="mt-1" for="kiasi_Kutoa1"></label> 
-                    <div class="box-pointer d-inline "></div>
-                      </div>
-                      <input 
-                      onkeyup="
-                      if($(this).val()!=''){
-                      $(this).siblings('.show_curency').children('label').html( floatValue($(this).val())+'/=' )
-                      $(this).siblings('.show_curency').fadeIn(100)
-                      
-                      }
-                      "
-                      onblur="
-                      
-                      $(this).siblings('.show_curency').fadeOut(100)
-                      " type="number" id="kiasi_Kutoa1" placeholder="0" class="form-control clear-to-zero smallFont">
+                    <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                              <label class="mt-1 text-danger " for="kiasi_Kutoa1"></label> 
+                            <div class="box-pointer d-inline "></div>
+                    </div>
+                      <input  step="0.001"  type="number" id="kiasi_Kutoa1" placeholder="0" class="form-control money-fomat lear-to-zero smallFont">
     
                     </div>
                     
@@ -538,7 +526,7 @@
                     <div class="input-group input-group-sm ">
                       <div class="input-group-prepend">
                         <!-- <span class="input-group-text smallerFont" >Tzs</span> -->
-                        <input type="text" value="TZS:"  class="text-primary made-input smallerFont" disabled style="width:50px;border:0">
+                        <input type="text" value="{{currencii}}:"  class="text-primary made-input smallerFont" disabled style="width:50px;border:0">
                       </div>
                   <input type="text" readonly placeholder="0" id="kutoa_makato" class="form-control clear-to-zero smallFont">
                   </div>
@@ -554,19 +542,22 @@
                   
     
                       <div class="input-group input-group-sm ">
-                          <div class="show_curency_inline show_curency position-absolute text-danger   px-3" style="display: none ;">
-    
-                      <label class="mt-1" for=""></label> 
-                    <div class="box-pointer d-inline "></div>
-                      </div>
+                        
     
                         <div class="input-group-prepend">
                           <!-- <span class="input-group-text smallerFont" >Tzs</span> -->
     
-                          <input type="text" value="TZS:"   class="text-primary made-input smallerFont currencii" disabled style="width:50px;border:0">
+                          <input type="text" value="{{currencii}}:"   class="text-primary made-input smallerFont currencii" disabled style="width:50px;border:0">
     
                         </div>
-                      <input onclick="
+
+
+                         <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                              <label class="mt-1 text-danger " for="kiasi_Kutoa"></label> 
+                               <div class="box-pointer d-inline "></div>
+                          </div>
+
+                      <input step="0.001" onclick="
     
                       if($(this).hasClass('bgAnimation')){
                         $(this).removeClass('bgAnimation')
@@ -576,25 +567,15 @@
                       $(this).val('')
                       }
                       "
-                      onkeyup="
-                      if($(this).val()!=''){
-                      $(this).siblings('.show_curency').children('label').html(floatValue($(this).val())+'/=' )
-                      $(this).siblings('.show_curency').fadeIn(100)
-                      
-                      }
-                      "
+                
                       onblur="
-                      if($('#kiasi_Kutoa1').val()=='' || $('#kiasi_Kutoa1').val()=='0'){
-                      $(this).val(0)
-                      
-                      }else if($('#kiasi_Kutoa1').val()>0 && ($(this).val()=='' || $(this).val()=='0')){
+                       if($('#kiasi_Kutoa1').val()>0 && ($(this).val()=='' || $(this).val()=='0')){
                           $(this).val(Number($('#ac_amaount').val())-Number($('#kiasi_Kutoa1').val()))
     
                           $('#kutoa_makato').val(0)
                       }
-          
-                      $(this).siblings('.show_curency').fadeOut(100)
-                      " type="number" id="kiasi_Kutoa" placeholder="0" class="form-control clear-to-zero smallFont">
+
+                      " type="number" step="0.001" id="kiasi_Kutoa" placeholder="0" class="form-control clear-to-zero money-fomat smallFont">
                       </div>
                   </div>
                 </div>
@@ -655,7 +636,7 @@
     
                   <div class="form-groupi">
                   <label for="recipient-name" class="col-form-label robotoFont smallFont "> {% if useri.langSet == 0 %}  Jina la Akaunti {% else %} Account name {% endif %}: <sup class="text-danger"><b>*</b></sup> </label>
-                  <input type="text"
+                  <input type="text" 
                   onkeyup="
                   if($(this).val()!=''){
                     $(this).removeClass('redborder')
@@ -696,7 +677,7 @@
                         onblur="
                            $(this).siblings('.show_curency').fadeOut(100)
                         "
-                type="number" placeholder="0" class="form-control robotoFont smallFont px-2 py-1"  id="Akaunt-amount2" />
+                type="number" placeholder="0" step="0.001" class="form-control robotoFont smallFont px-2 py-1"  id="Akaunt-amount2" />
                 </div>
     
       
@@ -709,9 +690,14 @@
                   </label>
                 </div> -->
     
-                <div class="custom-control custom-checkbox py-3">
-                  <input type="checkbox" class="custom-control-input" id="customCheck1">
-                  <label class="custom-control-label robotoFont smallFont" for="customCheck1"> {% if useri.langSet == 0 %}  Itumiwe na wanachama wote {% else %} For all staff members {% endif %}</label>
+                <div class="custom-control custom-checkbox py-3 cursor-pointer">
+                  <input type="checkbox" class="custom-control-input cursor-pointer" id="customCheck1">
+                  <label class="custom-control-label robotoFont smallFont cursor-pointer" for="customCheck1"> {% if useri.langSet == 0 %}  Itumiwe na wanachama wote {% else %} For all staff members {% endif %}</label>
+                </div>
+
+                <div class="custom-control custom-checkbox cursor-pointer  pb-3">
+                  <input type="checkbox" class="custom-control-input cursor-pointer " id="show_figure">
+                  <label class="custom-control-label robotoFont smallFont cursor-pointer " for="show_figure"> {% if useri.langSet == 0 %}  Isioneshe Kiasi  {% else %}Do not Show amount {% endif %}</label>
                 </div>
     
                 <input type="text" id="ac_id"  hidden />
@@ -740,7 +726,7 @@
     
       </div>
             
-              <input type="number"  hidden id="amountCash">
+              <input type="number" step="0.001"  hidden id="amountCash">
               </div>
             </div>
             <div class="modal-footer">
@@ -750,8 +736,8 @@
             </div>
           </div>
         </div>
-      </div>
-    
+    </div>
+    {% endif %}
 
   
 
@@ -867,18 +853,18 @@ $("#editAkaunting").modal('hide');
         url: post_url,
          data: {
              name: $('#Akaunt-name2').val(),
-             amount:$('#Akaunt-amount2').val(),
+             amount:Number($('#Akaunt-amount2').val()),
              aina:$('#aina_ya_Akaunt2').val(),
              value:$('#ac_id').val(),
              allow:Number($('#customCheck1').prop('checked')),
-         
+             no_show:Number($('#show_figure').prop('checked')),
              csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
          },
       }).done(function(data) {
 
         $("#loadMe").modal('hide');
           hideLoading()
-          let msg=lang(data.message_swa,data.message_eng)
+          let msg=lang(data.swa,data.eng)
 
         if(data.success){
             
@@ -1173,6 +1159,7 @@ $('body').on('click','.edit_btn',function(){
   $('#follow-tab-classic-orange').prop('disabled',false)
 
   $('#customCheck1').prop('checked',false)
+  $('#show_figure').prop('checked',false)
 $('#Muamala-anywhere').hide()
 $('#jina-laAkaunti').show()
 
@@ -1189,12 +1176,10 @@ $('#jina-laAkaunti').show()
   })
 
 
-  if($(this).siblings('.onesha').text() == "true"){
-$('#customCheck1').prop('checked',true)
-  }else{
-    $('#AkauntAllow2').prop('checked',false)
- 
-  }
+  
+  $('#customCheck1').prop('checked',Number($(this).data('onesha')))
+  $('#show_figure').prop('checked',Number($(this).data('no_amo')))
+  $('#AkauntAllow2').prop('checked',!(Number($(this).data('onesha'))))
 
 })   
 

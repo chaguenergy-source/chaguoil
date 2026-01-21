@@ -240,6 +240,7 @@ def permit(request):
         pu = int(request.POST.get('pu'))
         exp = int(request.POST.get('exp',0))
         cust = int(request.POST.get('cust',0))
+        dsup = int(request.POST.get('dsup',0))
         todo = todoFunct(request)
         useri = todo['useri']
         kampuni = todo['kampuni']
@@ -307,6 +308,10 @@ def permit(request):
 
             if op:
               userr.op =  check 
+              userr.save()
+
+            if dsup:
+              userr.acc_supv =  check 
               userr.save()
 
             if sup:

@@ -1,4 +1,4 @@
-let payData = [],isAdmin = false;
+let payData = [],isAdmin = false,useData={};
 const filters = () =>{
     const  st = Number($('#stationFilter').val()),
          
@@ -162,6 +162,7 @@ const createtr = () =>{
 $('body').on('click','.moreDetails',function(){
     const val = $(this).data('report'),
             data = payData.filter(d=>d.id===val)[0]
+            useData = data
     renderPaymentDetails(data)
     
 })
@@ -178,7 +179,7 @@ $('#backToSummary').on('click',function(){
 
 const renderPaymentDetails = d =>{
     const {payments,rname} = d,
-          modalTitle = lang('Maelezo ya Malipo ya Wateja kwa Simu - ','Customer Mobile Payment Details - ') + `<span class="bluePrint">${rname}</span>`
+          modalTitle = lang('Kutoa Pesa kwenye zamu - ','Cash deposit Before - ') + `<span class="bluePrint">${rname}</span>`
     let tr = '' 
     // filter payments
     const {st} = filters();
@@ -202,6 +203,7 @@ const renderPaymentDetails = d =>{
                     
                     <td>${p.maelezo || ''}</td> 
                     <td class="text-primary" >${p.account_name || ''}</td>
+                    <td class="text-primary" >${p.giveTo || ''}</td>
                     <td>${formatNumber(p.Amount) || 0}</td>
                     <td>
                            ${p.admin_approval ? lang('Imethibitishwa','Approved') : lang('Haijathibitishwa','Unapproved')}
@@ -213,7 +215,7 @@ const renderPaymentDetails = d =>{
     //add a total row 
     const totalAmount = filteredPayments?.reduce((a,b)=>a+Number(b.Amount),0) || 0;
     tr += `<tr class="smallFont font-weight-bold">
-                <td colspan="${isAdmin ? 8 : 7}">Total</td>
+                <td colspan="${isAdmin ? 9 : 8}">Total</td>
                 <td>${formatNumber(totalAmount)}</td>
                 <td> ${approvedCount}/${filteredPayments?.length || 0} ${lang('uhakiki','Approval')}</td>
             </tr>`
@@ -348,3 +350,57 @@ function sesStorage() {
     sessionStorage.setItem('simplifiedObjects', JSON.stringify(simplifiedObjects));
 
 }
+
+
+// Print the Report ......//
+$('#printPayments').click(function(){
+   const  {tFr,tTo} = useData
+   const ddiff = moment(tTo).diff(moment(tFr), 'days')
+   const repoDura = ddiff>1?`${moment(tFr).format('DD/MM/YYYY')} - ${moment(tTo).format('DD/MM/YYYY')}`:moment(tTo).format('DD/MM/YYYY')
+   const heading = `<h2>${lang('Kutoa Pesa Kutoka  zamu:','Cash Deposit Before Shift End:')} ${repoDura}  </h2>`
+   const userN = $('#user_userName').val()
+   const {st} = filters()
+   const Kituo = st?$('#stationFilter').find('option:selected').data('stxn'):lang('Vituo Vyote','All Stations')
+   const statementDetails = `<div class="row my-3">
+                            <div class="col-6 row">
+                             
+                                  
+                                <div class="col-5">
+                                    ${lang('Kituo','Station')}:  
+                                </div>
+                                <div class="col-7 ">
+                                    ${Kituo}  
+                                </div>
+                                  
+                                <div class="col-5">
+                                    ${lang('Imetolewa','Issued on')}:  
+                                </div>
+                                <div class="col-7 ">
+                                    ${moment().format('DD/MM/YYYY HH:mm')}  
+                                </div>
+
+                                <div class="col-5">
+                                    ${lang('Imetolewa na','Issued by')}:  
+                                </div>
+                                <div class="col-7 text-capitalize">
+                                    ${userN}    
+                                </div>
+
+                            </div>
+
+
+                     </div>           
+  `
+  const theReportData = document.getElementById('paymentsTable').innerHTML;
+  // document.body.innerHTML = heading + customerDetails.outerHTML + statementDetails + theReportData;
+
+  const reportData = heading + statementDetails + theReportData ;
+     const printWindow = window.open('', '', 'height=600,width=1000');
+    printWindow.document.write(company_header);
+    printWindow.document.write(`${reportData}`); 
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+
+  
+});

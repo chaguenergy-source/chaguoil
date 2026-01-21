@@ -45,6 +45,7 @@ class Todos:
         admin = UserExtend.objects.get(admin=True,company=kampuni)
         manager = False
         allowed=InterprisePermissions.objects.filter(user=user.id,Allow=True)
+
         if not allowed.filter(default=True).exists() and not general:
              alloW = allowed.last()
              alloW.default = True
@@ -55,7 +56,10 @@ class Todos:
         tumizi = matumizi.objects.filter(owner__company=kampuni.id,duration=0)
         tr_pump =  fuel_pumps.objects.filter(tank__Interprise__company=kampuni)
         settPump = tr_pump
-       
+        acc_sup = UserExtend.objects.filter(company=kampuni,acc_supv=True)
+        if not acc_sup.exists():
+             acc_sup = UserExtend.objects.filter(company=kampuni,admin=True)
+             
        
         pumpAttend = None
         shell_tanks = None
@@ -119,8 +123,9 @@ class Todos:
         'tankContainer':tankContainer,
         'fuel_price':fuel_price,
         'notify':notify,
-         'tanksSup':tanksSup
-  
+         'tanksSup':tanksSup,
+         'acc_sup':acc_sup
+        
         }
 
       except:

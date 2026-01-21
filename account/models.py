@@ -55,6 +55,7 @@ class UserExtend(models.Model):
     # darkmode = models.BooleanField(default=False)
     hakikiwa = models.BooleanField(default=False)
     darkMode = models.BooleanField(default=False)
+    acc_supv = models.BooleanField(default=False)
   
 
     
@@ -143,6 +144,8 @@ class PaymentAkaunts(models.Model):
     #   owner = models.ForeignKey(User,on_delete=models.CASCADE)
       addedDate = models.DateTimeField(null=True,blank=True)
       aina = models.CharField(max_length = 300)
+      supv_acc = models.BooleanField(default=False)
+      no_amount = models.BooleanField(default=False)
 
 class staff_akaunt_permissions(models.Model):
     Akaunt = models.ForeignKey(PaymentAkaunts,on_delete=models.CASCADE)
@@ -525,16 +528,23 @@ class wekaCash(models.Model):
     admin_approval = models.BooleanField(default=False)  
     # huduma_nyingine = models.ForeignKey(HudumaNyingine,on_delete=models.SET_NULL,null=True)
 
+class DepositTo(models.Model):    
+    # Akaunt = models.ForeignKey(PaymentAkaunts,on_delete=models.CASCADE)
+    weka = models.ForeignKey(wekaCash,on_delete=models.CASCADE,null=True)
+    supv =  models.ForeignKey(UserExtend,on_delete=models.CASCADE,null=True)
+
+
 class  toaCash(models.Model):
     Interprise=models.ForeignKey(Interprise,on_delete=models.CASCADE,null=True)     
     tarehe = models.DateTimeField()  
     Akaunt = models.ForeignKey(PaymentAkaunts,on_delete=models.CASCADE)
+    depoTo = models.ForeignKey(DepositTo,on_delete=models.CASCADE,null=True)
     Amount = models.DecimalField(max_digits=20,decimal_places=7)
     before = models.DecimalField(max_digits=20,decimal_places=7)
     After = models.DecimalField(max_digits=20,decimal_places=7)
     kwenda =  models.CharField(max_length=500) 
     maelezo = models.CharField(max_length=500)
-    makato = models.IntegerField(default=0)
+    makato = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     by= models.ForeignKey(UserExtend,on_delete=models.CASCADE,null=True)
   
     usiri = models.BooleanField(default=False)

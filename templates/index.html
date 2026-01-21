@@ -5,10 +5,8 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 	<link rel="stylesheet" href="{% static 'css/mediascreen.css' %}">
 	<link rel="stylesheet" href="{% static 'css/style.css' %}">
-
 	<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" >
 	<link rel="stylesheet" href="{% static 'css/datatable.css' %}">
 
@@ -1230,18 +1228,44 @@
 								<option value="0">-----------</option>
 								{% for ac in payacc %}
 								{% if ac.aina == 'Cash' %}
-								<option value="{{ac.id}}">{{ac.Akaunt_name}}</option>
+								   <option value="{{ac.id}}" data-amo="{{ac.Amount}}" >{{ac.Akaunt_name}}</option>
 								{% endif %}
 								{% endfor %}
 							</select>
 						</div>
+                       <script>
+						   $('#source_cash_account').change(function(){
+							const amo = Number($(this).find('option:selected').data('amo')) || 0
+							$('#CashOutAmo').attr('placeholder',formatNumber(amo))
+							
+						   })
+					   </script>
 
-								
+		                <div class="form-group" id="deposit_to" >
+							<label for="deposit_type" class="brown">
+								{% if useri.langSet == 0 %}Kwenda{% else %}Deposit To{% endif %} 
+								<sup>*</sup>
+							</label>
+						 <select class="form-control" name="deposit_type" id="deposit_type"   >
+							<option value=0 >-------</option>
+							<option value=1 >{% if useri.langSet == 0 %}Mkaguzi{% else %}Supervisor{% endif %} </option>
+							<option value=2 >{% if useri.langSet == 0 %}Akaunti Nyingine{% else %}Other Accounts{% endif %} </option>
+                         </select> 
+						</div>		
+
+						<script>
+                               $('#deposit_type').change(function(){
+								   const val = Number($(this).val())
+								   $('#sup_or_acc').prop('hidden',!val)
+								   $('#to_cash_acc').prop('hidden',!(val==2))
+								   $('#depo_to_sup').prop('hidden',!(val==1))
+							   })
+						</script>
 
 
-								<div class="row">
+								<div class="row" id="sup_or_acc" hidden>
 									<div class="col-6">
-										<div class="form-group mb-3">
+										<div class="form-group mb-3" hidden id="to_cash_acc" >
 												<label class="text-danger" for="cashOutAcc">{% if useri.langSet == 0 %}Kwenda Akaunti {% else %}To Account{% endif %}  <sup>*</sup> </label>
 												<select name="cashOutAcc"
 												onchange="$(this).selectpicker('setStyle','bluePrint')"
@@ -1249,8 +1273,25 @@
 												id="cashOutAcc" class="form-control machaguo-pesa border latoFont selectpicker" data-live-search="true">
 												<option value=0 data-amount=0 data-value=0 >{% if useri.langSet == 0 %}--Chagua Akaunti--{% else %}--Select Account--{% endif %}</option>
 												{% for ac in payacc  %}
-													
+													{% if not ac.supv_acc %}
 													<option value={{ac.id}} data-aina="{{ac.aina}}" data-amount={{ac.Amount}} data-value="{{ac.id}}" >{{ac.Akaunt_name}}</option>
+													{% endif %}
+												{%endfor%}
+												
+												</select>
+											
+											</div> 
+
+										<div class="form-group mb-3" hidden id="depo_to_sup" >
+												<label class="text-danger" for="tranxn_sup">{% if useri.langSet == 0 %}Mkaguzi {% else %}Supervisor{% endif %}  <sup>*</sup> </label>
+												<select name="tranxn_sup"
+												onchange="$(this).selectpicker('setStyle','bluePrint')"
+
+												id="tranxn_sup" class="form-control machaguo-pesa border latoFont selectpicker" data-live-search="true">
+												<option value=0 data-amount=0 data-value=0 >{% if useri.langSet == 0 %}----{% else %}----{% endif %}</option>
+												{% for ac in acc_sup  %}
+													
+													<option value={{ac.id}}  >{{ac.user.first_name|title}} {{ac.user.last_name|title}}</option>
 													
 												{%endfor%}
 												
@@ -1258,6 +1299,7 @@
 											
 											</div> 
 									</div>
+
 									<div class="col-6">
 												<div class="form-group">
 													<label for="CashOutAmo" class="brown" >{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">{{currencii}}</span> <sup>*</sup> </label>
@@ -1268,7 +1310,7 @@
 													</div>
 
 													<input type="number"
-													class="form-control money-fomat bluePrint btn-sm" name="CashOutAmo" id="CashOutAmo" aria-describedby="helpId" placeholder="">
+													class="form-control money-fomat bluePrint btn-sm" step=0.001 name="CashOutAmo" id="CashOutAmo" aria-describedby="helpId" placeholder="">
 													
 												</div>
 									</div>
@@ -1532,11 +1574,12 @@
 		To_acco = Number($('#cashOutAcc').val()),
 		To = $('#kabidhiwa').val(),
 		desc = $('#CashBReasons').val(),
-		amoC = Number($('#CashOutAmo').val())||0,
+		amoC = Number($('#CashOutAmo').val())||Number($('#source_cash_account').find('option:selected').data('amo'))||0,
 		FromPmp = Number(Number($('#cash_source').val()) === 1),
 		FrmAcc = Number($('#source_cash_account').val()),
-
-
+        depo_to = Number($('#deposit_type').val()),
+        depo_sup = Number($('#tranxn_sup').val()),
+        
 		data = {
 			data:{
 			shift,
@@ -1545,15 +1588,18 @@
 			desc,
 			To,
 			FromPmp,
-			FrmAcc
+			FrmAcc,
+			depo_sup,
+			depo_to
 		},
 			url
 		}
-
+    if(!depo_to){redborder('#deposit_type');return}
+    if(!(depo_sup||To_acco)){if(depo_to==1&&!depo_sup){$('#tranxn_sup').selectpicker('setStyle','redborder')};if(depo_to==2&&!To_acco){$('#tranxn_sup').selectpicker('setStyle','redborder')};return}
 	if(FromPmp&&!shift){$('#pump_attendant').selectpicker('setStyle','redborder');return}
 	if(!FromPmp&&!FrmAcc){$('#source_cash_account').selectpicker('setStyle','redborder');return}
 	if(amoC<=0){redborder('#CashOutAmo');return}
-	if(!To_acco){$('#cashOutAcc').selectpicker('setStyle','redborder');return}
+	// if(!To_acco){$('#cashOutAcc').selectpicker('setStyle','redborder');return}
 
 	// const T = confirm(lang('Una uhakika unataka kuendelea?','Are you sure you want to continue?'))
     // if(!T)return

@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.shortcuts import render,redirect
-from account.models import UserExtend,shifts,shiftPump,fuel_pumps,matumizi,rekodiMatumizi,wekaCash,toaCash,PhoneMailConfirm,wateja,wasambazaji,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
+from account.models import UserExtend,shifts,shiftPump,fuel_pumps,DepositTo,matumizi,rekodiMatumizi,wekaCash,toaCash,PhoneMailConfirm,wateja,wasambazaji,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
 # Create your views here.
 from django.contrib import messages
 from django.contrib.auth.models import User, auth
@@ -32,6 +32,7 @@ from django.db.models import Sum
 import random 
 import os
 import json
+import traceback
 
 
 from account.todos import Todos,confirmMailF
@@ -92,7 +93,7 @@ def payaccounts(request):
       payaacc = payaacc.filter(Interprise=shell.id)
       
 
-  AccSum = payaacc.aggregate(sumi=Sum('Amount'))['sumi'] or 0
+  AccSum = payaacc.filter(no_amount=False).aggregate(sumi=Sum('Amount'))['sumi'] or 0
 
   todo.update({
       'stations':stations,
@@ -224,45 +225,49 @@ def editAkaunt(request):
             amount= request.POST.get('amount')
             allow= int(request.POST.get('allow',0))
             aina= request.POST.get('aina')
-            idn= request.POST.get('value')
+            idn= int(request.POST.get('value',0))
+            no_show= int(request.POST.get('no_show'))
             todo = todoFunct(request)
             cheo = todo['cheo']
-
-            
-
-           
-
-            
-            if idn !='':
-                
-                ak = PaymentAkaunts.objects.get(pk=idn ) 
-                #  ak.Interprise = InterprisePermissions.objects.get(user=request.user.id, default=True).Interprise
-                ak.Akaunt_name = name
-                # ak.Amount = int(amount)
-                ak.onesha = allow
-                ak.aina = aina
-
-                ak.save()
-
-                data={
-                    'success':True
-                }
-
-                return JsonResponse(data) 
-
-
-            else: 
-                data={
-                    'success':False
-                }
-
+            useri = todo['useri'] 
+            kampuni = todo['kampuni']
+            if not useri.admin:
+                data = {
+                        'success':False,
+                        'swa':'Hauna ruhusa hii kwa sasa tafadhari wasiliana na uongozi',
+                        'eng':'you have no permision for this action please contact admin'
+                        
+                        }
                 return JsonResponse(data)
+
+            ak = PaymentAkaunts.objects.get(pk=idn,Interprise__company=kampuni ) 
+            #  ak.Interprise = InterprisePermissions.objects.get(user=request.user.id, default=True).Interprise
+            ak.Akaunt_name = name
+            ak.Amount = float(amount)
+            ak.onesha = allow
+            ak.aina = aina
+            ak.no_amount = no_show 
+            ak.save()
+
+            data={
+                'success':True,
+                'swa':'Akaunti imehaririwa kikamilifu',
+                'eng':'Account edited successfuly'
+            }
+
+            return JsonResponse(data) 
+
         else:
           return render(request,'pagenotFound.html',todoFunct(request))         
     except:
         data={
-            'success':False
+            'success':False,
+            'swa':'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena',
+            'eng':'The action was not successfully due to error please try again'
         }
+
+        return JsonResponse(data)
+    
 
 @login_required(login_url='login')
 def kuwekapesa(request):
@@ -343,8 +348,8 @@ def kutoaPesa(request):
             idn= request.POST.get('value')
             eleza= request.POST.get('Maelezo')
             fromi= request.POST.get('kutoka')
-            amounti= int(request.POST.get('kiasi'))
-            baki= int(request.POST.get('baki'))
+            amounti= float(request.POST.get('kiasi'))
+            baki= float(request.POST.get('baki'))
             acid= int(request.POST.get('is'))
             todo = todoFunct(request)
             cheo = todo['cheo']
@@ -356,7 +361,7 @@ def kutoaPesa(request):
             if manager or useri.admin : 
                 # entp=cheo.Interprise
                 toakwa= PaymentAkaunts.objects.get(pk=acid,Interprise__company=kampuni)
-                beforweka=toakwa.Amount
+                beforweka=float(toakwa.Amount)
                 akaunti = toakwa # Initialize the other destination account ...............//
                 if ac:
                     akaunti=PaymentAkaunts.objects.get(pk=idn,Interprise__company=kampuni)
@@ -377,31 +382,29 @@ def kutoaPesa(request):
                 if not toakwa.onesha:
                     toa.usiri =True       
                 toa.maelezo = eleza
-                toa.makato = beforweka-(baki+amounti)
+                toa.makato = float(beforweka+amounti-baki)
                 toa.tarehe = datetime.datetime.now(tz=timezone.utc)
                 toa.by=useri
                 toa.Interprise=toakwa.Interprise
                 toa.kuhamisha = ac  
                 toa.personal = not ac  
                 toa.kuhamishaNje =  akaunti.Interprise is not toakwa.Interprise
+                toa.admin_approval = useri.admin
                 toa.save()
-
+                     
                 toakwa.Amount = float(baki)
                 toakwa.save()
 
                 # kuapdate inapotoka
                 if ac:
-                    before=akaunti.Amount
+                    before=float(akaunti.Amount)
                     PaymentAkaunts.objects.filter(pk=idn).update(Amount=F('Amount')+amounti)
-
-                    #  akaunti.kiasi=akaunti.Amount-amounti
-                    #  akaunti.save()
 
                     Change=wekaCash()
                     Change.Akaunt=akaunti
                     Change.Amount = amounti
                     Change.before=before
-                    Change.After=before + amounti
+                    Change.After=float(before + amounti)
                     Change.kutoka= PaymentAkaunts.objects.get(pk=acid, Interprise__owner=admin.id).Akaunt_name
                     Change.maelezo = eleza
                     Change.tarehe = datetime.datetime.now(tz=timezone.utc)
@@ -409,11 +412,20 @@ def kutoaPesa(request):
                     Change.Interprise=akaunti.Interprise
                     Change.kuhamisha = ac
                     Change.kuhamishaNje =  akaunti.Interprise is not toakwa.Interprise
+                    Change.admin_approval = useri.admin
                     if not PaymentAkaunts.objects.get(pk=idn, Interprise__owner=admin.id).onesha:
                         Change.usiri = True
                     if not toakwa.onesha:
                         Change.kutoka_siri = True    
                     Change.save()
+
+                    depoTo = DepositTo()
+                    depoTo.weka = Change
+                    depoTo.save()
+
+                    toa.depoTo = depoTo
+                    toa.save()
+
 
                 data={
                     'success':True,
@@ -432,7 +444,9 @@ def kutoaPesa(request):
   
                 }
                 return JsonResponse(data)
-        except:
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
             data={
                 'success':False,
                 'message_swa':'Taarifa za Muamala wa kuhamisha pesa hazijafanikiwa kurekodiwa kutokana na hitilafu. Tafadhari jaribu tena kwa usahihi',
