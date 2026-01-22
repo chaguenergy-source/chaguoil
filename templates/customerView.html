@@ -616,7 +616,7 @@
                             <div class="col-5 ">
                                 {% if useri.langSet == 0 %}Kikomo cha Oda{% else %}Order Limit{% endif %} <span class="text-primary">({{currencii}})</span> 
                             </div>
-                            <div class="col-7 text-right" id="OrderLimit">
+                            <div class="col-7 text-right" >
                                 {{lastCd.amount|floatformat:'-2'|intcomma}}
                             </div>
                         </div>  
@@ -1200,8 +1200,10 @@
                       id="malipo-akaunti"  class="form-control border machaguo-pesa smallFont selectpicker" data-live-search="true">
                         <option value=0 data-value=0 data-amount=0 >{% if useri.langSet == 0 %}--Chagua Akaunti--{% else %}--Select Account--{% endif %}</option>
                         {% for ac in payacc %}
-                        <option value={{ac.id}} data-amount={{ac.Amount}} data-value="{{ac.id}}" >{{ac.Akaunt_name}}</option>
-                       {%endfor%}
+                        {% if not ac.supv_acc %}
+                         <option value={{ac.id}} data-amount={{ac.Amount}} data-value="{{ac.id}}" >{{ac.Akaunt_name}}</option>
+                        {% endif %}
+                         {%endfor%}
                     </select>                        
                     </div>
 
