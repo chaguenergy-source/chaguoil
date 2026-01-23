@@ -1829,9 +1829,9 @@ def fuelsales(request):
                     sale.cdorder = lcdorder
                     lcdorder.save()
                     remBalance = float(float(lcdorder.amount) - float(lcdorder.consumed))
-                    largerPr = fuel_tanks.objects.filter(Interprise__company=kampuni).order_by('price').first().price
+                    largerPr = fuel_tanks.objects.filter(Interprise__company=kampuni).order_by('price').last().price
                     remAmo = remBalance / float(largerPr) 
-                    print({"remqty":remAmo,'largerPr':largerPr,'remBalance':remBalance})
+                    # print({"remqty":remAmo,'largerPr':largerPr,'remBalance':remBalance})
                     if remAmo <= float(0.5) :
                         lcdorder.consumed = float(lcdorder.amount)
                         lcdorder.save()

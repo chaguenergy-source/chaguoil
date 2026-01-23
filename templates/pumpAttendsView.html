@@ -875,7 +875,7 @@
                             
                             {% if not cb.sales  %}
                             <tr>
-                                <td><input type="checkbox" class="cashDeposit-checkbox" name="cashDeposit_ids" value="{{cb.id}}" onchange="updateDeleteButtonStateCashDeposit()"></td>
+                                <td><input type="checkbox" class="cashDeposit-checkboxD cashDeposit-checkbox" name="cashDeposit_ids" value="{{cb.id}}" onchange="updateDeleteButtonStateCashDeposit()"></td>
 
                                 <td>{{forloop.counter}}</td>
                                 <td>
@@ -928,7 +928,7 @@
                 <table class="table table-bordered smallFont table-sm">
                     <thead>
                         <tr class="smallFont" >
-                            <th><input type="checkbox" id="select-all-cashDeposits" onclick="toggleAllCashDeposits(this)"></th>
+                            <th><input type="checkbox" id="select-all-cashDeposits2" onclick="toggleAllCashDepositsM(this)"></th>
                             <th>#</th>
                             <th>{% if useri.langSet == 0 %}MudaTarehe{% else %}DateTime{% endif %}</th>
                             <th>{% if useri.langSet == 0 %}Akaunti{% else %}Account  {% endif %} </th>
@@ -945,7 +945,7 @@
                             
                             {% if  cb.sales %}
                             <tr>
-                                <td><input type="checkbox" class="cashDeposit-checkbox" name="cashDeposit_ids" value="{{cb.id}}" onchange="updateDeleteButtonStateCashDeposit()"></td>
+                                <td><input type="checkbox" class="cashDeposit-checkboxM  cashDeposit-checkbox" name="cashDeposit_ids" value="{{cb.id}}" onchange="updateDeleteButtonStateCashDeposit()"></td>
 
                                 <td>{{forloop.counter}}</td>
                                 <td>
@@ -1372,12 +1372,17 @@
                                     const checkboxes = document.querySelectorAll('.cashDeposit-checkbox');
                                     const btn = document.getElementById('delete_cash_Deposit_btn');
                                     const btn2  = document.getElementById('delete_cash_Deposit_btn2');
-                                    btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
-                                    btn2.disabled = !Array.from(checkboxes).some(cb => cb.checked);
+                                    if(btn)btn.disabled = !Array.from(checkboxes).some(cb => cb.checked);
+                                    if(btn2)btn2.disabled = !Array.from(checkboxes).some(cb => cb.checked);
                                 }
 
                                 function toggleAllCashDeposits(source) {
-                                    const checkboxes = document.querySelectorAll('.cashDeposit-checkbox');
+                                    const checkboxes = document.querySelectorAll('.cashDeposit-checkboxD');
+                                    checkboxes.forEach(cb => { cb.checked = source.checked; });
+                                    updateDeleteButtonStateCashDeposit();
+                                }
+                                function toggleAllCashDepositsM(source) {
+                                    const checkboxes = document.querySelectorAll('.cashDeposit-checkboxM');
                                     checkboxes.forEach(cb => { cb.checked = source.checked; });
                                     updateDeleteButtonStateCashDeposit();
                                 }
