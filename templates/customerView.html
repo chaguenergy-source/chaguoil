@@ -1434,48 +1434,16 @@
 
                     <div id="is_pre_or_post_order" style="display: none;">
 
-                          <div class="form-group">
-                            <label for="orderId">
-                                {% if useri.langSet == 0 %}Namba ya Oda{% else %}Order ID{% endif %}
-                                
-                            </label>
-                            <input type="text" class="form-control" value="ORD-{% if cust.id < 10 %}0{% endif %}{{cust.id}}/{{newcode}}" readonly id="orderId" name="orderId" required>
-                        </div>
-
-                    <div class="form-group">
-                        <label for="orderAmount" class="brown" >
-                            {% if useri.langSet == 0 %}Ukomo wa Oda{% else %}Order Limit{% endif %} <span class="text-primary">{{currencii}}</span>
-                            <sup>*</sup>
+                        <div class="form-group">
+                        <label for="orderId">
+                            {% if useri.langSet == 0 %}Namba ya Oda{% else %}Order ID{% endif %}
+                            
                         </label>
-                        <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
-                                <label class="mt-1 text-danger " for="orderAmount"></label> 
-                                <div class="box-pointer d-inline "></div>
-                        </div>
-                        <input type="number" class="form-control money-fomat" id="orderAmount" name="orderAmount" step="0.01" >
+                        <input type="text" class="form-control" value="ORD-{% if cust.id < 10 %}0{% endif %}{{cust.id}}/{{newcode}}" readonly id="orderId" name="orderId" required>
                     </div>
 
-                        <div class="form-group" >
-                            <label for="NewOrContinue"  >
-                                {% if useri.langSet == 0 %}Hali ya Oda{% else %}Order Status{% endif %}
-                                
-                            </label>
-
-                            <select name="NewOrContinue"  id="NewOrContinue" class="form-control bluePrint" required >
-                                <option  value=0 >-----</option>
-
-                                {% if lastCd is None %}  
-                                <option value=1 > {% if useri.langSet == 0 %}Anaendelea{% else %}In Progress{% endif %} </option>
-                                {% endif %} 
-
-                                <option value=2 > {% if useri.langSet == 0 %}Mpya{% else %}New{% endif %} </option>
-                            </select>
-                            </div>
+                      <div id="is_pre_paid_order" style="display: none;">
                         
-                        <div id="is_pre_paid_order" style="display: none;">
-                        
-                        
-                            
-                            
                             <div id="payMentsAcc" class="form-group ">
                                 <label for="paymentAccount" class="brown" >
                                     {% if useri.langSet == 0 %}Akaunti ya Malipo{% else %}Payment Account{% endif %}
@@ -1502,7 +1470,64 @@
                                 </div>
                                 <input type="number" class="form-control money-fomat" id="paidAmount" name="paidAmount" step="0.01">
                             </div>
+
+                            {% if totD > 0 %}
+                            <div class="form-group">
+                                <label for="Debt_to_pay" class="brown" >
+                                    {% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %} <span class="text-primary">{{currencii}}</span>
+                                    <sup>*</sup>
+                                </label>
+                                <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                        <label class="mt-1 text-danger " for="Debt_to_pay"></label> 
+                                        <div class="box-pointer d-inline "></div>
+                                </div>
+                                <input type="text" disabled value="{{totD|floatformat:'-2'|intcomma}}" class="form-control money-fomat" id="Debt_to_pay" name="Debt_to_pay" >
+                            </div>
+                           {% endif %}
                         </div>
+
+                        <script>
+                            $('#paidAmount').on('input', function(){
+                                const paidAmo = parseFloat($(this).val()) || 0;
+                                const custmDebt = parseFloat('{{totD}}') || 0;
+
+                                if(paidAmo > custmDebt)$('#orderAmount').val( paidAmo - custmDebt );
+                                else $('#orderAmount').val('');
+                               
+                            });
+                        </script>
+
+
+                    <div class="form-group">
+                        <label for="orderAmount" class="brown" >
+                            {% if useri.langSet == 0 %}Kiasi cha Oda{% else %}Order Amount{% endif %} <span class="text-primary">{{currencii}}</span>
+                            <sup>*</sup>
+                        </label>
+                        <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                <label class="mt-1 text-danger " for="orderAmount"></label> 
+                                <div class="box-pointer d-inline "></div>
+                        </div>
+                        <input type="number" class="form-control money-fomat" id="orderAmount" name="orderAmount" step="0.01" >
+                    </div>
+
+                        <div class="form-group" >
+                            <label for="NewOrContinue"  >
+                                {% if useri.langSet == 0 %}Hali ya Oda{% else %}Order Status{% endif %}
+                                
+                            </label>
+
+                            <select name="NewOrContinue"  id="NewOrContinue" class="form-control bluePrint" required >
+                                <option  value=0 >-----</option>
+
+                                {% if lastCd is None %}  
+                                <option value=1 > {% if useri.langSet == 0 %}Anaendelea{% else %}In Progress{% endif %} </option>
+                                {% endif %} 
+
+                                <option value=2 > {% if useri.langSet == 0 %}Mpya{% else %}New{% endif %} </option>
+                            </select>
+                            </div>
+                        
+                      
 
                     </div>
 
@@ -1530,9 +1555,7 @@
                         const url = $(this).attr('action');
                         const debt_limit = Number($('#loanLimit').val()) || Number('{{cust.debt_limit}}')
                         const dLimit = Number(orderType == 'debt')
-                        '{% if lastCd.consume > lastCd.paid  %}'
-                           orderAmount = Number('{{lastCd.amount}}')
-                        '{% endif %}'
+                       
 
                         if((debt_limit <  orderAmount) && !(prepaid||dLimit) ){
                             
@@ -1564,7 +1587,7 @@
                                 redborder('#paymentAccount');
                                 return;
                             }
-                            if((!paidAmount || paidAmount <= 0 || paidAmount > orderAmount)&&!dLimit){
+                            if((!paidAmount || paidAmount <= 0)&&!dLimit){
                                 alert('{% if useri.langSet == 0 %}Tafadhali ingiza kiasi halali kilicholipwa{% else %}Please enter a valid paid amount{% endif %}');
                                 redborder('#paidAmount');
                                 redborder('#orderAmount');

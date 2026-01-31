@@ -805,12 +805,12 @@ def customerStatementData(request):
 
         # determine date range
      
-
+        # print(tFr,tTo)
         # sales for customer in range
         sales_qs = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__gte=tFr, recDate__lte=tTo).order_by('pk')
         payments_qs = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__gte=tFr, tarehe__lte=tTo).order_by('pk')
         lastPay  = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__lt=tFr).exclude(Amount=0).order_by('pk').last()
-        # print('First Pay',lastPay.Amount if lastPay is not None else 0)
+        # print(len(sales_qs),len(payments_qs))
         invo_payed = CustmDebtPayRec.objects.filter(pay = lastPay,sale__recDate__lt=tFr).order_by('pk')
         opening_balance = float(lastPay.Amount if lastPay else 0)
         opening_balance -= float(invo_payed.aggregate(total=Sum('Apay'))['total'] or 0)
@@ -1134,15 +1134,20 @@ def save_credit_order(request):
                     order.save()
                     order.date = datetime.datetime.now(tz=timezone.utc)
                     other_consume = consume.filter(~Q(cdorder=None)).aggregate(sumi=Sum('deni'))['sumi'] or 0
+                    deni = float(consume.filter(cdorder=None).aggregate(sumi=Sum('deni'))['sumi'] or 0)
+
                     if float(other_consume) > float(0):
                         order.paid = float(float(paid) - float(other_consume)) if float(float(paid) - float(other_consume)) > 0 else 0
+                        # order.amount = float(float(paid) - float(other_consume))
 
                     if consume.filter(cdorder=None).exists():
-                        deni = consume.filter(cdorder=None).aggregate(sumi=Sum('deni'))['sumi'] or 0
-                        if float(deni) > float(order.amount):
+                        
+                        if float(deni) > float(amount):
                            order.amount = float(deni)
-                           
+                        else:
+                            order.amount = float(amount+deni)   if  prepaid else float(amount)
                         order.consumed = deni
+
                     order.save()
 
                 if float(customer.debt_limit) == float(0)  or not consume.exists()  or useri.admin:      
@@ -1161,8 +1166,9 @@ def save_credit_order(request):
 
                 if topUp:
                     order = creditDebtOrder.objects.get(pk=ordt,by__user__company=kampuni)
-                    order.amount = float(float(order.amount) + float(amount))    
-                    order.paid = float(float(order.paid) + float(amount))
+                    tot_p = float(float(order.paid) + float(amount))
+                    order.amount = tot_p  if float(order.amount) < tot_p else float(order.amount)
+                    order.paid = tot_p
                     order.save()  
 
                 if prepaid and paid > 0 and payAcc:
