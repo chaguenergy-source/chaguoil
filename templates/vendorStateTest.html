@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ripoti ya Manunuzi ya Mafuta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .header-section { background: #2c3e50; color: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
+        .debt-warning { color: #e74c3c; font-weight: bold; }
+        .paid-success { color: #27ae60; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-section text-center">
+        <h2>Mfumo wa Statement ya Manunuzi ya Mafuta</h2>
+        <p>Simamia Manunuzi, Malipo na Madeni ya Suppliers</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card p-4">
+                <h4>Rekodi Manunuzi Mapya</h4>
+                <hr>
+                <form id="purchaseForm">
+                    <div class="mb-3">
+                        <label class="form-label">Supplier</label>
+                        <select id="supplierName" class="form-select" required>
+                            <option value="GBP Tanzania">GBP Tanzania</option>
+                            <option value="Mount Meru">Mount Meru</option>
+                            <option value="TotalEnergies">TotalEnergies</option>
+                            <option value="Puma Energy">Puma Energy</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Aina ya Mafuta</label>
+                        <select id="fuelType" class="form-select">
+                            <option value="Petrol">Petrol</option>
+                            <option value="Diesel">Diesel</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jumla ya Gharama (TZS)</label>
+                        <input type="number" id="totalAmount" class="form-control" placeholder="Mf: 5,000,000" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kiasi Kilicholipwa (TZS)</label>
+                        <input type="number" id="paidAmount" class="form-control" placeholder="Mf: 2,000,000" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Hifadhi Manunuzi</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Statement ya Manunuzi</h4>
+                    <div class="w-50">
+                        <select id="filterSupplier" class="form-select" onchange="renderTable()">
+                            <option value="All">Wote (All Suppliers)</option>
+                            <option value="GBP Tanzania">GBP Tanzania</option>
+                            <option value="Mount Meru">Mount Meru</option>
+                            <option value="TotalEnergies">TotalEnergies</option>
+                            <option value="Puma Energy">Puma Energy</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Tarehe</th>
+                                <th>Supplier</th>
+                                <th>Bidhaa</th>
+                                <th>Jumla</th>
+                                <th>Imelipwa</th>
+                                <th>Bakaa (Deni)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statementBody">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="mt-3 p-3 bg-light border rounded text-end">
+                    <h5>Jumla ya Deni: <span id="totalDebtDisplay" class="debt-warning">0 TZS</span></h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Data ya mfano (Inaweza kuhifadhiwa kwenye LocalStorage)
+    let transactions = JSON.parse(localStorage.getItem('oilPurchases')) || [
+        { date: '2026-01-25', supplier: 'GBP Tanzania', fuel: 'Petrol', total: 10000000, paid: 6000000 },
+        { date: '2026-01-28', supplier: 'Puma Energy', fuel: 'Diesel', total: 15000000, paid: 15000000 }
+    ];
+
+    const form = document.getElementById('purchaseForm');
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const newPurchase = {
+            date: new Date().toISOString().split('T')[0],
+            supplier: document.getElementById('supplierName').value,
+            fuel: document.getElementById('fuelType').value,
+            total: parseFloat(document.getElementById('totalAmount').value),
+            paid: parseFloat(document.getElementById('paidAmount').value)
+        };
+
+        transactions.push(newPurchase);
+        localStorage.setItem('oilPurchases', JSON.stringify(transactions));
+        form.reset();
+        renderTable();
+    });
+
+    function renderTable() {
+        const tableBody = document.getElementById('statementBody');
+        const filterValue = document.getElementById('filterSupplier').value;
+        const debtDisplay = document.getElementById('totalDebtDisplay');
+        
+        tableBody.innerHTML = '';
+        let totalDebt = 0;
+
+        const filteredData = filterValue === 'All' 
+            ? transactions 
+            : transactions.filter(t => t.supplier === filterValue);
+
+        filteredData.forEach(t => {
+            const balance = t.total - t.paid;
+            totalDebt += balance;
+
+            const row = `
+                <tr>
+                    <td>${t.date}</td>
+                    <td>${t.supplier}</td>
+                    <td>${t.fuel}</td>
+                    <td>${t.total.toLocaleString()}</td>
+                    <td class="paid-success">${t.paid.toLocaleString()}</td>
+                    <td class="${balance > 0 ? 'debt-warning' : ''}">${balance.toLocaleString()}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+
+        debtDisplay.innerText = totalDebt.toLocaleString() + " TZS";
+    }
+
+    // Endesha renderTable mara ya kwanza
+    renderTable();
+</script>
+
+</body>
+</html>

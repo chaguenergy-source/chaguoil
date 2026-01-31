@@ -1,9 +1,10 @@
   
 {% extends 'index.html' %}
 {% load humanize %}
-{% block page_content %}
 {% load static %}
 
+
+{% block page_content %}
 <div class="head-title pb-md-5">
     <div class="left">
         
@@ -42,12 +43,11 @@
                 </div>
                 <div class="col-9">
                     <u class="bluePrint">{{ven.jina}}</u>  | <button class="btn btn-lightedit_btn text-primary"  data-toggle="modal" data-target="#wasambazaji-modal"
-                                         
-                                          style="font-size: 16;"  title="Edit" >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                      </svg>   
+                                            style="font-size: 16;"  title="Edit" >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>   
                                       </button>
                 </div>
                 <div class="col-3">
@@ -87,7 +87,11 @@
           
          {% if useri.admin %}   
         <p class="text-right">
-            <a href="#" type="button" onclick="$('#newPurchase').toggle(200)" class="text-primary smallerFont weight600">+{% if useri.langSet == 0 %}Mpya{% else %}New{% endif %}</a>
+             <button data-toggle="modal" data-target="#modal_malipo" class="btn btn-sm btn-outline-success  smallerFont" title="{% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}" >
+               $  {% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}
+             </button>
+            <button onclick="$('#newPurchase').toggle(200)" class="btn-sm btn btn-outline-primary smallerFont ">+{% if useri.langSet == 0 %}Ongeza Manunui{% else %}Add Purchase {% endif %}</button>
+     
         </p>
 
          <select hidden  name="allFuel" id="allFuel">
@@ -259,6 +263,8 @@
                     </div>
                 </div>
             </div>
+
+         {% include "vendorsnav.html" %}   
 
         <div class="text-right smallerFont tabs_menu" >
             <a href="#" data-show="this_Month" class="report_show bluePrint" >
@@ -534,10 +540,10 @@
     </div>
 
   
-  </div>    
+</div>    
 
 
-  {% include 'venPayBills.html' %}
+{% include 'venPayBills.html' %}
 
   <!-- kuongeza wasambazaji ................................................................ -->
 <div class="modal fade" id="wasambazaji-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -692,7 +698,7 @@
         
       </div>
     </div>
-  </div>
+</div>
 
 
   

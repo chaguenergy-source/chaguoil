@@ -38,7 +38,10 @@
 
         <!-- <nav class="tabs-nav"> -->
             <ul class="nav nav-tabs smallerFont  mt-3 mb-4 d-flex">
-                <li class="nav-item "><a class="nav-link  {% block tab_shifts %}{% endblock %}" href="/salepurchase/theshiftsAttend"> {% if useri.langSet == 0 %}Shughuli na Zamu{% else %}Shifts activity{% endif %}</a></li>
+                <li class="nav-item "><a class="nav-link  {% block tab_shifts %}{% endblock %}" href="/salepurchase/theshiftsAttend"> 
+                    {% if useri.langSet == 0 %}Wahusika/Zamu{% else %}Pump/Attendants{% endif %}
+                </a>
+                </li>
                 <li class="nav-item "><a class="nav-link  {% block tab_payments %}{% endblock %}" href="/salepurchase/customerPayments">
                     {% if useri.langSet == 0 %}Malipo Kwa Simu{% else %}Mobile Payment{% endif %}
                     
@@ -83,6 +86,7 @@
                         {% if useri.langSet == 0 %}Kupokea{% else %}Receives{% endif %}
                     </a>
                 </li>
+                
                 <li class="nav-item ">
                     <a class="nav-link  {% block adjst %}{% endblock %}" href="#daily-sales"> 
                         {% if useri.langSet == 0 %}Kupima{% else %}Adjustment{% endif %}

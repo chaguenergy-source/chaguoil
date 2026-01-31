@@ -1,0 +1,29 @@
+
+
+{% load humanize %}
+   <!-- <nav class="tabs-nav"> -->
+            <ul class="nav nav-tabs smallerFont  mt-3 mb-4 d-flex">
+                <li class="nav-item ">
+                    {% if isViewVend or thereisVen %}
+                        <a class="nav-link  {% if isViewVend  %} active {% endif %}" href="/salepurchase/viewVendor?v={{ven.id}}">
+                            {% if useri.langSet == 0 %}Manunuzi{% else %}Purchases{% endif %}
+                        </a>
+                    {% else %} 
+                        <a class="nav-link  {% if isVendor %} active {% endif %}" href="/salepurchase/vendors">
+                            {% if useri.langSet == 0 %}Wasambazaji{% else %}Suppliers{% endif %}
+                        </a>
+                    {% endif %}
+               </li>
+                   <li class="nav-item">
+                        <a class="nav-link {% if statement_tab %} active {% endif %}" href="/salepurchase/purchaseStatement?v={% if isViewVend or thereisVen %}{{ven.id}}{% else %}0{% endif %}">
+                            {% if useri.langSet == 0 %}Ripoti ya Manunuzi{% else %}Purchase Statement  {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link  {% if attach_tab %} active {% endif %}" href="/salepurchase/vendosAttachments?v={% if isViewVend or thereisVen %}{{ven.id}}{% else %}0{% endif %}">
+                            {% if useri.langSet == 0 %}Viambatanisho{% else %}Attachments{% endif %}
+                        </a>
+                    </li>
+                
+            </ul>
+        <!-- </nav -->

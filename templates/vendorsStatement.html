@@ -1,29 +1,66 @@
+
+  
 {% extends 'index.html' %}
-{% load humanize %}
 {% load static %}
-{% block additional_css %}
-<link rel="stylesheet" href="{% static 'css/customerStatement.css' %}">
-{% endblock %}
-
-
 {% block page_content %}
+{% load humanize %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}wasambazaji {% else %} Vendors{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
 
 
+
+
+</div>
 
 <div class="table-data" id="invoice_wrapper" style="min-height: 85vh;overflow-y: auto;overflow-x: hidden;" >
-    
-    <div class="order fontColor ">
+    <div class="order">
 
-        {% include 'headingInvoice.html' %} 
+        {% include 'headingPurchases.html'  %}  
 
-    <div>    
+        <h4>
 
-      
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="13" x2="8" y2="13"></line>
+            <line x1="12" y1="17" x2="8" y2="17"></line>
+            <line x1="16" y1="13" x2="14" y2="13"></line>
+            <line x1="16" y1="17" x2="14" y2="17"></line>
+            </svg>
+            
+            {% if useri.langSet == 0 %}Taarifa Manunuzi ya Mafuta {% else %}Fuel Purchases Statement{% endif %}
+        
+        </h4>   
+        
+        
 
-
-        <div class="row" id="customerDetails" >  
+    {% if ven %}
+         <div class="row my-3" id="venomerDetails" >  
             <div class="col-12">
-                <strong> {% if useri.langSet == 0 %}Taarifa za Mteja {% else %}Customer Details {% endif %}</strong> 
+                <strong> {% if useri.langSet == 0 %}Msambazaji{% else %}Vendor{% endif %}</strong> 
             </div>  
             <div class="col-md-5 row">
 
@@ -32,51 +69,33 @@
                 </div>
 
                 <div class="col-9 bluePrint weight600">
-                    {{cust.jina}}
+                    {{ven.jina}}
                 </div>
                 <div class="col-3">
                     {% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}
                 </div>
                 <div class="col-9">
-                    {{cust.address }}  
+                    {{ven.address }}  
                 </div>
 
                 <div class="col-3">
                     {% if useri.langSet == 0 %}Simu{% else %}Phone{% endif %}
                 </div>
                 <div class="col-9">
-                    {{cust.code}}{{cust.simu1}}{% if cust.simu2 %}, {{cust.code}}{{cust.simu2}} {%endif%}
+                    {{ven.code}}{{ven.simu1}}{% if ven.simu2 %}, {{ven.code}}{{ven.simu2}} {%endif%}
                 </div>
                 
-                {% if cust.email %} 
+                {% if ven.email %} 
                         <div class="col-3">
                             Email
                         </div>
                         <div class="col-9">
-                            {{cust.email}}
+                            {{ven.email}}
                         </div>
                 {% endif %}
 
 
-                                <!-- <hr class="col-12"> -->
-                <div class="col-3">
-                    {% if useri.langSet == 0 %}Oda zenye ukomo{% else %}Limited Order{% endif %}
-                    <!-- <a href = "/salepurchase/priveiw" >onesha</a> -->
-                </div>
-                <div class="col-9  ">
-                     {% if cust.limited_order %}
-                     <span class="green">
-                        
-                        {% if useri.langSet == 0 %}Ndio{% else %}Yes {% endif %}
-                     </span>
-                     {% else %}
-                      <span class="brown">
-                         {% if useri.langSet == 0 %}Hapana{% else %} No{% endif %}
-                      </span>
-                     {% endif %}
- 
-                      
-                </div>
+           
                  
    
 
@@ -85,32 +104,12 @@
             </div>
         
         </div>
+    {% endif %}
 
+        {% include 'vendorsnav.html' %}
+    
         
-
-        <ul class="nav nav-tabs smallerFont mt-3 d-flex">
-            <li class="nav-item">
-                <a class="nav-link  "  data-show="this_Month"  href="/salepurchase/ViewCustomer?i={{ cust.id }}">{% if useri.langSet == 0 %}Mwezi Huu{% else %} This Month{% endif %}</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link active" data-show="customer_statement" href="/salepurchase/customer_statement?cust={{ cust.id }}">{% if useri.langSet == 0 %}Taarifa za Mteja{% else %}Customer Statement{% endif %}</a>    
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link  {% block order_payments_active %}  {% endblock %}" data-show="order_payments" href="/salepurchase/orderPayments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Oda na Malipo{% else %}Order & Payments{% endif %}</a>
-            </li>
-
-
-
-            <li class="nav-item">
-                <a class="nav-link  {% block attachments_active %}  {% endblock %}" data-show="attachments" href="/salepurchase/customerAttachments?cust={{ cust.id }}">{% if useri.langSet == 0 %}Viambatisho{% else %}Attachments{% endif %}</a>
-            </li>    
-        </ul>
-
-       <!-- Customer Statement Report Section -->
-
-<div class="customer-statement-report mt-4 list_toggle customer_statement" id="customer_statement" data-cust="{{ cust.id }}">
+        <div class="customer-statement-report mt-4 list_toggle customer_statement" id="customer_statement" data-cust="{{ cust.id }}">
     <div class="card p-3">
         <div class="row mb-3 align-items-end">
 
@@ -249,24 +248,23 @@
 
         </div>
 </div>
+
+
+     
+    </div>
 </div>
 
 
 
-    </div>
-    </div>
 
-    <input type="hidden" name="printedBy" value="{{useri.user.first_name}} {{useri.user.last_name}}" id="printedBy">
 
- </div> 
+
 
 {% endblock %}
-
 
 {% block additionaljs %}
-<script src="{% static 'js/customerStatement.js' %}"></script>
+<script src="{% static 'js/vendors.js' %}" ></script>
+
 {% endblock %}
 
-
-
-{% block customers %} active  {% endblock %}
+{% block vendors %} active  {% endblock %}

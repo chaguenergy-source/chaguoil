@@ -417,6 +417,8 @@ def orderPayments(request):
     except:
         return render(request, 'pagenotFound.html')
 
+
+
 @login_required(login_url='login')
 def ViewOrder(request):
     try:
@@ -1260,6 +1262,61 @@ def save_credit_order(request):
     else:
         return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
 
+
+@login_required(login_url='login')
+def delete_unused_order(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            useri = todo['useri']
+            manager = todo['manager']
+            kampuni = todo['kampuni']
+
+            if useri.admin or manager:
+                ord_id = int(request.POST.get('orderId', 0))
+                order = creditDebtOrder.objects.get(pk=ord_id, by__user__company=kampuni)
+                if order.consumed == 0:
+                    # delete all its associated payment and reduct the amount paid from payment accounts and sales invoices
+                    pay = wekaCash.objects.filter(cdOrder=order)
+                    pay_invo = CustmDebtPayRec.objects.filter(pay__in=pay)
+                    for p in pay_invo:
+                        sale = p.sale
+                        lipwa = float(sale.payed)
+                        sale.payed = float(lipwa - float(p.Apay))
+                        sale.save()
+                        p.delete()
+                    order.delete()
+
+                    data = {
+                        'success': True,
+                        'swa': 'Oda ya deni imefutwa kikamilifu',
+                        'eng': 'Credit order deleted successfully'
+                    }
+                else:
+                    data = {
+                        'success': False,
+                        'swa': 'Oda ya deni haiwezi kufutwa kwani tayari kuna mauzo yarirekodiwa',
+                        'eng': 'Credit order cannot be deleted because it has already incurred consumption'
+                    }
+            else:
+                data = {
+                    'success': False,
+                    'swa': 'Hauna ruhusa ya kitendo hiki kwa sasa',
+                    'eng': 'You have no permission for this action'
+                }
+            return JsonResponse(data)
+        except Exception as err:
+            print(err)
+            traceback.print_exc() 
+            data = {
+                'success': False,
+                'swa': 'Kitendo hakikufanikiwa kutokana na hitilafu tafadhari jaribu tena baadaye',
+                'eng': 'The action was unsuccessfully please try again later'
+            }
+            return JsonResponse(data)
+    else:
+        return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
+    
 
 @login_required(login_url='login')
 def saveReceive(request):
@@ -5609,6 +5666,32 @@ def addcustomer(request):
 
 
 @login_required(login_url='login')
+def vendosAttachments(request):
+    try:
+        todo = todoFunct(request)
+        return render(request,'vendosAttachments.html',todo)
+    except:
+        return render(request,'pagenotFound.html',todoFunct(request))
+
+@login_required(login_url='login')
+def purchaseStatement(request):
+    try:
+        todo = todoFunct(request)
+        ven = int(request.GET.get('v',0))
+        vend = wasambazaji.objects.get(pk=ven,compan=todo['kampuni'].id) if ven else None
+        todo.update({
+            'statement_tab':True,
+            'venIid':ven,
+            'ven':vend,
+            'thereisVen':True if vend is not None else False
+        })
+        return render(request,'vendorsStatement.html',todo)
+    except Exception as err:
+        print(err)
+        return render(request,'pagenotFound.html',todoFunct(request))
+
+
+@login_required(login_url='login')
 def vendors(request):
   todo = todoFunct(request)
   useri = todo['useri']
@@ -6004,7 +6087,9 @@ def viewVendor(request):
             return render(request,'vendorView.html',todo)
         else:
             return redirect('/userdash')  
-    except:
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
         return render(request,'pagenotFound.html',todoFunct(request))
 
 @login_required(login_url='login')
