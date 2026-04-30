@@ -1,0 +1,173 @@
+
+  
+{% extends 'index.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}wasambazaji {% else %} Vendors{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+
+<button data-toggle="modal" data-target="#addTransporterModal" id="addVendor" class="btn btn-default btn-download">
+    <!-- <i class='bx bxs-cloud-download' ></i> -->
+    <span class="text"> {% if useri.langSet == 0 %} Ongeza Msafilishaji{% else %}Add Transporter{% endif %}</span>
+</button>
+
+
+</div>
+
+<div class="table-data">
+    <div class="order">
+
+        {% include 'headingPurchases.html'  %}  
+
+      <div class="head">
+        
+        <h4>
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-truck">
+            <rect x="1" y="3" width="15" height="13"></rect>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+        </svg>
+            
+            {% if useri.langSet == 0 %}Wasafirishaji{% else %}Transporters{% endif %}
+        
+        </h4>
+        <!-- <i class='bx bx-search' ></i>
+        <i class='bx bx-filter' ></i> -->
+      </div>
+
+      <div class="weight600 row mb-4 " style="margin:auto .09em;" >
+           <div class="col-md-6 ">
+             <div class="row classic_div   py-2 border ">
+                <div class="col-6">
+                      {% if useri.langSet == 0 %}Pesa Inayodaiwa Jumla{% else %}Total InDebt{%endif%}
+                </div>
+                <div class="col-6 brown text-right">
+                    <span class="text-primary">{{currencii}}.</span> {{madeni|floatformat:'-2'|intcomma}}
+                </div>              
+             </div>
+
+           </div>
+                        
+          </div>
+
+
+      <div class="table-responsive">
+                <table id="all_staffs" class=" smallFont"  >
+                    <thead>
+                    <tr>
+                         <th>#</th>
+                        <th>{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
+                        <th>{% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Simu{% else %}Phone{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Barua Pepe{% else %}Email{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Anadai{% else %}Debt{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                        <th>{% if useri.langSet == 0 %}hali{% else %}Status{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %}</th>
+                    </tr>
+                    </thead>
+
+                
+
+
+                    <tbody>
+                
+
+                        {% for s in transport %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td> <a href="/salepurchase/viewVendor?v={{s.ven.id}}">{{s.ven.jina }}</a> </td>
+                                <td>{{s.ven.address | title }} </td>
+                                <td>{{s.ven.code}}{{s.ven.simu1}} {% if s.ven.simu2 %} ,{{s.ven.code}}{{s.ven.simu2}} {% endif %} </td>
+                                <td> {% if s.ven.email %} {{s.ven.email}} {% else %} --- {% endif %} </td>
+                                <td class="{% if s.deni %}brown{% endif %}" > {% if s.deni %} {{s.deni|floatformat:'-2'|intcomma}} {% else %} --- {% endif %} </td>
+                                 <td>
+                                    <span class="badge {% if s.ven.active %}badge-success{% else %}badge-danger{% endif %}">
+                                        {% if s.ven.active %}
+                                            {% if useri.langSet == 0 %}Hai{% else %}Active{% endif %}
+                                        {% else %}
+                                            {% if useri.langSet == 0 %}Amesitishwa{% else %}Inactive{% endif %}
+                                        {% endif %}
+                                    </span>     
+                                </td>
+                                <td> 
+                                    
+                                     {% if useri.admin or useri.ceo  %}                                 
+                                      <a href="/salepurchase/viewVendor?v={{s.ven.id}}" class="btn btn-light btn-sm"  title="View" >
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
+                                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                              <circle cx="12" cy="12" r="3"></circle>
+                                          </svg>
+                                        </a>
+                                      {% endif %}
+                                </td>
+                                <!-- <td>
+                                <a href="#" title="{% if useri.langSet == 0 %}Ingia{% else %}Shift to {%endif%} {{s.Interprise.name}}" class="btn btn-light btn-sm">
+                                    <i class='bx bx-link-external'></i>
+                                </a>
+                                </td> -->
+                            </tr>
+                        {% endfor %}
+
+                       
+
+                    </tbody>
+                </table>
+      </div>
+
+     
+    </div>
+</div>
+
+
+
+{% include 'vendorTransportModal.html' %}
+
+
+
+
+{% endblock %}
+
+{% block additionaljs %}
+<script src="{% static 'js/vendors.js' %}" ></script>
+
+ <script>
+
+
+
+$(document).ready(function(){
+      $('#all_staffs').DataTable();
+
+    })
+
+</script>
+{% endblock %}
+
+{% block vendors %} active  {% endblock %}

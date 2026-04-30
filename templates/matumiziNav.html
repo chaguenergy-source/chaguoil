@@ -1,0 +1,30 @@
+{% load humanize %}
+   <!-- <nav class="tabs-nav"> -->
+            <ul class="nav nav-tabs smallerFont  mt-3 mb-4 d-flex">
+                <li class="nav-item ">
+                   
+                        <a class="nav-link  {% if expenseList  %} active {% endif %}" href="/accounting/expensespanel">
+                            {% if useri.langSet == 0 %}Matumizi{% else %}Expenses{% endif %}
+                        </a>
+                    
+               </li>
+                  
+                    <li class="nav-item">
+                        <a class="nav-link  {% if isExpAttach %} active {% endif %}" href="/accounting/expattachments">
+                            {% if useri.langSet == 0 %}Viambatanisho{% else %}Attachments{% endif %}
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link  {% if isExpRep %} active {% endif %}" href="/analytics/expensesr">
+                            {% if useri.langSet == 0 %}Ripoti{% else %}Statement{% endif %}
+                        </a>
+                    </li>
+
+                   <li class="nav-item">
+                        <a class="nav-link {% if isExpRec %} active {% endif %}" href="/accounting/expenseRecords">
+                            {% if useri.langSet == 0 %}Rekodi Matumizi{% else %} Expense Records{% endif %}
+                        </a>
+                    </li>
+            </ul>
+        <!-- </nav -->

@@ -1,0 +1,194 @@
+
+
+  
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<style>
+    .payroll-status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        min-width: 110px;
+    }
+
+    .payroll-status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .payroll-status-overdue {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .payroll-status-due-today {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .payroll-status-not-set {
+        background: #e2e3e5;
+        color: #41464b;
+    }
+</style>
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Usimamizi Stafu{% else %} Staff Management{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+{% if useri.admin %}
+<button data-toggle="modal" data-target="#addStaff" class="btn btn-default btn-download">
+    <!-- <i class='bx bxs-cloud-download' ></i> -->
+    <span class="text"> {% if useri.langSet == 0 %} Ongeza Stafu{% else %}Add Member{% endif %}</span>
+</button>
+{% endif %}
+
+</div>
+
+
+<div class="table-data">
+    <div class="order">
+        {% include 'staffNav.html' %}
+      <div class="head">
+        <h4>
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.4em" viewBox="0 -960 960 960" width="1.4em" fill="currentColor">
+            <path d="M405-160H160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v240H771L598-307 484-419 315-250l90 90Zm193 80L428-250l56-56 114 112 226-226 56 58L598-80ZM160-640v160h640v-160H160Z"/>
+            </svg>
+            {% if useri.langSet == 0 %}Mishahara kwa Staff{% else %}Staff Payrol{% endif %}</h4>
+        <!-- <i class='bx bx-search' ></i>
+        <i class='bx bx-filter' ></i> -->
+      </div>
+      <div class="table-responsive">
+                <table id="all_staffs" class="table-bordered table-sm smallFont"  >
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
+                       
+                        <th>TIN</th>
+                        <th>NIN</th>
+                        <th>{% if useri.langSet == 0 %}Malipo/Mwisho{% else %}Last Payment{% endif %}</th>
+                        
+                        <th>{% if useri.langSet == 0 %}Siku Zilizobaki{% else %}Days Remaining{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Statasi{% else %}Status{% endif %}</th>
+
+                        <th>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}</th>
+                       
+                    </tr>
+                    </thead>
+
+                
+
+
+                    <tbody>
+                        {% for s in payroll %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>
+                                    {% if s.sta_pay %}
+                                        {{s.sta_pay.user.user.first_name |title }} {{s.sta_pay.user.user.last_name |title }}
+                                    {% endif %}
+
+                                    {% if s.heo_pay %}
+                                        {{s.heo_pay.user.first_name |title }} {{s.heo_pay.user.last_name |title }}
+                                    {% endif %}
+                                    
+                                </td>
+
+                                <td>
+                                    {% if s.sta_pay %}
+                                        {{s.sta_pay.user.tin }} 
+                                    {% endif %}
+
+                                    {% if s.heo_pay %}
+                                        {{s.heo_pay.tin}}
+                                    {% endif %}
+                                    
+                                </td>
+
+                                <td>
+                                    {% if s.sta_pay %}
+                                        {{s.sta_pay.user.nin}} 
+                                    {% endif %}
+
+                                    {% if s.heo_pay %}
+                                        {{s.heo_pay.user.nin}}
+                                    {% endif %}
+                                    
+                                </td>
+                            
+                                <td>{{s.last_paid|date:'d/m/Y'}}</td>
+                                <td>
+                                    {% if s.days_remaining == None %}
+                                        --
+                                    {% else %}
+                                        {{s.days_remaining}}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if s.payment_status == 'overdue' %}
+                                        <span class="payroll-status-badge payroll-status-overdue">{% if useri.langSet == 0 %}Imechelewa{% else %}Overdue{% endif %}</span>
+                                    {% elif s.payment_status == 'due_today' %}
+                                        <span class="payroll-status-badge payroll-status-due-today">{% if useri.langSet == 0 %}Inatakiwa leo{% else %}Due today{% endif %}</span>
+                                    {% elif s.payment_status == 'pending' %}
+                                        <span class="payroll-status-badge payroll-status-pending">{% if useri.langSet == 0 %}Inasubiri{% else %}Pending{% endif %}</span>
+                                    {% else %}
+                                        <span class="payroll-status-badge payroll-status-not-set">{% if useri.langSet == 0 %}Haijawekwa{% else %}Not set{% endif %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{s.amount|floatformat:2|intcomma}}</td>
+
+                               
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+      </div>
+
+
+     
+    </div>
+</div>
+
+
+
+{% if useri.admin %}
+
+  {% include 'staffregister.html' %}
+
+{% endif %}
+
+{% endblock %}
+
+
+
+
+{% block staffs %} active {% endblock %}

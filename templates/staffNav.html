@@ -1,0 +1,31 @@
+            <ul class="nav nav-tabs smallerFont  mt-3 mb-4 d-flex">
+                <li class="nav-item ">
+                   
+                        <a class="nav-link  {% if staffTab  %} active {% endif %}" href="/staffs/staffs">
+                            {% if useri.langSet == 0 %}Staff{% else %}Staff{% endif %}
+                        </a>
+                    
+               </li>
+                  {% if useri.payee or useri.admin %}
+                    <li class="nav-item">
+                        <a class="nav-link  {% if payrollTab %} active {% endif %}" href="/staffs/payroll">
+                            {% if useri.langSet == 0 %}Mishahara{% else %}Payroll{% endif %}
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link  {% if loansTab %} active {% endif %}" href="/staffs/loans">
+                            {% if useri.langSet == 0 %}Mikopo{% else %}Loans{% endif %}
+                        </a>
+                    </li>
+
+                    {% endif %}
+                    
+           
+
+                   <!-- <li class="nav-item">
+                        <a class="nav-link {% if isExpRec %} active {% endif %}" href="/accounting/expenseRecords">
+                            {% if useri.langSet == 0 %}Rekodi Matumizi{% else %} Expense Records{% endif %}
+                        </a>
+                    </li> -->
+            </ul>

@@ -1,0 +1,81 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %} Risiti ambazo hazijahifadhiwa{% else %} Unsaved Receipts {% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+    
+
+
+
+</div>
+
+
+<div class="table-data">
+    <div class="order">
+ <h5>
+    <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" width="1.3em" viewBox="0 0 24 24"  fill="currentColor">
+		<path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19.09H5V4.91h14v14.18zM6 15h12v2H6zm0-4h12v2H6zm0-4h12v2H6z"/>
+		</svg>
+        {% if useri.langSet == 0 %}Risiti ambazo hazijahifadhiwa {% else %}Unsaved Receipts{% endif %}
+ </h5>     
+
+<div class="list-group mt-3" style="min-height: 60vh;" >
+    {% if not pu_invo_recept and not exp_recepti %}
+        <a href="#" class="list-group-item list-group-item-action text-secondary">
+            {% if useri.langSet == 0 %} Hakuna risiti ambazo hazijahifadhiwa {% else %} No unsaved receipts {% endif %}
+        </a>
+    {% endif %}
+    
+    {% if exp_recepti %}
+   <a href="/accounting/expattachments?uns=1" class="list-group-item text-primary list-group-item-action ">
+    
+            {% if useri.langSet == 0 %} Risiti za Matumizi {% else %} Expenses Receipts {% endif %}
+            <span class="badge bg-danger text-light">{{exp_recepti}}</span>
+    </a>
+    {% endif %}
+ 
+    {% if pu_invo_recept %}
+        {% if useri.admin or useri.pu  %}
+         <a href="/salepurchase/vendosAttachments?uns=1" class="list-group-item text-primary list-group-item-action ">
+        
+                {% if useri.langSet == 0 %} Risiti za Manunuzi {% else %} Purchases Receipts {% endif %}
+                <span class="badge bg-danger text-light">{{pu_invo_recept}}</span>
+        </a>
+    {% endif %}    
+    {% endif %}
+
+   
+</div>
+
+
+
+   
+
+     
+    </div>
+
+</div>
+
+
+
+
+{% endblock %}
+

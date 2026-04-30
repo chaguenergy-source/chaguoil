@@ -1,0 +1,415 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Matumizi {% else %} Expenses{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+
+
+
+
+</div>
+
+
+
+
+
+<div class="table-data">
+    <div class="order">
+
+     {% include 'matumiziHeading.html' %}   
+      {% include 'matumiziNav.html' %} 
+      <div class="head">
+        
+        <h4>
+             {% if uns %}
+             <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" width="1.3em" viewBox="0 0 24 24"  fill="currentColor">
+						<path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19.09H5V4.91h14v14.18zM6 15h12v2H6zm0-4h12v2H6zm0-4h12v2H6z"/>
+					</svg>
+               {% if useri.langSet == 0 %}Risiti za matumizi Zinazohitajika {% else %} Missing Receipts {% endif %}
+
+            {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" viewBox="0 -960 960 960" width="1.3em" fill="currentColor">
+                <path d="M706.92-334.23q0 97.46-67.81 165.84Q571.31-100 474.23-100q-97.46 0-165.46-68.39-68-68.38-68-165.84v-359.62q0-69.23 48.08-117.69Q336.92-860 406.15-860q69.23 0 117.31 48.46t48.08 117.69v340.39q0 40.61-28.35 69.34-28.34 28.73-68.96 28.73-40.61 0-69.34-28.53-28.73-28.54-28.73-69.54v-351.15h59.99v351.15q0 16.08 10.81 27.08t26.89 11q16.07 0 26.88-11 10.81-11 10.81-27.08v-340.77q-.62-44.31-30.85-75.04Q450.46-800 406.15-800q-44.3 0-74.84 30.92-30.54 30.93-30.54 75.23v359.62q-.62 72.54 50.15 123.38Q401.69-160 474.23-160q71.54 0 121.5-50.85 49.96-50.84 51.19-123.38v-370.38h60v370.38Z"/>
+                </svg>
+            
+               {% if useri.langSet == 0 %}Risiti za Matumizi{% else %}Expenses Attachments{% endif %}
+            {% endif %}
+        </h4>
+        <!-- <i class='bx bx-search' ></i>
+        <i class='bx bx-filter' ></i> -->
+      </div>
+
+   
+       
+        {% if not uns %}
+        <div id="attachments" class="report-section mt-4">
+           
+            
+            {% if all_attachments %}
+                <table class="table table-bordered table-striped mt-3">
+                    <thead>
+                        <tr>
+                             <th>{% if useri.langSet == 0 %}Tarehe {% else %}Date {% endif %}</th>
+
+                            <th>{% if useri.langSet == 0 %}Matumizi{% else %}Expense{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}<span class="text-primary">{{currencii}}</span> </th>
+                           
+                            <th>{% if useri.langSet == 0 %}Chaguo{% else %}Options{% endif %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attachment in all_attachments %}
+                        <tr>
+                            <td>
+                                <script>
+                                    document.write(moment("{{ attachment.date|date:'r' }}").format("DD/MM/YYYY HH:mm"))
+                                </script>
+                                </td>
+
+                            <td>
+                              
+                                    {{ attachment.attach_name}}
+                               
+                            </td>
+                            <td>
+                                {{ attachment.expAttach.kiasi|floatformat:2|intcomma }} 
+                            </td>
+                            
+                            <td>
+                                <a href="{{ attachment.file.url }}" target="_blank" class="btn btn-primary btn-sm">{% if useri.langSet == 0 %}Tazama{% else %}View{% endif %}</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+    
+          <p class=" pt-4 ">
+
+            {% if all_attachments.has_previous %}
+              <a href="{% url 'vendosAttachments' %}?page=1" type="button"  class="btn btn-light border0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-left" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
+                </svg>
+                </a>
+          
+                <a href="{% url 'vendosAttachments' %}?page={{all_attachments.previous_page_number}}" type="button"  class="btn btn-light  border0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                  </svg>
+                </a>
+              {% endif %}
+          
+            {% if all_attachments.has_next %}
+                <a href="{% url 'vendosAttachments' %}?page={{all_attachments.next_page_number}}" type="button" class="btn btn-light border0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                  </svg>
+                </a>
+          
+                <a href="{% url 'vendosAttachments' %}?page={{pg_number}}" type="button"  class="btn btn-light border0" >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
+                  </svg>
+                </a>
+          {% endif %}
+                <span >
+                 
+                  {% if useri.langSet == 0 %} Ukurasa wa {{p_num}} kati ya {{pg_number}} {% else %} page {{p_num}} of {{pg_number}} {% endif %}
+          
+                </span>
+            </p>
+
+
+            {% else %}
+                <p>{% if useri.langSet == 0 %}Hakuna viambatisho vilivyopatikana .{% else %}No attachments found.{% endif %}</p>
+            {% endif %}
+        </div>
+        {% else %}
+            <div id="attachments" class="report-section mt-4">
+                
+                
+                
+                    <table class="table table-bordered table-striped mt-3">
+                        <thead>
+                            <tr> 
+                                <th>{% if useri.langSet == 0 %}Tarehe {% else %} Date{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %} Kituo{% else %}Station{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %} Matumizi{% else %}Expense{% endif %}</th>
+                               
+                                <th>{% if useri.langSet == 0 %}Maelezo{% else %}Remarks{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %}Given To{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Na{% else %}By{% endif %}</th>
+
+                                
+                                <th>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %}(<span class="text-primary">{{currencii}}</span>) </th>
+                                <th>{% if useri.langSet == 0 %}Viambatisho Vilivyokosekana{% else %}Missing Attachments{% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in missingAttachments %}
+                            <tr>
+                                <td>
+                                   
+                                    <script>
+                                        document.write(moment("{{ item.tarehe|date:'r' }}").format("DD/MM/YYYY HH:mm"))
+                                    </script>
+                                </td>
+                                <td>
+                                    {{item.Interprise.name}}
+                                </td>
+
+                                <td>
+                                    {{item.matumizi.matumizi}} 
+                                </td>
+                                <td>
+                                    {{item.maelezo}}
+                                </td>
+                                <td>{{ item.kabidhiwa | title}}</td>
+                                <td>{{ item.by.user.first_name | title }} {{ item.by.user.last_name | title }}</td>
+
+                                <td>{{ item.kiasi|floatformat:2|intcomma }}</td>
+                                <td>
+                                    
+                                        <span 
+                                        data-station="{{item.Interprise.id}}"
+                                        data-station_name = "{{item.Interprise.name}}"
+                                        data-amount="{{item.kiasi}}"
+                                        data-remark="{{item.maelezo}}"
+                                        data-kabidhi="{{item.kabidhiwa}}"
+                                        data-matumizi="{{item.matumizi.matumizi}}"
+                                        data-tumizi_id="{{item.id}}"
+                                        data-na="{{ item.by.user.first_name | title }} {{ item.by.user.last_name | title }}"
+                                        data-tarehe="{{ item.tarehe|date:'d/m/Y H:i' }}"
+                                        data-recept=1
+                                        type="button" class="badge badge-danger expense-badge" data-toggle="modal" data-target="#expenseDetailsModal" >
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                                               <path d="M706.92-334.23q0 97.46-67.81 165.84Q571.31-100 474.23-100q-97.46 0-165.46-68.39-68-68.38-68-165.84v-359.62q0-69.23 48.08-117.69Q336.92-860 406.15-860q69.23 0 117.31 48.46t48.08 117.69v340.39q0 40.61-28.35 69.34-28.34 28.73-68.96 28.73-40.61 0-69.34-28.53-28.73-28.54-28.73-69.54v-351.15h59.99v351.15q0 16.08 10.81 27.08t26.89 11q16.07 0 26.88-11 10.81-11 10.81-27.08v-340.77q-.62-44.31-30.85-75.04Q450.46-800 406.15-800q-44.3 0-74.84 30.92-30.54 30.93-30.54 75.23v359.62q-.62 72.54 50.15 123.38Q401.69-160 474.23-160q71.54 0 121.5-50.85 49.96-50.84 51.19-123.38v-370.38h60v370.38Z"/>
+                                            </svg>
+                                            {% if useri.langSet == 0 %}Risiti{% else %}Receipt{% endif %}
+                                        </span>
+                                   
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                            </table>
+                            </div>
+
+        {% endif %}
+
+
+     </div>
+     </div>
+
+
+ {% if uns %}
+  
+     <!-- Expense Details Modal -->
+     <div class="modal fade" id="expenseDetailsModal" tabindex="-1" role="dialog" aria-labelledby="expenseDetailsModalLabel" aria-hidden="true">
+         <div class="modal-dialog modal-lg" role="document">
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <h5 class="modal-title" id="expenseDetailsModalLabel">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" viewBox="0 -960 960 960" width="1.3em" fill="currentColor">
+                            <path d="M706.92-334.23q0 97.46-67.81 165.84Q571.31-100 474.23-100q-97.46 0-165.46-68.39-68-68.38-68-165.84v-359.62q0-69.23 48.08-117.69Q336.92-860 406.15-860q69.23 0 117.31 48.46t48.08 117.69v340.39q0 40.61-28.35 69.34-28.34 28.73-68.96 28.73-40.61 0-69.34-28.53-28.73-28.54-28.73-69.54v-351.15h59.99v351.15q0 16.08 10.81 27.08t26.89 11q16.07 0 26.88-11 10.81-11 10.81-27.08v-340.77q-.62-44.31-30.85-75.04Q450.46-800 406.15-800q-44.3 0-74.84 30.92-30.54 30.93-30.54 75.23v359.62q-.62 72.54 50.15 123.38Q401.69-160 474.23-160q71.54 0 121.5-50.85 49.96-50.84 51.19-123.38v-370.38h60v370.38Z"/>
+                        </svg>
+                        {% if useri.langSet == 0 %}Weka Risiti{% else %}Add Receipt{% endif %}
+                    </h5>
+                     <button type="button" class="close" data-dismiss="modal" aria-label="{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}">
+                         <span aria-hidden="true">&times;</span>
+                     </button>
+                 </div>
+                 <div class="modal-body">
+                     <div class="card">
+                         <div class="card-body">
+                            <!--  -->
+                            <h5 class="mb-3">{% if useri.langSet == 0 %}Taarifa za Matumizi{% else %}Expense Details{% endif %}</h5>
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <p><strong>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}:</strong> <span id="expenseTarehe"></span></p>
+                                     <p><strong>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}:</strong> <span id="expenseStation"></span></p>
+                                     <p><strong>{% if useri.langSet == 0 %}Matumizi{% else %}Expense{% endif %}:</strong> <span id="expenseType"></span></p>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <p><strong>{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">({{currencii}})</span> :</strong> <span class="brown weight600" id="expenseAmount"></span></p>
+                                     <p><strong>{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %}Given To{% endif %}:</strong> <span id="expenseKabidhi"></span></p>
+                                     <p><strong>{% if useri.langSet == 0 %}Na{% else %}By{% endif %}:</strong> <span id="expenseBy"></span></p>
+                                 </div>
+                             </div>
+                             <div class="row mt-3">
+                                 <div class="col-md-12">
+                                     <p><strong>{% if useri.langSet == 0 %}Maelezo{% else %}Remarks{% endif %}:</strong></p>
+                                     <p id="expenseRemark" class="pl-3 border-left border-primary"></p>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                                             <!-- File Upload Section -->
+                        <form id="addAttachmentForm" method="post" class="mt-3" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group" hidden >
+                                <label for="attachmentFile">{% if useri.langSet == 0 %}Chagua Faili (Picha){% else %}Select File (Image){% endif %}</label>
+                                <input type="file" hidden class="form-control-file" id="attachmentFile" name="attachmentFile" accept="image/*" required>
+                                <small class="form-text text-muted">{% if useri.langSet == 0 %}Inayotakiwa: JPG, PNG, GIF{% else %}Supported: JPG, PNG, GIF{% endif %}</small>
+                            </div>
+
+                            <!-- Image Preview Section -->
+                            <div class="form-group">
+                                <h5 id="recept_or_invo" >{% if useri.langSet == 0 %}Muhtasari wa Kiambatanishi{% else %}Attachment Preview{% endif %}</h5>
+                                <label id="imagePreview" type="button" for="attachmentFile" class="border rounded p-3 bg-light text-center" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
+                                    <p class="text-muted">{% if useri.langSet == 0 %}Bonyeza Kuall_attachments picha{% else %}Click to add Image{% endif %}</p>
+                                    <div>
+                                          <small class="form-text text-muted">{% if useri.langSet == 0 %}Inayotakiwa: JPG, PNG, GIF{% else %}Supported: JPG, PNG, GIF{% endif %}</small>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <input type="hidden" id="exp_id" name="exp_id" value=0 >
+                         
+
+                            <p class="text-right">
+                                <button type="submit" class="btn btn-primary">{% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}</button>
+                            </p>
+                            
+                        </form>
+                 </div>
+                 
+             </div>
+         </div>
+     </div>
+
+       
+            <script>
+                $(document).ready(function(){
+                    // Handle expense details modal
+                    $('#expenseDetailsModal').on('show.bs.modal', function (event) {
+                        const button = $(event.relatedTarget);
+                        const tarehe = button.data('tarehe');
+                        const station = button.data('station_name');
+                        const amount = button.data('amount');
+                        const remark = button.data('remark');
+                        const kabidhi = button.data('kabidhi');
+                        const matumizi = button.data('matumizi');
+                        const na = button.data('na');
+                        const modal = $(this);
+                        
+                        modal.find('#expenseTarehe').text(tarehe || '------');
+                        modal.find('#expenseStation').text(station || '------');
+                        modal.find('#expenseType').text(matumizi || '------');
+                        modal.find('#expenseAmount').text(parseFloat(amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        modal.find('#expenseKabidhi').text(kabidhi || '------');
+                        modal.find('#expenseRemark').text(remark || '------');
+                        modal.find('#expenseBy').text(na || '------');
+                        modal.find('#exp_id').val(button.data('tumizi_id') || 0);
+
+                         // Clear preview and file input
+                        $('#attachmentFile').val('');
+                        $('#imagePreview').html(`
+                           <p class="text-muted">{% if useri.langSet == 0 %}Bonyeza Kuall_attachments picha{% else %}Click to add Image{% endif %}
+                            <br>
+                              <small class="form-text text-muted">{% if useri.langSet == 0 %}Inayotakiwa: JPG, PNG, GIF{% else %}Supported: JPG, PNG, GIF{% endif %}</small>
+                            </p>
+                           
+                        `);
+                    });
+
+                 
+                    // Image preview on file selection
+                    $('#attachmentFile').on('change', function(e) {
+                        var file = e.target.files[0];
+                        if (file) {
+                            var reader = new FileReader();
+                            reader.onload = function(event) {
+                                $('#imagePreview').html('<img src="' + event.target.result + '" style="max-width: 100%; max-height: 400px; object-fit: contain;">');
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                });
+
+                // compress the image if exceeds 200Kb then submit the form
+                $('#addAttachmentForm').on('submit', function(e){
+                    e.preventDefault();
+                    var fileInput = $('#attachmentFile')[0];
+                    var file = fileInput.files[0];
+                    if(!file){
+                        alert('{% if useri.langSet == 0 %}Tafadhali chagua faili ya picha.{% else %}Please select an image file.{% endif %}');
+                        return;
+                    }
+
+                    $('#expenseDetailsModal').modal('hide');
+                    $('#loadMe').modal('show');
+
+
+                    // use compressImage to get either the original file or a compressed file, then submit
+                    compressImage(file, function(processedFile){
+                        var formData = new FormData($('#addAttachmentForm')[0]);
+                        formData.set('attachment', processedFile);
+                        formData.set('is_exp', $('#exp_id').val());
+                       
+                        console.log($('#exp_id').val())
+                       
+
+                        $.ajax({
+                            url: '/salepurchase/addAttach',
+                            method: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function(response){
+                                const msg = lang(response.msg_swa, response.msg_eng);
+                                $('#loadMe').modal('hide');
+
+                                hideLoading();
+                                if(response.success){
+                                    toastr.success(msg,lang('Imefanikiwa','Success'),{timeOut:3000});
+                                    location.reload();
+                                }else{
+                                    toastr.error(msg,lang('Imeshindikana','Failed'),{timeOut:3000});
+                                }
+                                    
+                            },
+                            error: function(){
+                                alert('{% if useri.langSet == 0 %}Hitilafu ilitokea. Tafadhali jaribu tena.{% else %}An error occurred. Please try again.{% endif %}');
+                            }
+                        });
+                    });
+                });
+
+        
+            </script>
+         {% endif %}
+
+       
+
+
+{% endblock %}
+
+{% block expenses %} active  {% endblock %}

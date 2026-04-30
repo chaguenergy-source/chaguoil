@@ -1,0 +1,345 @@
+  
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Mikopo kwa Stafu{% else %} Staff Loans{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+
+    {% if useri.admin %}
+<button data-toggle="modal" data-target="#addStaff" class="btn btn-default btn-download">
+    <!-- <i class='bx bxs-cloud-download' ></i> -->
+    <span class="text"> {% if useri.langSet == 0 %} Ongeza Mkopo{% else %}Add Loan{% endif %}</span>
+</button>
+{% endif %}
+
+</div>
+
+<div class="table-data">
+        <div class="order">
+                {% include 'staffNav.html' %}
+            <div class="head">
+                <h4>
+                     <svg xmlns="http://www.w3.org/2000/svg" height="1.5em" viewBox="0 -960 960 960" width="1.5em" fill="currentColor">
+                        <path d="M240-360h280l80-80H240v80Zm0-160h240v-80H240v80Zm-80-160v400h280l-80 80H80v-560h800v120h-80v-40H160Zm756 212q5 5 5 11t-5 11l-36 36-70-70 36-36q5-5 11-5t11 5l48 48ZM520-120v-70l266-266 70 70-266 266h-70ZM160-680v400-400Z"/>
+                    </svg>
+            
+                        {% if useri.langSet == 0 %}Mikopo kwa Stafu{% else %}Staff Loans{% endif %}</h4>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} smallFont" role="alert">
+                        {{message}}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="table-responsive">
+                <table id="all_staff_loans" class="table-bordered table-sm smallFont">
+                        <thead>
+                                <tr>
+                                        <th>#</th>
+                                        <th>{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}</th>
+                                        <th>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</th>
+                                        <th>{% if useri.langSet == 0 %}Kiasi cha Mkopo{% else %}Loan Amount{% endif %}</th>
+                                        <th>{% if useri.langSet == 0 %}Makato ya Mshahara{% else %}Salary Deduction{% endif %}</th>
+                                        <th>{% if useri.langSet == 0 %}Kiasi Kilicholipwa{% else %}Paid Amount{% endif %}</th>
+                                        <th>{% if useri.langSet == 0 %}Salio{% else %}Balance{% endif %}</th>
+                                        <th>{% if useri.langSet == 0 %}Mwisho wa Kulipa{% else %}Due Date{% endif %}</th>
+                                </tr>
+                        </thead>
+                        <tbody>
+                                {% for ln in staff_loans %}
+                                <tr>
+                                        <td>{{forloop.counter}}</td>
+                                        <td>{{ln.staff.user.first_name|title}} {{ln.staff.user.last_name|title}}</td>
+                                        <td>{% if ln.shell %}{{ln.shell.name}}{% else %}--{% endif %}</td>
+                                        <td>{{ln.amount|floatformat:2|intcomma}}</td>
+                                        <td>{{ln.salary_deduction|floatformat:2|intcomma}}</td>
+                                        <td>{{ln.paid_amount|floatformat:2|intcomma}}</td>
+                                        <td>{{ln.balance|floatformat:2|intcomma}}</td>
+                                        <td>{% if ln.due_date %}{{ln.due_date|date:'d/m/Y'}}{% else %}--{% endif %}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                        <td colspan="8" class="text-center">{% if useri.langSet == 0 %}Hakuna mikopo iliyorekodiwa{% else %}No loans recorded{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                        </tbody>
+                </table>
+            </div>
+        </div>
+</div>
+
+
+<div class="modal fade" id="addStaff" tabindex="-1" role="dialog" aria-labelledby="addLoanTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" id="addStaffForm" action="/staffs/AddLoan">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addLoanTitle">{% if useri.langSet == 0 %}Ongeza Mkopo wa Staff{% else %}Add Staff Loan{% endif %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="staff">{% if useri.langSet == 0 %}Staff{% else %}Staff{% endif %} <sup class="text-danger weight700">*</sup> </label>
+                        <select class="form-control" name="staff" id="staff" required>
+                            <option value="">-----</option>
+                            {% for st in loan_staffs %}
+                                <option value="{{st.id}}">{{st.user.user.first_name|title}} {{st.user.user.last_name|title}} {% if st.Interprise %}- {{st.Interprise.name}}{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">{% if useri.langSet == 0 %}Kiasi cha Mkopo{% else %}Loan Amount{% endif %} <sup class="text-danger weight700">*</sup> </label>
+                        <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                <label class="mt-1 text-danger " for=""></label> 
+                                <div class="box-pointer d-inline "></div>
+                        </div>
+                        <input type="number" step="0.01" min="0" class="form-control money-fomat" id="amount" name="amount" required>
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <label for="salary_deduction">{% if useri.langSet == 0 %}Makato kwa Mshahara{% else %}Salary Deduction{% endif %}</label>
+                        <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                            <label class="mt-1 text-danger " for="salary_deduction"></label> 
+                            <div class="box-pointer d-inline "></div>
+                       </div>
+                        <input type="number" step="0.01" min="0" class="form-control money-fomat" id="salary_deduction" name="salary_deduction" placeholder="0">
+                        <div id="deductionInfo" class="mt-1"></div>
+                        <div id="deductionDaysInfo" class="mt-1"></div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="due_date">{% if useri.langSet == 0 %}Tarehe ya Mwisho Kulipa{% else %}Due Date{% endif %} <sup class="text-danger weight700">*</sup> </label>
+                        <input type="date" class="form-control" id="due_date" name="due_date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="paid_amount">{% if useri.langSet == 0 %}Kiasi Kilicholipwa{% else %}Paid Amount{% endif %}</label>
+                            <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                            <label class="mt-1 text-danger " for="salary_deduction"></label> 
+                            <div class="box-pointer d-inline "></div>
+                       </div>
+                        <input type="number" step="0.01" min="0" class="form-control money-fomat" id="paid_amount" name="paid_amount" placeholder="0">
+                        <div id="balanceInfo" class="mt-1"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}</button>
+                    <button type="submit" class="btn btn-primary">{% if useri.langSet == 0 %}Hifadhi{% else %}Save{% endif %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Real-time calculations for staff loan form
+function addMonths(date, months){
+    const result = new Date(date);
+    const day = result.getDate();
+
+    result.setMonth(result.getMonth() + months);
+    if(result.getDate() < day){
+        result.setDate(0);
+    }
+
+    return result;
+}
+
+function formatDateInput(date){
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
+function getMonthsRemaining(dueDate){
+    const today = new Date();
+    const diffInDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+    return Math.max(1, Math.ceil(diffInDays / 30));
+}
+
+function calculateLoanDeductions(){
+    const amount = Number($('#amount').val()) || 0,
+          due_date = $('#due_date').val(),
+          paid_amount = Number($('#paid_amount').val()) || 0;
+
+    const balance = Math.max(0, amount - paid_amount);
+
+    if(balance > 0 && due_date){
+        const dueDate = new Date(due_date);
+        const monthsRemaining = getMonthsRemaining(dueDate);
+        
+        // Auto-calculate monthly salary deduction if salary_deduction is empty
+        const currentDeduction = $('#salary_deduction').val();
+        if(!currentDeduction || currentDeduction === '0'){
+            const monthlyDeduction = (balance / monthsRemaining).toFixed(2);
+            $('#salary_deduction').val(monthlyDeduction);
+            
+            $('#deductionInfo').html(
+                `<small class="text-info"><i class="fas fa-info-circle"></i> ${lang(
+                    `Makato ya kila mwezi: ${monthlyDeduction} kwa miezi ${monthsRemaining}`,
+                    `Monthly deduction: ${monthlyDeduction} for ${monthsRemaining} months`
+                )}</small>`
+            );
+        } else {
+            $('#deductionInfo').html(
+                `<small class="text-info"><i class="fas fa-info-circle"></i> ${lang(
+                    `Makato yatatumika kwa takribani miezi ${monthsRemaining}`,
+                    `Deductions will run for about ${monthsRemaining} months`
+                )}</small>`
+            );
+        }
+    }
+}
+
+// When Loan Amount changes
+$('#amount').on('change', function(){
+    calculateLoanDeductions();
+});
+
+// When Due Date changes
+$('#due_date').on('change', function(){
+    calculateLoanDeductions();
+});
+
+// When Paid Amount changes - recalculate balance impact
+$('#paid_amount').on('change keyup', function(){
+    const amount = Number($('#amount').val()) || 0,
+          paid_amount = Number($(this).val()) || 0;
+    
+    if(paid_amount > amount && paid_amount > 0){
+        $(this).val(amount);
+        toastr.warning(
+            lang('Kiasi kilicholipwa hakiwezi kuwa zaidi ya mkopo','Paid amount cannot exceed loan amount'),
+            lang('Onyo','Warning'),
+            {timeOut: 2000}
+        );
+        return;
+    }
+    
+    // Calculate and show remaining balance
+    if(amount > 0 && paid_amount >= 0){
+        const balance = (amount - paid_amount).toFixed(2);
+        $('#balanceInfo').html(
+            `<small class="text-success"><i class="fas fa-check-circle"></i> ${lang(
+                `Salio linalotengenezwa: ${balance}`,
+                `Remaining balance: ${balance}`
+            )}</small>`
+        );
+
+        if((Number($('#salary_deduction').val()) || 0) > 0){
+            $('#salary_deduction').trigger('change');
+        }
+    }
+});
+
+// When Salary Deduction changes - calculate due date using monthly deductions
+$('#salary_deduction').on('change keyup', function(){
+    const amount = Number($('#amount').val()) || 0,
+          salary_deduction = Number($(this).val()) || 0,
+          paid_amount = Number($('#paid_amount').val()) || 0;
+
+    const balance = Math.max(0, amount - paid_amount);
+    
+    if(balance > 0 && salary_deduction > 0){
+        const monthsNeeded = Math.max(1, Math.ceil(balance / salary_deduction));
+        const suggestedDueDate = addMonths(new Date(), monthsNeeded);
+        const formattedDate = formatDateInput(suggestedDueDate);
+
+        $('#due_date').val(formattedDate);
+        $('#deductionInfo').html(
+            `<small class="text-info"><i class="fas fa-info-circle"></i> ${lang(
+                `Makato ya kila mwezi: ${salary_deduction} kwa salio la ${balance.toFixed(2)}`,
+                `Monthly deduction: ${salary_deduction} for remaining balance of ${balance.toFixed(2)}`
+            )}</small>`
+        );
+        $('#deductionDaysInfo').html(
+            `<small class="text-success"><i class="fas fa-calendar"></i> ${lang(
+                `Tarehe ya mwisho kulipa ni ${formattedDate} baada ya miezi ${monthsNeeded}`,
+                `Due date is ${formattedDate} after ${monthsNeeded} months`
+            )}</small>`
+        );
+    } else if(salary_deduction === 0 || salary_deduction === ''){
+        $('#deductionDaysInfo').html('');
+        $('#deductionInfo').html('');
+    }
+});
+
+$('#addStaffForm').submit(function(e){
+    e.preventDefault();
+    removeRedboder();
+
+    const staff = Number($('#staff').val()) || 0,
+          amount = $('#amount').val() || '',
+          due_date = $('#due_date').val() || '',
+          salary_deduction = $('#salary_deduction').val() || 0,
+          paid_amount = $('#paid_amount').val() || 0,
+          url = $(this).attr('action');
+
+    if(!staff){ redborder('#staff'); return; }
+    if(amount === '' || Number(amount) <= 0){ redborder('#amount'); return; }
+    if(!due_date){ redborder('#due_date'); return; }
+
+    $('#addStaff').modal('hide');
+    $('#loadMe').modal('show');
+
+    const data = {
+        data:{
+            staff,
+            amount,
+            due_date,
+            salary_deduction,
+            paid_amount
+        },
+        url
+    },
+    sendIt = POSTREQUEST(data);
+
+    sendIt.then(resp=>{
+        $('#loadMe').modal('hide');
+        hideLoading();
+
+        if(resp.success){
+            toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success'), {timeOut: 2000});
+            location.reload();
+        }else{
+            toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error'), {timeOut: 3000});
+            $('#addStaff').modal('show');
+        }
+    }).catch(()=>{
+        $('#loadMe').modal('hide');
+        hideLoading();
+        toastr.error(lang('Kuna hitilafu ya mtandao, jaribu tena','Network error, try again'), lang('Haikufanikiwa','Error'), {timeOut: 3000});
+        $('#addStaff').modal('show');
+    });
+});
+</script>
+{% endblock %}

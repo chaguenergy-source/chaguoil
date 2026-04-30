@@ -1,0 +1,91 @@
+ .card-shadow { box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
+        
+        /* Avatar Maalum yenye Dot ya 'Online' */
+        .avatar-wrapper { position: relative; display: inline-block; }
+        .avatar-wrapper img { width: 100px; height: 100px; }
+        .online-dot { position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #fff; background-color: #28a745; }
+
+        /* Mtindo wa Ruhusa Moja (Permission Item) */
+        .permission-item { transition: background-color 0.3s, transform 0.2s; cursor: pointer; }
+        .permission-item:hover { background-color: #e3f2fd; border-color: #007bff !important; transform: translateY(-2px); }
+        .permission-item:has(.custom-control-input:checked) {
+            border-left-width: 4px !important;
+            border-left-color: #007bff !important;
+        }
+        .custom-control-label { cursor: pointer; display: flex; align-items: flex-start; }
+        .permission-title { font-weight: bold; font-size: 1rem; color: var(--font-color); }
+        .permission-desc { font-size: 0.85rem; color: #6c757d; display: block; margin-top: 2px; }
+        
+        /* SVG Icon styling */
+        .permission-icon { width: 1.5em; height: 1.5em; fill: #6c757d; transition: fill 0.3s; margin-top: 3px; }
+        .permission-item:hover .permission-icon { fill: #007bff; }
+        .permission-item:hover .permission-title { color: #007bff; }
+
+        /* Custom Switch Color to Green (ON state) */
+        .custom-control-input:checked ~ .custom-control-label::before {
+            background-color: var(--text-primary) !important;
+            border-color: var(--text-primary) !important;
+        }
+
+        /* is_active switch + icon should be green when active */
+        .is_active .custom-control-input:checked ~ .custom-control-label::before {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+
+        .is_active .custom-control-input:checked ~ .custom-control-label .permission-icon {
+            fill: #28a745 !important;
+        }
+
+        .is_active .custom-control-input:checked ~ .custom-control-label .permission-title {
+            color: #28a745;
+        }
+
+        .is_active.permission-item:has(.custom-control-input:checked) {
+            border-left-color: #28a745 !important;
+        }
+
+        .is_active.permission-item:has(.custom-control-input:checked):hover {
+            border-left-color: #28a745 !important;
+        }
+
+        /* Styling maalum kwa ruhusa ya hatari (kama Delete) */
+        .permission-danger { background-color: #fff1f0; border: 1px solid #ffa39e !important; }
+        .permission-danger:hover { background-color: #ffccc7; border-color: #ff4d4f !important; }
+        .permission-danger .permission-title, .permission-danger .permission-icon { color: #cf1322 !important; fill: #cf1322 !important; }
+      
+        /* Search Bar maalum */
+        .form-control-search { border-radius: 20px; border-color: #dee2e6; padding-left: 20px; }
+        .hidden-item{
+            display: none;
+        }
+
+        #editStaffModal .edit-staff-modal-content {
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+        }
+
+        #editStaffModal .modal-header {
+            border-bottom: none;
+            padding: 1rem 1.5rem;
+        }
+
+        #editStaffModal .modal-body {
+            background: #fff;
+        }
+
+        #editStaffModal .modal-footer {
+            border-top: none;
+        }
+
+        #editStaffModal .form-control:focus,
+        #editStaffModal .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        }
+
+        #editStaffModal .close {
+            opacity: 1;
+            text-shadow: none;
+        }

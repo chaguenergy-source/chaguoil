@@ -1,0 +1,350 @@
+
+
+     #recordExpPanel{
+            width: 90vw;
+            margin: 0 auto;
+            background: var(--whiteBg);
+            border-radius: 14px;
+            padding: 24px;
+            /* box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08); */
+            border: 1px solid var(--borderColor);
+     }
+
+        .recylebtn{
+                padding: 0 !important;
+                height: 20px;
+                width: 20px;
+                border-radius: 30%;
+                align-items: center;
+                justify-content: center;
+                display: inline-flex;
+                transition: background-color 0.2s, color 0.2s;
+                flex-shrink: 0; 
+                
+            }
+
+            .activeRecyle{
+                background-color: rgb(228, 167, 0);
+                /* color: white; */
+            }
+
+
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .header-top h1 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .btn-new
+        {
+            border: none;
+            border-radius: 8px;
+            padding: 11px 16px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-new,
+        .btn-add {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-save {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        .btn-save:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.92rem;
+            font-weight: 600;
+            margin-bottom: 7px;
+        }
+
+        .required::after {
+            content: " *";
+            color: #dc2626;
+        }
+
+     #recordExpPanel input,
+        #recordExpPanel select,
+        #recordExpPanel textarea {
+            width: 100%;
+            padding: 11px 12px;
+            font-size: small;
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            outline: none;
+           
+        }
+
+        #recordExpPanel textarea {
+            resize: vertical;
+        }
+
+        #recordExpPanel input:focus,
+        #recordExpPanel select:focus,
+        #recordExpPanel textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--whiteBg);
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 20;
+        }
+
+        .autocomplete-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--borderColor);
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover {
+            background: var(--light-hover);
+        }
+
+        .selected-value {
+            background: var(--light-hover);
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        #expenseForm select.selected-field {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        #expenseForm .amount-field {
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--borderColor);
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 25px;
+            border-radius: 8px;
+            border: 1px solid var(--borderColor);
+            background: var(--whiteBg);
+        }
+
+        .total-expenses-panel {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-top: 1px solid var(--borderColor);
+            background: var(--light);
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+        }
+
+        .total-expenses-count-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+        }
+
+        .total-expenses-count-label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .total-expenses-label {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .total-expenses-amount {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--light) 0%, var(--light-hover) 100%);
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid var(--borderColor);
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 14px 15px;
+            border-bottom: 1px solid var(--borderColor);
+        }
+
+        tbody tr:hover {
+            background: var(--light-hover);
+        }
+
+        .trash-btn {
+            color: var(--danger);
+            cursor: pointer;
+            background: var(--dangerBg);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .trash-btn:hover {
+            background: #fecaca;
+        }
+
+        .salary-deduction-panel {
+            border: 1px solid var(--borderColor);
+            border-radius: 10px;
+            padding: 12px;
+            background: var(--light);
+        }
+
+        .salary-deduction-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .salary-toggle-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .salary-toggle-wrap input[type="checkbox"] {
+            width: 16px !important;
+            height: 16px !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        #salaryAdvanceToggleWrapper.salary-advance-disabled .salary-toggle-wrap {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        #salaryAdvanceToggleWrapper.salary-advance-disabled .salary-toggle-wrap span,
+        #salaryAdvanceToggleWrapper.salary-advance-disabled .salary-toggle-wrap input {
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .salary-deduction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .salary-stat-card {
+            background: var(--whiteBg);
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+
+        .salary-stat-card small {
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .salary-stat-card strong {
+            color: var(--text-primary);
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }

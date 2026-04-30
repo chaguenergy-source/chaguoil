@@ -1,0 +1,440 @@
+{% extends 'index.html' %}
+
+{% load humanize %}
+
+{% load static %}
+{% block page_content %}
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                 <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Kurekodi Matumizi{% else %} Record Expenses{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
+    <div class="table-data">
+        <div class="order">
+                   {% include 'matumiziHeading.html' %}   
+                   {% include 'matumiziNav.html' %}   
+          <div class="head">
+
+            
+<div id="recordExpPanel" >
+    <div class="header-top">
+        <h1>
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.2em" viewBox="0 -960 960 960" width="1.2em" fill="currentColor">
+                <path d="M320-120v-80h120v-164q-86-14-143-80t-57-156v-240h480v240q0 90-57 156t-143 80v164h120v80H320Zm0-520h320v-120H320v120Z"/>
+            </svg>
+             {% if useri.langSet == 0 %} Kurekodi Matumizi {% else %} Expense Recording {% endif %}
+        </h1>
+    </div>
+
+    <div class="text-right">
+        <button type="button" class="btn-new" data-toggle="modal" data-target="#editAkaunting">+ 
+            
+            {% if useri.langSet == 0 %} Matumizi Mpya {% else %} New Expense {% endif %}
+
+        </button>
+    </div>
+
+    <form id="expenseForm">
+        <div class="row">
+            <div class="form-group col-md-5" id="expenseDateTimeWrapper" style="grid-column: span 2;">
+                <label class="required">{% if useri.langSet == 0 %}Tarehe na Wakati{% else %}Date &amp; Time{% endif %}</label>
+                <input type="datetime-local" id="expenseDateTime" step="60">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="required">{% if useri.langSet == 0 %}Aina ya Matumizi{% else %}Expense Type{% endif %}</label>
+                <select id="expenseType">
+                    <option value="">-- {% if useri.langSet == 0 %}Chagua{% else %}Select{% endif %} --</option>
+                    <option value="supplies">{% if useri.langSet == 0 %}Manunuzi ya Vifaa{% else %}Supplies{% endif %}</option>
+                    <option value="allowance">{% if useri.langSet == 0 %}Posho{% else %}Allowance{% endif %}</option>
+                    <option value="fuel">{% if useri.langSet == 0 %}Matumizi ya Mafuta{% else %}Fuel Expenses{% endif %}</option>
+                    <option value="customer_discounts">{% if useri.langSet == 0 %}Punguzo kwa Wateja{% else %}Customer Discounts{% endif %}</option>
+                    <option value="bills">{% if useri.langSet == 0 %}Billi{% else %}Bills{% endif %}</option>
+                    <option value="mishahara">{% if useri.langSet == 0 %}Mishahara{% else %}Salaries{% endif %}</option>
+                </select>
+
+                <div class="text-right" style="margin-top:-3px">
+                    <span
+                        type="button"
+                        id="recylebtnExpseType"
+                        class="recylebtn"
+                        data-targets="expenseType"
+                        title="{% if useri.langSet == 0 %}Tumia tena Aina ya Matumizi{% else %}Reuse Expense Type{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group" id="expenseItemWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Jina la Tumizi{% else %}Expense Name{% endif %}</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="expenseItem" placeholder="{% if useri.langSet == 0 %}Tafuta au chagua tumizi...{% else %}Search or select expense...{% endif %}" autocomplete="off">
+                    <div class="autocomplete-list hidden" id="expenseItemList"></div>
+                    <input type="hidden" id="expenseItemValue">
+                </div>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnExpenseItem"
+                        class="recylebtn"
+                        data-targets="expenseItem,expenseItemValue"
+                        title="{% if useri.langSet == 0 %}Tumia tena Jina la Tumizi{% else %}Reuse Expense Name{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group" id="sourceWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Chanzo cha Malipo{% else %}Payment Source{% endif %}</label>
+                <select id="paymentSource">
+                    <option value="">-- {% if useri.langSet == 0 %}Chagua{% else %}Select{% endif %} --</option>
+                    <option value="pumpAttendant">{% if useri.langSet == 0 %}Pump Attendant{% else %}Pump Attendant{% endif %}</option>
+                    <option value="headOffice">{% if useri.langSet == 0 %}Ofisi Kuu (HO){% else %}Head Office (HO){% endif %}</option>
+                
+                </select>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnPaymentSource"
+                        class="recylebtn"
+                        data-targets="paymentSource"
+                        title="{% if useri.langSet == 0 %}Tumia tena Chanzo cha Malipo{% else %}Reuse Payment Source{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="paymentAccountWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Akaunti ya Malipo{% else %}Payment Account{% endif %}</label>
+                <select id="paymentAccount">
+                    <option value="">-- {% if useri.langSet == 0 %}Chagua Akaunti{% else %}Select Account{% endif %} --</option>
+
+                </select>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnPaymentAccount"
+                        class="recylebtn"
+                        data-targets="paymentAccount"
+                        title="{% if useri.langSet == 0 %}Tumia tena Akaunti ya Malipo{% else %}Reuse Payment Account{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="sourcePumpAttendantWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Chagua Pump Attendant{% else %}Select Pump Attendant{% endif %}</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="sourcePumpAttendant" placeholder="{% if useri.langSet == 0 %}Tafuta pump attendant...{% else %}Search pump attendant...{% endif %}" autocomplete="off">
+                    <div class="autocomplete-list hidden" id="sourcePumpAttendantList"></div>
+                    <input type="hidden" id="sourcePumpAttendantValue">
+                </div>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnSourcePumpAttendant"
+                        class="recylebtn"
+                        data-targets="sourcePumpAttendant,sourcePumpAttendantValue"
+                        title="{% if useri.langSet == 0 %}Tumia tena Pump Attendant{% else %}Reuse Pump Attendant{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div id="fuelFields" class="form-row hidden">
+            <div class="form-group">
+                <label class="required">{% if useri.langSet == 0 %}Dispenser{% else %}Dispenser{% endif %}</label>
+                <select id="dispenser">
+                    <option value="D1">Dispenser 1</option>
+                    <option value="D2">Dispenser 2</option>
+                </select>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnDispenser"
+                        class="recylebtn"
+                        data-targets="dispenser"
+                        title="{% if useri.langSet == 0 %}Tumia tena Dispenser{% else %}Reuse Dispenser{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="required">{% if useri.langSet == 0 %}Nozzle{% else %}Nozzle{% endif %}</label>
+                <select id="nozzle">
+                    <option value="N1">{% if useri.langSet == 0 %}Nozzle 1 (Petrol){% else %}Nozzle 1 (Petrol){% endif %}</option>
+                    <option value="N2">{% if useri.langSet == 0 %}Nozzle 2 (Diesel){% else %}Nozzle 2 (Diesel){% endif %}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="required">{% if useri.langSet == 0 %}Lita (Qty){% else %}Liters (Qty){% endif %}</label>
+             
+                <input type="number" id="fuelQty"  step="0.01" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label class="required">{% if useri.langSet == 0 %}Kiasi {% else %}Amount {% endif %} ({{currencii}})</label>
+                
+                <input type="number" id="fuelAmount" placeholder="0.00">
+            </div>
+        </div>
+
+        <div id="commonFields" class="form-row hidden">
+            <div class="form-group" id="recipientTypeWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %}Recipient{% endif %}</label>
+                <select id="recipientType">
+                    <option value="staff">{% if useri.langSet == 0 %}Staff (Wafanyakazi){% else %}Staff (Employees){% endif %}</option>
+                    <option value="external">{% if useri.langSet == 0 %}Mtu wa Nje (External){% else %}External Person{% endif %}</option>
+                </select>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnRecipientType"
+                        class="recylebtn"
+                        data-targets="recipientType"
+                        title="{% if useri.langSet == 0 %}Tumia tena Aliyekabidhiwa{% else %}Reuse Recipient{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group" id="staffWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Chagua Staff{% else %}Select Staff{% endif %}</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="staffMember" placeholder="{% if useri.langSet == 0 %}Tafuta staff...{% else %}Search staff...{% endif %}" autocomplete="off">
+                    <div class="autocomplete-list hidden" id="staffMemberList"></div>
+                    <input type="hidden" id="staffMemberValue">
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="externalWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Jina la Mpokeaji{% else %}Recipient Name{% endif %}</label>
+                <input type="text" id="extName" placeholder="{% if useri.langSet == 0 %}Jina kamili...{% else %}Full Name...{% endif %}">
+            </div>
+
+            <div class="form-group hidden" id="externalTinWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Namba ya Kodi (TIN){% else %}TIN Number{% endif %}</label>
+                <input type="text" id="extTin" placeholder="{% if useri.langSet == 0 %}Namba ya Kodi (9 digits){% else %}TIN Number (9 digits){% endif %}" maxlength="9">
+            </div>
+
+            <div class="form-group hidden" id="externalNinWrapper">
+                <label>{% if useri.langSet == 0 %}NIN (Namba ya Nida){% else %}NIN (National Identification Number){% endif %}</label>
+                <input type="text" id="extNin" placeholder="{% if useri.langSet == 0 %}Namba ya Nida (opsional){% else %}National Identification Number (optional){% endif %}">
+            </div>
+
+            <div class="form-group hidden" id="customerNameWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Jina la Mteja{% else %}Customer Name{% endif %}</label>
+                <input type="text" id="customerName" placeholder="{% if useri.langSet == 0 %}Jina kamili la mteja...{% else %}Customer full name...{% endif %}">
+            </div>
+
+            <div class="form-group" id="commonAmountWrapper">
+               
+
+                
+                <label class="required">{% if useri.langSet == 0 %}Kiasi {% else %}Amount {% endif %} ({{currencii}}) </label>
+                
+                    
+                    <input type="number" id="generalAmount" placeholder="0.00">
+                 
+                
+
+            </div>
+        </div>
+
+        <div id="mishaharaFields" class="form-row hidden">
+            <div class="form-group" id="mishaharaStaffWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Chagua Staff{% else %}Select Staff{% endif %}</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="mishaharaStaff" placeholder="{% if useri.langSet == 0 %}Tafuta staff...{% else %}Search staff...{% endif %}" autocomplete="off">
+                    <div class="autocomplete-list hidden" id="mishaharaStaffList"></div>
+                    <input type="hidden" id="mishaharaStaffValue">
+                </div>
+            </div>
+
+            <div class="form-group cursor-pointer" id="salaryAdvanceToggleWrapper">
+                <label>{% if useri.langSet == 0 %}Aina ya malipo{% else %}Payment Type{% endif %}</label>
+                <label class="salary-toggle-wrap cursor-pointer" for="salaryAdvanceToggle" style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                    <input type="checkbox" class="cursor-pointer" id="salaryAdvanceToggle" disabled>
+                    <span class="cursor-pointer" >{% if useri.langSet == 0 %}Advance ya mshahara / mkopo wa staff{% else %}Salary advance / staff loan{% endif %}</span>
+                </label>
+                <small id="salaryAdvanceHint" style="display:none;color:var(--danger,#dc3545);margin-top:4px;font-size:.78em;"></small>
+            </div>
+
+            <div class="form-group">
+                <label class="required">{% if useri.langSet == 0 %}Kiasi {% else %}Amount {% endif %} ({{currencii}})</label>
+             
+
+                <input type="number"  id="mishaharaAmount" placeholder="0.00">
+            </div>
+
+            <div class="form-group hidden" id="salaryAdvanceDeductionWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Makato ya mwisho wa mwezi{% else %}Monthly Salary Deduction{% endif %} ({{currencii}})</label>
+                <input type="number" id="salaryAdvanceDeduction" placeholder="0.00">
+            </div>
+
+            <div class="form-group salary-deduction-panel hidden" id="salaryLoanPanel" style="grid-column: 1 / -1;">
+                <div class="salary-deduction-header">
+                    <label class="mb-0" for="salaryDeductionToggle">{% if useri.langSet == 0 %}Payment/Salary Deductions{% else %}Payment/Salary Deductions{% endif %}</label>
+                    <label class="salary-toggle-wrap" for="salaryDeductionToggle">
+                        <input type="checkbox" id="salaryDeductionToggle" checked>
+                        <span>{% if useri.langSet == 0 %}Tumia makato ya mkopo{% else %}Apply loan deductions{% endif %}</span>
+                    </label>
+                </div>
+
+                <div class="salary-deduction-grid">
+                    <div class="salary-stat-card">
+                        <small>{% if useri.langSet == 0 %}Loan Amount{% else %}Loan Amount{% endif %}</small>
+                        <strong id="salaryLoanAmountValue">0.00</strong>
+                    </div>
+                    <div class="salary-stat-card">
+                        <small>{% if useri.langSet == 0 %}Paid Loan{% else %}Paid Loan{% endif %}</small>
+                        <strong id="salaryPaidLoanValue">0.00</strong>
+                    </div>
+                    <div class="salary-stat-card">
+                        <small>{% if useri.langSet == 0 %}Salary Deduction{% else %}Salary Deduction{% endif %}</small>
+                        <strong id="salaryDeductionValue">0.00</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" id="mishaharaPeriodWrapper">
+                <label class="required">{% if useri.langSet == 0 %}Mwezi / Kipindi{% else %}Month / Period{% endif %}</label>
+                <input type="month" id="mishaharaPeriod">
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnMishaharaPeriod"
+                        class="recylebtn"
+                        data-targets="mishaharaPeriod"
+                        title="{% if useri.langSet == 0 %}Tumia tena Mwezi / Kipindi{% else %}Reuse Month / Period{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group salary-deduction-panel hidden" id="salaryAdvanceCompletionPanel" style="grid-column: 1 / -1;">
+                <div class="salary-deduction-header">
+                    <label class="mb-0">{% if useri.langSet == 0 %}Tarehe ya kukamilisha deni{% else %}Estimated Loan Completion Date{% endif %}</label>
+                </div>
+                <div class="salary-deduction-grid">
+                    <div class="salary-stat-card">
+                        <small>{% if useri.langSet == 0 %}Mwisho wa malipo{% else %}Final Repayment Date{% endif %}</small>
+                        <strong id="salaryAdvanceCompletionDate">-</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="grid-column: span 2;">
+                <label>{% if useri.langSet == 0 %}Maelezo ya ziada{% else %}Additional Information{% endif %}</label>
+                <textarea id="description" rows="3" placeholder="{% if useri.langSet == 0 %}Andika maelezo hapa...{% else %}Write additional information here...{% endif %}"></textarea>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnDescription"
+                        class="recylebtn"
+                        data-targets="description"
+                        title="{% if useri.langSet == 0 %}Tumia tena Maelezo ya ziada{% else %}Reuse Additional Information{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class=" text-right">
+            <button type="button" id="addBtn" class="btn-light btn btn-sm border-secondary">+ {% if useri.langSet == 0 %}Ongeza Kwenye Orodha{% else %}Add to List{% endif %}</button>
+
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>{% if useri.langSet == 0 %}Tumizi{% else %}Expense{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Mpokeaji / Chanzo{% else %}Recipient / Source{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Kiasi ({{currencii}}){% else %}Amount ({{currencii}}){% endif %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+
+            <div class="total-expenses-panel">
+                <span class="total-expenses-count-wrap">
+                    <span class="total-expenses-count-label">
+                        {% if useri.langSet == 0 %}Idadi ya Matumizi:{% else %}Entries:{% endif %}
+                    </span>
+                    <strong id="allExpensesCount">0</strong>
+                </span>
+                <span class="total-expenses-label">
+                    {% if useri.langSet == 0 %}Jumla ya Matumizi:{% else %}Total Expenses:{% endif %}
+                </span>
+                <strong class="total-expenses-amount">{{currencii}} <span id="allExpensesTotalAmount">0.00</span></strong>
+            </div>
+        </div>
+
+        <div class=" text-right mt-3">
+             <button type="submit" id="saveAll" class=" btn-primary btn btn-sm" disabled>{% if useri.langSet == 0 %}Hifadhi Zote{% else %}Save All{% endif %}</button>
+  
+        </div>
+    </form>
+</div>
+        </div>
+
+       </div> 
+
+       </div>
+
+{% include 'matumiziModal.html' %}
+
+    {% endblock %}
+          
+     {% block additional_css %}
+          <link rel="stylesheet" href="{% static 'css/rekodiMatumiziNew.css' %}">
+     {% endblock %}
+
+    {% block additionaljs %}
+          <script src="{% static 'js/rekodiMatumiziNew.js' %}"></script>
+    {% endblock %}
+
+{% block expenses %} active  {% endblock %}

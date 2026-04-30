@@ -1,0 +1,21 @@
+.table-input { min-width: 130px; border-radius: 8px; font-size: 0.9rem; }
+.card { border-radius: 15px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
+.header-section {  padding: 10px; }
+.recylebtn{
+    padding: 0 !important;
+    height: 20px;
+    width: 20px;
+    border-radius: 30%;
+    align-items: center;
+    justify-content: center;
+    display: inline-flex;
+    transition: background-color 0.2s, color 0.2s;
+    flex-shrink: 0; 
+    
+}
+
+.activeRecyle{
+    background-color: green;
+    color: white;
+}
+

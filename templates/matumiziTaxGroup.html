@@ -1,0 +1,264 @@
+{% extends 'index.html' %}
+
+{% load humanize %}
+
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Malipo{% else %} Payment{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+{% if useri.admin %}
+<button data-toggle="modal" data-target="#editAkaunting" class="btn btn-default btn-download">
+    <span class="text"> {% if useri.langSet == 0 %} Ongeza Kundi la kodi{% else %}Add Tax Group{% endif %}</span>
+</button>
+{% endif %}
+
+</div>
+
+
+
+<div class="table-data">
+    <div class="order">
+              
+          {% include 'matumiziHeading.html' %}   
+
+          {% include 'matumiziNav.html' %}   
+
+
+      <div class="head">
+
+
+        <h4>
+
+              <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" viewBox="0 -960 960 960" width="1.3em" fill="currentColor">
+            <path d="M300-520q-58 0-99-41t-41-99q0-58 41-99t99-41q58 0 99 41t41 99q0 58-41 99t-99 41Zm0-80q25 0 42.5-17.5T360-660q0-25-17.5-42.5T300-720q-25 0-42.5 17.5T240-660q0 25 17.5 42.5T300-600Zm360 440q-58 0-99-41t-41-99q0-58 41-99t99-41q58 0 99 41t41 99q0 58-41 99t-99 41Zm42.5-97.5Q720-275 720-300t-17.5-42.5Q685-360 660-360t-42.5 17.5Q600-325 600-300t17.5 42.5Q635-240 660-240t42.5-17.5ZM216-160l-56-56 584-584 56 56-584 584Z"/>
+        </svg>
+       
+                {% if useri.langSet == 0 %}Kodi kwa Matumizi{% else %}Expenses Tax Groups{% endif %}</h4>
+        
+      </div>
+
+       
+
+      <div class="table-responsive">
+            <table id="all_payAcc" class="smallFont table table-bordered"  >
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{% if useri.langSet == 0 %}Kodi{% else %}Tax{% endif %} </th>
+                    <th>{% if useri.langSet == 0 %}Rate{% else %}Kiwango{% endif %} %</th>
+                    {% if useri.admin %}
+                      <th> {% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %}</th>
+                    {% endif %}  
+                </tr>
+                </thead>
+
+
+
+                <tbody>
+                    {% for tax in taxtgroup %}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td>{{tax.name  }}</td>
+
+                             <td class="text-primary"> 
+                                {{tax.rate|floatformat:2}}%
+                            
+                            </td>
+                           
+
+                            {% if useri.admin %}
+                            <td>
+                                <button class="btn btn-light btn-sm edit_btn"  data-toggle="modal" data-target="#editAkaunting"
+                                    data-val="{{tax.id}}"
+                                    data-name="{{tax.name}}" 
+                                    data-rate = "{{tax.rate}}"
+                                    
+                                 
+                                   
+                                    style="font-size: 16;"  title="Edit" >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>    
+                                                            
+                              </button>
+
+                           
+                             
+
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                   
+                </tbody>
+            </table>
+      </div>
+
+
+     
+    </div>
+</div>
+
+
+
+<!-- edit expenses modal -->
+<div class="modal fade" id="editAkaunting" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel"> {% if useri.langSet == 0 %} Ongeza/Hariri Kundi la kodi {% else %} Add/Edit Expenses Tax Group {% endif %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form method="POST" action="/accounting/addTaxGroup">
+        {% csrf_token %}
+        <div class="modal-body">
+            <input type="hidden" name="exp_id" id="exp_id">
+
+            <div class="form-group">
+                   <label for="taxName" class="brown mt-3" >{% if useri.langSet == 0 %}Jina la Kodi{% else %}Tax Group Name{% endif %} <sup>*</sup> </label>
+                    <input type="text" class="form-control" id="taxName" name="taxName" required>
+
+            </div>
+            <!-- expense tax group -->
+            <div class="form-group">
+                    <label for="taxRate" class="brown mt-3" >{% if useri.langSet == 0 %}Kiwango cha Kodi (Asilimia) {% else %}Tax Rate (Percentage) {% endif %} <sup>*</sup> </label>
+                    <div class="input-group">
+                         <span class="input-group-append border">
+                            <span class="input-group-text">%</span>
+                         </span>
+                         <input type="number" class="form-control" id="taxRate" step="0.01" placeholder="0.00" name="taxRate" min="0" max="100" >   
+  
+                    </div>                   
+                </div>
+
+             
+
+                <!-- a script for new tax group -->
+         
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}</button>
+          <button type="submit" class="btn btn-primary">{% if useri.langSet == 0 %}Hifadhi Mabadiliko{% else %}Save Changes{% endif %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+{% endblock %}
+
+{% block additionaljs %}
+  <script>
+    $(document).ready(function(){
+      $('#all_payAcc').DataTable();
+
+    })
+
+    // clear the form when modal is closed
+    $('#editAkaunting').on('hidden.bs.modal', function () {
+        $('#exp_id').val(0);
+        $('#taxName').val('');
+        $('#taxRate').val('');
+     
+    });
+
+    $('.edit_btn').click(function(){
+        const exp_id = $(this).data('val');
+        const name = $(this).data('name');
+      
+        const taxRate = Number($(this).data('rate')).toFixed(2);
+      
+        $('#exp_id').val(exp_id);
+        $('#taxName').val(name);
+        $('#taxRate').val(taxRate);
+       
+        
+     
+        
+    });
+
+    // save expenses form submit
+    $('#editAkaunting form').submit(function(e){
+        e.preventDefault();
+        const form = $(this);
+        const url = form.attr('action');
+      
+        const TaxGroupName = $('#taxName').val();
+        const TaxGroupRate = Number($('#taxRate').val())||0;
+        const exp_id = Number($('#exp_id').val()) || 0;
+        
+        const data = {
+            data:{
+                edit: exp_id,
+                
+               
+                TaxGroupName,
+                TaxGroupRate,
+              
+            },url
+        };
+    //    validate form
+        if(TaxGroupName.trim() === '') {
+            alert('Tax group name is required');
+            redborder('#taxName');
+            return;
+        }
+
+     
+        $('#editAkaunting').modal('hide');
+        $('#loadMe').modal('show');
+        const sendIt = POSTREQUEST(data);
+        sendIt.then(res => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            const msg = lang(res.message_swa,res.message_eng);
+            if(res.success) {
+                toastr.success(msg, lang('Imefanikiwa','Success'),{timeOut:3000});
+                location.reload();
+            } else {
+                toastr.error(msg, lang('Imeshindikana','Failed'),{timeOut:3000});
+            }
+        }).catch(err => {
+            $('#loadMe').modal('hide');
+            alert('An error occurred while saving the expense. Please try again.');
+        });
+       
+    });
+  </script>
+{% endblock %}
+
+
+{% block expenses %} active {% endblock %}

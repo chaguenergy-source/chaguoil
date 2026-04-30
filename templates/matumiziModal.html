@@ -1,0 +1,323 @@
+<!-- edit expenses modal -->
+<div class="modal fade" id="editAkaunting" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel"> {% if useri.langSet == 0 %} Ongeza/Hariri Matumizi {% else %} Add/Edit Expense {% endif %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form method="POST" action="/accounting/addExpenseGroup">
+        {% csrf_token %}
+        <div class="modal-body">
+            <input type="hidden" name="exp_id" id="exp_id">
+
+            <div class="form-group" style="margin-bottom:15px">
+                <label for="matumizi" class="brown">{% if useri.langSet == 0 %}Jina la Tumizi{% else %}Expense Name{% endif %} <sup>*</sup></label>
+                <input type="text" class="form-control" id="matumizi" name="matumizi" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px">
+                <label for="expTypeSelect" class="brown">{% if useri.langSet == 0 %}Aina ya Matumizi{% else %}Expense Type{% endif %}</label>
+                <select class="form-control" id="expTypeSelect">
+                    <option value="none">------</option>
+                    <option value="supplies">{% if useri.langSet == 0 %}Manunuzi ya Vifaa{% else %}Supplies{% endif %}</option>
+                    <option value="allowance">{% if useri.langSet == 0 %}Posho{% else %}Allowance{% endif %}</option>
+                    <!-- <option value="salary">{% if useri.langSet == 0 %}Mishahara{% else %}Salary{% endif %}</option> -->
+  
+                    <option value="fuel">{% if useri.langSet == 0 %}Matumizi ya Mafuta{% else %}Fuel Expense{% endif %}</option>
+                    <option value="bills">{% if useri.langSet == 0 %}Bili{% else %}Bills{% endif %}</option>
+                </select>
+                <input type="checkbox" class="d-none" id="isFuelExp" name="isFuelExp">
+            </div>
+
+            <div id="billsFieldsPanel" hidden>
+                <div class="form-group" style="margin-bottom:15px">
+                    <label for="billPeriodType" class="brown">{% if useri.langSet == 0 %}Muda wa Bill{% else %}Bill Period Type{% endif %}</label>
+                    <select class="form-control" id="billPeriodType">
+                        <option value="daily">{% if useri.langSet == 0 %}Kila Siku{% else %}Daily{% endif %}</option>
+                        <option value="weekly">{% if useri.langSet == 0 %}Kila Wiki{% else %}Weekly{% endif %}</option>
+                        <option value="monthly">{% if useri.langSet == 0 %}Kila Mwezi{% else %}Monthly{% endif %}</option>
+                        <option value="yearly">{% if useri.langSet == 0 %}Kila Mwaka{% else %}Yearly{% endif %}</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom:15px">
+                    <label for="billPeriodCount" class="brown">{% if useri.langSet == 0 %}Namba ya Muda{% else %}Period Count{% endif %} <span id="periodLabel">({% if useri.langSet == 0 %}Siku{% else %}Days{% endif %})</span></label>
+                    <input type="number" class="form-control" id="billPeriodCount" min="1" placeholder="{% if useri.langSet == 0 %}Mfano: 30{% else %}Example: 30{% endif %}">
+                </div>
+
+                <div class="form-group" style="margin-bottom:15px">
+                    <label for="billAmount" class="brown">{% if useri.langSet == 0 %}Kiasi Kinacholipwa{% else %}Amount Payable{% endif %}</label>
+                    
+                        
+                        <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                <label class="mt-1 text-danger " for="billAmount"></label> 
+                                <div class="box-pointer d-inline "></div>
+                        </div>
+                        <input type="number" class="form-control money-fomat" id="billAmount" step="0.01" placeholder="0.00" >
+                        
+                        
+
+                        <div class="custom-control custom-checkbox mt-2" style="white-space:nowrap;">
+                            <input type="checkbox" id="isRecurringAmount" class="custom-control-input cursor-pointer">
+                            <label class="custom-control-label cursor-pointer" for="isRecurringAmount">{% if useri.langSet == 0 %}Kiasi kinategemeana{% else %}Amount depends on usage{% endif %}</label>
+                        </div>
+                    
+                </div>
+
+                <div class="form-group" style="margin-bottom:15px">
+                    <label for="lastPaymentDate" class="brown">{% if useri.langSet == 0 %}Tarehe ya Mwisho Kulipa{% else %}Last Payment Date{% endif %}</label>
+                    <input type="date" class="form-control" id="lastPaymentDate">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px">
+                <label for="taxGroup" class="brown">{% if useri.langSet == 0 %}Kundi la Kodi{% else %}Tax Group{% endif %}</label>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="text-muted">{% if useri.langSet == 0 %}Chagua kundi au tengeneza jipya{% else %}Choose existing or create new{% endif %}</small>
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" id="newTaxGroup" class="custom-control-input cursor-pointer" name="newTaxGroup">
+                        <label class="custom-control-label cursor-pointer" for="newTaxGroup">{% if useri.langSet == 0 %}Mpya{% else %}New Tax?{% endif %}</label>
+                    </div>
+                </div>
+
+                <select class="form-control" id="taxGroup" name="taxGroup">
+                    <option value="">-----</option>
+                    {% for tax in taxtgroup %}
+                        <option value="{{tax.id}}">{{tax.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div id="newTaxGroupPanel" hidden>
+                <div class="form-group" style="margin-bottom:15px">
+                    <label for="taxName" class="brown">{% if useri.langSet == 0 %}Jina la Kodi{% else %}Tax Group Name{% endif %} <sup>*</sup></label>
+                    <input type="text" class="form-control" id="taxName" name="taxName">
+                </div>
+                <div class="form-group" style="margin-bottom:15px">
+                    <label for="taxRate" class="brown">{% if useri.langSet == 0 %}Kiwango cha Kodi (Asilimia){% else %}Tax Rate (Percentage){% endif %} <sup>*</sup></label>
+                    <div class="input-group">
+                        <span class="input-group-append border">
+                            <span class="input-group-text">%</span>
+                        </span>
+                        <input type="number" class="form-control" id="taxRate" step="0.01" name="taxRate" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-3" id="receiptCheckWrapper">
+                <div class="custom-control custom-checkbox cursor-pointer">
+                    <input type="checkbox" id="compulsoryReceipt" class="custom-control-input cursor-pointer" name="compulsoryReceipt">
+                    <label class="custom-control-label cursor-pointer" for="compulsoryReceipt">
+                        {% if useri.langSet == 0 %}Risiti ni lazima{% else %}Mandatory Receipt{% endif %}
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}</button>
+          <button type="submit" class="btn btn-primary">{% if useri.langSet == 0 %}Hifadhi Mabadiliko{% else %}Save Changes{% endif %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+{% block additionaljs %}
+  <script>
+    $(document).ready(function(){
+      $('#all_payAcc').DataTable();
+
+      $('#newTaxGroup').change(function() {
+          if($(this).is(':checked')) {
+              $('#newTaxGroupPanel').prop('hidden', false);
+              $('#taxGroup').prop('hidden', true);
+          } else {
+              $('#newTaxGroupPanel').prop('hidden', true);
+              $('#taxGroup').prop('hidden', false);
+          }
+      });
+
+      $('#expTypeSelect').change(function() {
+          const type = $(this).val();
+          $('#isFuelExp').prop('checked', type === 'fuel');
+          $('#billsFieldsPanel').prop('hidden', type !== 'bills');
+      });
+
+      $('#billPeriodType').change(function() {
+          const period = $(this).val();
+          const labels = {
+              daily: '{% if useri.langSet == 0 %}(Siku){% else %}(Days){% endif %}',
+              weekly: '{% if useri.langSet == 0 %}(Wiki){% else %}(Weeks){% endif %}',
+              monthly: '{% if useri.langSet == 0 %}(Miezi){% else %}(Months){% endif %}',
+              yearly: '{% if useri.langSet == 0 %}(Miaka){% else %}(Years){% endif %}'
+          };
+          $('#periodLabel').text(labels[period] || labels.daily);
+      });
+
+    })
+
+    // clear the form when modal is closed
+    $('#editAkaunting').on('hidden.bs.modal', function () {
+        $('#exp_id').val(0);
+        $('#matumizi').val('');
+        $('#expTypeSelect').val('supplies');
+        $('#isFuelExp').prop('checked', false);
+        $('#billsFieldsPanel').prop('hidden', true);
+        $('#billPeriodType').val('daily');
+        $('#periodLabel').text('{% if useri.langSet == 0 %}(Siku){% else %}(Days){% endif %}');
+        $('#billPeriodCount').val('');
+        $('#billAmount').val('');
+        $('#isRecurringAmount').prop('checked', false);
+        $('#lastPaymentDate').val('');
+        $('#taxGroup').val('');
+        $('#newTaxGroup').prop('checked', false);
+        $('#newTaxGroupPanel').prop('hidden', true);
+        $('#taxGroup').prop('hidden', false);
+        $('#taxName').val('');
+        $('#taxRate').val('');
+        $('#compulsoryReceipt').prop('checked', false);
+    });
+
+    $('.edit_btn').click(function(){
+        const exp_id = $(this).data('val');
+        const name = $(this).data('name');
+        const taxGroupId = $(this).data('aina');
+        const recept = Number($(this).data('receipt'));
+        const isFuel = Number($(this).data('isfuel'));
+        const isSupplies = Number($(this).data('isSupplies'));
+        const isBills = Number($(this).data('isbills'));
+        const isPosho = Number($(this).data('isposho'));
+        
+        $('#exp_id').val(exp_id);
+        $('#matumizi').val(name);
+        if(taxGroupId) {
+            $('#taxGroup').val(taxGroupId);
+        } else {
+            $('#taxGroup').val('');
+        }
+        
+        $('#compulsoryReceipt').prop('checked', recept === 1);
+        $('#isFuelExp').prop('checked', isFuel === 1);
+
+        $('#expTypeSelect').val(isFuel === 1 ? 'fuel' : isSupplies === 1 ? 'supplies' : isBills === 1 ? 'bills' : isPosho === 1 ? 'allowance' : 'none');
+        $('#billsFieldsPanel').prop('hidden', true);
+        
+    });
+
+    // save expenses form submit
+    $('#editAkaunting form').submit(function(e){
+        e.preventDefault();
+        const form = $(this);
+        const url = form.attr('action');
+        const name = $('#matumizi').val();
+        const TaxGroup = Number($('#taxGroup').val()) || 0;
+        const newTaxGroup = Number($('#newTaxGroup').is(':checked'));
+        const TaxGroupName = $('#taxName').val();
+        const TaxGroupRate = Number($('#taxRate').val())||0;
+        const exp_id = Number($('#exp_id').val()) || 0;
+        const attachReceipt = $('#compulsoryReceipt').is(':checked') ? 1 : 0;
+        
+        const exptype = $('#expTypeSelect').val();
+        const isFuel = exptype === 'fuel' ? 1 : 0;
+        const isBills = exptype === 'bills' ? 1 : 0;
+        const isSupplies = exptype === 'supplies' ? 1 : 0;
+        const isAllowance = exptype === 'allowance' ? 1 : 0;
+        const billPeriodType = $('#billPeriodType').val();
+        const billPeriodCount = Number($('#billPeriodCount').val()) || 0;
+        const billAmount = Number($('#billAmount').val()) || 0;
+        const isRecurringAmount = $('#isRecurringAmount').is(':checked') ? 1 : 0;
+        const lastPaymentDate = $('#lastPaymentDate').val();
+ 
+        const data = {
+            data:{
+                edit: exp_id,
+                groupName:name,
+                taxGroup: TaxGroup,
+                newTaxGroup,
+                TaxGroupName,
+                TaxGroupRate,
+                attachReceipt,
+                isAllowance,
+                isSupplies,
+                isFuel,
+                isBills,
+                billPeriodType,
+                billPeriodCount,
+                billAmount,
+                isRecurringAmount,
+                lastPaymentDate,
+            },url
+        };
+    //    validate form
+        if(name.trim() === '') {
+            alert('Expense name is required');
+            redborder('#matumizi');
+            return;
+        }
+
+        if(TaxGroup && newTaxGroup) {
+            alert('Cannot select existing tax group when creating a new one');
+            redborder('#taxGroup');
+            redborder('#newTaxGroup');
+            return;
+        }
+
+        if(exptype === 'none') {
+            alert('Please select an expense type');
+            redborder('#expTypeSelect');
+            return;
+        }
+
+        if(exptype === 'bills') {
+            if(billPeriodCount <= 0) {
+                alert('Please enter bill period count');
+                redborder('#billPeriodCount');
+                return;
+            }
+            if(lastPaymentDate.trim() === '') {
+                alert('Please select last payment date');
+                redborder('#lastPaymentDate');
+                return;
+            }
+        }
+
+        if(newTaxGroup) {
+            if(TaxGroupName.trim() === '') {
+                alert('Tax group name is required');
+                redborder('#taxName');
+                return;
+            }
+
+        }
+
+
+
+
+        $('#editAkaunting').modal('hide');
+        $('#loadMe').modal('show');
+        const sendIt = POSTREQUEST(data);
+        sendIt.then(res => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            const isExpRec = Number('{% if isExpRec %}1{% else %}0{% endif %}');
+            if(isExpRec)getExpData();
+
+            const msg = lang(res.message_swa,res.message_eng);
+            if(res.success) {
+                toastr.success(msg, lang('Imefanikiwa','Success'),{timeOut:3000});
+                location.reload();
+            } else {
+                toastr.error(msg, lang('Imeshindikana','Failed'),{timeOut:3000});
+            }
+        }).catch(err => {
+            $('#loadMe').modal('hide');
+            alert('An error occurred while saving the expense. Please try again.');
+        });
+       
+    });
+  </script>
+{% endblock %}

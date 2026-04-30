@@ -1,0 +1,144 @@
+{% extends 'index.html' %}
+
+{% load humanize %}
+
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}Malipo{% else %} Payment{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
+
+{% if useri.admin %}
+<button data-toggle="modal" data-target="#editAkaunting" class="btn btn-default btn-download">
+    <span class="text"> {% if useri.langSet == 0 %} Ongeza Matumizi{% else %}Add Expense{% endif %}</span>
+</button>
+{% endif %}
+
+</div>
+
+
+
+<div class="table-data">
+    <div class="order">
+              
+          {% include 'matumiziHeading.html' %}   
+          {% include 'matumiziNav.html' %}   
+      <div class="head">
+
+
+        <h4>
+
+           <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" viewBox="0 -960 960 960" width="1.3em" fill="currentColor">
+                  <path d="M320-120v-80h120v-164q-86-14-143-80t-57-156v-240h480v240q0 90-57 156t-143 80v164h120v80H320Zm258-354q42-34 56-86H326q14 52 56 86t98 34q56 0 98-34ZM320-640h320v-120H320v120Zm160 200Z"/>
+            </svg>
+       
+                {% if useri.langSet == 0 %}Matumizi{% else %}Expenses{% endif %}</h4>
+        
+      </div>
+
+       
+
+      <div class="table-responsive">
+            <table id="all_payAcc" class="smallFont table table-bordered"  >
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{% if useri.langSet == 0 %}Matumizi{% else %}Expense{% endif %} </th>
+                    <th>{% if useri.langSet == 0 %}Kundi la Kodi{% else %}Tax Group{% endif %}</th>
+                    {% if useri.admin %}
+                      <th> {% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %}</th>
+                    {% endif %}  
+                </tr>
+                </thead>
+
+
+
+                <tbody>
+                    {% for exp in expses %}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td>{{exp.matumizi  }}</td>
+
+                             <td class="text-primary"> 
+                                {% if exp.taxGroup %}
+                                {{exp.taxGroup.name}} 
+                                {% else %}
+                                -----
+                                {% endif %}
+                            
+                            </td>
+                           
+
+                            {% if useri.admin %}
+                            <td>
+                                <button class="btn btn-light btn-sm edit_btn"  data-toggle="modal" data-target="#editAkaunting"
+                                    data-val="{{exp.id}}"
+                                    data-name="{{exp.matumizi}}" 
+                                    data-aina="{{exp.taxGroup.id}}" 
+                                    data-tax_name = "{% if exp.taxGroup %}{{exp.taxGroup.name}}{% else %}-----{% endif %}"
+                                    data-receipt = "{%if exp.attachReceipt%}1{% else %}0{% endif %}"
+                                    data-isFuel = "{%if exp.mafuta%}1{% else %}0{% endif %}"
+                                    data-isSupplies = "{%if exp.manunuzi%}1{% else %}0{% endif %}"
+                                    data-isbills = "{%if exp.bills%}1{% else %}0{% endif %}"
+                                    data-isposho = "{%if exp.posho%}1{% else %}0{% endif %}"
+                                    style="font-size: 16;"  title="Edit" >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>    
+                                                            
+                              </button>
+
+                           
+                             
+
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                   
+                </tbody>
+            </table>
+      </div>
+
+
+     
+    </div>
+</div>
+
+
+{% include 'matumiziModal.html' %}
+
+
+
+
+
+  
+
+{% endblock %}
+
+
+
+
+{% block expenses %} active {% endblock %}

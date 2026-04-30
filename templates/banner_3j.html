@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3J Manyele Shop - Banner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .banner {
+            width: 900px;
+            min-height: 450px;
+            background: linear-gradient(135deg, #1a0533 0%, #3b0764 40%, #6b21a8 70%, #9333ea 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(147, 51, 234, 0.6);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Decorative circles background */
+        .banner::before {
+            content: '';
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,192,203,0.18) 0%, transparent 70%);
+            top: -120px;
+            right: -100px;
+        }
+        .banner::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,215,0,0.12) 0%, transparent 70%);
+            bottom: -80px;
+            left: -60px;
+        }
+
+        /* Sparkle dots */
+        .sparkle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            animation: twinkle 2.5s infinite alternate;
+        }
+        .sparkle:nth-child(1)  { width: 6px; height: 6px; top: 12%; left: 8%; animation-delay: 0s; }
+        .sparkle:nth-child(2)  { width: 4px; height: 4px; top: 22%; left: 18%; animation-delay: 0.4s; }
+        .sparkle:nth-child(3)  { width: 8px; height: 8px; top: 10%; left: 55%; animation-delay: 0.7s; }
+        .sparkle:nth-child(4)  { width: 5px; height: 5px; top: 75%; right: 12%; animation-delay: 1s; }
+        .sparkle:nth-child(5)  { width: 7px; height: 7px; top: 85%; left: 40%; animation-delay: 0.3s; }
+        .sparkle:nth-child(6)  { width: 4px; height: 4px; top: 45%; left: 5%; animation-delay: 0.8s; }
+        .sparkle:nth-child(7)  { width: 6px; height: 6px; top: 60%; right: 25%; animation-delay: 1.2s; }
+        .sparkle:nth-child(8)  { width: 5px; height: 5px; top: 30%; right: 8%; animation-delay: 0.5s; }
+
+        @keyframes twinkle {
+            from { opacity: 0.2; transform: scale(0.8); }
+            to   { opacity: 1;   transform: scale(1.4); }
+        }
+
+        /* Gold top bar */
+        .gold-bar {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #b8860b, #ffd700, #f0a500, #ffd700, #b8860b);
+        }
+
+        .content {
+            position: relative;
+            z-index: 10;
+            padding: 28px 40px 28px 40px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .left { display: flex; flex-direction: column; gap: 14px; }
+
+        /* Shop Name */
+        .shop-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.6rem;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(135deg, #ffd700 0%, #ffa500 30%, #ff69b4 65%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.85);
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            border-left: 3px solid #ffd700;
+            padding-left: 12px;
+        }
+
+        /* Products badges */
+        .products { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+        .badge {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            color: #fef9c3;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .badge .icon { font-size: 0.9rem; }
+
+        /* Wholesale / Retail tag */
+        .business-type {
+            display: inline-flex;
+            gap: 10px;
+            margin-top: 2px;
+        }
+        .b-tag {
+            background: linear-gradient(135deg, #ffd700, #f59e0b);
+            color: #1a0533;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Divider */
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.5), transparent);
+            margin: 2px 0;
+        }
+
+        /* Contact info */
+        .contact { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.88rem;
+        }
+        .contact-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ffd700, #f59e0b);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: #1a0533;
+            flex-shrink: 0;
+        }
+
+        /* Right side image panel */
+        .right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .big-emoji-circle {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,105,180,0.25));
+            border: 3px solid rgba(255, 215, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            position: relative;
+        }
+        .big-emoji-circle::before {
+            content: '';
+            position: absolute;
+            width: 175px;
+            height: 175px;
+            border-radius: 50%;
+            border: 1.5px dashed rgba(255, 215, 0, 0.4);
+            animation: spin 12s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        .location-box {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,215,0,0.4);
+            border-radius: 10px;
+            padding: 8px 16px;
+            text-align: center;
+            color: #fef9c3;
+            font-size: 0.78rem;
+            font-weight: 600;
+            line-height: 1.5;
+            backdrop-filter: blur(6px);
+            width: 160px;
+        }
+        .location-box .loc-title {
+            color: #ffd700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 2px;
+        }
+
+        /* Gold bottom bar */
+        .gold-bar-bottom {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #b8860b, #ffd700, #f0a500, #ffd700, #b8860b);
+        }
+
+        /* Print button */
+        .print-btn {
+            display: block;
+            margin: 20px auto 0;
+            background: #ffd700;
+            color: #1a0533;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+        }
+        .print-btn:hover { background: #f59e0b; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    <div class="banner">
+        <div class="gold-bar"></div>
+
+        <!-- Sparkles -->
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+
+        <div class="content">
+            <div class="left">
+                <div>
+                    <div class="shop-name">3J Manyele Shop</div>
+                    <div class="tagline">Bidhaa za Urembo wa Wanawake</div>
+                </div>
+
+                <div class="business-type">
+                    <span class="b-tag">&#x2B50; Jumla</span>
+                    <span class="b-tag">&#x2B50; Rejareja</span>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="products">
+                    <span class="badge"><span class="icon">💆‍♀️</span> Wigs</span>
+                    <span class="badge"><span class="icon">✨</span> Nywele</span>
+                    <span class="badge"><span class="icon">🔱</span> Rasta</span>
+                    <span class="badge"><span class="icon">🌸</span> Perfumes</span>
+                    <span class="badge"><span class="icon">💧</span> Mafuta</span>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="contact">
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <span>Bariadi, Simiyu &mdash; Mtaa wa Soko la Jioni</span>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <span>0766 893 426</span>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">✉️</div>
+                        <span>samweljilugalama@gmail.com</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right">
+                <div class="big-emoji-circle">💇‍♀️</div>
+                <div class="location-box">
+                    <div class="loc-title">📍 Tunakupata</div>
+                    Bariadi – Simiyu<br>Soko la Jioni
+                </div>
+            </div>
+        </div>
+
+        <div class="gold-bar-bottom"></div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">🖨️ Chapisha Banner</button>
+</div>
+
+</body>
+</html>
