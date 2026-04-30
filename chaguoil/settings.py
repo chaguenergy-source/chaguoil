@@ -19,10 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i'
 
 # USALAMA: Zima DEBUG katika Production (Inalazimisha kutumia STATICFILES_STORAGE)
-DEBUG = True 
+DEBUG = False 
 
 # Badilisha na IP Address mpya ya VM, na nimeacha '*'
-if not DEBUG:
+if  DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = ['34.61.173.58','cfspump.com','localhost']
@@ -37,7 +37,7 @@ GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
 
 # 1. KUPAKIA GS_CREDENTIALS KAMA OBJECT YA SERVICE ACCOUNT
-if  DEBUG:
+if not DEBUG:
         try:
             # Tumia GS_CREDENTIALS, kama inavyotarajiwa na django-storages
             GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GCS_CREDENTIALS_FILE)
@@ -141,7 +141,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
-if  DEBUG:
+if not DEBUG:
     # Database - CLOUD SQL SETTINGS (Inabaki vilevile)
     DATABASES = {
         'default': {
