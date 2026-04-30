@@ -25,7 +25,7 @@ DEBUG = True
 if not DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
-    ALLOWED_HOSTS = ['34.61.173.58']
+    ALLOWED_HOSTS = ['34.61.173.58','cfspump.com','localhost']
 
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
