@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import traceback
 from django.shortcuts import render,redirect
 from .models import UserExtend,PhoneMailConfirm, attachments,company,notifications,Interprise,InterprisePermissions,PaymentAkaunts, puAttachments, rekodiMatumizi,staff_akaunt_permissions
 # Create your views here.
@@ -50,100 +51,105 @@ def todoFunct(request):
 
 
 def login(request):
-   if request.user.is_authenticated:
-    #  u=User.objects.get(pk = request.user.id)
-    #  u.last_login = datetime.datetime.now(tz=timezone.utc)
-    #  u.save()
-     return redirect('userdash')
-   else:  
-    
-    if request.method== 'POST':
-      try:
-        email= request.POST.get('email') 
-        password= request.POST['password']  
-        val= int(request.POST.get('lang',1))
-        code = int(request.POST.get('code',0))
-        
-        user = auth.authenticate(username=email, password=password)
-
-       
-        if user is not None:
- 
-          Sessions = Session.objects.all()
-          otherLog = 0
-          for row in Sessions:
-              if str(row.get_decoded().get("_auth_user_id")) == str(user.id):
-                  # print('Same sessions')
-                  if code == 0:
-                     otherLog = 1
-                  else:   
-                     mail = PhoneMailConfirm.objects.get(PhoneMail__icontains=email,code=code,duration__gte=datetime.datetime.now(tz=timezone.utc))
-                     row.delete()
-          # request.session['logged'] = user.id     
-                  break 
-          
-          
-    
-        
-          if not otherLog:  
-             
-            auth.login(request, user) 
-            todo = todoFunct(request)
-            useri = todo['useri']
-            general = todo['general']
-
-            if  useri.admin or useri.ceo or (useri.staff and not general): 
-                return redirect("/userdash")
-            else:
-               return redirect('/logout')
-          else:
-              conf = PhoneMailConfirm.objects.filter(PhoneMail__icontains=email)
-              tm = datetime.datetime.now(tz=timezone.utc) + timedelta(seconds=90)
-              randNum = random.randint(10000,99999)
-              if conf.exists():
-                  conf.update(code=randNum,duration=tm)
-              else:
-                  conf =  PhoneMailConfirm()
-                  conf.PhoneMail = email
-                  conf.code = randNum
-                  conf.duration = tm
-                  conf.save()
-              try: 
-                confirmMailF({
-                  'to':email,
-                  'num':randNum
-                }) 
-              except:
-                 pass  
-
-              # print(randNum)
-            
-              
-
-              todo = {
-                  'lang':val,
-                  'email':email,
-                  'password':password,
-                  'confirm':True
-              }
-              return render(request,'login.html',todo)
-        
-        else:
-            msg = "Invalid credidentials"
-            if not val:
-              msg="Vitambulisho Havikubaliki"
-
-            messages.error(request, msg)   
-            return redirect(f"/?lang={val}")
-      except:
-        todo = {'lang':int(request.GET.get('lang',1))}
-        return render(request,'login.html',todo)  
+   try:
+    if request.user.is_authenticated:
+      #  u=User.objects.get(pk = request.user.id)
+      #  u.last_login = datetime.datetime.now(tz=timezone.utc)
+      #  u.save()
+      return redirect('userdash')
     else:  
-      val= int(request.GET.get('lang',1)) 
-      todo = {'lang':val}
-     
-      return render(request, "login.html",todo)
+      
+      if request.method== 'POST':
+        try:
+          email= request.POST.get('email') 
+          password= request.POST['password']  
+          val= int(request.POST.get('lang',1))
+          code = int(request.POST.get('code',0))
+          
+          user = auth.authenticate(username=email, password=password)
 
+        
+          if user is not None:
+  
+            Sessions = Session.objects.all()
+            otherLog = 0
+            for row in Sessions:
+                if str(row.get_decoded().get("_auth_user_id")) == str(user.id):
+                    # print('Same sessions')
+                    if code == 0:
+                      otherLog = 1
+                    else:   
+                      mail = PhoneMailConfirm.objects.get(PhoneMail__icontains=email,code=code,duration__gte=datetime.datetime.now(tz=timezone.utc))
+                      row.delete()
+            # request.session['logged'] = user.id     
+                    break 
+            
+            
+      
+          
+            if not otherLog:  
+              
+              auth.login(request, user) 
+              todo = todoFunct(request)
+              useri = todo['useri']
+              general = todo['general']
+
+              if  useri.admin or useri.ceo or (useri.staff and not general): 
+                  return redirect("/userdash")
+              else:
+                return redirect('/logout')
+            else:
+                conf = PhoneMailConfirm.objects.filter(PhoneMail__icontains=email)
+                tm = datetime.datetime.now(tz=timezone.utc) + timedelta(seconds=90)
+                randNum = random.randint(10000,99999)
+                if conf.exists():
+                    conf.update(code=randNum,duration=tm)
+                else:
+                    conf =  PhoneMailConfirm()
+                    conf.PhoneMail = email
+                    conf.code = randNum
+                    conf.duration = tm
+                    conf.save()
+                try: 
+                  confirmMailF({
+                    'to':email,
+                    'num':randNum
+                  }) 
+                except:
+                  pass  
+
+                # print(randNum)
+              
+                
+
+                todo = {
+                    'lang':val,
+                    'email':email,
+                    'password':password,
+                    'confirm':True
+                }
+                return render(request,'login.html',todo)
+          
+          else:
+              msg = "Invalid credidentials"
+              if not val:
+                msg="Vitambulisho Havikubaliki"
+
+              messages.error(request, msg)   
+              return redirect(f"/?lang={val}")
+        except:
+          todo = {'lang':int(request.GET.get('lang',1))}
+          return render(request,'login.html',todo)  
+      else:  
+        val= int(request.GET.get('lang',1)) 
+        todo = {'lang':val}
+      
+        return render(request, "login.html",todo)
+    
+   except:
+    traceback.print_exc()
+    return render(request,'pagenotFound.html')
+   
 
 def register(request):
   users = UserExtend.objects.all()
