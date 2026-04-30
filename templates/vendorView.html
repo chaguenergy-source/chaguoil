@@ -3,6 +3,10 @@
 {% load humanize %}
 {% load static %}
 
+ {% block additional_css %}
+ <link href="{% static 'css/vendorView.css' %}" rel="stylesheet">
+{% endblock %}
+
 
 {% block page_content %}
 <div class="head-title pb-md-5">
@@ -77,12 +81,6 @@
 
             </div>
 
-
-        
-
-
-        
-
         </div>
           
          {% if useri.admin %}   
@@ -101,9 +99,30 @@
             {% endfor %}
          </select>
 
-         <div id="newPurchase" class=" border py-4 px-3" style="display: none;border-radius: 5px;" >
-            <h5 class="mb-3" >{% if useri.langSet == 0 %}Manunuzi ya Mafuta Kutoka{% else %}Fuel Purchases From{% endif %} <u class="bluePrint">{{ven.jina}}</u>  </h5>
-             <div class="row">
+          <select hidden name="transporter_select" id="transporter_select" class="form-control transporterSelect brown btn-sm">
+                                <option value=0 >------</option> 
+                                {% for t in trnsp %}
+                                <option value={{t.id}} >{{t.jina}}</option> 
+                                {% endfor %}
+           </select>
+
+         <div id="newPurchase" class="  card py-4 px-3" style="display: none;" >
+            <!-- <h5 class="mb-3" >{% if useri.langSet == 0 %}Manunuzi ya Mafuta Kutoka{% else %}Fuel Purchases From{% endif %} </h5> -->
+           
+             <div class="header-section  d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">⛽{% if useri.langSet == 0 %}Manunuzi ya Mafuta Kutoka{% else %}Fuel Purchases From{% endif %} <u class="bluePrint">{{ven.jina}}</u> </h4>
+                    
+                </div>
+                <div>
+                    <button onclick="$('#newPurchase').toggle(200)" class="btn-sm btn btn-light smallerFont ">
+                        Close
+                    </button>
+            </div>
+            </div>
+            <hr>
+
+            <div class="row">
                 <div class="col-md-4">
                             <div class="form-group mb-3">
                                 <label class="brown" for="pu_date">
@@ -122,12 +141,25 @@
                             </div>
                 </div>
              </div>
+            <!-- add transporter button -->
+              <div class="text-right">
+                  <button" data-toggle="modal" data-target="#addTransporterModal"
+                   class="btn btn-sm btn-outline-primary smallerFont">
+                    +{% if useri.langSet == 0 %}Ongeza Msafirishaji{% else %}New Transporter{% endif %}
+                </button>
+              </div>
             <div class="table-responsive mt-3">
-                <table class="table-sm table" >
-                    <thead>
+                <table class="table-sm table table-bordered" >
+                    <thead class="table-dark" >
                         <tr>
                             <th>#</th>
                             <th> {% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+
+                            <th> {% if useri.langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</th>
+                            <th> {% if useri.langSet == 0 %}Chombo{% else %}Vihecle/Detail{% endif %}</th>
+                            <th> {% if useri.langSet == 0 %}Deleva{% else %}Driver{% endif %}</th>
+                            <th> {% if useri.langSet == 0 %}ghalama{% else %}Charges{% endif %}</th>
+
                             <th>  {% if useri.langSet == 0 %}Bei/Kununulia{% else %}Purchase Price{% endif %} <span class="text-primary">{{currencii}}</span></th>
                             <th> {% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">LTRS</span></th>
                             <th> {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">{{currencii}}</span></th>
@@ -138,35 +170,121 @@
                         <tr data-pos=1 class="puRow" >
                             <td class="IndexNo" data-pos=1 >1</td>
                             <td>
-                                <select name="fuelSelect1" id="fuelSelect1" class="form-control brown btn-sm">
+                                <div>
+                                    <select name="fuelSelect1" id="fuelSelect1" class="form-control table-input brown btn-sm">
                                         <option value=0 >------</option> 
                                         {% for f in allfuel %}
                                         <option value={{f.id}} >{{f.name}}</option> 
                                         {% endfor %}
-                            </select>
+                                   </select> 
+                                </div>
+                                <div class="text-right " style="margin-top:-3px" >
+                                    <span type="button" id="recylebtnFuel1" data-pos=1 data-recycle="fuelSelect1" data-classi="recylebtnFuel" class="recylebtn recylebtnFuel"  title="{% if useri.langSet == 0 %}Tumia Tena{% else %}Re-use{% endif %}" >
+                                        <!-- sync svg icon -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em"  fill="currentColor">
+                                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                                        </svg>
+                                    </span>
+                                </div>
+                               
+
                         </td>  
                         <td>
+                            <div>
+                                <select name="transporter1" id="transporter1" class="form-control transporterSelect table-input bluePrint btn-sm">
+                                    <option value=0 >------</option> 
+                                    {% for t in trnsp %}
+                                    <option value={{t.id}} >{{t.jina}}</option> 
+                                    {% endfor %}
+                                </select>                                
+                            </div>
+                             <div class="text-right " style="margin-top:-3px" >
+                                    <span type="button" id="recylebtnTransp1"  data-pos=1 data-recycle="transporter1" data-classi="recylebtnTransp" class="recylebtn recylebtnTransp recylebtnVehicle"  title="{% if useri.langSet == 0 %}Tumia Tena{% else %}Re-use{% endif %}" >
+                                        <!-- sync svg icon -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em"  fill="currentColor">
+                                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                                        </svg>
+                                    </span>
+                                </div>
+
+                        </td>
+                        <td>
+                            <div>
+                               <input type="text"  id="vehicle1" name="vehicle1"  class="table-input form-control btn-sm "> 
+                            </div>
+                            <div class="text-right " style="margin-top:-3px" >
+                                    <span type="button" id="recylebtnVehicle1" data-pos=1 data-recycle="vehicle1" data-classi="recylebtnVehicle" class="recylebtn recylebtnVehicle"  title="{% if useri.langSet == 0 %}Tumia Tena{% else %}Re-use{% endif %}" >
+                                        <!-- sync svg icon -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em"  fill="currentColor">
+                                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                                        </svg>
+                                    </span>
+                                </div>
                             
-                                <div class="input-group  " >                   
+                        </td>
+                        <td>
+                            <div>
+                                <input type="text"  id="driver1" name="driver1"  class="table-input form-control btn-sm ">
+                            </div>
+                             <div class="text-right " style="margin-top:-3px" >
+                                    <span type="button" id="recylebtnDriver1" data-recycle="driver1" data-classi="recylebtnVehicle" data-pos=1 class="recylebtn recylebtnVehicle"  title="{% if useri.langSet == 0 %}Tumia Tena{% else %}Re-use{% endif %}" >
+                                        <!-- sync svg icon -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em"  fill="currentColor">
+                                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                                        </svg>
+                                    </span>
+                                </div>
+                        </td>
+                        <td> 
+                            <div class="input-group  " >  
+                                <div>
                                     <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
-                                        <label class="mt-1 text-danger " for="FuelPriceTotal"></label> 
+                                        <label class="mt-1 text-danger " for="charges1"></label> 
                                     <div class="box-pointer d-inline "></div>
                                     </div>
-                                    <input type="number" data-pos=1   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="puPrice1" name="puPrice1"  class=" money-fomat btn-sm form-control fuelPurchases weight600">
+
+                                    <input type="number"  id="charges1" data-pos=1 placeholder="0" name="charges1" step="0.01"  class="table-input fuelPurchases form-control money-fomat btn-sm weight600">
+                                
+                                </div>
+                            </div>
+                             <div class="text-right " style="margin-top:-3px" >
+                                    <span type="button" id="recylebtnCharges1" data-pos=1 data-recycle="charges1" data-classi="recylebtnCharges" class="recylebtn recylebtnCharges"  title="{% if useri.langSet == 0 %}Tumia Tena{% else %}Re-use{% endif %}" >
+                                        <!-- sync svg icon -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em"  fill="currentColor">
+                                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                                        </svg>
+                                    </span>
+                                </div>
+
+                        </td>
+                        <td>
+                            
+                                <div class="input-group " > 
+                                    <div>               
+                                        <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                            <label class="mt-1 text-danger " for="puPrice1"></label> 
+                                        <div class="box-pointer d-inline "></div>
+                                        </div>
+                                        
+                                        <input type="number" data-pos=1  placeholder="0.00"  style="width: 100px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="puPrice1" name="puPrice1"  class="table-input money-fomat btn-sm form-control fuelPurchases weight600">
+
+                                    </div>
                                 </div>
                         </td>                      
                         <td>
-                            <div class="input-group  " >                   
+                            <div class="input-group  " >    
+                                    <div>               
                                     <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
                                         <label class="mt-1 text-danger " for="FuelPriceTotal"></label> 
                                     <div class="box-pointer d-inline "></div>
                                     </div>
-                                    <input type="number" data-pos=1   style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="puQty1" name="puQty1"  class=" money-fomat btn-sm form-control fuelPurchases weight600">
+                                    <input type="number" data-pos=1  placeholder="0.00"  style="width: 100px;background-color: var(--whiteBg);color:var(--inputColor)"  step="0.01"  id="puQty1" name="puQty1"  class="table-input money-fomat btn-sm form-control fuelPurchases weight600">
+                                </div>
                                 </div>
                            
                         </td>                      
                         <td>
-                            <input type="text" readonly id="totPrice1" name="totPrice1"  class="form-control btn-sm weight600">
+                            <input type="text" readonly id="totPrice1" placeholder="0.00" name="totPrice1" step="0.01"  class="form-control btn-sm weight600">
                         </td> 
                         
                         <td>
@@ -190,16 +308,49 @@
                 </a>
             </p>
 
-            <div class="row">
+            <div class="row mt-3">
+
+                <div class="col-md-6"></div>
+                <h6 class="col-md-6  row">
+                  <div class="col-5 text-right">
+                      {% if useri.langSet == 0 %}Jumla ya lita{% else %}Total Qty(Litre){% endif %} 
+                  </div>
+                  <div class="col-7 text-right" id="TotQty">
+                      0
+                  </div>
+                </h6>
+            
+
+                <div class="col-md-6"></div>
+                <h6 class="col-md-6  row">
+                  <div class="col-5 text-right">
+                      {% if useri.langSet == 0 %}Thamani Mafuta{% else %}Fuel Total Amount {% endif %} <span class="text-primary">({{currencii}})</span> 
+                  </div>
+                  <div class="col-7 text-right" id="TotPuPrice">
+                      0
+                  </div>
+                </h6>
+
+                <div class="col-md-6"></div>
+                <h6 class="col-md-6  row">
+                  <div class="col-5 text-right">
+                      {% if useri.langSet == 0 %}Ghalama za Usafiri{% else %}Transport Fee {% endif %} <span class="text-primary">({{currencii}})</span> 
+                  </div>
+                  <div class="col-7 text-right" id="TotTransportFee">
+                      0
+                  </div>
+                </h6>
+                <hr class="col-12">  
                 <div class="col-md-6"></div>
                 <h5 class="col-md-6  row">
-                  <div class="col-4 text-right">
-                      {% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">({{currencii}})</span> 
+                  <div class="col-5 text-right">
+                      {% if useri.langSet == 0 %}Jumla Kuu{% else %}Net Total{% endif %} <span class="text-primary">({{currencii}})</span> 
                   </div>
-                  <div class="col-8 text-right" id="TotPuPrice">
+                  <div class="col-7 text-right" id="TotPurchaseCost">
                       0
                   </div>
                 </h5>
+
             </div>
         <hr>
             <p class="text-right">
@@ -676,7 +827,17 @@
                         <input type="email" value="{{ven.email}}" placeholder=" {% if useri.langSet == 0 %} kama.  {% else %} eg. {% endif %} mfanoemail@provider.com"  id="mteja-mail" class="form-control smallFont input-data">
                     
                     </div>
-          
+
+                    <!-- is active vendor -->
+                    <div class="form-group">
+                      
+                      <div class="custom-control custom-switch cursor-pointer">
+                        
+                             <input type="checkbox" class="custom-control-input cursor-pointer" id="isActiveVendor" {% if ven.active %} checked {% endif %} >
+                            <label class="custom-control-label smallFont weight600 cursor-pointer" for="isActiveVendor">{% if useri.langSet == 0 %} Msambazaji Hai{% else %} Active Vendor{% endif %}</label>
+                      </div>
+                    </div>
+
                     <div class="row py-3">
                     
                       <div class="col-12 text-center">
@@ -700,9 +861,7 @@
     </div>
 </div>
 
-
-  
-
+{% include 'vendorTransportModal.html' %}
 
 {% endblock %}
 
@@ -710,10 +869,8 @@
 
 {% block additionaljs %}
 <script src="{% static 'js/vendors.js' %}"></script>
-
-  <script src="{% static 'js/purchases.js' %}"></script>
-
-  
+<script src="{% static 'js/purchases.js' %}"></script>
+<!-- Add transporter  js -->
 
 {% endblock %}
 

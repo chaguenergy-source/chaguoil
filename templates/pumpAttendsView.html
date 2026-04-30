@@ -814,12 +814,27 @@
                                                                         document.write(moment('{{s.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
                                                                 </script>
                                                         </td>
-                                                        <td class="brown">{{s.matumizi.matumizi | title}}</td>
+                                                        <td class="brown">
+                                                            
+                                                            {% if s.matumizi.paye %}
+                                                                {% if useri.langSet == 0 %}
+                                                                    Mshahara {% if s.salary_advance %} (Mkopo) {% endif %}
+                                                                {% else %}
+                                                                    Salary {% if s.salary_advance %} (Loan) {% endif %}
+                                                                {% endif %}
+                                                            {% else %}
+                                                              {{s.matumizi.matumizi | title}}
+                                                            {% endif %}
+                                                        </td>
                                                         <td >
+                                                                {% if s.staff %}
+                                                                   {{s.staff.user.first_name | title}} {{s.staff.user.last_name | title}}
+                                                                {% else %}
                                                                 {% if s.kabidhiwa %}
                                                                 {{s.kabidhiwa}}
                                                                 {% else %}
                                                                      -----
+                                                                {% endif %}
                                                                 {% endif %}
                                                         </td>
                                                         <td >{{s.maelezo}}</td>

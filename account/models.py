@@ -43,6 +43,8 @@ class UserExtend(models.Model):
     staff = models.BooleanField(default=False)
     cheo = models.CharField(max_length=100,blank=True,null=True)
     pwdResets = models.BooleanField(default=False)
+    finance = models.BooleanField(default=False)
+    payee = models.BooleanField(default=False)
     pu = models.BooleanField(default=False)
     ceo = models.BooleanField(default=False)
     op = models.BooleanField(default=False)
@@ -55,10 +57,19 @@ class UserExtend(models.Model):
     # darkmode = models.BooleanField(default=False)
     hakikiwa = models.BooleanField(default=False)
     darkMode = models.BooleanField(default=False)
-    acc_supv = models.BooleanField(default=False)
-  
+    kopesheka = models.BooleanField(default=False)
 
+    male = models.BooleanField(default=False)
+    female = models.BooleanField(default=False)
     
+    acc_supv = models.BooleanField(default=False)
+    # acc_sup = models.BooleanField(default=False)
+    party_time = models.BooleanField(default=False)
+    permanent = models.BooleanField(default=False)
+    labor = models.BooleanField(default=False)
+    tin = models.CharField(max_length=100,blank=True,null=True)
+    nin = models.CharField(max_length=100,blank=True,null=True)
+
     def __str__(self):
        return self.user.username
     
@@ -127,13 +138,14 @@ class InterprisePermissions(models.Model):
 
     onesha_profile = models.BooleanField(default=False)
     mauzo_na_matumizi = models.BooleanField(default=False)
-
+    isActive = models.BooleanField(default=True)
 
     # if is employee
 
 
     def __str__(self):
         return self.Allow
+ 
  
 
 class PaymentAkaunts(models.Model):
@@ -168,6 +180,7 @@ class wateja(models.Model):
     limited_order = models.BooleanField(default=False)
     debt_limit = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     toIgnore = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    active = models.BooleanField(default=True)
 
 class wasambazaji(models.Model):
       compan = models.ForeignKey(company,on_delete = models.CASCADE)
@@ -177,7 +190,17 @@ class wasambazaji(models.Model):
       simu1 = models.CharField(max_length=15)
       simu2 = models.CharField(max_length=15,null=True, blank=True)
       email = models.EmailField(max_length=100,null=True, blank=True)
-      active = models.BooleanField(default=False)
+      active = models.BooleanField(default=True)
+
+class transporter(models.Model):
+      compan = models.ForeignKey(company,on_delete = models.CASCADE)
+      jina = models.CharField(max_length=500)
+      address = models.CharField(max_length=500)
+      code = models.CharField(max_length=6)
+      simu1 = models.CharField(max_length=15)
+      simu2 = models.CharField(max_length=15,null=True, blank=True)
+      email = models.EmailField(max_length=100,null=True, blank=True)
+      active = models.BooleanField(default=True)
 
 
 
@@ -287,6 +310,12 @@ class Purchases(models.Model):
     payed = models.DecimalField(max_digits=20,decimal_places=7,default=0) 
     closed =  models.BooleanField(default=False)  
 
+class puAttachments(models.Model):
+    purchase = models.ForeignKey(Purchases, on_delete=models.CASCADE,blank=True, null=True)
+    transp = models.ForeignKey(transporter,on_delete=models.SET_NULL,null=True,blank=True)
+    vihecle = models.CharField(max_length=500,blank=True)
+    driver = models.CharField(max_length=500,blank=True)
+
 
 class PuList(models.Model):
     pu = models.ForeignKey(Purchases,on_delete=models.CASCADE)
@@ -294,6 +323,13 @@ class PuList(models.Model):
     qty = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     rcvd = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     Fuel = models.ForeignKey(fuel,on_delete=models.CASCADE)
+    
+    # vehicle = models.CharField(max_length=100,null=True,blank=True)
+    # driver = models.CharField(max_length=100,null=True,blank=True)
+    trn_amo = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    trn_paid = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    puAttach = models.ForeignKey(puAttachments,on_delete=models.SET_NULL,null=True,blank=True)
+
 
 
 class TransferFuel(models.Model):
@@ -441,26 +477,49 @@ class saleList(models.Model):
 
 
 
-
-
 class receiveFromTr(models.Model):
     From = models.ForeignKey(TransferFuel,on_delete=models.SET_NULL,null=True,blank=True) 
     To_Rc = models.ForeignKey(ReceveFuel,on_delete=models.SET_NULL,null=True,blank=True) 
     rc_qty = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     To_Sa = models.ForeignKey(fuelSales,on_delete=models.SET_NULL,null=True,blank=True)
 
+
+
+class exptaxGroup(models.Model):
+    company = models.ForeignKey(company,on_delete=models.CASCADE,null=True)
+    name = models.CharField(max_length=100)
+    desc = models.TextField(blank=True)
+    rate = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+
 class matumizi(models.Model):
-    owner = models.ForeignKey(UserExtend, on_delete=models.CASCADE,null=True)
     shell = models.ForeignKey(Interprise, on_delete=models.CASCADE,null=True)
+    compani = models.ForeignKey(company, on_delete=models.CASCADE,null=True)
+    taxGroup = models.ForeignKey(exptaxGroup, on_delete=models.CASCADE,null=True)
     matumizi=models.CharField(max_length=700)
-    period_type = models.IntegerField(default=0)
-    duration = models.IntegerField(default=0)
-    last_paid = models.DateField(null=True,blank=True)
-    next_pay = models.DateField(null=True,blank=True)
+    mafuta = models.BooleanField(default=False)
+
+    manunuzi = models.BooleanField(default=False)
+    posho = models.BooleanField(default=False)
+    attachReceipt = models.BooleanField(default=False)
+
+    bili = models.BooleanField(default=False)
     amount = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     depends = models.BooleanField(default=True)
     general = models.BooleanField(default=False)
-    mafuta = models.BooleanField(default=False)
+       
+    duration = models.IntegerField(default=0)
+    last_paid = models.DateField(null=True,blank=True)
+    next_pay = models.DateField(null=True,blank=True)
+    daily = models.BooleanField(default=False)
+    weekly = models.BooleanField(default=False)
+    monthly = models.BooleanField(default=False)
+    yearly = models.BooleanField(default=False)
+
+    paye = models.BooleanField(default=False)
+    heo_pay = models.ForeignKey(UserExtend, on_delete=models.CASCADE,null=True)
+    sta_pay = models.ForeignKey(InterprisePermissions, on_delete=models.CASCADE,null=True,related_name="sta_pay")
+    Isactive = models.BooleanField(default=True)
+    discount = models.BooleanField(default=False)
 
 class matumiziTarehe(models.Model):
     date = models.DateTimeField(null=True,blank=True)
@@ -486,9 +545,26 @@ class rekodiMatumizi(models.Model):
     fromShift = models.ForeignKey(shiftPump, on_delete=models.CASCADE,blank=True, null=True)
     Fuel = models.ForeignKey(fuel, on_delete=models.CASCADE,blank=True, null=True)
     
-    by = models.ForeignKey(UserExtend, on_delete=models.CASCADE,blank=True, null=True)
+    by = models.ForeignKey(UserExtend, on_delete=models.CASCADE,blank=True, null=True, related_name="rekodi_by")
     kabidhiwa = models.CharField(max_length=500,blank=True,null=True)
+    tin_number = models.CharField(max_length=100,blank=True,null=True)
     maelezo = models.TextField(blank=True)
+    attachReceipt = models.BooleanField(default=False)
+    staff = models.ForeignKey(UserExtend, on_delete=models.SET_NULL, related_name='given_staff_matumizi', null=True, blank=True)
+    salary_advance = models.BooleanField(default=False)
+    tax_group = models.ForeignKey(exptaxGroup, on_delete=models.SET_NULL,null=True,blank=True)
+    admin_approval = models.BooleanField(default=False)
+
+class StaffLoan(models.Model):
+    staff = models.ForeignKey(UserExtend, on_delete=models.CASCADE, related_name='staff_loans')
+    compani = models.ForeignKey(company, on_delete=models.CASCADE, null=True, blank=True)
+    shell = models.ForeignKey(Interprise, on_delete=models.CASCADE, null=True, blank=True)
+    amount = models.DecimalField(max_digits=20, decimal_places=7, default=0)
+    due_date = models.DateField(null=True, blank=True)
+    salary_deduction = models.DecimalField(max_digits=20, decimal_places=7, default=0)
+    paid_amount = models.DecimalField(max_digits=20, decimal_places=7, default=0)
+    by = models.ForeignKey(UserExtend, on_delete=models.SET_NULL, null=True, blank=True, related_name='staff_loan_recorded_by')
+    created = models.DateTimeField(auto_now_add=True)
 
 
 class wekaCash(models.Model):
@@ -525,6 +601,7 @@ class wekaCash(models.Model):
     kuhamishaNje = models.BooleanField(default=False)
     mtaji = models.BooleanField(default=False)
     cdOrder = models.ForeignKey(creditDebtOrder,on_delete=models.CASCADE,null=True)
+    loan_pay = models.ForeignKey(StaffLoan,on_delete=models.SET_NULL,null=True,blank=True)
     admin_approval = models.BooleanField(default=False)  
     # huduma_nyingine = models.ForeignKey(HudumaNyingine,on_delete=models.SET_NULL,null=True)
 
@@ -593,8 +670,14 @@ class attachments(models.Model):
     adj = models.ForeignKey(adjustments, on_delete=models.CASCADE,blank=True, null=True)
     purchase = models.ForeignKey(Purchases, on_delete=models.CASCADE,blank=True, null=True)
     cdOrder = models.ForeignKey(creditDebtOrder, on_delete=models.CASCADE,blank=True, null=True)
+
     attach_name = models.CharField(max_length=500,blank=True)
+    
     printedDocu = models.BooleanField(default=False)
+    puAttach = models.ForeignKey(puAttachments,on_delete=models.SET_NULL,null=True,blank=True)
+    expAttach = models.ForeignKey(rekodiMatumizi,on_delete=models.SET_NULL,null=True,blank=True)
+    receipt = models.BooleanField(default=False)
+    puInvo = models.BooleanField(default=False)
     cust = models.ForeignKey(wateja, on_delete=models.CASCADE,blank=True, null=True)
     by = models.ForeignKey(UserExtend, on_delete=models.SET_NULL,blank=True, null=True)
     date = models.DateTimeField(null=True)

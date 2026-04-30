@@ -1,95 +1,240 @@
 {% load static %}
 <!-- Modal -->
-<div class="modal fade" id="addStaff" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+
+<div class="modal fade" id="addStaff" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-                <div class="modal-header">
-                        <h5 class="modal-title">
-                            {% if useri.langSet == 0 %} Ongeza Stafu{% else %}Add Member{% endif %}
+                <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title text-light">
+                            {% if useri.langSet == 0 %} Sajiri Stafu Mpya{% else %}Register New Staff Member{% endif %}
                         </h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                     </div>
-            <div class="modal-body">
-                <div class="container-fluid">
-                    <form action="/staffs/addStaff" class="p-2 p-md-3  " id="reg1Form"  method="POST" >
-                        {% csrf_token %}
-            
-                      
-                        <div class="form-group pb-2">
-                          <label class="weight500 brown" id="for_fname" for="f_name">{% if langSet == 0 %} Jina la Kwanza {% else %}  First Name{% endif %} <sup>*</sup></label>
-                          <input type="text" name="f_name" id="f_name" value="{{regi.user.first_name}}"  class="form-control smallFont darkblue" placeholder="{% if lang == 0 %}Andika Jina la Kwanza {% else %} Write First Name{% endif %}" aria-describedby="helpId">
-                         
-                        </div>
-            
-                        <div class="form-group pb-2" id="lastName" >
-                            <label class="weight500 brown" for="l_name">{% if langSet == 0 %} Jina la Mwisho{% else %}  Last Name{% endif %} <sup>*</sup> </label>
-                          <input type="text" name="l_name" value="{{regi.user.last_name}}"  id="l_name"  class="form-control smallFont darkblue" placeholder="{% if langSet == 0 %}Jina la Mwisho{% else %} Write last Name{% endif %}" aria-describedby="helpId">
-                         
-                        </div>
-            
-                     
-                         <div class="form-group pb-2 ">
-                        
-                           
-                            <label class="weight500 brown" for="Phone">{% if langSet == 0 %}Namba ya simu{% else %} Phone Number{% endif %} <sup>*</sup> </label>
-                           <input type="Phone" data-valu=0 name="Phone" id="Phone"  value="+255"  class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Barua Pepe{% else %} Write Email {% endif %}" aria-describedby="helpId">
-                         
-                        </div>  
 
-                         <div class="form-group pb-2 ">
-                        
-                           
-                            <label class="weight500 brown" for="email">{% if langSet == 0 %}Barua Pepe{% else %} Email{% endif %} <sup>*</sup> </label>
-                           <input type="email" data-valu=0 name="email" id="email" value="{{regi.user.email}}"  class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Barua Pepe{% else %} Write Email {% endif %}" aria-describedby="helpId">
-                         
-                        </div>    
-            <div class="form-group pb-2 ">
-            
-                <label class="weight500 brown" for="cheo">{% if lang == 0 %}Cheo{% else %} Position{% endif %} <sup>*</sup> </label>
-               <input type="text" data-valu=0 name="cheo" id="cheo"   class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Cheo{% else %} Member Position {% endif %}" aria-describedby="helpId">
+
+      <div class="modal-body p-4">
+        <form action="/staffs/addStaff" class="p-2 p-md-3  " id="reg1Form"  method="POST" >
+         {% csrf_token %}
+          <!-- Personal Information Section -->
+          <h6 class="text-uppercase text-muted font-weight-bold mb-3 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Kibinafsi{% else %}Personal Information{% endif %}</h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+               <label class="weight500 brown" id="for_fname" for="f_name">{% if useri.langSet == 0 %} Jina la Kwanza {% else %}  First Name{% endif %} <sup>*</sup></label>
+                <input type="text" name="f_name" id="f_name" value="{{regi.user.first_name}}"  class="form-control smallFont darkblue"  aria-describedby="helpId">
+            </div>
+            <div class="col-md-6">
+               <label class="weight500 brown" for="l_name">{% if useri.langSet == 0 %} Jina la Mwisho{% else %}  Last Name{% endif %} <sup>*</sup> </label>
+               <input type="text" name="l_name" value="{{regi.user.last_name}}"  id="l_name"  class="form-control smallFont darkblue"  aria-describedby="helpId">
+            </div>
+            <div class="col-md-6 cursor-pointer" id="gender_panel">
+              <label class="form-label fw-semibold text-primary d-block">{% if useri.langSet == 0 %}Jinsia{% else %}Gender{% endif %} <span class="text-danger">*</span></label>
+              <div class="d-flex align-items-center gap-4">
+                <div class="form-check form-check-inline mr-3">
+                  <input class="form-check-input cursor-pointer" type="radio" name="gender" id="male_gender" value="male">
+                  <label class="form-check-label cursor-pointer" for="male_gender">{% if useri.langSet == 0 %}Mwanaume{% else %}Male{% endif %}</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input cursor-pointer" type="radio" name="gender" id="female_gender" value="female">
+                  <label class="form-check-label cursor-pointer" for="female_gender">{% if useri.langSet == 0 %}Mwanamke{% else %}Female{% endif %}</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information Section -->
+          <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Mawasiliano{% else %}Contact Information{% endif %}</h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="weight500 brown" for="Phone">{% if useri.langSet == 0 %}Namba ya simu{% else %} Phone Number{% endif %} <sup>*</sup> </label>
+              <input type="Phone" data-valu=0 name="Phone" id="Phone" value="+255" class="form-control smallFont darkblue" placeholder="{% if langSet == 0 %}Andika Namba ya Simu{% else %} Write Phone Number {% endif %}" aria-describedby="helpId">
+            </div>
+            <div class="col-md-6">
+              <label class="weight500 brown" for="email">{% if useri.langSet == 0 %}Barua Pepe{% else %} Email{% endif %} <sup>*</sup> </label>
+              <input type="email" data-valu=0 name="email" id="email" class="form-control smallFont darkblue" placeholder="{% if useri.langSet == 0 %}Andika Barua Pepe{% else %} Write Email {% endif %}" aria-describedby="helpId">
+            </div>
+          </div>
+
+         <!-- Identification & Personal Details Section -->
+         <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Utambulisho & Taarifa za Kibinafsi{% else %}Identification & Personal Details{% endif %}</h6>
+         <div class="row g-3"> 
+            <div class="col-md-6">
              
-            </div>                        
-                        
-            <div class="form-group pb-2 ">
-            
-               
-                <label class="weight500 brown" for="city">{% if lang == 0 %}Mji{% else %} City{% endif %} <sup>*</sup> </label>
+                <label class="form-label fw-semibold">TIN <span class="text-danger">*</span></label>
+                <input type="text" id="tin_number" class="form-control"  required>
+
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">NIN</label>
+                <input type="text" id="nin_number" class="form-control"  >              
+            </div>
+
+
+          </div>
+
+         <!-- Employment Details Section -->
+         <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Ajira{% else %}Employment Details{% endif %}</h6>
+         <div class="row g-3">
+            <div class="col-md-6">
+               <label class="weight500 brown" for="cheo">{% if useri.langSet == 0 %}Cheo{% else %}Position{% endif %} <sup>*</sup></label>
+               <input type="text" data-valu=0 name="cheo" id="cheo" class="form-control smallFont darkblue" placeholder="{% if langSet == 0 %}Andika Cheo{% else %} Member Position {% endif %}" aria-describedby="helpId">
+            </div>
+            <div class="col-md-6"></div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-primary"> {% if useri.langSet == 0 %}Aina ya Mtumishi {% else %} Staff Type {% endif %} <span class="text-danger">*</span></label>
+              <select id="staff_type" class="form-select form-control border-primary" required>
+                <option value="kudumu" selected > {% if useri.langSet == 0 %} Mwajiriwa wa Kudumu {% else %} Permanent Employee {% endif %}</option>
+                <option value="parttime" > {% if useri.langSet == 0 %} Kibarua wa Muda (Part-time Worker) {% else %} Part-time Worker {% endif %}</option>
+                <option value="kibarua" > {% if useri.langSet == 0 %} Kibarua (Casual Worker) {% else %} Casual Worker {% endif %}</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-primary"> {% if useri.langSet == 0 %}Kituo {% else %} Station {% endif %} <span class="text-danger">*</span></label>
+              <select id="staff_kituo" class="form-select form-control border-primary" required>
+                {% if general %}
+                 <option value="null">-----</option>
+                {% else %} 
+                  <option value="{{shell.id}}">{{shell.name}}</option>
+                {% endif %}  
+                    {% for st in stations  %}
+                      {% if st.id != shell.id %}
+                        <option value="{{st.id}}">{{st.name}}</option>
+                      {% endif %}   
+                    {% endfor %}
+                   <option value="0">
+                       --{% if useri.langSet == 0 %}Vituo Vyote {% else %} All Stations {% endif %}--
+                   </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Salary Information Section -->
+          <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Malipo{% else %}Salary Information{% endif %}</h6>
+          <div class="row g-3 mt-2 d-none" id="salarySection">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Basic Salary{% else %}Basic Salary{% endif %}</label>
+            <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                    <label class="mt-1 text-danger " for=""></label> 
+                  <div class="box-pointer d-inline "></div>
+          </div>
+              <input type="number" min="0" step="0.01" id="basic_salary" name="basic_salary" class="form-control smallFont money-fomat darkblue" placeholder="0.00">
+            </div>
+
+
+                  <div class="col-md-6">
+                            <label for="TaxGroup" class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Tax Group{% else %}Tax Group{% endif %} </label>
+                            <select id="TaxGroup" class="form-select form-control border-primary">
+                                <option value=0>{% if useri.langSet == 0 %}--Chagua--{% else %}--Select--{% endif %}</option>
+                                {% for tg in tax_group %}
+                                    <option value="{{tg.id}}" {% if salary.tax_group.id == tg.id %}selected{% endif %}>{{tg.name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+  
+
+          </div>
+
+          <!-- Payment Configuration Section -->
+          <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Usanidi wa Malipo{% else %}Payment Configuration{% endif %}</h6>
+          <div class="row g-3 mt-2" >
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Namna ya Malipo{% else %}Payment Source{% endif %} <span class="text-danger">*</span></label>
+              <select id="salary_payment_source" name="salary_payment_source" class="form-select form-control border-primary">
+                <option value="headOffice" {% if general %}selected{% endif %}>{% if useri.langSet == 0 %}Head Office{% else %}Head Office{% endif %}</option>
+                <option value="station" {% if not general %}selected{% endif %}>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</option>
+              </select>
+            </div>
+
+            <div class="col-md-6 d-none" id="salaryStationSection">
+              <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Kituo cha Malipo{% else %}Salary Station{% endif %} <span class="text-danger">*</span></label>
+              <select id="salary_station" name="salary_station" class="form-select form-control border-primary">
+                {% if general %}
+                 <option value="null">-----</option>
+                {% else %}
+                  <option value="{{shell.id}}" selected>{{shell.name}}</option>
+                {% endif %}
+
+                {% for st in stations %}
+                  {% if st.id != shell.id %}
+                    <option value="{{st.id}}">{{st.name}}</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-2 d-none" id="salaryMetaSection">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Muda wa Malipo{% else %}Payment Period{% endif %} <span class="text-danger">*</span></label>
+              <select id="salary_payment_period" name="salary_payment_period" class="form-select form-control border-primary">
+                <option value="day">{% if useri.langSet == 0 %}Siku{% else %}Day{% endif %}</option>
+                <option value="week">{% if useri.langSet == 0 %}Wiki{% else %}Week{% endif %}</option>
+                <option value="month" selected>{% if useri.langSet == 0 %}Mwezi{% else %}Month{% endif %}</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Tarehe ya Mwisho Kulipwa{% else %}Last Paid Date{% endif %} <span class="text-danger">*</span></label>
+              <input type="date" id="salary_last_paid_date" name="salary_last_paid_date" class="form-control smallFont darkblue">
+            </div>
+          </div>
+
+          <!-- Location Information Section -->
+          <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Makazi{% else %}Location Information{% endif %}</h6>
+          <div class="row mt-2">
+             <div class="col-12">
+               <label class="weight500 brown" for="city">{% if lang == 0 %}Mji{% else %} City{% endif %} <sup>*</sup> </label>
                <input type="text" data-valu=0 name="city" id="city"   class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Mji{% else %} Write City {% endif %}" aria-describedby="helpId">
-             
+            </div>
+          </div>
+
+        <div class="row g-3 mt-2" > 
+            <div class="col-12">
+              <label class="form-label fw-semibold">{% if lang == 0 %}Anwani ya Makazi{% else %} Address{% endif %} <sup>*</sup> </label>
+              <textarea class="form-control" data-valu=0 name="address" id="address"  rows="2" ></textarea>
             </div>
 
-
-
-            <div class="form-group pb-2 ">
-            
-                <label class="weight500 brown" for="address">{% if lang == 0 %}Anwani{% else %} Address{% endif %} <sup>*</sup> </label>
-               <input type="text" data-valu=0 name="address" id="address"   class="form-control smallFont darkblue"  placeholder="{% if langSet == 0 %}Andika Anwani{% else %} Write Address {% endif %}" aria-describedby="helpId">
-             
+          
             </div>
 
-           
-
-            <div class="custom-control custom-checkbox">
-                <input type="checkbox" class="custom-control-input" id="ceo_member" name="ceo_member">
-                <label class="custom-control-label" for="ceo_member">
+               <!-- <div class="custom-control custom-checkbox mt-3 cursor-pointer">
+                <input type="checkbox" class="custom-control-input cursor-pointer" id="ceo_member" name="ceo_member">
+                <label class="custom-control-label cursor-pointer" for="ceo_member">
                     {% if lang == 0 %}Ruhusu matawi yote{% else %} Allowed to all branches{% endif %} 
                 </label>
-              </div>
+              </div> -->
 
-                        <div class="modal-footer mt-3">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </div>
-                    
-                    </form>
-                    </div>
-            </div>
-           
-        </div>
+                <div class="modal-footer mt-3">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            
+         
+        </form>
+      </div>
+    
     </div>
+  </div>
 </div>
+
+<style>
+  /* Custom CSS kidogo kuongeza mvuto */
+  .form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  }
+  .modal-content {
+    /* border-radius: 15px; */
+    overflow: hidden;
+  }
+  .form-label {
+    font-size: 0.9rem;
+    color: #555;
+  }
+</style>
 
 
 {% block additionaljs %}
@@ -98,6 +243,27 @@
  <script>
     $(document).ready(function(){
       $('#all_staffs').DataTable();
+
+      function toggleSalaryFields() {
+        const type = $('#staff_type').val();
+        const showSalary = type === 'parttime' || type === 'kudumu';
+        $('#salarySection').toggleClass('d-none', !showSalary);
+        $('#salaryMetaSection').toggleClass('d-none', !showSalary);
+
+        if (!showSalary) {
+          $('#salaryStationSection').addClass('d-none');
+          $('#basic_salary').val('');
+          $('#salary_last_paid_date').val('');
+          return;
+        }
+
+        const source = $('#salary_payment_source').val();
+        $('#salaryStationSection').toggleClass('d-none', source !== 'station');
+      }
+
+      $('#staff_type').on('change', toggleSalaryFields);
+      $('#salary_payment_source').on('change', toggleSalaryFields);
+      toggleSalaryFields();
 
     })
 </script>

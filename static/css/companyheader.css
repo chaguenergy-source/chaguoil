@@ -62,3 +62,61 @@ body{
         .company-name { font-size: 28px; }
         .contact-info { font-size: 13px; }
       }
+
+      
+/* Sehemu ya details: Sasa hivi tunazisogeza karibu na logo */
+.header-details {
+    display: flex;
+    justify-content: center; /* Inazileta zote katikati */
+    align-items: center;    /* Inazipanga mstari mmoja usawa wa logo */
+    gap: 40px;              /* Huu ndio umbali kati ya contacts, logo, na address */
+    padding: 10px 0;
+    width: 100%;
+}
+
+/* Contacts (Kushoto kwa logo) */
+.contact-info {
+    text-align: right;     /* Maandishi yaegemee upande wa logo */
+    font-size: 16px;
+    line-height: 1;
+    flex: 1;               /* Inaruhusu kuchukua nafasi iliyobaki upande wake */
+}
+
+/* Logo (Katikati) */
+.logo-container {
+    flex: 0 0 auto;        /* Logo ibaki na saizi yake asilia bila kusogezwa */
+    text-align: center;
+}
+
+.logo-container img {
+    width: 80px;           /* Rekebisha kulingana na picha yako */
+    display: block;
+    margin: 0 auto;
+}
+
+/* Address (Kulia kwa logo) */
+.address-info {
+    text-align: left;      /* Maandishi yaegemee upande wa logo */
+    font-size: 16px;
+    line-height: 1;
+    flex: 1;               /* Inaruhusu kuchukua nafasi iliyobaki upande wake */
+}
+
+/* Jina la Kampuni Juu */
+.header-main-title {
+    color: #007bff; /* Blue ya Chagu Energies */
+    font-size: 32px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    text-align:center;
+}
+
+/* Mstari wa Blue wa chini */
+.blue-line {
+    height: 3px;
+    background-color: #007bff;
+    margin-top: 15px;
+    width: 100%;
+}

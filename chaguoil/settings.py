@@ -22,8 +22,10 @@ SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i
 DEBUG = False 
 
 # Badilisha na IP Address mpya ya VM, na nimeacha '*'
-ALLOWED_HOSTS = ['*','34.61.173.58']
-
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = ['34.61.173.58']
 
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
@@ -89,6 +91,8 @@ if not DEBUG:
 else:
     # LOCAL DEVELOPMENT SETTINGS (USALAMA: HIZI HAZITUMIKI KATIKA PRODUCTION)
     MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
     STATIC_URL = '/static/'
     STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Only used for collectstatic

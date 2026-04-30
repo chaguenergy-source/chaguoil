@@ -69,7 +69,7 @@
                     {% if useri.langSet == 0 %}Mpango Zamu {% else %}Shift Session{% endif %}
                  </div>
                  <div class="col-9 text-primary ">
-                    <a href="/salepurchase/SessionView?i={{{{trf.session.id}}}}">
+                    <a href="/salepurchase/SessionView?i={{trf.session.id}}">
                         <u>{{trf.session.session.name}}</u> 
                      </a>
                  </div>
@@ -453,7 +453,18 @@
                                             document.write(moment('{{s.tarehe | date:"r" }}').format('DD/MM/YYYY HH:mm '))
                                         </script>
                                     </td>
-                                    <td class="brown">{{s.matumizi.matumizi | title}}</td>
+                                    <td class="brown">
+
+                                            {% if s.matumizi.paye %}
+                                                {% if useri.langSet == 0 %}
+                                                    Mshahara {% if s.salary_advance %} (Mkopo) {% endif %}
+                                                {% else %}
+                                                    Salary {% if s.salary_advance %} (Loan) {% endif %}
+                                                {% endif %}
+                                            {% else %}
+                                                {{s.matumizi.matumizi | title}}
+                                            {% endif %}
+                                    </td>
                                     <td >{{s.maelezo}}</td>
     
                                     <td>{{s.kiasi|floatformat:'-2'|intcomma}}</td>

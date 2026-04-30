@@ -49,9 +49,10 @@
           <i class='bx bx-filter' ></i> -->
         </div>
         <div class="table-responsive">
-            <table id="all_filling_stations" class=" smallFont"  >
+            <table id="all_filling_stations" class="table  table-bordered smallFont"  >
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %} </th>
                   <th>{% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}</th>
                   <th>{% if useri.langSet == 0 %}Ingia{% else %}Shift{% endif %}</th>
@@ -60,6 +61,7 @@
               <tbody>
                   {% for s in stations %}
                       <tr>
+                          <td>{{forloop.counter}}</td>
                           <td><a href="/enterstation?sh={{s.Interprise.id}}" class="text-primary" >{{s.Interprise.name  }}</a>  </td>
                           <td> {{s.Interprise.sehemu | title }} </td>
                           <td>

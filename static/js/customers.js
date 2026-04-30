@@ -11,8 +11,9 @@ $('#form-mteja').submit(function(e){
        mail=$('#mteja-mail').val(),
        u=Number($('#uni_cust').prop('checked')),
        edit = $(this).data('edit'),
-       valued = $(this).data('valued')
-       
+       valued = $(this).data('valued'),
+       isActive = Number($('#isActiveCustomer').prop('checked'))||0
+      
     if(jina!=''){
         if(adress!=''){
 
@@ -32,6 +33,7 @@ $('#form-mteja').submit(function(e){
              mail:mail,
              edit:edit,
              valued:valued,
+                isActive,
             csrfmiddlewaretoken:csrfToken, 
         } ,    
             url,

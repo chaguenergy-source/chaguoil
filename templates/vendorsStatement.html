@@ -142,12 +142,23 @@
                 <input type="date" id="toDate" class="form-control form-control-sm">
             </div>
             <div class="col-md-3">
-                <label for="stationSelect" class="smallFont">{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</label>
+                <label for="stationSelect" class="smallFont">{% if useri.langSet == 0 %}Msambazaji{% else %}Vendor{% endif %}</label>
                 <select id="stationSelect" class="form-control form-control-sm">
-                    <option value="0" selected>{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
-                      {% for station in stations %}
-                        <option value="{{ station.by.Interprise.id }}">{{ station.by.Interprise.name }}</option>
-                      {% endfor %}
+                    {% if ven %}
+                        <option value="{{ ven.id }}" selected>{{ ven.jina }}</option>
+                    {% else %}
+                        <option value="0" selected>{% if useri.langSet == 0 %}Wasambazaji wote{% else %}All Vendors{% endif %}</option>
+                    {% endif %}
+
+                    {% for vend in all_ven %}
+                        <option value="{{ vend.id }}">{{ vend.jina }}</option>
+                    {% endfor %}
+
+                    {% if ven %}
+                        <option value="0">{% if useri.langSet == 0 %}Wasambazaji wote{% else %}All Vendors{% endif %}</option>
+                    {% endif %}
+
+
                 </select>
             </div>
         </div>
@@ -172,7 +183,7 @@
             <div id="statementResults">
             <div class="row">
                 <div class="col-md-6 ">
-                    <h6 class="section-title">{% if useri.langSet == 0 %}Muhtasari wa Matumizi ya Mafuta{% else %}Fuel Consumption Summary{% endif %}</h6>
+                    <h6 class="section-title">{% if useri.langSet == 0 %}Manunuzi ya Mafuta{% else %}Purchased Fuel{% endif %}</h6>
                   <div class="table-responsive card px-2">
                         <table class="table table-sm table-striped" id="fuelSummaryTable">
                             <thead>
@@ -219,19 +230,21 @@
 
             <hr>
 
-            <h6 class="section-title">{% if useri.langSet == 0 %}Muhtasari wa Muamala (Matumizi & Malipo){% else %}Transactions (Consumption & Payments){% endif %}</h6>
+            <h6 class="section-title">{% if useri.langSet == 0 %}Muhtasari wa Muamala (Manunuzi & Malipo){% else %}Transactions (Purchases & Payments){% endif %}</h6>
             <div class="table-responsive">
                 <table class="table table-sm table-bordered" id="transactionsTable">
                     <thead>
                         <tr>
                             <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
-                            <th>{% if useri.langSet == 0 %}Type{% else %}Type{% endif %}</th>
-                            <th>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Muamala{% else %}Transaction{% endif %}</th>
+
+                            <th>{% if useri.langSet == 0 %}Msambazaji{% else %}Supplier{% endif %}</th>
+
                             <th>{% if useri.langSet == 0 %}Imeandikishwa na{% else %}Recorded By{% endif %}</th>
 
                             <th>{% if useri.langSet == 0 %}Maelezo{% else %}Details{% endif %}</th>
-                            <th>{% if useri.langSet == 0 %}Mudarasa{% else %}Driver{% endif %}</th>
-                            <th>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}</th>
+                          
+
                             <th class="text-right">{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
 
                             <th class="text-right">{% if useri.langSet == 0 %}Bei{% else %}Price{% endif %} <span class="text-primary">{{currencii}}</span> </th>
@@ -263,7 +276,8 @@
 {% endblock %}
 
 {% block additionaljs %}
-<script src="{% static 'js/vendors.js' %}" ></script>
+   <script src="{% static 'js/vendors.js' %}" ></script>
+   <script src="{% static 'js/vendorStatement.js' %}" ></script>
 
 {% endblock %}
 

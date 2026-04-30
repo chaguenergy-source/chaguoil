@@ -10,7 +10,9 @@ $('#form-mteja').submit(function(e){
        simu2=$('#mteja-simu2').val(),
        mail=$('#mteja-mail').val(),
        edit = $(this).data('edit'),
-       valued = $(this).data('valued')
+       valued = $(this).data('valued'),
+       isActive = Number($('#isActiveVendor').prop('checked'))||0
+       
     if(jina!=''){
         if(adress!=''){
 
@@ -25,7 +27,7 @@ $('#form-mteja').submit(function(e){
              code:code,
              simu1:simu1,
              simu2:simu2,
-             
+             isActive,
              value:$(this).data('customer_value'),
              mail:mail,
              edit:edit,

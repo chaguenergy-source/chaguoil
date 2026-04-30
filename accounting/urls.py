@@ -18,5 +18,9 @@ urlpatterns=[
         path('expenseRecords',views.expenseRecords, name='expenseRecords'),
         path('getExpData',views.getExpData, name='getExpData'),
         path('addExpenseGroup',views.addExpenseGroup, name='addExpenseGroup'),
+        path('expensespanel',views.expensespanel, name='expensespanel'),
+        path('taxgroups',views.taxgroups, name='taxgroups'),
+        path('addTaxGroup',views.addTaxGroup, name='addTaxGroup'),
+        path('expattachments',views.expattachments, name='expattachments'),
 
 ]

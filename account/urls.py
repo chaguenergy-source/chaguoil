@@ -23,6 +23,7 @@ urlpatterns=[
    
     path('logout',views.logout, name='logout'),
     path('notify',views.notify, name='notify'),
+    path('invoRecepts',views.invoRecepts, name='invoRecepts'),
     path('markreadNotify',views.markreadNotify, name='markreadNotify'),
     path('darkMode',views.darkMode, name='darkMode'),
     path('settings',views.kuseti, name='settings'),

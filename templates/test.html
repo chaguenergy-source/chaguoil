@@ -1,77 +1,1008 @@
-{% extends 'index.html' %}
-{% load static %}
-{% block additional_css %}
-<link rel="stylesheet" href="{% static 'css/test.css' %}">
-{% endblock %}
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurekodi Matumizi</title>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/vendorView.css') }}"> -->
 
-{% block page_content %}
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --border-color: #dbe2ea;
+            --danger: #dc2626;
+            --muted: #64748b;
+            --bg: #f8fafc;
+        }
 
-<div class="stock-movement-report">
-    <h2 class="report-title">⛽ Ripoti ya Mienendo ya Stoo</h2>
+        * { box-sizing: border-box; }
 
-    <div class="summary-section card">
-        <h3>📊 Muhtasari wa Stoo</h3>
-        <div class="summary-grid">
-            <div class="summary-item">
-                <span class="label">Stoo ya Kuanzia:</span>
-                <span class="value petrol">2,091.91 Ltrs</span>
-                <span class="value diesel">915.36 Ltrs</span>
-            </div>
-            <div class="summary-item current-stock">
-                <span class="label">Stoo ya Sasa:</span>
-                <span class="value petrol">2,741.09 Ltrs</span>
-                <span class="value diesel">915.361 Ltrs</span>
-            </div>
-        </div>
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .recylebtn{
+                padding: 0 !important;
+                height: 20px;
+                width: 20px;
+                border-radius: 30%;
+                align-items: center;
+                justify-content: center;
+                display: inline-flex;
+                transition: background-color 0.2s, color 0.2s;
+                flex-shrink: 0; 
+                
+            }
+
+            .activeRecyle{
+                background-color: rgb(228, 167, 0);
+                /* color: white; */
+            }
+
+
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .header-top h1 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .btn-new,
+        .btn-add,
+        .btn-save {
+            border: none;
+            border-radius: 8px;
+            padding: 11px 16px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-new,
+        .btn-add {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-save {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        .btn-save:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.92rem;
+            font-weight: 600;
+            margin-bottom: 7px;
+        }
+
+        .required::after {
+            content: " *";
+            color: #dc2626;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            background: #fff;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 20;
+        }
+
+        .autocomplete-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover {
+            background: #eff6ff;
+        }
+
+        .selected-value {
+            background: #f8fafc;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 25px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #fafbfc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        th {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid #cbd5e1;
+            color: #475569;
+            font-weight: 700;
+        }
+
+        td {
+            padding: 14px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .trash-btn {
+            color: var(--danger);
+            cursor: pointer;
+            background: #fee2e2;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .trash-btn:hover {
+            background: #fecaca;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-top">
+        <h1>
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.2em" viewBox="0 -960 960 960" width="1.2em" fill="currentColor">
+                <path d="M320-120v-80h120v-164q-86-14-143-80t-57-156v-240h480v240q0 90-57 156t-143 80v164h120v80H320Zm0-520h320v-120H320v120Z"/>
+            </svg>
+            Kurekodi Matumizi
+        </h1>
     </div>
 
-    <div class="details-section">
-        <h3>📈 Mienendo ya Kina</h3>
-
-        <div class="inflow-card movement-card card">
-            <h4>Kuingia Stoo (Inflow)</h4>
-            <div class="movement-row header-row">
-                <span>Muamala</span>
-                <span class="petrol">Petroli</span>
-                <span class="diesel">Dizeli</span>
-            </div>
-            <div class="movement-row">
-                <span>Kupokelewa</span>
-                <span class="petrol value-in">0.00</span>
-                <span class="diesel value-in">0.00</span>
-            </div>
-            <div class="movement-row">
-                <span>Kutoka Stoo Nyingine</span>
-                <span class="petrol value-in">0.00</span>
-                <span class="diesel value-in">0.00</span>
-            </div>
-        </div>
-
-        <div class="outflow-card movement-card card">
-            <h4>Kutoka Stoo (Outflow)</h4>
-            <div class="movement-row header-row">
-                <span>Muamala</span>
-                <span class="petrol">Petroli</span>
-                <span class="diesel">Dizeli</span>
-            </div>
-            <div class="movement-row">
-                <span>Mauzo (Sales)</span>
-                <span class="petrol value-out">155.574</span>
-                <span class="diesel value-out">0.00</span>
-            </div>
-            <div class="movement-row zero-alert">
-                <span>Upotevu (Wastage)</span>
-                <span class="petrol value-out zero-value">0.00</span>
-                <span class="diesel value-out zero-value">0.00</span>
-            </div>
-            <div class="movement-row zero-alert">
-                <span>Matumizi ya Ndani</span>
-                <span class="petrol value-out zero-value">0.00</span>
-                <span class="diesel value-out zero-value">0.00</span>
-            </div>
-        </div>
-
+    <div class="text-right">
+        <button type="button" class="btn-new" onclick="openModal()">+ New Expense</button>
     </div>
+
+    <form id="expenseForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="required">Aina ya Matumizi</label>
+                <select id="expenseType" required>
+                    <option value="">-- Chagua --</option>
+                    <option value="supplies">Manunuzi ya Vifaa</option>
+                    <option value="allowance">Posho / Usafiri</option>
+                    <option value="fuel">Matumizi ya Mafuta</option>
+                    <option value="mishahara">Mishahara</option>
+                </select>
+
+                <div class="text-right" style="margin-top:-3px">
+                    <span
+                        type="button"
+                        id="recylebtnExpseType"
+                        class="recylebtn"
+                        data-targets="expenseType"
+                        title="Tumia tena Aina ya Matumizi">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group" id="expenseItemWrapper">
+                <label class="required">Jina la Tumizi</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="expenseItem" placeholder="Tafuta au chagua tumizi..." autocomplete="off">
+                    <div class="autocomplete-list hidden" id="expenseItemList"></div>
+                    <input type="hidden" id="expenseItemValue">
+                </div>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnExpenseItem"
+                        class="recylebtn"
+                        data-targets="expenseItem,expenseItemValue"
+                        title="Tumia tena Jina la Tumizi">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group" id="sourceWrapper">
+                <label class="required">Chanzo cha Malipo</label>
+                <select id="paymentSource">
+                    <option value="">-- Chagua --</option>
+                    <option value="headOffice">Ofisi Kuu (HO)</option>
+                    <option value="pumpAttendant">Pump Attendant</option>
+                </select>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnPaymentSource"
+                        class="recylebtn"
+                        data-targets="paymentSource"
+                        title="Tumia tena Chanzo cha Malipo">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="paymentAccountWrapper">
+                <label class="required">Payment Account</label>
+                <select id="paymentAccount">
+                    <option value="">-- Chagua Akaunti --</option>
+                    <option value="NMB">NMB</option>
+                    <option value="CRDB">CRDB</option>
+                    <option value="NBC">NBC</option>
+                    <option value="TPB">TPB</option>
+                    <option value="M-PESA">M-PESA</option>
+                    <option value="AIRTEL MONEY">AIRTEL MONEY</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="sourcePumpAttendantWrapper">
+                <label class="required">Chagua Pump Attendant</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="sourcePumpAttendant" placeholder="Tafuta pump attendant..." autocomplete="off">
+                    <div class="autocomplete-list hidden" id="sourcePumpAttendantList"></div>
+                    <input type="hidden" id="sourcePumpAttendantValue">
+                </div>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnSourcePumpAttendant"
+                        class="recylebtn"
+                        data-targets="sourcePumpAttendant,sourcePumpAttendantValue"
+                        title="Tumia tena Pump Attendant">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div id="fuelFields" class="form-row hidden">
+            <div class="form-group">
+                <label class="required">Dispenser</label>
+                <select id="dispenser">
+                    <option value="D1">Dispenser 1</option>
+                    <option value="D2">Dispenser 2</option>
+                </select>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnDispenser"
+                        class="recylebtn"
+                        data-targets="dispenser"
+                        title="Tumia tena Dispenser">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="required">Nozzle</label>
+                <select id="nozzle">
+                    <option value="N1">Nozzle 1 (Petrol)</option>
+                    <option value="N2">Nozzle 2 (Diesel)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="required">Lita (Qty)</label>
+                <input type="number" id="fuelQty" step="0.01" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label class="required">Kiasi (TZS)</label>
+                <input type="number" id="fuelAmount" placeholder="0.00">
+            </div>
+        </div>
+
+        <div id="commonFields" class="form-row hidden">
+            <div class="form-group">
+                <label class="required">Aliyekabidhiwa</label>
+                <select id="recipientType">
+                    <option value="staff">Staff (Wafanyakazi)</option>
+                    <option value="external">Mtu wa Nje (External)</option>
+                </select>
+                <div class="text-right" style="margin-top:6px">
+                    <span
+                        type="button"
+                        id="recylebtnRecipientType"
+                        class="recylebtn"
+                        data-targets="recipientType"
+                        title="Tumia tena Aliyekabidhiwa">
+                        <svg xmlns="http://www.w3.org/2000/svg" height=".8em" viewBox="0 -960 960 960" stroke-width="1" width=".8em" fill="currentColor">
+                            <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group" id="staffWrapper">
+                <label class="required">Chagua Staff</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="staffMember" placeholder="Tafuta staff..." autocomplete="off">
+                    <div class="autocomplete-list hidden" id="staffMemberList"></div>
+                    <input type="hidden" id="staffMemberValue">
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="externalWrapper">
+                <label class="required">Jina la Mpokeaji</label>
+                <input type="text" id="extName" placeholder="Jina kamili...">
+            </div>
+
+            <div class="form-group hidden" id="externalTinWrapper">
+                <label class="required">TIN Number</label>
+                <input type="text" id="extTin" placeholder="Namba ya Kodi (9 digits)" maxlength="9">
+            </div>
+
+            <div class="form-group hidden" id="externalNinWrapper">
+                <label>NIN (Namba ya Nida)</label>
+                <input type="text" id="extNin" placeholder="Namba ya Nida (opsional)">
+            </div>
+
+            <div class="form-group">
+                <label class="required">Kiasi (TZS)</label>
+                <input type="number" id="generalAmount" placeholder="0.00">
+            </div>
+        </div>
+
+        <div id="mishaharaFields" class="form-row hidden">
+            <div class="form-group" id="mishaharaStaffWrapper">
+                <label class="required">Chagua Staff</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="mishaharaStaff" placeholder="Tafuta staff..." autocomplete="off">
+                    <div class="autocomplete-list hidden" id="mishaharaStaffList"></div>
+                    <input type="hidden" id="mishaharaStaffValue">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="required">Kiasi (TZS)</label>
+                <input type="number" id="mishaharaAmount" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label class="required">Mwezi / Kipindi</label>
+                <input type="month" id="mishaharaPeriod">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Maelezo ya ziada</label>
+                <textarea id="description" rows="3" placeholder="Andika maelezo hapa..."></textarea>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="button" id="addBtn" class="btn-add">Ongeza Kwenye Orodha</button>
+            <button type="submit" id="saveAll" class="btn-save" disabled>Hifadhi Zote</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tumizi</th>
+                        <th>Mpokeaji / Chanzo</th>
+                        <th>Maelezo</th>
+                        <th>Kiasi (TZS)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </form>
 </div>
 
-{% endblock %}
+<script>
+    function openModal() {
+        document.getElementById('expenseType').focus();
+    }
+
+    const itemsByCat = {
+        supplies: [
+            'Kalamu',
+            'Karatasi',
+            'Printer Ink',
+            'Daftari',
+            'Sabuni',
+            'Vifaa vya Ofisi'
+        ],
+        allowance: [
+            'Posho ya Safari',
+            'Nauli',
+            'Chakula',
+            'Malazi',
+            'Msaada wa Kazi'
+        ],
+        fuel: [
+            'Petrol',
+            'Diesel'
+        ],
+        mishahara: []
+    };
+
+    const staffMembers = [
+        { id: '1', name: 'John Mushi' },
+        { id: '2', name: 'Asha Juma' },
+        { id: '3', name: 'Neema Joseph' },
+        { id: '4', name: 'Hamisi Ali' }
+    ];
+
+    const sourcePumpAttendants = [
+        { id: '1', name: 'PA - Musa' },
+        { id: '2', name: 'PA - Rehema' },
+        { id: '3', name: 'PA - Ally' }
+    ];
+
+    const expenseType = document.getElementById('expenseType');
+    const expenseItem = document.getElementById('expenseItem');
+    const expenseItemValue = document.getElementById('expenseItemValue');
+    const expenseItemWrapper = document.getElementById('expenseItemWrapper');
+    const expenseItemList = document.getElementById('expenseItemList');
+
+    const sourceWrapper = document.getElementById('sourceWrapper');
+    const paymentSource = document.getElementById('paymentSource');
+    const paymentAccountWrapper = document.getElementById('paymentAccountWrapper');
+    const paymentAccount = document.getElementById('paymentAccount');
+    const sourcePumpAttendantWrapper = document.getElementById('sourcePumpAttendantWrapper');
+    const sourcePumpAttendant = document.getElementById('sourcePumpAttendant');
+    const sourcePumpAttendantValue = document.getElementById('sourcePumpAttendantValue');
+
+    const fuelFields = document.getElementById('fuelFields');
+    const commonFields = document.getElementById('commonFields');
+    const mishaharaFields = document.getElementById('mishaharaFields');
+
+    const recipientType = document.getElementById('recipientType');
+    const staffWrapper = document.getElementById('staffWrapper');
+    const staffMember = document.getElementById('staffMember');
+    const staffMemberValue = document.getElementById('staffMemberValue');
+    const externalWrapper = document.getElementById('externalWrapper');
+    const externalTinWrapper = document.getElementById('externalTinWrapper');
+    const externalNinWrapper = document.getElementById('externalNinWrapper');
+    const extName = document.getElementById('extName');
+    const extTin = document.getElementById('extTin');
+    const extNin = document.getElementById('extNin');
+
+    const generalAmount = document.getElementById('generalAmount');
+    const dispenser = document.getElementById('dispenser');
+    const nozzle = document.getElementById('nozzle');
+    const fuelQty = document.getElementById('fuelQty');
+    const fuelAmount = document.getElementById('fuelAmount');
+
+    const mishaharaStaff = document.getElementById('mishaharaStaff');
+    const mishaharaStaffValue = document.getElementById('mishaharaStaffValue');
+    const mishaharaAmount = document.getElementById('mishaharaAmount');
+    const mishaharaPeriod = document.getElementById('mishaharaPeriod');
+
+    const description = document.getElementById('description');
+    const addBtn = document.getElementById('addBtn');
+    const saveAll = document.getElementById('saveAll');
+    const tableBody = document.getElementById('tableBody');
+    const expenseForm = document.getElementById('expenseForm');
+
+    const expenses = [];
+
+    function setupAutocomplete(inputEl, listEl, hiddenEl, data, labelKey = 'name') {
+        if (!inputEl || !listEl) return;
+
+        function renderList(filtered) {
+            listEl.innerHTML = '';
+
+            if (!filtered.length) {
+                listEl.classList.add('hidden');
+                return;
+            }
+
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.textContent = typeof item === 'string' ? item : item[labelKey];
+                div.addEventListener('click', () => {
+                    const label = typeof item === 'string' ? item : item[labelKey];
+                    const value = typeof item === 'string' ? item : (item.id ?? item[labelKey]);
+
+                    inputEl.value = label;
+                    if (hiddenEl) hiddenEl.value = value;
+                    inputEl.classList.add('selected-value');
+                    listEl.classList.add('hidden');
+                });
+                listEl.appendChild(div);
+            });
+
+            listEl.classList.remove('hidden');
+        }
+
+        inputEl.addEventListener('input', () => {
+            const q = inputEl.value.trim().toLowerCase();
+            if (hiddenEl) hiddenEl.value = '';
+            inputEl.classList.toggle('selected-value', !!inputEl.value.trim());
+
+            if (!q) {
+                listEl.classList.add('hidden');
+                listEl.innerHTML = '';
+                return;
+            }
+
+            const filtered = data.filter(item => {
+                const text = (typeof item === 'string' ? item : item[labelKey]).toLowerCase();
+                return text.includes(q);
+            });
+
+            renderList(filtered);
+        });
+
+        inputEl.addEventListener('focus', () => {
+            const q = inputEl.value.trim().toLowerCase();
+            const filtered = data.filter(item => {
+                const text = (typeof item === 'string' ? item : item[labelKey]).toLowerCase();
+                return !q || text.includes(q);
+            });
+            renderList(filtered);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!listEl.contains(e.target) && e.target !== inputEl) {
+                listEl.classList.add('hidden');
+            }
+        });
+    }
+
+    function updateSourceSpecificFields() {
+        const selectedSource = paymentSource.value;
+        paymentAccountWrapper.classList.toggle('hidden', selectedSource !== 'headOffice');
+        sourcePumpAttendantWrapper.classList.toggle('hidden', selectedSource !== 'pumpAttendant');
+    }
+
+    function updateRecipientFields() {
+        const isExternal = recipientType.value === 'external';
+        staffWrapper.classList.toggle('hidden', isExternal);
+        externalWrapper.classList.toggle('hidden', !isExternal);
+        externalTinWrapper.classList.toggle('hidden', !isExternal);
+        externalNinWrapper.classList.toggle('hidden', !isExternal);
+        
+        if(isExternal) {
+            document.getElementById('extName').value = '';
+            document.getElementById('extTin').value = '';
+            document.getElementById('extNin').value = '';
+        }
+    }
+
+    function updateExpenseTypeFields() {
+        const val = expenseType.value;
+        const items = itemsByCat[val] || [];
+
+        expenseItem.value = '';
+        expenseItemValue.value = '';
+        expenseItemList.innerHTML = '';
+        expenseItem.classList.remove('selected-value');
+
+        setupAutocomplete(
+            expenseItem,
+            expenseItemList,
+            expenseItemValue,
+            items.map(name => ({ id: name, name })),
+            'name'
+        );
+
+        const isFuel = val === 'fuel';
+        const isMishahara = val === 'mishahara';
+        const isEmpty = val === '';
+
+        fuelFields.classList.toggle('hidden', !isFuel);
+        commonFields.classList.toggle('hidden', isFuel || isMishahara || isEmpty);
+        mishaharaFields.classList.toggle('hidden', !isMishahara);
+        expenseItemWrapper.classList.toggle('hidden', isMishahara);
+
+        if (isFuel) {
+            sourceWrapper.classList.add('hidden');
+            paymentSource.value = '';
+            paymentAccount.value = '';
+            sourcePumpAttendant.value = '';
+            sourcePumpAttendantValue.value = '';
+        } else {
+            sourceWrapper.classList.remove('hidden');
+        }
+
+        updateSourceSpecificFields();
+        updateRecipientFields();
+    }
+
+    function render() {
+        tableBody.innerHTML = '';
+
+        expenses.forEach((expense, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${expense.item}</td>
+                <td>${expense.recipient}</td>
+                <td>${expense.desc}</td>
+                <td>${Number(expense.amount).toLocaleString('en-US')}</td>
+                <td><button type="button" class="trash-btn" data-index="${index}">Delete</button></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        saveAll.disabled = expenses.length === 0;
+    }
+
+    function getRecycleState() {
+        const state = {};
+        document.querySelectorAll('.recylebtn.activeRecyle').forEach(btn => {
+            const ids = (btn.dataset.targets || '')
+                .split(',')
+                .map(v => v.trim())
+                .filter(Boolean);
+
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) state[id] = el.value;
+            });
+        });
+        return state;
+    }
+
+    function restoreRecycleState(state) {
+        Object.entries(state).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.value = value;
+
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.classList.toggle('selected-value', !!el.value.trim());
+            }
+
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    }
+
+    function resetNonRecycledFields() {
+        expenseForm.reset();
+
+        expenseItemValue.value = '';
+        sourcePumpAttendantValue.value = '';
+        staffMemberValue.value = '';
+        mishaharaStaffValue.value = '';
+
+        expenseItem.classList.remove('selected-value');
+        staffMember.classList.remove('selected-value');
+        sourcePumpAttendant.classList.remove('selected-value');
+        mishaharaStaff.classList.remove('selected-value');
+
+        expenseItemList.innerHTML = '';
+        document.getElementById('staffMemberList').innerHTML = '';
+        document.getElementById('sourcePumpAttendantList').innerHTML = '';
+        document.getElementById('mishaharaStaffList').innerHTML = '';
+
+        updateExpenseTypeFields();
+    }
+
+    function validateCommonRecipient() {
+        if (recipientType.value === 'staff') {
+            if (!staffMember.value.trim()) {
+                alert('Chagua staff!');
+                return null;
+            }
+            return staffMember.value.trim();
+        }
+
+        if (!extName.value.trim()) {
+            alert('Andika jina la mpokeaji!');
+            return null;
+        }
+
+        if (!extTin.value.trim()) {
+            alert('Andika TIN Number!');
+            return null;
+        }
+
+        return `${extName.value.trim()} | TIN: ${extTin.value.trim()}${extNin.value.trim() ? ' | NIN: ' + extNin.value.trim() : ''}`;
+    }
+
+    setupAutocomplete(staffMember, document.getElementById('staffMemberList'), staffMemberValue, staffMembers);
+    setupAutocomplete(mishaharaStaff, document.getElementById('mishaharaStaffList'), mishaharaStaffValue, staffMembers);
+    setupAutocomplete(sourcePumpAttendant, document.getElementById('sourcePumpAttendantList'), sourcePumpAttendantValue, sourcePumpAttendants);
+
+    expenseType.addEventListener('change', updateExpenseTypeFields);
+    paymentSource.addEventListener('change', updateSourceSpecificFields);
+    recipientType.addEventListener('change', updateRecipientFields);
+
+    document.querySelectorAll('.recylebtn[data-targets]').forEach(btn => {
+        btn.style.cursor = 'pointer';
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            this.classList.toggle('activeRecyle');
+        });
+    });
+
+    addBtn.addEventListener('click', function () {
+        const recycleState = getRecycleState();
+        const type = expenseType.value;
+
+        if (!type) {
+            alert('Chagua aina ya matumizi!');
+            return;
+        }
+
+        if (type === 'mishahara') {
+            const period = mishaharaPeriod.value;
+            const amount = mishaharaAmount.value;
+            const selectedStaff = mishaharaStaff.value.trim();
+
+            if (!selectedStaff) {
+                alert('Chagua staff!');
+                return;
+            }
+
+            if (!amount || parseFloat(amount) <= 0) {
+                alert('Weka kiasi sahihi!');
+                return;
+            }
+
+            if (!period) {
+                alert('Chagua mwezi/kipindi cha mishahara!');
+                return;
+            }
+
+            if (!paymentSource.value) {
+                alert('Chagua chanzo cha malipo!');
+                return;
+            }
+
+            let sourceInfo = '';
+            if (paymentSource.value === 'headOffice') {
+                if (!paymentAccount.value) {
+                    alert('Chagua payment account ya Ofisi Kuu!');
+                    return;
+                }
+                sourceInfo = `HO - ${paymentAccount.value}`;
+            } else if (paymentSource.value === 'pumpAttendant') {
+                if (!sourcePumpAttendant.value.trim()) {
+                    alert('Chagua pump attendant wa chanzo cha malipo!');
+                    return;
+                }
+                sourceInfo = `Pump Attendant - ${sourcePumpAttendant.value.trim()}`;
+            }
+
+            expenses.push({
+                item: `Mishahara - ${period}`,
+                recipient: `${selectedStaff}${sourceInfo ? ' | ' + sourceInfo : ''}`,
+                desc: description.value.trim() || '-',
+                amount: parseFloat(amount)
+            });
+
+            render();
+            resetNonRecycledFields();
+            restoreRecycleState(recycleState);
+            return;
+        }
+
+        if (type === 'fuel') {
+            if (!dispenser.value || !nozzle.value) {
+                alert('Jaza dispenser na nozzle!');
+                return;
+            }
+
+            if (!fuelQty.value || parseFloat(fuelQty.value) <= 0) {
+                alert('Weka lita sahihi!');
+                return;
+            }
+
+            if (!fuelAmount.value || parseFloat(fuelAmount.value) <= 0) {
+                alert('Weka kiasi sahihi!');
+                return;
+            }
+
+            expenses.push({
+                item: `Fuel - ${nozzle.value}`,
+                recipient: `Dispenser: ${dispenser.value}`,
+                desc: `Qty: ${fuelQty.value} L${description.value.trim() ? ' | ' + description.value.trim() : ''}`,
+                amount: parseFloat(fuelAmount.value)
+            });
+
+            render();
+            resetNonRecycledFields();
+            restoreRecycleState(recycleState);
+            return;
+        }
+
+        if (!expenseItem.value.trim()) {
+            alert('Chagua jina la tumizi!');
+            return;
+        }
+
+        if (!paymentSource.value) {
+            alert('Chagua chanzo cha malipo!');
+            return;
+        }
+
+        let sourceInfo = '';
+        if (paymentSource.value === 'headOffice') {
+            if (!paymentAccount.value) {
+                alert('Chagua payment account!');
+                return;
+            }
+            sourceInfo = `HO - ${paymentAccount.value}`;
+        } else if (paymentSource.value === 'pumpAttendant') {
+            if (!sourcePumpAttendant.value.trim()) {
+                alert('Chagua pump attendant!');
+                return;
+            }
+            sourceInfo = `Pump Attendant - ${sourcePumpAttendant.value.trim()}`;
+        }
+
+        const recipient = validateCommonRecipient();
+        if (!recipient) return;
+
+        if (!generalAmount.value || parseFloat(generalAmount.value) <= 0) {
+            alert('Weka kiasi sahihi!');
+            return;
+        }
+
+        expenses.push({
+            item: expenseItem.value.trim(),
+            recipient: `${recipient} | ${sourceInfo}`,
+            desc: description.value.trim() || '-',
+            amount: parseFloat(generalAmount.value)
+        });
+
+        render();
+        resetNonRecycledFields();
+        restoreRecycleState(recycleState);
+    });
+
+    tableBody.addEventListener('click', function (e) {
+        const btn = e.target.closest('.trash-btn');
+        if (!btn) return;
+
+        const index = Number(btn.dataset.index);
+        expenses.splice(index, 1);
+        render();
+    });
+
+    expenseForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        if (!expenses.length) {
+            alert('Hakuna data ya kuhifadhi!');
+            return;
+        }
+
+        console.log('Expenses to save:', expenses);
+        alert('Data iko tayari kuhifadhiwa.');
+    });
+
+    updateExpenseTypeFields();
+    updateSourceSpecificFields();
+    updateRecipientFields();
+</script>
+
+</body>
+</html>

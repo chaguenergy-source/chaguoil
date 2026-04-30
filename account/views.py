@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from django.shortcuts import render,redirect
-from .models import UserExtend,PhoneMailConfirm,company,notifications,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
+from .models import UserExtend,PhoneMailConfirm, attachments,company,notifications,Interprise,InterprisePermissions,PaymentAkaunts, puAttachments, rekodiMatumizi,staff_akaunt_permissions
 # Create your views here.
 from django.contrib import messages
 from django.contrib.auth.models import User, auth
@@ -526,62 +526,6 @@ def UserProfile(request):
    return render(request,'settingsUserProfile.html',todo)
 
 
-# @login_required(login_url='login')
-# def upload_company_logo(request):
-#     if request.method == 'POST' and request.FILES.get('companyLogo'):
-#         try:
-#           todo = todoFunct(request)
-#           useri = todo['useri']
-#           logo = request.FILES['companyLogo']
-#           ext = logo.name.split('.')[-1].lower()
-#           allowed = ['jpg', 'jpeg', 'png', 'gif']
-#           data = {}
-
-#           if ext not in allowed:
-#               data = {
-#                   'success': False,
-#                   'eng': 'Invalid file type. Only images are allowed.',
-#                   'swa': 'Aina ya faili si sahihi. Ruhusiwa picha tu.'
-#               }
-#               return JsonResponse(data)
-              
-#           # 1. DELETE KAMA IPO
-#           if useri.company.logo:
-#               try:
-#                   # Hakikisha unatumia default_storage kwa ajili ya kufuta GCS
-#                   default_storage.delete(useri.company.logo.name)
-#               except Exception as e:
-#                   # Log kosa la kufuta, lakini usiache lizuie upload
-#                   print(f"Error deleting old logo: {e}")
-                  
-#                   pass
-              
-#           # 2. UPAKIAJI SAHIHI KWA GCS:
-#           filename = f"company_logos/{useri.company.id}_{int(time.time())}.{ext}"
-
-#           path = default_storage.save(filename, logo)
-
-#           # 3. Hifadhi Model
-#           useri.company.logo = path
-#           useri.company.save()
-
-#           data = {
-#               'success': True,
-#               'eng': 'Logo uploaded successfully.',
-#               'swa': 'Nembo imepakiwa kikamilifu.',
-#               'logo_url': default_storage.url(path)
-#           }
-#           return JsonResponse(data)
-#         except Exception as e:
-#           data = {
-#               'success': False,
-#               'eng': f'Error uploading logo: {e}',
-#               'swa': f'Hitilafu katika kupakia nembo: {e}'
-#           }
-#           return JsonResponse(data)
-#     else:
-#         # Ikiwa sio POST, bado unaweza kutaka kurudisha ukurasa wa logo
-#         return render(request, 'pagenotFound.html')
 
 @login_required(login_url='login')
 def userProfPicture(request):
@@ -601,8 +545,10 @@ def userProfPicture(request):
       }
       return JsonResponse(data)
 
-    gcs_storage = settings.GCS_STORAGE_INSTANCE
-
+    
+    gcs_storage = default_storage
+    if not settings.DEBUG:
+       gcs_storage = settings.GCS_STORAGE_INSTANCE
     try:
       # Delete old image if exists
       if useri.picha:
@@ -658,9 +604,10 @@ def upload_company_logo(request):
         # KUANGALIA AINA YA FAILI
         # storage_class_name = default_storage.__class__.__module__ + "." + default_storage.__class__.__name__
         # print(f"Storage class in use: {storage_class_name}")
-        gcs_storage = settings.GCS_STORAGE_INSTANCE
-
-
+        gcs_storage = default_storage
+        if not settings.DEBUG:
+           gcs_storage = settings.GCS_STORAGE_INSTANCE
+      
         if ext not in allowed:
             data = {
                 'success': False,
@@ -741,6 +688,67 @@ def darkMode(request):
       return render(request,'pagenotFound.html')
    
    
+@login_required(login_url='login')
+def invoRecepts(request):
+    todo = todoFunct(request)
+    useri = todo['useri']
+    kampuni = todo['kampuni']
+    pu_invo_recept = 0
+    exp_recepti = 0
+    if useri.admin or useri.pu:
+        puAttach = puAttachments.objects.filter(purchase__record_by__company=kampuni.id)
+        for attach in puAttach:
+              pu_recept = attachments.objects.filter(puAttach=attach.id,receipt=True)
+              pu_invo = attachments.objects.filter(puAttach=attach.id,puInvo=True)
+              pu_invo_recept += (1 if not pu_recept.exists() else 0)
+              pu_invo_recept += (1 if not pu_invo.exists() else 0)
+    expReceipts = rekodiMatumizi.objects.filter(by__company=kampuni.id,attachReceipt=True)
+    for exp in expReceipts:
+          exp_recept = attachments.objects.filter(expAttach=exp.id)
+          
+          exp_recepti += (1 if not exp_recept.exists() else 0)
+             
+    todo.update({
+        'pu_invo_recept':pu_invo_recept,
+        'exp_recepti':exp_recepti
+    })
+
+    return render(request,'notifyReceipt.html',todo)
+
+
+
+@login_required(login_url='login')
+def notify(request):
+    todo = todoFunct(request)
+    useri = todo['useri']
+    notify = notifications.objects.filter(usr=useri)
+    unrd = notify.filter(read=False).exists()
+    num = notify.count()
+    tsa = notify.order_by("-pk")
+
+    p=Paginator(tsa,15)
+    page_num =request.GET.get('page',1)
+       
+
+    try:
+          page = p.page(page_num)
+
+    except EmptyPage:
+         page= p.page(1)
+
+    pg_number = p.num_pages
+
+    todo.update({
+        'tr':page,
+        'isSales':True,
+        'p_num':page_num,
+        'pages':pg_number,
+        'bil_num':num,
+        'unrd':unrd
+    })
+
+    return render(request,'notifications.html',todo)
+
 @login_required(login_url='login')
 def notify(request):
     todo = todoFunct(request)

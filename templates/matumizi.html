@@ -28,14 +28,15 @@
 
     <div class="table-data">
         <div class="order">
-                   {% include 'headingPayments.html' %}   
+                   {% include 'matumiziHeading.html' %}   
+                   {% include 'matumiziNav.html' %}   
           <div class="head">
     
-        <div class=" my-4 card classic_div  overflow-hidden" style="width:100%;" >
+        <div class="my-4 expense-container" id="expensesRecPanel" style="width:100%;" >
         
         <!-- Header -->
-        <div class="header-section card-header p-4 rounded-top">
-            <h3 class="h3 fw-bold mb-1"> 
+        <div class="header-top">
+            <h3 class="panel-title"> 
                     <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="feather icon-svg feather-wine-outline">
                         <!-- Goblet pana na curve chini laini (cubic bezier) -->
                         <!-- M6 4h12 = mstari wa juu, C 18 10 16 12 12 12 = curve ya kushoto, C 8 12 6 10 6 4 = curve ya kulia -->
@@ -50,7 +51,7 @@
         </div>
         
         <!-- Expense Form -->
-        <div class="card-body p-4">
+        <div class="panel-body">
             <form id="expenseForm">
                 {% csrf_token %}
                 <!-- 1. GLOBAL SOURCE TYPE SELECTION -->
@@ -61,12 +62,20 @@
                             {% if useri.langSet == 0 %} Tarehe ya Matumizi {% else %} Expense Date {% endif %}
                             <span class="text-danger">*</span>
                         </label>
-                        <input type="date"
+                        <input type="datetime-local"
                                id="expenseDate"
                                name="expense_date"
                                class="form-control form-control-md"
-                           
                                required>
+
+                               <script>
+                                    // Set default value to current date and time
+                                    const now = new Date();
+                                    const localDatetime = moment().format('YYYY-MM-DDTHH:mm');
+                                    document.getElementById('expenseDate').setAttribute('max', localDatetime);
+                                </script>
+
+                               
                     </div>
 
                     <div class="col-12 col-md-6 ">
@@ -148,6 +157,71 @@
                                 <input type="text" id="expenseGroupName" name="expense_group_name" class="form-control" required>
                             </div>
 
+                              <!-- expense tax group -->
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-9">
+                                    <label for="taxGroup" class="brown" >{% if useri.langSet == 0 %}Kundi la Kodi{% else %}Tax Group{% endif %} <sup>*</sup> </label>
+                                    </div>
+                                    <div class="col-3 text-right">
+                                        <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" id="newTaxGroup" class="custom-control-input cursor-pointer" name="newTaxGroup" >
+                                        <label class="custom-control-label cursor-pointer" name="newTaxGroup"  for="newTaxGroup">
+                                            {% if useri.langSet == 0 %}Mpya{% else %}New{% endif %}
+                                        </label>
+                                        </div>
+                                </div>
+                                </div>
+
+                                <select class="form-control" id="taxGroup" name="taxGroup" >
+                                    <option value="" >-----</option>
+                                    {% for tax in taxtgroup %}
+                                        <option value="{{tax.id}}" >{{tax.name}}</option>
+                                    {% endfor %}
+                                </select>
+
+                                <div id="newTaxGroupPanel" hidden >
+                                    <label for="taxName" class="brown mt-3" >{% if useri.langSet == 0 %}Jina la Kodi{% else %}Tax Group Name{% endif %} <sup>*</sup> </label>
+                                    <input type="text" class="form-control" id="taxName" name="taxName" >
+
+                                    <label for="taxRate" class="brown mt-3" >{% if useri.langSet == 0 %}Kiwango cha Kodi (Asilimia) {% else %}Tax Rate (Percentage) {% endif %} <sup>*</sup> </label>
+                                    <div class="input-group">
+                                        <span class="input-group-append border">
+                                            <span class="input-group-text">%</span>
+                                        </span>
+                                        <input type="number" class="form-control" id="taxRate" step="0.01" name="taxRate" min="0" max="100" >   
+                
+                                    </div>
+                                
+                                </div>
+
+                                <!-- a script for new tax group -->
+                                <script>
+                                
+                                    $('#newTaxGroup').change(function() {
+                                        if($(this).is(':checked')) {
+                                            $('#newTaxGroupPanel').prop('hidden', false);
+                                            $('#taxGroup').prop('hidden', true);
+                                        } else {
+                                            $('#newTaxGroupPanel').prop('hidden', true);
+                                            $('#taxGroup').prop('hidden', false);
+                                        }
+                                    });
+                                </script>
+
+
+                            <div class="form-group mt-3">
+                                <div class="custom-control custom-checkbox cursor-pointer">
+                                    <input type="checkbox" id="compulsoryReceipt" class="custom-control-input cursor-pointer" name="compulsoryReceipt">
+                                    <label class="custom-control-label cursor-pointer" for="compulsoryReceipt">
+                                        {% if useri.langSet == 0 %}Hitaji Risiti{% else %}Compulsory Receipt{% endif %}
+                                    </label>
+                                </div>
+                            </div>
+
+                            </div>
+                            <hr>
+
                             <div class="form-group">
                                 <label for="fuelConsumptionCheckbox">
                                     {% if useri.langSet == 0 %} Je, matumizi yanahusisha matumizi ya mafuta? {% else %} Does the expense involve fuel consumption? {% endif %}
@@ -185,6 +259,10 @@
         </div>
     </div>
 
+    </div>
+    </div>
+    </div>
+
 
     {% endblock %}
           
@@ -196,4 +274,4 @@
           <script src="{% static 'js/rekodiMatumizi.js' %}"></script>
     {% endblock %}
 
-{% block payaccount %} active  {% endblock %}
+{% block expenses %} active  {% endblock %}

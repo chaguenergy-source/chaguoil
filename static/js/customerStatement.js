@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
   function filters(){
     const tFr = moment(fromDate.value).format();
-    const tTo = moment(toDate.value).format();
+    const tTo = moment(toDate.value).endOf('day').format();
     const st = parseInt(stationSelect.value) || 0;
     return {tFr,tTo,st};
   }
@@ -106,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function(){
     const url = `/salepurchase/customerStatementData`;
     const data = {data:{tFr,tTo, station: st,cust: custId},url};
     $('#loadMe').modal('show');
-    // console.log(filters());
     const sendIt = POSTREQUEST(data);
     sendIt.then(response => {
       // handle response here
@@ -124,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const now = moment();
         const firstDayThisMonth = now.clone().startOf('month');
         const lastDayThisMonth = now.clone().endOf('month');
+
         const firstDayLastMonth = now.clone().subtract(1, 'month').startOf('month');
         const lastDayLastMonth = now.clone().subtract(1, 'month').endOf('month');
         const firstDayThisYear = now.clone().startOf('year');

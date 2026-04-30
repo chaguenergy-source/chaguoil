@@ -1,6 +1,11 @@
 
 {% extends 'index.html' %}
+{% load static %}
+ {% block additional_css %}
+ <link rel="stylesheet" href="{% static 'css/staffView.css' %}">
+ {% endblock %}
 
+ {% load humanize %}
 {% block page_content %}
 
 <div class="head-title ">
@@ -22,55 +27,27 @@
         </ul>
     </div>
 
+
+    {% if useri.admin %}
+        <button data-toggle="modal" data-target="#addStaff" class="btn btn-default btn-download">
+            <!-- <i class='bx bxs-cloud-download' ></i> -->
+            <span class="text">+ {% if useri.langSet == 0 %}Ongeza Stafu{% else %}Add Member{% endif %}</span>
+        </button>
+    {% endif %}
+
 </div>    
 
 
 <div class="table-data">
     <div class="order">
-
-            <div   class="row mb-3">
-
-
-                <div class="col-6">
-                    <div class="btn-group float-end" role="group" aria-label="Staff Actions">
-                        <a href="#staff-details" class="btn btn-outline-primary btn-sm me-2">
-                            {% if useri.langSet == 0 %}Taarifa za Stafu{% else %}Staff Details{% endif %}
-                        </a>
-                        <a href="#payroll" class="btn btn-outline-secondary btn-sm">
-                            {% if useri.langSet == 0 %}Malipo ya Stafu{% else %}Payroll{% endif %}
-                        </a>
-                  </div>
-                </div>
-
-                <div class="col-6 text-right">
-                    <div class="btn-group float-end" role="group" aria-label="Staff Actions">
-                        <a role="button" data-toggle="modal" data-target="#addStaff" class="btn text-light btn-primary btn-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
-                                <path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 8v-1c0-2.21 3.58-3.5 8-3.5s8 1.29 8 3.5v1H8zm-2-7V9H3V7h3V4h2v3h3v2H8v3H6z"/>
-                            </svg>
-                            {% if useri.langSet == 0 %}Ongeza Stafu{% else %}Add Staff{% endif %}
-                        </a>
-                        <a href="/staffs/staffs" class="btn btn-secondary btn-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
-                                <circle cx="5" cy="7" r="2"/>
-                                <circle cx="5" cy="17" r="2"/>
-                                <circle cx="5" cy="12" r="2"/>
-                                <rect x="9" y="6" width="12" height="2" rx="1"/>
-                                <rect x="9" y="11" width="12" height="2" rx="1"/>
-                                <rect x="9" y="16" width="12" height="2" rx="1"/>
-                            </svg>
-                            {% if useri.langSet == 0 %}Stafu Wote{% else %}All Staffs{% endif %}
-                        </a>
-                    </div>
-                </div>
-
-
-            </div>        
-      <div class="head">
-
-            
-
-
+   {% include 'staffNav.html' %}
+              
+        <div class="head">
+        <h4>
+            <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24" style="fill: currentColor">
+                <path d="M15 11h7v2h-7zm1 4h6v2h-6zm-2-8h8v2h-8zM4 19h10v-1c0-2.757-2.243-5-5-5H7c-2.757 0-5 2.243-5 5v1h2zm4-7c1.995 0 3.5-1.505 3.5-3.5S9.995 5 8 5 4.5 6.505 4.5 8.5 6.005 12 8 12z"></path>
+            </svg>
+            {% if useri.langSet == 0 %}Usimamizi Staff{% else %}Staff Management{% endif %}</h4>
         <!-- <i class='bx bx-search' ></i>
         <i class='bx bx-filter' ></i> -->
       </div>
@@ -81,239 +58,402 @@
       {% csrf_token %}
 
 
-      <div class=" mx-1  border card">
-            <!-- <h5 >
-          
-                    <svg xmlns="http://www.w3.org/2000/svg" width="1.8em" height="1.8em" viewBox="0 0 24 24" style="fill: currentColor">
-                    <path d="M15 11h7v2h-7zm1 4h6v2h-6zm-2-8h8v2h-8zM4 19h10v-1c0-2.757-2.243-5-5-5H7c-2.757 0-5 2.243-5 5v1h2zm4-7c1.995 0 3.5-1.505 3.5-3.5S9.995 5 8 5 4.5 6.505 4.5 8.5 6.005 12 8 12z"></path></svg>
-            
-                 {% if useri.langSet == 0 %}Taarifa za Mhusika na Ruhusa {% else %}Staff Details & Permisions{% endif %}
-            
+    
 
-
-            </h5> -->
-
-        <div class="card-header  text-light">
-            <h5 class="mb-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
-                    <path d="M12 22c5.421 0 10-4.579 10-10S17.421 2 12 2 2 6.579 2 12s4.579 10 10 10zm0-2c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-                </svg>
-
-
-               {% if useri.langSet == 0 %}Taarifa za Mhusika na Ruhusa {% else %}Staff Details & Permisions{% endif %}
-            </h5>
-        </div>
-
-
-        <div class="row mt-3">
-            <div class="col-md-3">
-                <div class="user-img  ">
+<div class="mx-1 ">
+    <div class="row">
+        
+        <div class="col-lg-4 col-md-5">
+            <div class="card card-shadow text-center p-4">
+                <div class="mb-4">
+                    <div class="avatar-wrapper">
+                        <img src="/static/pics/userlogo.png" class="rounded-circle" alt="Mage John">
+                        {% if s.isActive %}
+                        <div class="online-dot"></div>
+                        {% endif %}
+                    </div>
+                </div>
+                <h4 class="mb-1 font-weight-bold">{{s.user.user.first_name |title }} {{s.user.user.last_name |title }}</h4>
+                <p class="text-muted small mb-3">{{s.user.user.email}}</p>
+                
+                <span class="badge badge-pill badge-outline-primary px-4 py-2 text-uppercase" style="font-size: 0.75rem; border: 1px solid;">{{s.user.cheo}}</span>
+                
+                <div class="border-top mt-4 pt-4 text-left">
+                    <h6 class="text-uppercase text-muted font-weight-bold mb-3 small">{% if useri.langSet == 0 %}Taarifa Muhimu {% else %} Staff info {% endif %}</h6>
                     
+                    <dl class="row mb-0 small">
+                        <dt class="col-sm-5 text-muted">{% if useri.langSet == 0 %}Simu{% else %}Phone {% endif %}</dt>
+                        <dd class="col-sm-7 font-weight-bold">{{s.user.phone}}</dd>
+                        
+                        <dt class="col-sm-5 text-muted">
+                            {% if useri.langSet == 0 %}Aina{% else %}Staff Type {% endif %}
+                        </dt>
+                        <dd class="col-sm-7 font-weight-bold">
+                            
+                            {% if s.user.permanent  %}
+                                 {% if s.user.langSet == 0  %} Mwajiwa wa Kudumu {% else %} Permanent Staff  {% endif %}
+                             {% endif %}   
+                             {% if s.user.labor %}
+                                 {% if s.user.langSet == 0  %} Kibarua{% else %} Casual labor  {% endif %}
+                             {% endif %}
+                             {% if s.user.party_time %}
+                                 {% if s.user.langSet == 0  %} Kibarua wa Muda {% else %} Part-time Worker {% endif %}
+                             {% endif %}
+                        </dd>
+                        
+                        <dt class="col-sm-5 text-muted">
+                            {% if useri.langSet == 0 %}Anwani{% else %}Address {% endif %}
+                        </dt>
+                        <dd class="col-sm-7 font-weight-bold">{{s.user.address}}</dd>
+                        <dt class="col-sm-5 text-muted">
+                            TIN
+                        </dt>
+                            <dd class="col-sm-7 font-weight-bold">{{s.user.tin}}</dd>
+                            <dt class="col-sm-5 text-muted">NIN</dt>
+                            <dd class="col-sm-7 font-weight-bold">{{s.user.nin}}</dd>
+                    </dl>
+                </div>
+                
+                <div class="mt-4 pt-3 border-top">
+                    <button class="btn btn-outline-secondary btn-block btn-sm" data-toggle="modal"
+                        data-target="#editStaffModal" >
+                          {% if useri.langSet == 0 %}Hariri{% else %}Edit {% endif %}
 
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12em" height="12em" viewBox="0 0 24 24" style="fill: currentColor">
-                        <path d="M15 11h7v2h-7zm1 4h6v2h-6zm-2-8h8v2h-8zM4 19h10v-1c0-2.757-2.243-5-5-5H7c-2.757 0-5 2.243-5 5v1h2zm4-7c1.995 0 3.5-1.505 3.5-3.5S9.995 5 8 5 4.5 6.505 4.5 8.5 6.005 12 8 12z"></path></svg>
-                    
+                    </button>
+                    <!-- <button class="btn btn-primary btn-block btn-sm">Chapisha Wasifu (Print)</button> -->
                 </div>
             </div>
-            <div class="col-md-9 ">
-                <ul class="list-unstyled mx-3 mx-lg-1 classic_div">
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
-                        <u class="bluePrint">{{s.user.user.first_name |title }} {{s.user.user.last_name |title }}</u> 
-                    {% if useri.admin %}
-                    <a role="button"
-                        class="btn btn-light text-primary btn-sm"
-                        style="margin-left:6px"
-                        data-toggle="modal"
-                        data-target="#editStaffModal"
-                        data-staff-id="{{ s.id }}"
-                        aria-label="{% if useri.langSet == 0 %}Hariri{% else %}Edit{% endif %}"
-                        title="{% if useri.langSet == 0 %}Hariri{% else %}Edit{% endif %}">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                      
-                   </a>
-                    {% endif %}
+        </div>
+        
+        <div class="col-lg-8 col-md-7">
+            <div class="card card-shadow p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0 font-weight-bold text-dark">
+                        {% if useri.langSet == 0 %}Ruhusa za Mhusika{% else %}Staff Permissions{% endif %}
+                    </h5>
+                   
+                </div>
+                
+                <div class="input-group mb-4">
+                    <input type="text" class="form-control form-control-search" id="searchInput" placeholder=" {% if useri.langSet == 0 %}Tafuta ruhusa hapa (mfano: Mauzo, Bei)...{% else %}Search permissions here (e.g., Sales, Price)...{% endif %}" aria-label="Search permissions">
+                    <div class="input-group-append">
+                        <span class="input-group-text bg-white border-0">
+                            <svg class="permission-icon m-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                        </span>
                     </div>
-                    </li>
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Cheo{% else %}Position{% endif %}:</div>
-                        <div class="col-6 col-lg-9">{{s.cheo |title }}</div>
-                    </li>
-
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Anaruhusa{% else %}Allow{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
-
-                            <label class="switch">
-                                {% if s.Allow %}
-                                <input type="checkbox" checked data-allow=1 >
-                                {% else %}
-                                <input type="checkbox" data-allow=1 >
-                                {% endif %}
-                                <span class="slider"></span>
-                            </label>
-
-                        </div>
-                    </li>
-
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Usimamizi{% else %}Manage{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
+                </div>
+                
+                <form id="permissionForm">
+                    <div class="row">
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-uppercase text-muted font-weight-bold mb-3 small">Core Operations</h6>
                             
-                            <label class="switch">
-                                {% if s.fullcontrol %}
-                                <input type="checkbox" checked data-manage=1 >
-                                {% else %}  
-                                    <input type="checkbox" data-manage=1 >
-                                {% endif %}    
+                            <div class="custom-control custom-switch  permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                
+                                 <input type="checkbox" class="custom-control-input" id="perm_pump" {% if s.Allow %}checked {% endif %} data-allow=1 >
 
-                                <span class="slider"></span>
-                            </label>
+                                <label class="custom-control-label w-100" for="perm_pump">
+                                    <!-- <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm0 17.25a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15ZM10.5 7.5a1.5 1.5 0 1 1 3 0v4.25a.75.75 0 0 0 1.5 0v-4.25a3 3 0 1 0-6 0v4.25a.75.75 0 0 0 1.5 0v-4.25Z" clip-rule="evenodd" /></svg> -->
+                                    <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" /></svg>
+                                    <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Anaruhusa{% else %}Allow{% endif %}</span>
+                                        <span class="permission-desc">
+                                        {% if useri.langSet == 0 %}Ruhusu mhusika kuingia kwenye mfumo {% else %}Allow the user to access the system{% endif %}.
+                                            </span>
+                                    </div>
+                                </label>
+                            </div>
 
-                        </div>
-                    </li>
+                            <div class="custom-control custom-switch  permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                
+                                <input type="checkbox" class="custom-control-input" id="general_allow" {% if s.ceo %}checked{% endif %} data-ceo=1 >
+                                <label class="custom-control-label w-100" for="general_allow">
+                                
+                                    <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"  fill="currentColor">
+                                       <path d="M120-160v-112q0-34 17.5-62.5T184-378q62-31 126-46.5T440-440q20 0 40 1.5t40 4.5q-4 58 21 109.5t73 84.5v80H120ZM760-40l-60-60v-186q-44-13-72-49.5T600-420q0-58 41-99t99-41q58 0 99 41t41 99q0 45-25.5 80T790-290l50 50-60 60 60 60-80 80ZM440-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm328.5 68.5Q780-423 780-440t-11.5-28.5Q757-480 740-480t-28.5 11.5Q700-457 700-440t11.5 28.5Q723-400 740-400t28.5-11.5Z"/>
+                                    </svg>
+                                    <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Ruhusu vituo Vyote{% else %}General Allowed{% endif %}</span>
+                                        <span class="permission-desc">{% if useri.langSet == 0 %}Usimamizi na kurekodi shughuli za kituo.{% else %}Manage and record station activities.{% endif %}</span>
+                                    </div>
+                                </label>
+                            </div>   
 
-                    {% if not general %}
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Muhusika wa pampu{% else %}Pump Attendant{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
+                            <div class="custom-control custom-switch  permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                
+                                <input type="checkbox" class="custom-control-input" id="perm_inventory" {% if s.fullcontrol %}checked{% endif %} data-manage=1 >
+                                <label class="custom-control-label w-100" for="perm_inventory">
+                                    <!-- <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M11.53 2.22a.75.75 0 0 1 .94 0l8.25 6.18a.75.75 0 0 1 .31.604v10.8a1.5 1.5 0 0 1-1.5 1.5h-15a1.5 1.5 0 0 1-1.5-1.5v-10.8a.75.75 0 0 1 .31-.604L11.53 2.22Zm7.11 7.28H14.25v2.25h1.8a.75.75 0 0 1 0 1.5h-1.8v2.25h3.09v-6Zm-6 0H12.75v2.25H12.75a.75.75 0 0 1 0 1.5H12.75v2.25H12.75v-6ZM5.36 9.5h3.09v6h-3.09v-6Z" /></svg> -->
+                                    <!-- <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M11.484 2.686a.75.75 0 0 0-.968 0l-8.25 6.102a.75.75 0 0 0-.266.586V19.5a3 3 0 0 0 3 3h13.5a3 3 0 0 0 3-3V9.374a.75.75 0 0 0-.266-.586l-8.25-6.102Zm1.516 1.652V6.75a.75.75 0 0 1-.75.75H12a.75.75 0 0 1-.75-.75V4.338L3.904 9.5H20.096l-7.096-5.162ZM12 13.5a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Zm0 1.5a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" clip-rule="evenodd" /></svg> -->
+                             
+                                    <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor">
+                                    <path d="m640-120-12-60q-12-5-22.5-10.5T584-204l-58 18-40-68 46-40q-2-14-2-26t2-26l-46-40 40-68 58 18q11-8 21.5-13.5T628-460l12-60h80l12 60q12 5 22.5 11t21.5 15l58-20 40 70-46 40q2 12 2 25t-2 25l46 40-40 68-58-18q-11 8-21.5 13.5T732-180l-12 60h-80ZM80-160v-112q0-33 17-62t47-44q51-26 115-44t141-18h14q6 0 12 2-29 72-24 143t48 135H80Zm656.5-103.5Q760-287 760-320t-23.5-56.5Q713-400 680-400t-56.5 23.5Q600-353 600-320t23.5 56.5Q647-240 680-240t56.5-23.5ZM287-527q-47-47-47-113t47-113q47-47 113-47t113 47q47 47 47 113t-47 113q-47 47-113 47t-113-47Z"/>
+                                    </svg>
+                                    <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Usimamizi Kituo{% else %}Station Manager{% endif %}</span>
+                                        <span class="permission-desc">{% if useri.langSet == 0 %}Usimamizi na kurekodi shughuli za kituo.{% else %}Manage and record station activities.{% endif %}</span>
+                                    </div>
+                                </label>
+                            </div>
+
                             
-                            <label class="switch">
-                                {% if s.pumpIncharge and s.Interprise == shell %}
-                                <input type="checkbox" checked data-incharge=1 >
-                                {% else %}  
-                                    <input type="checkbox" data-incharge=1 >
-                                {% endif %}    
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                
+                                <input type="checkbox"class="custom-control-input" id="perm_tanks" {% if s.user.tankSup %}checked{% endif %} data-sup=1 >
+                                <label class="custom-control-label w-100" for="perm_tanks">
 
-                                <span class="slider"></span>
-                            </label>
+                                 
+                                    <svg class="permission-icon mr-3"  xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor">
+                                       <path d="M160-120q-17 0-28.5-11.5T120-160q0-17 11.5-28.5T160-200h40v-240h-40q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h40v-240h-40q-17 0-28.5-11.5T120-800q0-17 11.5-28.5T160-840h640q17 0 28.5 11.5T840-800q0 17-11.5 28.5T800-760h-40v240h40q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440h-40v240h40q17 0 28.5 11.5T840-160q0 17-11.5 28.5T800-120H160Zm405-234.5q35-34.5 35-83.5 0-39-22.5-67T480-620q-75 86-97.5 114.5T360-438q0 49 35 83.5t85 34.5q50 0 85-34.5Z"/>
+                                    </svg>
+                                  <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Usimamizi Matanki{% else %}Tanks Supervisor{% endif %}</span>
+                                        <span class="permission-desc">{% if useri.langSet == 0 %}Kusimamia kuhamisha/kupima mafuta kwenye matanki.{% else %}Supervise the transfer/dipping of fuel in tanks.{% endif %}</span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                
+                                <input type="checkbox"class="custom-control-input" id="perm_tanks" {% if s.user.op %}checked{% endif %} data-op=1 >
+                                <label class="custom-control-label w-100" for="perm_tanks">
+
+                                 
+
+                                 <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor" class="permission-icon mr-3">
+                                    <path d="M155-195q-35-35-35-85H40v-440q0-33 23.5-56.5T120-800h560v160h120l120 160v200h-80q0 50-35 85t-85 35q-50 0-85-35t-35-85H360q0 50-35 85t-85 35q-50 0-85-35Zm113.5-56.5Q280-263 280-280t-11.5-28.5Q257-320 240-320t-28.5 11.5Q200-297 200-280t11.5 28.5Q223-240 240-240t28.5-11.5Zm480 0Q760-263 760-280t-11.5-28.5Q737-320 720-320t-28.5 11.5Q680-297 680-280t11.5 28.5Q703-240 720-240t28.5-11.5ZM680-440h170l-90-120h-80v120Z"/>
+                                 </svg>
+                                  <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Usafirishaji Mafuta{% else %}Fuel Transfer{% endif %}</span>
+                                        <span class="permission-desc">
+                                           {% if useri.langSet == 0 %}Mhusika katika usafirishaji mafuta.{% else %}Responsible for fuel transfer.{% endif %}
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                
+                                <input type="checkbox"class="custom-control-input" id="cash_deposit" {% if s.user.acc_supv %}checked{% endif %} data-dsup=1 >
+                                <label class="custom-control-label w-100" for="cash_deposit">
+
+                                     <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960" fill="currentColor">
+                                      <path d="M120-160q-33 0-56.5-23.5T40-240v-440h80v440h680v80H120Zm160-160q-33 0-56.5-23.5T200-400v-320q0-33 23.5-56.5T280-800h560q33 0 56.5 23.5T920-720v320q0 33-23.5 56.5T840-320H280Zm80-80q0-33-23.5-56.5T280-480v80h80Zm400 0h80v-80q-33 0-56.5 23.5T760-400Zm-200-40q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM280-640q33 0 56.5-23.5T360-720h-80v80Zm560 0v-80h-80q0 33 23.5 56.5T840-640Z"/>
+                                    </svg>
+
+                                  <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Usimamizi Kudipositi{% else %}Cash Deposit Supervisor{% endif %}</span>
+                                        <span class="permission-desc">{% if useri.langSet == 0 %}Kusimamia na kupokea pesa za kituo .{% else %}Supervise and receive cash deposits.{% endif %}</span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                
+                                <input type="checkbox"class="custom-control-input" id="pump_attend" {% if s.pumpIncharge and s.Interprise == shell %}checked{% endif %} data-incharge=1 >
+                                <label class="custom-control-label w-100" for="pump_attend">
+
+                                    <!-- <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm0 16.5a6.75 6.75 0 1 0 0-13.5 6.75 6.75 0 0 0 0 13.5Zm3-9a.75.75 0 0 0-.75.75v3.75a.75.75 0 0 0 .75.75h1.5a.75.75 0 0 0 .75-.75v-3.75a.75.75 0 0 0-.75-.75h-1.5Zm-4.5.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75v-3.75ZM7.5 9.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75h1.5a.75.75 0 0 0 .75-.75v-3.75a.75.75 0 0 0-.75-.75h-1.5Z" clip-rule="evenodd" /></svg> -->
+                                <!-- <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm0 17.25a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15ZM10.5 7.5a1.5 1.5 0 1 1 3 0v4.25a.75.75 0 0 0 1.5 0v-4.25a3 3 0 1 0-6 0v4.25a.75.75 0 0 0 1.5 0v-4.25Z" clip-rule="evenodd" /></svg> -->
+                                  <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor">
+                                    <path d="M160-120v-640q0-33 23.5-56.5T240-840h240q33 0 56.5 23.5T560-760v280h40q33 0 56.5 23.5T680-400v180q0 17 11.5 28.5T720-180q17 0 28.5-11.5T760-220v-288q-9 5-19 6.5t-21 1.5q-42 0-71-29t-29-71q0-32 17.5-57.5T684-694l-84-84 42-42 148 144q15 15 22.5 35t7.5 41v380q0 42-29 71t-71 29q-42 0-71-29t-29-71v-200h-60v300H160Zm80-440h240v-200H240v200Zm480 0q17 0 28.5-11.5T760-600q0-17-11.5-28.5T720-640q-17 0-28.5 11.5T680-600q0 17 11.5 28.5T720-560Z"/>
+                                 </svg>
+                                  <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Muhusika wa pampu{% else %}Pump Attendant{% endif %}</span>
+                                        <span class="permission-desc">{% if useri.langSet == 0 %}Kuhudumia wateja kwenye pump .{% else %}Attend to customers at the pump.{% endif %}</span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                
+                                <input type="checkbox"class="custom-control-input" id="loan" {% if s.user.kopesheka %}checked{% endif %} data-loan=1 >
+                                <label class="custom-control-label w-100" for="loan">
+
+                                <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor" class="permission-icon mr-3">
+                                    <path d="M240-360h280l80-80H240v80Zm0-160h240v-80H240v80Zm-80-160v400h280l-80 80H80v-560h800v120h-80v-40H160Zm756 212q5 5 5 11t-5 11l-36 36-70-70 36-36q5-5 11-5t11 5l48 48ZM520-120v-70l266-266 70 70-266 266h-70ZM160-680v400-400Z"/>
+                                </svg>
+                                  <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Anakopesheka{% else %}Loan Eligible Staff{% endif %}</span>
+                                        <span class="permission-desc">{% if useri.langSet == 0 %}Mhusika katika kukopesheka kwa kampuni, ambapo pesa zinaweza kukatwa kwenye mshara.{% else %}Staff Eligible for a staff Loans  , where amounts can be deducted from salary.{% endif %}</span>
+                                    </div>
+                                </label>
+                            </div>
 
                         </div>
-                    </li>
-                    {% endif %}
+                        
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-uppercase text-muted font-weight-bold mb-3 small">Stock & Cash</h6>
+                            
+                            {% if not general %}
+                                <div class="custom-control is_active custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                    
+                                    <input type="checkbox" class="custom-control-input" id="is_active"  {% if isActive %}checked {% endif %}  data-active=1 >
+                                    <label class="custom-control-label w-100" for="is_active">
+                                    
+                                    <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor" class="permission-icon mr-3">
+                                        <path d="m438-338 226-226-57-57-169 169-84-84-57 57 141 141Zm42 258q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Z"/>
+                                        </svg>
+                                    
+                                    <div>
+                                            <span class="permission-title">
+                                                {% if useri.langSet == 0 %}Mtumiaji Anayeweza Kutumika{% else %}Is active Staff{% endif %}
+                                            </span>
+                                            <span class="permission-desc">{% if useri.langSet == 0 %}Stafu anayeendelea na kazi.{% else %}Active staff member.{% endif %}</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                
+                                 <input type="checkbox" class="custom-control-input" id="perm_expenses"  {% if s.user.exp and s.Allow %}checked {% endif %} {% if not s.Allow %}disabled{% endif %} data-exp=1 >
+                                <label class="custom-control-label w-100" for="perm_expenses">
+                                
+                                <svg class="permission-icon mr-3"  xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor">
+                                    <path d="M320-120v-80h120v-164q-86-14-143-80t-57-156v-240h480v240q0 90-57 156t-143 80v164h120v80H320Zm0-520h320v-120H320v120Z"/>
+                                </svg>
 
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Ruhusa General{% else %}General Allowed{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
+                               
+                                
+                                <div>
+                                        <span class="permission-title">
+                                            {% if useri.langSet == 0 %}Rekodi Matumizi kwa Ujumla{% else %}Record General Expenses{% endif %}
+                                        </span>
+                                        <span class="permission-desc">{% if useri.langSet == 0 %}Kurekodi matumizi ya ofisi.{% else %}Record office expenses.{% endif %}</span>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                <input type="checkbox"  class="custom-control-input" id="perm_price" {% if s.user.pu and s.user.ceo %}checked{% endif %} {% if not s.user.ceo %}disabled{% endif %} data-pu=1 >
+                                <label class="custom-control-label w-100" for="perm_price">
+                                    <!-- <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM18.75 6.75a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM5.25 10.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM13.5 18a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" /><path fill-rule="evenodd" d="M3.75 3a.75.75 0 0 0-.75.75v16.5c0 .414.336.75.75.75h16.5a.75.75 0 0 0 .75-.75V3.75a.75.75 0 0 0-.75-.75H3.75Zm13.5 7.5a3 3 0 1 1-6 0v-4.5a3 3 0 1 1 6 0v4.5Zm-9 6a3 3 0 1 0 0-6v6Z" clip-rule="evenodd" /></svg> -->
+                                    <svg class="permission-icon mr-3"  xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"  fill="currentColor">
+                                       <path d="M240-80q-50 0-85-35t-35-85v-120h120v-560l60 60 60-60 60 60 60-60 60 60 60-60 60 60 60-60 60 60 60-60v680q0 50-35 85t-85 35H240Zm480-80q17 0 28.5-11.5T760-200v-560H320v440h360v120q0 17 11.5 28.5T720-160ZM360-600v-80h240v80H360Zm0 120v-80h240v80H360Zm320-120q-17 0-28.5-11.5T640-640q0-17 11.5-28.5T680-680q17 0 28.5 11.5T720-640q0 17-11.5 28.5T680-600Zm0 120q-17 0-28.5-11.5T640-520q0-17 11.5-28.5T680-560q17 0 28.5 11.5T720-520q0 17-11.5 28.5T680-480Z"/>
+                                    </svg>
+                                    <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Onesha Manunuzi{% else %}View Fuel Purchases{% endif %}</span>
+                                        <span class="permission-desc">
+                                            {% if useri.langSet == 0 %}Onesha rekodi za manunuzi ya mafuta.{% else %}View fuel purchase records.{% endif %}
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
 
-                            <label class="switch">
-                                {% if s.user.ceo %}
-                                <input type="checkbox" checked data-ceo=1 >
-                                {% else %}
-                                <input type="checkbox" data-ceo=1 >
-                                {% endif %}
-                                <span class="slider"></span>
-                            </label>
+
+                            
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                <input type="checkbox"  class="custom-control-input" id="add_custmer" {% if s.user.cust and s.Allow %}checked{% endif %} {% if not s.Allow %}disabled{% endif %} data-cust=1 >
+                                <label class="custom-control-label w-100" for="add_custmer">
+                                    <!-- <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM18.75 6.75a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM5.25 10.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM13.5 18a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" /><path fill-rule="evenodd" d="M3.75 3a.75.75 0 0 0-.75.75v16.5c0 .414.336.75.75.75h16.5a.75.75 0 0 0 .75-.75V3.75a.75.75 0 0 0-.75-.75H3.75Zm13.5 7.5a3 3 0 1 1-6 0v-4.5a3 3 0 1 1 6 0v4.5Zm-9 6a3 3 0 1 0 0-6v6Z" clip-rule="evenodd" /></svg> -->
+                                    <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor" class="permission-icon mr-3">
+                                       <path d="M720-400v-120H600v-80h120v-120h80v120h120v80H800v120h-80ZM247-527q-47-47-47-113t47-113q47-47 113-47t113 47q47 47 47 113t-47 113q-47 47-113 47t-113-47ZM40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Z"/>
+                                    </svg>
+                                    <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Ongeza Mteja{% else %}Add Customer{% endif %}</span>
+                                        <span class="permission-desc">
+                                            {% if useri.langSet == 0 %}Ongeza rekodi za mteja.{% else %}Add customer records.{% endif %}
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                <input type="checkbox"  class="custom-control-input" id="add_payee" {% if s.user.payee and s.Allow %}checked{% endif %} {% if not s.Allow %}disabled{% endif %} data-payee=1 >
+                                <label class="custom-control-label w-100" for="add_payee">
+                                    <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor" class="permission-icon mr-3">
+                                       <path d="M405-160H160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v240H771L598-307 484-419 315-250l90 90Zm193 80L428-250l56-56 114 112 226-226 56 58L598-80ZM160-640v160h640v-160H160Z"/>
+                                    </svg>
+                                    <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Rekodi Mishahara{% else %}Add Salary Records{% endif %}</span>
+                                        <span class="permission-desc">
+                                            {% if useri.langSet == 0 %}Ongeza rekodi za mishahara.{% else %}Add salary records.{% endif %}
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Microfinance recods permission -->
+                            <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm bg-white mb-3">
+                                <input type="checkbox"  class="custom-control-input" id="add_fn" {% if s.user.finance and s.Allow %}checked{% endif %} {% if not s.Allow %}disabled{% endif %} data-fn=1 >
+                                <label class="custom-control-label w-100" for="add_fn">
+                                 
+                                       <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="currentColor" class="permission-icon mr-3">
+                                        <path d="M470-320h29v-32q28-4 47.5-23t19.5-49q0-26-20-43.5T500-496v-74q10 3 16.5 10t9.5 17l36-15q-7-21-24-33.5T500-608v-32h-30v31q-28 3-47.5 20.5T403-542q0 27 20.5 45t46.5 29v79q-16-5-27-17t-15-28l-35 15q8 28 28 46t49 22v31Zm30-70v-66q11 5 19.5 12t8.5 21q0 16-8 22.5T500-390Zm-30-119q-11-5-20-12t-9-21q0-14 9-20.5t20-8.5v62ZM320-200q-117 0-198.5-81.5T40-480q0-117 81.5-198.5T320-760h320q117 0 198.5 81.5T920-480q0 117-81.5 198.5T640-200H320Z"/>
+                                        </svg>
+                                    <div>
+                                        <span class="permission-title">{% if useri.langSet == 0 %}Rekodi Mikopo{% else %}Add Microfinance Records{% endif %}</span>
+                                        <span class="permission-desc">
+                                            {% if useri.langSet == 0 %}Ongeza rekodi za mikopo kwa staff.{% else %}Add staff Microfinance records.{% endif %}
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- <div class="custom-control custom-switch permission-item p-3 border rounded shadow-sm permission-danger bg-white mb-3">
+                                <input type="checkbox" class="custom-control-input" id="perm_delete">
+                                <label class="custom-control-label w-100" for="perm_delete">
+                                    <svg class="permission-icon mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.9h3.368c1.603 0 2.816 1.336 2.816 2.9Zm-6.826 0c0-.83.656-1.4 1.4-1.4h3.368c.744 0 1.4.57 1.4 1.4v.281c-.992-.08-1.996-.125-3-.125s-2.008.045-3 .125v-.281Zm6.05 13.52 1.005-13.07a.75.75 0 0 0-.749-.808H5.251a.75.75 0 0 0-.749.808L5.507 18a1.5 1.5 0 0 0 1.496 1.385h10.007a1.5 1.5 0 0 0 1.496-1.385Z" clip-rule="evenodd" /></svg>
+                                    <div>
+                                        <span class="permission-title">Delete Records (Futa)</span>
+                                        <span class="permission-desc text-danger font-italic small">Athari: Kufuta kabisa miamala kwenye mfumo.</span>
+                                    </div>
+                                </label>
+                            </div> -->
+
 
                         </div>
-                    </li>
+
+                    </div>
                     
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Onesha Manunuzi{% else %}View Purchases{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
-                            
-                            <label class="switch">
-                                {% if s.user.pu and s.user.ceo %}
-                                <input type="checkbox" checked data-pu=1 >
-                                {% else %}
-                                {% if s.user.ceo %}
-                                    <input type="checkbox" data-pu=1 >
-                                {% else %}  
-                                    <input type="checkbox" data-pu=1 disabled >
-                                {% endif %}
-                                {% endif %}
-                                <span class="slider"></span>
-                            </label>
+                
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
 
-                        </div>
-                    </li>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const permissionItems = document.querySelectorAll('.permission-item');
+        const noResults = document.getElementById('noResults');
 
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Ongeza Mteja{% else %}Add Customer{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
-                            
-                            <label class="switch">
-                                {% if s.user.cust %}
-                                       <input type="checkbox" checked data-cust=1 >
-                                {% else %}
-                                    <input type="checkbox" data-cust=1  >
-                                {% endif %}
-                                <span class="slider"></span>
-                            </label>
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            let hasVisibleItems = false;
 
-                        </div>
-                    </li>
+            permissionItems.forEach(item => {
+                // Tunatafuta kwenye jina la ruhusa na maelezo yake (small text)
+                const permissionName = item.querySelector('.permission-title').innerText.toLowerCase();
+                const permissionDesc = item.querySelector('.permission-desc').innerText.toLowerCase();
 
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Rekodi Matumizi kwa Ujumla{% else %}Record General Expenses{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
-                            
-                            <label class="switch">
-                                {% if s.user.exp %}
-                                       <input type="checkbox" checked data-exp=1 >
-                                {% else %}
-                                    <input type="checkbox" data-exp=1  >
-                                {% endif %}
-                                <span class="slider"></span>
-                            </label>
+                if (permissionName.includes(searchTerm) || permissionDesc.includes(searchTerm)) {
+                    item?.classList?.remove('hidden-item');
+                    hasVisibleItems = true;
+                } else {
+                    item?.classList?.add('hidden-item');
+                }
+            });
 
-                        </div>
-                    </li>
+            // Kama hakuna kilichopatikana, onyesha ujumbe wa "No Results"
+            if (hasVisibleItems) {
+                noResults?.classList?.add('hidden-item');
+            } else {
+                noResults?.classList?.remove('hidden-item');
+            }
+        });
 
-                    <li class="row py-1" >
-                        <div class=" col-6 col-lg-3 ">{% if useri.langSet == 0 %}Usafirishaji Mafuta{% else %}Fuel Tranfer{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
-                            
-                            <label class="switch">
-                                {% if s.user.op %}
-                                <input type="checkbox" checked data-op=1 >
-                                {% else %}
-                                <input type="checkbox" data-op=1 >
-                                {% endif %}
-                                <span class="slider"></span>
-                            </label>
-
-                        </div>
-                    </li>
-
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Usimamizi Matanki{% else %}Tanks Supervisor{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
-                            
-                            <label class="switch">
-                                {% if s.user.tankSup %}
-                                <input type="checkbox" checked data-sup=1 >
-                                {% else %}
-                                <input type="checkbox" data-sup=1 >
-                                {% endif %}
-                                <span class="slider"></span>
-                            </label>
-
-                        </div>
-                    </li>
-                    <li class="row py-1" >
-                        <div class="col-6 col-lg-3">{% if useri.langSet == 0 %}Usimamizi Kudipositi{% else %}Cash Deposit Supervisor{% endif %}:</div>
-                        <div class="col-6 col-lg-9">
-                            
-                            <label class="switch">
-                                {% if s.user.acc_supv %}
-                                <input type="checkbox" checked data-dsup=1 >
-                                {% else %}
-                                <input type="checkbox" data-dsup=1 >
-                                {% endif %}
-                                <span class="slider"></span>
-                            </label>
-
-                        </div>
-                    </li>
+        // Functionality kwa ajili ya "Select All"
+   
+    });
+</script>
 
 
                     <script>
-                        $('.switch input').change(function(){
+                        $('.custom-control-input').change(function(){
                             $('#loadMe').modal('show')
                             const check = Number($(this).is(':checked')),
                                 allow = Number($(this).data('allow')) || 0,
@@ -326,7 +466,12 @@
                                 pu = Number($(this).data('pu')) || 0,
                                 exp = Number($(this).data('exp')) || 0,
                                 dsup = Number($(this).data('dsup')) || 0,
+                                isActive = Number($(this).data('active')) || 0,
+                                payee = Number($(this).data('payee')) || 0,
+                                fn = Number($(this).data('fn')) || 0,
                                 cust = Number($(this).data('cust')) || 0;
+                                loan = Number($(this).data('loan')) || 0;
+
 
 
                                 data = {
@@ -342,7 +487,12 @@
                                         exp,
                                         dsup,
                                         cust,
-                                    user},
+                                       user,
+                                        payee,
+                                       isActive,
+                                       loan,
+                                       fn
+                                    },
                                     url:'/staffs/permit'
                                 }
                                 
@@ -353,7 +503,7 @@
 
                                         if(resp.success){
                                             toastr.success(lang(resp.msg_swa,resp.msg_eng), lang('Imefanikiwa','Success '), {timeOut: 2000});
-                                            if(ceo||dsup)location.reload()
+                                            if(ceo||dsup||allow)location.reload()
                                         }else{
                                                 $('#loadMe').modal('hide')   
                                                 toastr.error(lang(resp.msg_swa,resp.msg_eng), lang('Haikufanikiwa','Error '), {timeOut: 2000});
@@ -365,69 +515,7 @@
                         })
                     </script>
 
-
-                </ul>
-            </div>            
-        </div>
-
-      </div>
-
-
-    <!-- <div class="card mt-4">
-        <div class="card-header bg-primary text-white">
-            <h6 class="mb-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
-                    <path d="M12 22c5.421 0 10-4.579 10-10S17.421 2 12 2 2 6.579 2 12s4.579 10 10 10zm0-2c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-                </svg>
-                {% if useri.langSet == 0 %}Ongeza Malipo ya Stafu{% else %}Add Staff Payroll{% endif %}
-            </h6>
-        </div>
-        <div class="card-body">
-            <form id="payrollForm" method="post" action="/staffs/add_payroll/">
-                {% csrf_token %}
-                <input type="hidden" name="staff_id" value="{{ s.id }}">
-                <div class="row mb-3">
-                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Mwezi{% else %}Month{% endif %}</label>
-                    <div class="col-sm-9">
-                        <input type="month" class="form-control" name="pay_month" required>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Kiasi Kilicholipwa{% else %}Total Paid Amount{% endif %}</label>
-                    <div class="col-sm-9">
-                        <input type="number" class="form-control" name="total_paid" min="0" step="0.01" required>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Makato Mengine{% else %}Other Deductions{% endif %}</label>
-                    <div class="col-sm-9">
-                        <input type="number" class="form-control" name="other_deductions" min="0" step="0.01">
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Maelezo ya Makato{% else %}Deductions Description{% endif %}</label>
-                    <div class="col-sm-9">
-                        <textarea class="form-control" name="deductions_desc" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label class="col-sm-3 col-form-label">{% if useri.langSet == 0 %}Maelezo ya Malipo{% else %}Payment Description{% endif %}</label>
-                    <div class="col-sm-9">
-                        <textarea class="form-control" name="payment_desc" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="text-end">
-                    <button type="submit" class="btn btn-success">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px; fill: currentColor;">
-                            <path d="M5 13l4 4L19 7"/>
-                        </svg>
-                        {% if useri.langSet == 0 %}Hifadhi{% else %}Save{% endif %}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div> -->
-
+  
    </div>
    </div>  
    
@@ -436,54 +524,237 @@
 
 
   <div class="modal fade" id="editStaffModal" tabindex="-1" role="dialog" aria-labelledby="editStaffModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editStaffModalLabel">{% if useri.langSet == 0 %}Hariri Taarifa za Stafu{% else %}Edit Staff Information{% endif %}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content edit-staff-modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-light" id="editStaffModalLabel">{% if useri.langSet == 0 %}Hariri Taarifa za Stafu{% else %}Edit Staff Information{% endif %}</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <form id="editStaffForm" data-edit=1 data-user="{{s.user.id}}" action="/staffs/addStaff" >
+            <div class="modal-body p-4">
+                <form id="editStaffForm" class="p-2 p-md-3" data-edit=1 data-user="{{s.user.id}}" action="/staffs/addStaff" >
                     {% csrf_token %}
                     <input type="hidden" name="staff_id" id="editStaffId">
-                    <div class="form-group">
-                        <label class="brown" for="editFirstName">{% if useri.langSet == 0 %}Jina la Kwanza{% else %}First Name{% endif %} <sup>*</sup> </label>
-                        <input type="text" class="form-control" value="{{s.user.user.first_name | title}}" id="editFirstName" name="first_name" required>
+
+                    <!-- Personal Information Section -->
+                    <h6 class="text-uppercase text-muted font-weight-bold mb-3 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Utambulisho{% else %}Personal Information{% endif %}</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="weight500 brown" for="editFirstName">{% if useri.langSet == 0 %}Jina la Kwanza{% else %}First Name{% endif %} <sup>*</sup></label>
+                            <input type="text" class="form-control smallFont darkblue" value="{{s.user.user.first_name | title}}" id="editFirstName" name="first_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="weight500 brown" for="editLastName">{% if useri.langSet == 0 %}Jina la Mwisho{% else %}Last Name{% endif %} <sup>*</sup></label>
+                            <input type="text" class="form-control smallFont darkblue" value="{{s.user.user.last_name | title}}" id="editLastName" name="last_name" required>
+                        </div>
+
+                      
+                        <div class="col-md-6 cursor-pointer" id="gender_panel_edit" >
+                            <label class="form-label fw-semibold text-primary d-block">{% if useri.langSet == 0 %}Jinsia{% else %}Gender{% endif %} <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-center gap-4">
+                                <div class="form-check form-check-inline mr-3">
+                                    <input class="form-check-input cursor-pointer" type="radio" name="edit_gender" id="editMaleGender" value="male" {% if s.user.male %}checked{% endif %}>
+                                    <label class="form-check-label cursor-pointer" for="editMaleGender">{% if useri.langSet == 0 %}Mwanaume{% else %}Male{% endif %}</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input cursor-pointer" type="radio" name="edit_gender" id="editFemaleGender" value="female" {% if s.user.female %}checked{% endif %}>
+                                    <label class="form-check-label cursor-pointer" for="editFemaleGender">{% if useri.langSet == 0 %}Mwanamke{% else %}Female{% endif %}</label>
+                                </div>
+                            </div>
+                      
+                    
+
                     </div>
-                    <div class="form-group">
-                        <label class="brown" for="editLastName">{% if useri.langSet == 0 %}Jina la Mwisho{% else %}Last Name{% endif %} <sup>*</sup> </label>
-                        <input type="text" class="form-control" value="{{s.user.user.last_name | title}}" id="editLastName" name="last_name" required>
                     </div>
 
-                    <div class="form-group">
-                        <label class="brown" for="editPhone">{% if useri.langSet == 0 %}Nambari ya Simu{% else %}Phone Number{% endif %} <sup>*</sup> </label>
-                        <input type="text" class="form-control" value="{{s.user.phone}}" id="editPhone" name="phone" required>
+                    <!-- Contact Information Section -->
+                    <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Mawasiliano{% else %}Contact Information{% endif %}</h6>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <label class="weight500 brown" for="editPhone">{% if useri.langSet == 0 %}Nambari ya Simu{% else %}Phone Number{% endif %} <sup>*</sup></label>
+                            <input type="text" class="form-control smallFont darkblue" value="{% if s.user.phone %}{{s.user.phone}}{% endif %}" id="editPhone" name="phone" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="weight500 brown" for="editEmail">{% if useri.langSet == 0 %}Barua Pepe{% else %}Email{% endif %} <sup>*</sup></label>
+                            <input type="email" class="form-control smallFont darkblue" value="{{s.user.user.email}}" id="editEmail" name="email" required>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="brown" for="editEmail">{% if useri.langSet == 0 %}Barua Pepe{% else %}Email{% endif %} <sup>*</sup> </label>
-                        <input type="email" class="form-control" value="{{s.user.user.email}}" id="editEmail" name="email" required>
+                    <!-- Identification & Personal Details Section -->
+                    <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Utambulisho{% else %}Identification & Personal Details{% endif %}</h6>
+                
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="edit_tin_number">TIN <span class="text-danger">*</span></label>
+                            <input type="text" id="edit_tin_number" class="form-control" value="{% if s.user.tin %}{{s.user.tin}}{% endif %}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="edit_nin_number">NIN </label>
+                            <input type="text" id="edit_nin_number" class="form-control" value="{% if s.user.nin %}{{s.user.nin}}{% endif %}" >
+                        </div>
+
                     </div>
 
-                    <div class="form-group">
-                        <label class="brown" for="editPosition">{% if useri.langSet == 0 %}Cheo{% else %}Position{% endif %} <sup>*</sup> </label>
-                        <input type="text" class="form-control" value="{{s.cheo}}" id="editPosition" name="position" required>
+                    <!-- Employment Details Section -->
+                    <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Ajira{% else %}Employment Details{% endif %}</h6>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <label class="weight500 brown" for="editPosition">{% if useri.langSet == 0 %}Cheo{% else %}Position{% endif %} <sup>*</sup></label>
+                            <input type="text" class="form-control smallFont darkblue" value="{{s.cheo}}" id="editPosition" name="position" required>
+                        </div>
+                        <div class="col-md-6"></div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-primary" for="editStaffType">{% if useri.langSet == 0 %}Aina ya Mtumishi{% else %}Staff Type{% endif %} <span class="text-danger">*</span></label>
+                            <select id="editStaffType" class="form-select form-control border-primary" required>
+                                <option value="kudumu" {% if s.user.permanent %}selected{% endif %}>{% if useri.langSet == 0 %}Mwajiriwa wa Kudumu{% else %}Permanent Employee{% endif %}</option>
+                                <option value="parttime" {% if s.user.party_time %}selected{% endif %}> {% if useri.langSet == 0 %} Kibarua wa Muda (Part-time Worker) {% else %} Part-time Worker {% endif %}</option>
+                                <option value="kibarua" {% if  s.user.labor %}selected{% endif %}>{% if useri.langSet == 0 %}Kibarua (Casual Worker){% else %}Casual Worker{% endif %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-primary" for="editStaffKituo">{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %} <span class="text-danger">*</span></label>
+                            <select id="editStaffKituo" class="form-select form-control border-primary" required>
+                                {% if s.ceo %}
+                                    <option value="0" selected>--{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}--</option>
+                                {% else %}
+                                    <option value="{{s.Interprise.id}}" selected>{{s.Interprise.name}}</option>
+                                {% endif %}
+
+                                {% if general %}
+                                    <option value="null">-----</option>
+                                {% endif %}
+
+                                {% for st in stations %}
+                                    {% if s.ceo %}
+                                        {% if st.id != shell.id %}
+                                            <option value="{{st.id}}">{{st.name}}</option>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if st.id != s.Interprise.id %}
+                                            <option value="{{st.id}}">{{st.name}}</option>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if not s.ceo %}
+                                    <option value="0">--{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}--</option>
+                                {% endif %}
+                            </select>
+                        </div>
                     </div>
 
-                    <!-- City field -->
-                    <div class="form-group">
-                        <label for="editCity" class="brown" >{% if useri.langSet == 0 %}Jiji{% else %}City{% endif %} <sup>*</sup> </label>
-                        <input type="text" class="form-control" value="{{s.user.region}}" id="editCity" name="city" required>
-                    </div>
-                    <!-- address field -->
-                    <div class="form-group">
-                        <label for="editAddress" class="brown">{% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %} <sup>*</sup> </label>
-                        <input type="text" class="form-control" value="{{s.user.address}}" id="editAddress" name="address" required>
+                    <!-- Salary Information Section -->
+                    <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Malipo{% else %}Salary Information{% endif %}</h6>
+                    <div class="row g-3 mt-2{% if not s.user.permanent and not s.user.parttime %} d-none{% endif %}" id="editSalarySection">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Basic Salary{% else %}Basic Salary{% endif %}</label>
+                            <div class="show_curency_block show_curency position-absolute   px-3" style="display: none ;">
+                                    <label class="mt-1 text-danger " for=""></label> 
+                                    <div class="box-pointer d-inline "></div>
+                            </div>
+                            <input type="number" min="0" step="0.01" id="editBasicSalary" class="form-control smallFont money-fomat darkblue" placeholder="0.00" value="{{salary.amount|floatformat:2}}" >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Tax Group{% else %}Tax Group{% endif %} </label>
+                            <select id="editTaxGroup" class="form-select form-control border-primary">
+                                <option value=0>{% if useri.langSet == 0 %}--Chagua--{% else %}--Select--{% endif %}</option>
+                                {% for tg in tax_group %}
+                                    <option value="{{tg.id}}" {% if salary.taxGroup.id == tg.id %}selected{% endif %}>{{tg.name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
                     </div>
 
-                    <div class="modal-footer">
+                    <!-- Payment Configuration Section -->
+                    <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Usanidi wa Malipo{% else %}Payment Configuration{% endif %}</h6>
+                    <div class="row g-3 mt-2 " id="editSalaryStationSection">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Namna ya Malipo{% else %}Payment Source{% endif %} <span class="text-danger">*</span></label>
+                            <select id="editSalaryPaymentSource" class="form-select form-control border-primary">
+                                <option value="headOffice" {% if salary.heo_pay %}selected{% endif %}>{% if useri.langSet == 0 %}Head Office{% else %}Head Office{% endif %}</option>
+                                <option value="station" {% if salary.sta_pay %}selected{% endif %}>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</option>
+                            </select>
+                        </div>
+
+                        <div id="editSalaryStationSection" class="col-md-6 {% if not s.user.permanent and not s.user.parttime  %} d-none{% endif %} {% if salary and salary.heo_pay %} d-none{% endif %}">
+                            <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Kituo cha Malipo{% else %}Salary Station{% endif %} <span class="text-danger">*</span></label>
+                            <select id="editSalaryStation" class="form-select form-control border-primary">
+                                {% if not salary %}
+                                {% if general %}
+                                    <option value="null">-----</option>
+                                {% else %}
+                                    <option value="{{s.Interprise.id}}" selected>{{s.Interprise.name}}</option>
+                                {% endif %}
+
+
+                                {% for st in stations %}
+                                    {% if general %}
+                                        <option value="{{st.id}}">{{st.name}}</option>
+                                    {% else %}
+                                        {% if st.id != s.Interprise.id %}
+                                            <option value="{{st.id}}">{{st.name}}</option>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% else %}
+
+                                    {% for st in stations %}
+                                       
+                                            <option value="{{st.id}}" {% if salary.sta_pay.Interprise.id == st.id %}selected{% endif %}>{{st.name}}</option>
+                                        
+                                      
+                                    {% endfor %}
+
+                                {% endif %}
+
+
+                            </select>
+                        </div>
+
+
+                    </div>
+
+                    <div class="row g-3 mt-2{% if not s.user.permanent and not s.user.parttime %} d-none{% endif %}" id="editSalaryMetaSection">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Muda wa Malipo{% else %}Payment Period{% endif %} <span class="text-danger">*</span></label>
+                            <select id="editSalaryPaymentPeriod" class="form-select form-control border-primary">
+                                <option value="month" {% if salary.monthly %} selected{% endif %}>{% if useri.langSet == 0 %}Mwezi{% else %}Month{% endif %}</option>
+                                <option value="week" {% if salary.weekly %} selected{% endif %}>{% if useri.langSet == 0 %}Wiki{% else %}Week{% endif %}</option>
+                                <option value="day" {% if salary.daily %} selected{% endif %}>{% if useri.langSet == 0 %}Siku{% else %}Day{% endif %}</option>
+
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-primary">{% if useri.langSet == 0 %}Tarehe ya Mwisho Kulipwa{% else %}Last Paid Date{% endif %} <span class="text-danger">*</span></label>
+                            <input type="date" id="editSalaryLastPaidDate" class="form-control smallFont darkblue" value="{{ salary.last_paid | date:'Y-m-d' }}">
+                        </div>
+                    </div>
+
+                    <!-- Location Information Section -->
+                    <h6 class="text-uppercase text-muted font-weight-bold mb-3 mt-4 small border-bottom pb-2" style="color: #667085;">{% if useri.langSet == 0 %}Taarifa za Makazi{% else %}Location Information{% endif %}</h6>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <label class="weight500 brown" for="editCity">{% if useri.langSet == 0 %}Mji{% else %}City{% endif %} <sup>*</sup></label>
+                            <input type="text" class="form-control smallFont darkblue" value="{{s.user.region}}" id="editCity" name="city" required>
+                        </div>
+                        <div class="col-md-6"></div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <label class="weight500 brown" for="editAddress">{% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %} <sup>*</sup></label>
+                            <input type="text" class="form-control smallFont darkblue" value="{{s.user.address}}" id="editAddress" name="address" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer mt-3 px-0 pb-0">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}</button>
                         <button type="submit" class="btn btn-primary">{% if useri.langSet == 0 %}Hifadhi Mabadiliko{% else %}Save Changes{% endif %}</button>
                     </div>
@@ -494,6 +765,9 @@
     </div>
 </div>
 
+
+
+
   {% include 'staffregister.html' %}
 
   <!-- create another modal for editing staff information -->
@@ -501,9 +775,28 @@
 
 {% endif %}
 
-
-
-
+<script>
+    $(document).ready(function () {
+        function toggleEditSalaryFields() {
+            const type = $('#editStaffType').val();
+            const showSalary = type === 'parttime' || type === 'kudumu';
+            $('#editSalarySection').toggleClass('d-none', !showSalary);
+            $('#editSalaryMetaSection').toggleClass('d-none', !showSalary);
+            if (!showSalary) {
+                $('#editSalaryStationSection').addClass('d-none');
+                $('#editSalaryLastPaidDate').val('');
+                return;
+            }
+            const source = $('#editSalaryPaymentSource').val();
+            $('#editSalaryStationSection').toggleClass('d-none', source !== 'station');
+        }
+        $('#editStaffType').on('change', toggleEditSalaryFields);
+        $('#editSalaryPaymentSource').on('change', toggleEditSalaryFields);
+        $('#editStaffModal').on('shown.bs.modal', function () {
+            toggleEditSalaryFields();
+        });
+    });
+</script>
 
 
 {% endblock %}

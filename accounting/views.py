@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.shortcuts import render,redirect
-from account.models import UserExtend,shifts,shiftPump,fuel_pumps,DepositTo,matumizi,rekodiMatumizi,wekaCash,toaCash,PhoneMailConfirm,wateja,wasambazaji,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
+from account.models import StaffLoan, UserExtend, attachments, exptaxGroup,shifts,shiftPump,fuel_pumps,DepositTo,matumizi,rekodiMatumizi,wekaCash,toaCash,PhoneMailConfirm,wateja,wasambazaji,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
 # Create your views here.
 from django.contrib import messages
 from django.contrib.auth.models import User, auth
@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
 from django.db.models import F
+from django.db import transaction
 from django.core import serializers
 from django.db.models import Q
 from django.core.paginator import Paginator,EmptyPage
@@ -33,6 +34,7 @@ import random
 import os
 import json
 import traceback
+from decimal import Decimal, InvalidOperation
 
 
 from account.todos import Todos,confirmMailF
@@ -47,7 +49,7 @@ def pdcBillsView(request):
         i = int(request.GET.get('i',0))
         todo = todoFunct(request)
         kampuni = todo['kampuni']
-        exp = matumizi.objects.get(pk=i,owner__company=kampuni)
+        exp = matumizi.objects.get(pk=i,compani=kampuni)
         todo.update({
             'exp':exp,
             'isPdBills':True
@@ -65,7 +67,7 @@ def pdcBills(request):
   kampuni = todo['kampuni']
   shell = todo['shell']
   stations = Interprise.objects.filter(company = kampuni)
-  pbills = matumizi.objects.filter(owner__company=kampuni,duration__gt=0) 
+  pbills = matumizi.objects.filter(compani=kampuni,duration__gt=0) 
   if not general:
       pbills = pbills.filter(shell=shell)
 
@@ -76,6 +78,42 @@ def pdcBills(request):
       'isPdBills':True
   })
   return render(request,'paypdcBills.html',todo)
+
+@login_required(login_url='login')
+def expensespanel(request):
+  todo = todoFunct(request)
+  general = todo['general']
+  kampuni = todo['kampuni']
+  useri = todo['useri']
+  
+  taxtgroup = exptaxGroup.objects.filter(company=kampuni)
+  expses = matumizi.objects.filter(compani=kampuni,paye=False)
+
+  todo.update({
+        'taxtgroup':taxtgroup,
+        'expses':expses,
+        'isExpenses':True,
+        'expenseList':True
+  })
+
+  return render(request,'matumiziAll.html',todo)
+@login_required(login_url='login')
+def taxgroups(request):
+  todo = todoFunct(request)
+  general = todo['general']
+  kampuni = todo['kampuni']
+  useri = todo['useri']
+  
+  taxtgroup = exptaxGroup.objects.filter(company=kampuni)
+  
+
+  todo.update({
+        'taxtgroup':taxtgroup,
+        'expenseList':True,
+        'isTaxGroup':True
+  })
+
+  return render(request,'matumiziTaxGroup.html',todo)
 
 @login_required(login_url='login')
 def payaccounts(request):
@@ -104,6 +142,7 @@ def payaccounts(request):
   return render(request,'payaccounts.html',todo)
 
 
+
 @login_required(login_url='login')
 def addPBill(request):
     try:
@@ -116,7 +155,14 @@ def addPBill(request):
             nextPay= request.POST.get('nextPay')
             Period= int(request.POST.get('payPiriod'))
             dura= int(request.POST.get('payDura'))
-    
+            edit = int(request.POST.get('edit',0))
+
+            newTaxGroup = int(request.POST.get('newTaxGroup',0))
+            TaxGroup = int(request.POST.get('taxGroup',0))
+            TaxGroupName = request.POST.get('taxGroupName','')
+            TaxGroupRate = float(request.POST.get('taxGroupRate',0))
+
+            attchReceipt = int(request.POST.get('attchReceipt',0))
             todo = todoFunct(request)
             kampuni = todo['kampuni']
             admin = todo['admin']
@@ -124,25 +170,37 @@ def addPBill(request):
             if not is_general:
                 theShell = Interprise.objects.get(pk=station,company=kampuni)
 
-            Eexp = matumizi.objects.filter(matumizi__icontains=name,shell=theShell,owner__company=kampuni)   
+            Eexp = matumizi.objects.filter(matumizi__icontains=name,shell=theShell,compani=kampuni)   
 
             data = {
                 'success':True,
                 'swa':'Bili imehifadhiwa kikamilifu',
                 'eng':'Bill added successfully'
             }
+            exp = matumizi()
+             
+            if not (Eexp.exists() and  edit) or (edit and matumizi.objects.filter(pk=edit).exists()):
+                expTaxGroup = exptaxGroup()
+                if newTaxGroup:
+                    expTaxGroup.name = TaxGroupName
+                    expTaxGroup.rate = TaxGroupRate
+                    expTaxGroup.company = kampuni
+                    expTaxGroup.save()
+                else:
+                    expTaxGroup = exptaxGroup.objects.get(pk=TaxGroup)
 
-            if not Eexp.exists():
-                exp = matumizi()
+                exp.taxGroup = expTaxGroup
+                
                 exp.matumizi = name
-                exp.owner = admin
-                exp.period_type = Period
+             
                 exp.general = is_general
                 exp.amount = amount
                 exp.duration = dura
                 exp.shell = theShell
                 exp.depends = it_depends
                 exp.next_pay = nextPay
+                exp.attachReceipt = attchReceipt
+                exp.compani = kampuni
                 exp.save()
             else:
                 data = {
@@ -549,173 +607,462 @@ def withdraw(request):
 def expenseRecords(request):
     try:
         todo = todoFunct(request)
-   
+        kampuni = todo['kampuni']
+        taxtgroup = exptaxGroup.objects.filter(company=kampuni)
+        todo.update({
+            'taxtgroup':taxtgroup,
+            'isExpRec':True
+        })
         
-        return render(request, 'matumizi.html', todo)
+        return render(request, 'matumiziRec.html', todo)
     
     except:
+        traceback.print_exc()
         return render(request, 'pagenotFound.html', todoFunct(request))
+    
+
+@login_required(login_url='login')
+def expattachments(request):
+    try:
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        general = todo['general']
+        uns = int(request.GET.get('uns',0))
+        exp_recepts = todo['exp_recept'] 
+        
+        if uns and not exp_recepts:
+            uns = 0
+        missingAttachments = []    
+        all_attachments = None
+        if uns and exp_recepts:
+           expAttach = rekodiMatumizi.objects.filter(by__company=kampuni.id,attachReceipt=True).order_by('-pk')     
+           if not general:
+                    shell = todo['shell']
+                    expAttach = expAttach.filter(Interprise=shell)
+           for exp in expAttach:
+                 exp_recept = attachments.objects.filter(expAttach=exp.id)
+                
+                 if not exp_recept.exists() :
+                     missingAttachments.append(exp)
+        else:
+            all_attachments = attachments.objects.filter(expAttach__by__company=kampuni.id).order_by('-pk')  
+            if not general:
+                shell = todo['shell']
+                all_attachments = all_attachments.filter(expAttach__Interprise=shell)
+            
+            # Add pagination
+            num = all_attachments.count()
+            p = Paginator(all_attachments, 15)
+            page_num = request.GET.get('page', 1)
+            
+            try:
+                page = p.page(page_num)
+            except EmptyPage:
+                page = p.page(1)
+            
+            pg_number = p.num_pages
+            all_attachments = page  
+
+            todo.update({
+            'pg_number':pg_number,
+            'p_num':page_num,
+            'all_attachments':all_attachments,
+            
+            })
+   
+       
+
+
+        todo.update({
+            
+            'isExpAttach':True,
+            'uns':uns,
+            'missingAttachments':missingAttachments,
+        })
+        
+        return render(request, 'matumiziAttachments.html', todo)
+    
+    except:
+        traceback.print_exc()
+        return render(request, 'pagenotFound.html', todoFunct(request))
+
+
+
+def _apply_loan_deduction(matum, rec, amount, kampuni):
+    """
+    Ikiwa matumizi ina bendera ya paye=True na staff amepewa,
+    angalia kama staff ana mkopo hai. Deduction = matum.amount - amount.
+    Ongeza deduction kwenye StaffLoan.paid_amount (bila kuzidi deni lililobaki).
+    """
+    if rec.salary_advance:
+        return
+
+    if not (matum.paye and rec.staff):
+        return
+    try:
+        deduction = Decimal(str(matum.amount or 0)) - amount
+        if deduction <= 0:
+            return
+        active_loan = StaffLoan.objects.filter(
+            staff=rec.staff,
+            compani=kampuni,
+        ).filter(
+            paid_amount__lt=F('amount')
+        ).order_by('created').first()
+        if not active_loan:
+            return
+        remaining = active_loan.amount - active_loan.paid_amount
+        actual_deduction = min(deduction, remaining)
+        if actual_deduction > 0:
+            active_loan.paid_amount = active_loan.paid_amount + actual_deduction
+            active_loan.save(update_fields=['paid_amount'])
+    except Exception:
+        traceback.print_exc()
+
+
+def _apply_salary_last_paid_update(matum, exp, category):
+    """
+    Kwa category ya mishahara, tumia period (YYYY-MM) kusasisha matumizi.last_paid.
+    """
+    if category != 'mishahara':
+        return
+
+    if _is_truthy_value(exp.get('is_salary_advance')):
+        return
+
+    raw_period = str(exp.get('period') or exp.get('salary_period') or '').strip()
+    if not raw_period:
+        return
+
+    try:
+        year_str, month_str = raw_period.split('-', 1)
+        year = int(year_str)
+        month = int(month_str)
+        if month < 1 or month > 12:
+            raise ValueError('Invalid month')
+
+        if month == 12:
+            next_month_first = date(year + 1, 1, 1)
+        else:
+            next_month_first = date(year, month + 1, 1)
+        period_date = next_month_first - timedelta(days=1)
+    except Exception:
+        raise ValueError('Invalid salary period format. Expected YYYY-MM')
+
+    matum.last_paid = period_date
+    matum.save(update_fields=['last_paid'])
+
+
+def _is_truthy_value(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return int(value) == 1
+    if isinstance(value, str):
+        return value.strip().lower() in ['1', 'true', 'yes', 'on']
+    return False
+
+
+def _save_salary_advance_loan(exp, rec, amount, kampuni, shell, useri, category):
+    """
+    Ikiwa rekodi ni salary advance/mkopo wa staff,
+    hifadhi mkopo kwenye StaffLoan.
+
+    Ikiwa kuna mkopo ambao bado haujaisha kwa staff huyu,
+    ongeza amount kwenye mkopo huo (merge) badala ya kuunda mpya.
+    """
+    if category != 'mishahara' or not rec.salary_advance:
+        return
+
+    if not rec.staff:
+        raise ValueError('Staff is required for salary advance')
+
+    raw_deduction = exp.get('salary_advance_deduction')
+    try:
+        salary_deduction = Decimal(str(raw_deduction or 0))
+    except InvalidOperation:
+        raise ValueError('Invalid salary advance deduction amount')
+
+    if salary_deduction <= 0:
+        raise ValueError('Salary advance deduction must be greater than zero')
+
+    loan_shell = rec.Interprise or shell or rec.matumizi.shell
+
+    active_loan = StaffLoan.objects.filter(
+        staff=rec.staff,
+        compani=kampuni,
+        paid_amount__lt=F('amount')
+    ).order_by('created').first()
+
+    if active_loan:
+        active_loan.amount = Decimal(str(active_loan.amount or 0)) + amount
+        active_loan.salary_deduction = salary_deduction
+        if not active_loan.shell and loan_shell:
+            active_loan.shell = loan_shell
+        if not active_loan.by:
+            active_loan.by = useri
+        active_loan.save(update_fields=['amount', 'salary_deduction', 'shell', 'by'])
+        return
+
+    StaffLoan.objects.create(
+        staff=rec.staff,
+        compani=kampuni,
+        shell=loan_shell,
+        amount=amount,
+        salary_deduction=salary_deduction,
+        paid_amount=Decimal('0'),
+        by=useri
+    )
+
 
 @login_required(login_url='login')
 def addExpense(request):
-      if request.method == "POST":
-
-            try:
-                  data={
-                        'success':True,
-                        'message_eng':'Expense was saved successfully',
-                        'message_swa':'matumizi yamerekodiwa kikamilifu'
-                        
-                       }  
-                            
-                  isfuel = int(request.POST.get('isFuel',0))
-                  isPumpAttendant = int(request.POST.get('isPumpAttendant',0))
-                  isPayment = int(request.POST.get('isPayment',0))
-                  
-                  exprecs = json.loads(request.POST.get('expenses'))
-                  expDate = request.POST.get('expDate')
-
-                #   bal = int(request.POST.get('bak'))
-                #   bal_set = int(request.POST.get('bal_set'))
-                 
-                
-                 
-                  
-                  todo=todoFunct(request)
-                #   duka=todo['duka']
-                  useri = todo['useri']
-                  cheo = todo['cheo']
-                  admin = todo['admin']
-                 
-                  shell = todo['shell']
-                  manager = todo['manager']
-
-                  
-
-                  if useri.admin or cheo is not None or manager:  
-                        for exp in exprecs:
-
-                                    # print('old')
-                            amo = float(0)
-                            if isfuel:  
-                                amo = float(exp['amount_total'])
-                            if isPayment or isPumpAttendant:
-                                amo = float(exp['amount_cash'])
-                            if isPayment and not (useri.exp or useri.admin):
-                                data = {
-                                    'success':False,
-                                    'message_eng':'You have no permission to add expenses',
-                                    'message_swa':'Hauna ruhusa ya kuongeza matumizi'
-                                    }
-                                return JsonResponse(data)
-                            paid = amo
-
-                            matum = matumizi.objects.get(pk=exp['expense_group_id'],owner=admin) 
-                        
-                            rec = rekodiMatumizi()
-                            rec.Interprise=shell
-                            rec.matumizi = matum 
-
-                            rec.tarehe = expDate
-
-
-                            rec.kiasi = float(amo)
-                            rec.by = useri
-                            rec.kabidhiwa = exp['receiver_name']
-                            rec.maelezo = exp['remarks']
-                            rec.date = date.today()
-                            rec.save()
-
-                            pAtt = None
-                            if isPumpAttendant or isfuel:
-                                pAtt = shifts.objects.get(pk=exp['source_details']['attendant_id'],record_by__Interprise=shell)
-                                shiftP = None
-                                if isfuel:
-                                    sh_pump = fuel_pumps.objects.get(pk=exp['source_details']['nozzle_id'],tank__Interprise=shell)
-                                    shiftP = shiftPump.objects.filter(pump=sh_pump.id,shift=pAtt.id)
-
-                                if isPumpAttendant:
-                                    shiftP = shiftPump.objects.filter(shift=pAtt.id)
-
-
-                                
-
-                                shift = shiftP.last()
-                                rec.fromShift = shift
-                                Fqty = 0
-                                if isfuel:
-                                    fuel_cost = float(sh_pump.tank.price)   
-                                    Fqty =   amo/fuel_cost
-                                    rec.fuel_qty = float(Fqty)
-
-                                    rec.fuel_cost = float(sh_pump.tank.cost)
-                                    rec.fuel_price  = fuel_cost   
-                                    rec.Fuel = sh_pump.tank.fuel
-                                
-                                rec.kiasi = float(amo)
-
-
-
-                        
-                            if isPayment:
-                                acc =   PaymentAkaunts.objects.get(pk=exp['source_details']['account_id'],Interprise__owner=admin.id)   
-                                duka = acc.Interprise
-    
-
-                                desk = f'{matum.matumizi} ({exp["remarks"]})'
-
-                                rec.akaunti=acc
-
-                                toakwa= acc
-                                beforweka=toakwa.Amount 
-                    
-                                toa = toaCash()
-                                toa.Akaunt = toakwa
-                                toa.Amount = paid
-                                toa.matumizi = rec
-                                toa.before = beforweka
-                              
-                                toa.After = float(beforweka) - paid 
-                                toa.makato = 0
-                                                        
-                                toa.kwenda = matum.matumizi
-                                toa.maelezo = desk
-                                toa.tarehe = expDate
-                                toa.by=useri
-                                toa.Interprise=duka
-                                # toa.matumizi=True
-                                # if is_bill:
-                                #       toa.bill = bill
-                                if not toakwa.onesha:
-                                    toa.usiri =True 
-                    
-                                if paid <=  beforweka :  
-                                    toakwa.Amount = float(toakwa.Amount) - paid
-                                           
-                    
-                                toakwa.save()              
-                                toa.save() 
-                            rec.save()         
-                        
-                  else:
-                        data={
-                             'success':False,
-                        'message_eng':'You have no permission to add expenses',
-                        'message_swa':'Hauna ruhusa ya kuongeza matumizi'
-                  
-                        }            
-
-                  return JsonResponse(data)
-            except:
-                  data={
-                        'success':False,
-                        'message_eng':'Expense was not seved please try again',
-                        'message_swa':'matumizi hayakurekodiwa kutokana na hitilafu tafadhhari jaribu tena kwa usahihi'
-                  }
-
-                  return JsonResponse(data)      
-      else:
+      if request.method != "POST":
            return render(request,'pagenotFound.html',todoFunct(request))
+
+      try:
+            todo = todoFunct(request)
+            useri = todo['useri']
+            cheo = todo['cheo']
+            shell = todo['shell']
+            manager = todo['manager']
+            kampuni = todo['kampuni']
+
+            if not (useri.admin or cheo is not None or manager):
+                return JsonResponse({
+                    'success':False,
+                    'message_eng':'You have no permission to add expenses',
+                    'message_swa':'Hauna ruhusa ya kuongeza matumizi'
+                })
+
+            raw_entries = request.POST.get('expenses_json') or request.POST.get('expenses') or '[]'
+            entries = json.loads(raw_entries)
+
+            if not isinstance(entries, list) or not entries:
+                return JsonResponse({
+                    'success':False,
+                    'message_eng':'No expense data received',
+                    'message_swa':'Hakuna taarifa ya matumizi iliyopokelewa'
+                })
+
+            expDate = request.POST.get('expDate','')
+            rec_datetime = datetime.datetime.now(tz=timezone.utc)
+            if expDate:
+                try:
+                    parsed = datetime.datetime.fromisoformat(str(expDate).replace('Z', '+00:00'))
+                    if parsed.tzinfo is None:
+                        parsed = parsed.replace(tzinfo=timezone.utc)
+                    # Reject dates more than 1 day in the future
+                    now_utc = datetime.datetime.now(tz=timezone.utc)
+                    if parsed > now_utc + datetime.timedelta(days=1):
+                        return JsonResponse({
+                            'success': False,
+                            'message_eng': 'Expense date cannot be far in the future',
+                            'message_swa': 'Tarehe ya matumizi haiwezi kuwa mbele sana ya leo'
+                        })
+                    rec_datetime = parsed
+                except (ValueError, OverflowError):
+                    rec_datetime = datetime.datetime.now(tz=timezone.utc)
+
+            with transaction.atomic():
+                for exp in entries:
+                    if not isinstance(exp, dict):
+                        raise ValueError('Invalid expense row format')
+
+                    category = str(exp.get('category') or '').strip().lower()
+                    if category == 'customer_discounts':
+                        matum = matumizi.objects.filter(compani=kampuni, discount=True).order_by('pk').first()
+                        if not matum:
+                            matum = matumizi.objects.create(
+                                shell=shell,
+                                compani=kampuni,
+                                matumizi='Discount',
+                                discount=True
+                            )
+                    else:
+                        exp_group_id = exp.get('expense_group_id') or exp.get('group_id')
+                        if not exp_group_id:
+                            raise ValueError('Expense group is required')
+                        matum = matumizi.objects.get(pk=int(exp_group_id), compani=kampuni)
+
+                    raw_amount = exp.get('amount')
+                    if raw_amount in [None, '']:
+                        raw_amount = exp.get('amount_cash')
+                    if raw_amount in [None, '']:
+                        raw_amount = exp.get('amount_total')
+
+                    try:
+                        amount = Decimal(str(raw_amount or 0))
+                    except InvalidOperation:
+                        raise ValueError('Invalid amount value')
+
+                    if amount <= 0:
+                        raise ValueError('Amount must be greater than zero')
+
+                    source_details = exp.get('source_details') if isinstance(exp.get('source_details'), dict) else {}
+                    source_type = str(exp.get('source_type') or '').strip()
+                    recipient_type = str(exp.get('recipient_type') or '').strip().lower()
+                    is_salary_advance = _is_truthy_value(exp.get('is_salary_advance'))
+
+                    receiver_name = str(exp.get('customer_name') or exp.get('receiver_name') or exp.get('recipient') or '').strip()
+                    if category == 'fuel' and not receiver_name:
+                        raise ValueError('Recipient is required for fuel expense')
+                    if category == 'customer_discounts' and not receiver_name:
+                        raise ValueError('Customer name is required for customer discount')
+
+                    if category != 'customer_discounts' and recipient_type == 'staff' and exp.get('staff_id') in [None, '']:
+                        raise ValueError('Staff recipient is required')
+
+                    if is_salary_advance and category != 'mishahara':
+                        raise ValueError('Salary advance option is only allowed for salary expenses')
+                    
+                    tax_gr = matum.taxGroup
+                    
+                       
+                    rec = rekodiMatumizi()
+
+                    staff_id = exp.get('staff_id')
+                    if category != 'customer_discounts' and staff_id not in [None, '']:
+                        try:
+                            staff_obj = UserExtend.objects.get(pk=int(staff_id), company=kampuni)
+                            rec.staff = staff_obj
+                            if matum.posho or matum.paye:
+                                salr = matumizi.objects.filter(Q(heo_pay=staff_obj.id)|Q(sta_pay__user=staff_obj.id),Isactive=True)
+                                if salr.exists():
+                                    tax_gr = salr.last().taxGroup if salr.exists() else tax_gr
+
+                          
+                        except Exception:
+                            pass
+
+                    rec.matumizi = matum
+                    rec.tarehe = rec_datetime
+                    rec.date = rec_datetime.date()
+                    rec.kiasi = amount
+                    rec.by = useri
+                    rec.kabidhiwa = receiver_name[:500]
+                    rec.maelezo = exp.get('remarks') or exp.get('desc') or ''
+                    rec.attachReceipt = matum.attachReceipt
+                    rec.salary_advance = is_salary_advance and category == 'mishahara'
+                    rec.tax_group = tax_gr
+                    tin_number = str(exp.get('tin_number') or '').strip()
+                    nin_number = str(exp.get('nin_number') or '').strip()
+                    if tin_number:
+                        rec.tin_number = tin_number[:100]
+                    if nin_number:
+                        rec.maelezo = f'{rec.maelezo} | NIN: {nin_number}' if rec.maelezo else f'NIN: {nin_number}'
+
+
+                    shift_obj = None
+                    attendant_id = source_details.get('attendant_id')
+                    if attendant_id not in [None, '']:
+                        shift_qs = shifts.objects.filter(pk=int(attendant_id), record_by__Interprise__company=kampuni)
+                        if shell:
+                            shift_qs = shift_qs.filter(record_by__Interprise=shell)
+                        shift_obj = shift_qs.last()
+
+                    nozzle_id = source_details.get('nozzle_id')
+                    if (category == 'fuel' or matum.mafuta or nozzle_id not in [None, '']):
+                        if nozzle_id in [None, '']:
+                            raise ValueError('Nozzle is required for fuel expense')
+
+                        pump_qs = fuel_pumps.objects.filter(pk=int(nozzle_id), tank__Interprise__company=kampuni)
+                        if shell:
+                            pump_qs = pump_qs.filter(tank__Interprise=shell)
+                        sh_pump = pump_qs.select_related('tank', 'tank__fuel', 'tank__Interprise').last()
+
+                        if sh_pump:
+                            sp_qs = shiftPump.objects.filter(pump=sh_pump)
+                            if shift_obj:
+                                sp_qs = sp_qs.filter(shift=shift_obj)
+                            else:
+                                sp_qs = sp_qs.filter(shift__To=None)
+
+                            rec.fromShift = sp_qs.last()
+                            rec.fuel_price = Decimal(str(sh_pump.tank.price or 0))
+                            rec.fuel_cost = Decimal(str(sh_pump.tank.cost or 0))
+                            rec.Fuel = sh_pump.tank.fuel
+
+                            fuel_qty = source_details.get('quantity_litres') or exp.get('quantity_litres')
+                            if fuel_qty in [None, '']:
+                                if rec.fuel_price and rec.fuel_price > 0:
+                                    rec.fuel_qty = amount / rec.fuel_price
+                            else:
+                                rec.fuel_qty = Decimal(str(fuel_qty))
+
+                            rec.Interprise = sh_pump.tank.Interprise
+
+                    if shift_obj and not rec.fromShift:
+                        rec.fromShift = shiftPump.objects.filter(shift=shift_obj).last()
+                    if shift_obj and not rec.Interprise:
+                        rec.Interprise = shift_obj.record_by.Interprise
+
+                    account_id = source_details.get('account_id')
+                    use_account = source_type == 'headOffice' or account_id not in [None, '']
+                    if use_account:
+                        if account_id in [None, '']:
+                            raise ValueError('Payment account is required')
+
+                        acc_qs = PaymentAkaunts.objects.filter(pk=int(account_id), Interprise__company=kampuni)
+                        if shell:
+                            acc_qs = acc_qs.filter(Interprise=shell)
+                        acc = acc_qs.select_related('Interprise').last()
+                        if not acc:
+                            raise ValueError('Selected payment account is not valid')
+
+                        acc_amount = Decimal(str(acc.Amount or 0))
+                        if amount > acc_amount:
+                            raise ValueError(f'Insufficient balance in account {acc.Akaunt_name}')
+
+                        rec.akaunti = acc
+                        if not rec.Interprise:
+                            rec.Interprise = acc.Interprise
+
+                        rec.save()
+                        _save_salary_advance_loan(exp, rec, amount, kampuni, shell, useri, category)
+                        _apply_salary_last_paid_update(matum, exp, category)
+                        _apply_loan_deduction(matum, rec, amount, kampuni)
+
+                        toa = toaCash()
+                        toa.Akaunt = acc
+                        toa.Amount = amount
+                        toa.matumizi = rec
+                        toa.before = acc_amount
+                        toa.After = acc_amount - amount
+                        toa.makato = 0
+                        toa.kwenda = matum.matumizi
+                        toa.maelezo = f"{matum.matumizi} ({rec.maelezo})"[:500]
+                        toa.tarehe = rec_datetime
+                        toa.by = useri
+                        toa.Interprise = acc.Interprise
+                        if not acc.onesha:
+                            toa.usiri = True
+
+                        acc.Amount = acc_amount - amount
+                        acc.save(update_fields=['Amount'])
+                        toa.save()
+                        continue
+
+                    if not rec.Interprise:
+                        rec.Interprise = shell or matum.shell
+
+                    rec.save()
+                    _save_salary_advance_loan(exp, rec, amount, kampuni, shell, useri, category)
+                    _apply_salary_last_paid_update(matum, exp, category)
+                    _apply_loan_deduction(matum, rec, amount, kampuni)
+
+            return JsonResponse({
+                'success':True,
+                'message_eng':'Expense was saved successfully',
+                'message_swa':'Matumizi yamerekodiwa kikamilifu'
+            })
+      except Exception as err:
+            traceback.print_exc()
+            return JsonResponse({
+                'success':False,
+                'message_eng':f'Expense was not saved: {str(err)}',
+                'message_swa':f'Matumizi hayakurekodiwa: {str(err)}'
+            })
 
 
 @login_required(login_url='login')
@@ -724,16 +1071,37 @@ def addExpenseGroup(request):
         try:
             exp_name = request.POST.get('groupName')
             isFuel = int(request.POST.get('isFuel', 0))
-            
+            isSupplies = int(request.POST.get('isSupplies', 0))
+            isAllowance = int(request.POST.get('isAllowance', 0))
+            isBill = int(request.POST.get('isBills', 0))
+            billPeriodType = request.POST.get('billPeriodType','')
+            billPeriodCount =  int(request.POST.get('billPeriodCount',0)) 
+
+            basic_salary = float(request.POST.get('basic_salary',0))
+            salary_payment_source = int(request.POST.get('salary_payment_source',0))
+            salary_station = int(request.POST.get('salary_station',0))
+            salary_payment_period = int(request.POST.get('salary_payment_period',0))
+            salary_last_paid_date = request.POST.get('salary_last_paid_date','')
+
+            billAmount = float(request.POST.get('billAmount',0))
+            isRecurringAmount = int(request.POST.get('isRecurringAmount',0))
+            lastPaymentDate = request.POST.get('lastPaymentDate','')
+            edit = int(request.POST.get('edit',0))
+            newTaxGroup = int(request.POST.get('newTaxGroup',0))
+            TaxGroup = int(request.POST.get('taxGroup',0))
+            TaxGroupName = request.POST.get('TaxGroupName','')
+            TaxGroupRate = float(request.POST.get('TaxGroupRate',0))
+            attachReceipt = int(request.POST.get('attachReceipt',0))
             todo = todoFunct(request)
             admin = todo['admin']
             useri = todo['useri']
             shell = todo['shell']
+            kampuni = todo['kampuni']
             manager = todo['manager']
             
             if useri.admin or manager:
                 # Check if expense group already exists
-                if matumizi.objects.filter(matumizi__iexact=exp_name, owner=admin).exists():
+                if matumizi.objects.filter(matumizi__iexact=exp_name, compani=kampuni.id).exists() and not edit:
                     data = {
                         'success': False,
                         'message_eng': 'Expense group with this name already exists',
@@ -741,11 +1109,42 @@ def addExpenseGroup(request):
                     }
                 else:
                     # Create new expense group
+                    expTaxGroup = exptaxGroup()
+                    if newTaxGroup:
+                        expTaxGroup.name = TaxGroupName
+                        expTaxGroup.rate = TaxGroupRate
+                        expTaxGroup.company = admin.company
+                        expTaxGroup.save()
+                    else:
+                        expTaxGroup = exptaxGroup.objects.get(pk=TaxGroup)
+
                     matum = matumizi()
-                    matum.owner = admin
+                    if edit:
+                        matum = matumizi.objects.get(pk=edit, compani=kampuni.id)
+                    matum.attachReceipt = attachReceipt
+                    matum.taxGroup = expTaxGroup
+                   
                     matum.shell = shell
                     matum.matumizi = exp_name
                     matum.mafuta = isFuel
+                    matum.attachReceipt = attachReceipt
+                    matum.manunuzi = isSupplies
+                    matum.bili = isBill
+                    matum.posho = isAllowance
+                    matum.compani = kampuni
+                    # matum.period_type = billPeriodType
+
+                    matum.monthly = billPeriodType == 'Monthly'
+                    matum.weekly = billPeriodType == 'Weekly'
+                    matum.yearly = billPeriodType == 'Yearly'
+                    matum.daily = billPeriodType == 'Daily'
+
+                    if isBill:
+                        matum.duration = billPeriodCount
+                        matum.last_paid = lastPaymentDate
+                        matum.amount = billAmount
+                        matum.depends = isRecurringAmount
+
                     matum.save()
                     
                     data = {
@@ -763,7 +1162,9 @@ def addExpenseGroup(request):
             
             return JsonResponse(data)
             
-        except:
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
             data = {
                 'success': False,
                 'message_eng': 'Expense group was not added, please try again',
@@ -775,6 +1176,52 @@ def addExpenseGroup(request):
 
 
 @login_required(login_url='login')
+def addTaxGroup(request):
+    try:
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        general = todo['general']
+
+        if request.method == "POST":
+            name = request.POST.get('TaxGroupName')
+            rate = float(request.POST.get('TaxGroupRate', 0))
+            edit = int(request.POST.get('edit', 0))
+
+            if not exptaxGroup.objects.filter(name__iexact=name, company=kampuni).exists() or edit:
+                tax_group = exptaxGroup()
+                if edit:
+                    tax_group = exptaxGroup.objects.get(pk=edit, company=kampuni)
+                tax_group.name = name
+                tax_group.rate = rate
+                tax_group.company = kampuni
+                tax_group.save()
+
+                data = {
+                    'success': True,
+                    'message_eng': 'Tax group saved successfully',
+                    'message_swa': 'Kundi la ushuru limehifadhiwa kikamilifu',
+                    'id': tax_group.id
+                }
+            else:
+                data = {
+                    'success': False,
+                    'message_eng': 'Tax group with this name already exists',
+                    'message_swa': 'Kundi la ushuru lenye jina hili tayari lipo'
+                }
+            
+            return JsonResponse(data)
+
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        data = {
+            'success': False,
+            'message_eng': 'Failed to load tax group data, please try again',
+            'message_swa': 'Imeshindikana kupakia taarifa za kundi la ushuru, tafadhali jaribu tena'
+        }
+        return JsonResponse(data)
+
+@login_required(login_url='login')
 def getExpData(request):
     try:
         todo = todoFunct(request)
@@ -784,21 +1231,26 @@ def getExpData(request):
         payacc = todo['payacc']
         useri = todo['useri']
 
-        if not useri.admin :
+        if not useri.admin or not (useri.ceo and useri.exp): 
             payacc = payacc.filter(Interprise=shell.id,aina='Cash')
         
         # Get expenses
-        expenses = matumizi.objects.filter(owner__company=kampuni).annotate(name=F('matumizi'))
-
+        expenses = matumizi.objects.filter(compani=kampuni).annotate(name=F('matumizi'),ho_fname=F('heo_pay__user__first_name'),ho_lname=F('heo_pay__user__last_name'),
+                                                                     sta_fname=F('sta_pay__user__user__first_name'),sta_lname=F('sta_pay__user__user__last_name'))
         # Get payment accounts
+
         payacc_data = list(payacc.annotate(name=F('Akaunt_name')).values('id', 'name', 'Amount', 'aina'))
 
+        posho_staff = InterprisePermissions.objects.filter(isActive=True).annotate(staff_fname=F('user__user__first_name'), staff_lname=F('user__user__last_name'))
+        payee = expenses.filter(Q(sta_pay__isnull=False) | Q(heo_pay__isnull=False),Isactive=True)
 
         shift_pumps_data = []
         attendants = []
         if not general:
             # expenses = expenses.filter(Q(shell=shell) | Q(general=True))
             # Get pump attendants, pumps and nozzles from shiftPump
+            payee = payee.filter(sta_pay__Interprise=shell)
+            posho_staff = posho_staff.filter(Interprise=shell.id)
             shf = shifts.objects.filter(To=None, record_by__Interprise=shell)
             attendants = [{'id': s.id,  'name': f'{s.by.user.first_name.capitalize()} {s.by.user.last_name.capitalize()}' if s.by else None} for s in shf]
 
@@ -831,21 +1283,66 @@ def getExpData(request):
 
                 shift_pumps_data = list(pumps_dict.values())
 
-        expenses_data = list(expenses.values('id', 'name','mafuta'))
+      
         
+        salary_expenses = []
+        for py in payee:
+            staff_id = None
+            kopesheka = False
+            payee_name = 'N/A'
 
+            if py.sta_pay:
+                staff_id = py.sta_pay.user.id
+                kopesheka = py.sta_pay.user.kopesheka
+                payee_name = f'{py.sta_pay.user.user.first_name.capitalize()} {py.sta_pay.user.user.last_name.capitalize()}'
+            elif py.heo_pay:
+                staff_id = py.heo_pay.id
+                kopesheka = py.heo_pay.kopesheka
+                payee_name = f'{py.heo_pay.user.first_name.capitalize()} {py.heo_pay.user.last_name.capitalize()}'
+
+            has_loan = False
+            loan_amount = 0
+            salary_deduction = 0
+
+            if staff_id is not None:
+                loan = StaffLoan.objects.filter(staff=staff_id, amount__gt=F('paid_amount')).first()
+                if loan:
+                    deni = float(loan.amount - loan.paid_amount)
+                    makato = float(loan.salary_deduction)
+                    has_loan = True
+                    loan_amount = deni
+                    salary_deduction = makato if deni >= makato else deni
+
+            salary_expenses.append({
+                'id': py.id,
+               'kopesheka': kopesheka,
+                'payee_name': payee_name,
+                'staff_id': staff_id,
+                'has_loan': has_loan,
+                'loan_amount': loan_amount,
+                'paid_loan': float(loan.paid_amount) if loan else 0,
+                'salary_deduction': salary_deduction,
+                'payee_Amount': float(py.amount) 
+            })
+        
+        expenses_data = list(expenses.exclude(paye=True).values('id', 'name','mafuta','bili','posho','manunuzi','discount','amount','depends'))
+        
+        staff_posho = list(posho_staff.distinct('user').values('user', 'staff_fname', 'staff_lname','Interprise')) 
 
         data = {
             'success': True,
             'expenses': expenses_data,
             'payment_accounts': payacc_data,
             'shift_pumps': shift_pumps_data,
-            'attendants': attendants
+            'attendants': attendants,
+            'staff_posho': staff_posho,
+            'salary_expenses': salary_expenses
         }
         
         return JsonResponse(data)
         
     except Exception as e:
+        traceback.print_exc()
         data = {
             'success': False,
             'message_eng': 'Failed to retrieve expense data',

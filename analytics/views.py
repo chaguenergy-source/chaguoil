@@ -1,13 +1,13 @@
 # Create your views here.
 from django.shortcuts import render,redirect
-from account.models import UserExtend,ToContena,PuList,CustmDebtPayRec,Purchases,saleList,saleOnReceive,toaCash,tr_supervisor,shiftsTime,transFromTo,tankAdjust,adjustments,pumpTemper,PumpStation,notifications,fuelPriceChange,shiftSesion,tankContainer,shiftPump,rekodiMatumizi,attachments,fuelSales,receiveFromTr,TransferFuel,receivedFuel,ReceveFuel,transfer_from,PhoneMailConfirm,wekaCash,shifts,wateja,wasambazaji,fuel,fuel_pumps,fuel_tanks,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
+from account.models import UserExtend,ToContena,attachments,PuList,CustmDebtPayRec,Purchases,saleList,saleOnReceive,toaCash,tr_supervisor,shiftsTime,transFromTo,tankAdjust,adjustments,pumpTemper,PumpStation,notifications,fuelPriceChange,shiftSesion,tankContainer,shiftPump,rekodiMatumizi,attachments,fuelSales,receiveFromTr,TransferFuel,receivedFuel,ReceveFuel,transfer_from,PhoneMailConfirm,wekaCash,shifts,wateja,wasambazaji,fuel,fuel_pumps,fuel_tanks,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
 # Create your views here.
 from django.contrib import messages
 from django.contrib.auth.models import User, auth
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
-from django.db.models import F
+from django.db.models import F, Case, When, CharField
 from django.core import serializers
 from django.db.models import Q
 # from datetime import datetime
@@ -28,6 +28,7 @@ import time
 import pytz
 import datetime
 import re
+import traceback
 from django.db.models import Sum
 import random 
 import os
@@ -297,9 +298,16 @@ def expensesr(request):
   fl = fuel_tanks.objects.filter(Interprise__company=kampuni).distinct('fuel')
   staxns = InterprisePermissions.objects.filter(Interprise__company=kampuni, Allow=True).distinct('Interprise')
 
+
+  # allRec = rekodiMatumizi.objects.filter(Interprise__company=kampuni.id)
+  # for rc in allRec:
+  #     rekodiMatumizi.objects.filter(pk=rc.id).update(tax_group=rc.matumizi.taxGroup)
+  
+
   todo.update({
     'fl': fl,
     'staxns': staxns,
+    'isExpRep':True
   })
   return render(request, 'analytics/expenser.html', todo)
 
@@ -326,18 +334,49 @@ def getExpenses(request):
         stationName=F('Interprise__name'),
         expN = F('matumizi__matumizi'),
         expId = F('matumizi__id'),
+        salary = F('matumizi__paye'),
+        posho = F('matumizi__posho'),
+        mafuta = F('matumizi__mafuta'),
+        manunuzi = F('matumizi__manunuzi'),
         givenTo = F('kabidhiwa'),
+        tinNumber = Case(
+          When(staff__isnull=True, then=F('tin_number')),
+          default=F('staff__tin'),
+          output_field=CharField()
+        ),
         byFName = F('by__user__first_name'),
-        byLname = F('by__user__last_name')
+        byLname = F('by__user__last_name'),
+        staffId = F('staff__id'),
+        staffFName = F('staff__user__first_name'),
+        staffLName = F('staff__user__last_name'),
+        dateRec=F('matumiziDeti__date'),
+        tax=F('tax_group'),
+        taxGroup=F('tax_group__name')
       ).values()
+      
+      attach = []
+      exp_ids = [e.get('id') for e in expenses if e.get('id')]
+      attachm = attachments.objects.filter(expAttach_id__in=exp_ids)
+      for a in attachm:
+        tax_group = a.expAttach.matumizi.taxGroup if a.expAttach and a.expAttach.matumizi else None
+        attach.append({
+          'rekodiMatumizi':a.expAttach.id,
+          'date':a.expAttach.tarehe,
+          'matumizi':a.expAttach.matumizi.id,
+          'salary':a.expAttach.matumizi.paye,
+          'tax':tax_group.id if tax_group else None,
+          'file':a.file.url if a.file else None,
+        })
 
       data = {
         'expenses': list(expenses),
+        'attachments': attach,
         'success': True
       }
       return JsonResponse(data)
     except Exception:
       data = {'success': False}
+      traceback.print_exc() 
       return JsonResponse(data)
   else:
     data = {'success': False}

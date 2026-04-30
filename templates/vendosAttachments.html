@@ -2,11 +2,535 @@
 {% load humanize %}
 {% load static %}
 
-
 {% block page_content %}
 
-{% include 'vendorsnav.html' %}
+<div class="head-title">
+    <div class="left">
+        
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#"> {% if useri.langSet == 0 %}wasambazaji {% else %} Vendors{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+<!-- 
+<a href="#" class="btn-download">
+    <i class='bx bxs-cloud-download' ></i>
+    <span class="text">Download PDF</span>
+</a> -->
 
+
+
+
+
+</div>
+
+
+
+
+
+<div class="table-data">
+    <div class="order">
+
+        {% include 'headingPurchases.html'  %}  
+
+        {% if thereisVen %}
+          <div class="row mb-4">
+            <div class="col-md-5 row">
+                <div class="col-12">
+                    <strong> {% if useri.langSet == 0 %}Taarifa za Msambazaji{% else %}Vendor Details{% endif %}</strong>
+                </div>
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}
+                </div>
+                <div class="col-9">
+                    <u class="bluePrint">{{ven.jina}}</u> 
+                </div>
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}
+                </div>
+                <div class="col-9">
+                    {{ven.address | title}}  
+                </div>
+
+                <div class="col-3">
+                    {% if useri.langSet == 0 %}Simu{% else %}Phone{% endif %}
+                </div>
+                <div class="col-9">
+                    {{ven.code}}{{ven.simu1}}{% if ven.simu2 %}, {{ven.code}}{{ven.simu2}} {%endif%}
+                </div>
+                
+                {% if ven.email %} 
+                        <div class="col-3">
+                            Email
+                        </div>
+                        <div class="col-9">
+                            {{ven.email}}
+                        </div>
+                {% endif %}
+
+        
+
+            </div>
+
+          </div>
+        {% endif %}
+
+
+        {% include 'vendorsnav.html' %}
+      <div class="head">
+        
+        <h4>
+             {% if uns %}
+             <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" width="1.3em" viewBox="0 0 24 24"  fill="currentColor">
+						<path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19.09H5V4.91h14v14.18zM6 15h12v2H6zm0-4h12v2H6zm0-4h12v2H6z"/>
+					</svg>
+               {% if useri.langSet == 0 %}Viambatanishi vya Manunuzu ambavyo havipo{% else %}Usaved Purchases Attachments{% endif %}
+            {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" height="1.3em" viewBox="0 -960 960 960" width="1.3em" fill="currentColor">
+                <path d="M706.92-334.23q0 97.46-67.81 165.84Q571.31-100 474.23-100q-97.46 0-165.46-68.39-68-68.38-68-165.84v-359.62q0-69.23 48.08-117.69Q336.92-860 406.15-860q69.23 0 117.31 48.46t48.08 117.69v340.39q0 40.61-28.35 69.34-28.34 28.73-68.96 28.73-40.61 0-69.34-28.53-28.73-28.54-28.73-69.54v-351.15h59.99v351.15q0 16.08 10.81 27.08t26.89 11q16.07 0 26.88-11 10.81-11 10.81-27.08v-340.77q-.62-44.31-30.85-75.04Q450.46-800 406.15-800q-44.3 0-74.84 30.92-30.54 30.93-30.54 75.23v359.62q-.62 72.54 50.15 123.38Q401.69-160 474.23-160q71.54 0 121.5-50.85 49.96-50.84 51.19-123.38v-370.38h60v370.38Z"/>
+                </svg>
+            
+               {% if useri.langSet == 0 %}Viambatanishi vya Manunuzi{% else %}Purchases Attachments{% endif %}
+            {% endif %}
+        </h4>
+        <!-- <i class='bx bx-search' ></i>
+        <i class='bx bx-filter' ></i> -->
+      </div>
+
+      <div class="row">
+        <div class="col-md-9"></div>
+        <div class="col-md-3">
+            <div class="input-group">
+                <label class="input-group-append border d-flex-inline justify-content-center align-items-center p-2" title="{% if useri.langSet == 0 %}Chagua Msambazaji{% else %}Select Vendor{% endif %}" for="vendorSelect">
+                     <svg width="20" height="20" viewBox="0 0 16 17" class="bi bi-compass" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<path fill-rule="evenodd" d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
+							<path d="M6.94 7.44l4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z"/>
+						  </svg>
+                </label>
+                <select id="vendorSelect" class="form-control">
+                    {% if thereisVen %}
+                       <option value={{ven.id}} disabled selected>{{ven.jina}}</option>
+                    {% else %}
+                       <option value=0 disabled selected>{% if useri.langSet == 0 %} Wote{% else %}All {% endif %}</option>
+                    {% endif %}
+                    {% for vendor in vendors %}
+                        <option value="{{ vendor.id }}">{{ vendor.jina }}</option>
+                    {% endfor %}
+                    {% if thereisVen %}
+                        <option value=0>{% if useri.langSet == 0 %}Wote{% else %}All{% endif %}</option>
+                    {% endif %}
+                </select>
+            </div>            
+        </div>
+       
+
+      </div>
+
+        {% if not uns %}
+        <div id="attachments" class="report-section mt-4">
+            <h5>{% if useri.langSet == 0 %}Viambatisho Kwa wasambazaji{% else %}Vendors Attachments{% endif %}</h5>
+            
+            {% if all_attachments %}
+                <table class="table table-bordered table-striped mt-3">
+                    <thead>
+                        <tr>
+                             <th>{% if useri.langSet == 0 %}Tarehe {% else %}Date {% endif %}</th>
+
+                            <th>{% if useri.langSet == 0 %}Jina la Faili{% else %}File Name{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Muuzaji{% else %}Vendor{% endif %}</th>
+                           
+                            <th>{% if useri.langSet == 0 %}Chaguo{% else %}Options{% endif %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attachment in all_attachments %}
+                        <tr>
+                            <td>
+                                <script>
+                                    document.write(moment("{{ attachment.date|date:'r' }}").format("DD/MM/YYYY HH:mm"))
+                                </script>
+                                </td>
+
+                            <td>
+                                {% if attachment.puAttach %}
+                                <a href="/salepurchase/viewPurchase?i={{attachment.purchase.id}}" class="btn btn-sm btn-outline-primary">
+                                    PU-{{ attachment.purchase.code }}
+                                    </a>
+                                {% if attachment.receipt  %}
+                                    <span class="badge badge-success ml-2">{% if useri.langSet == 0 %}Risiti{% else %}Receipt{% endif %}</span>
+                                {% endif %}
+                                {% if attachment.puInvo  %}
+                                    <span class="badge badge-info ml-2">{% if useri.langSet == 0 %}Ankara{% else %}Invoice{% endif %}</span>
+                                {% endif %}
+                                {% else %}
+                                    {{ attachment.attach_name}}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="/salepurchase/viewVendor?v={{ attachment.purchase.vendor.id }}" class="btn btn-sm btn-outline-primary">
+                                    {{ attachment.purchase.vendor.jina }}
+                                </a>
+                            </td>
+                            
+                            <td>
+                                <a href="{{ attachment.file.url }}" target="_blank" class="btn btn-primary btn-sm">{% if useri.langSet == 0 %}Tazama{% else %}View{% endif %}</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+    
+          <p class=" pt-4 ">
+
+            {% if all_attachments.has_previous %}
+              <a href="{% url 'vendosAttachments' %}?page=1" type="button"  class="btn btn-light border0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-left" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M11.854 3.646a.5.5 0 0 1 0 .708L8.207 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 1 0v-13a.5.5 0 0 0-.5-.5z"/>
+                </svg>
+                </a>
+          
+                <a href="{% url 'vendosAttachments' %}?page={{all_attachments.previous_page_number}}" type="button"  class="btn btn-light  border0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                  </svg>
+                </a>
+              {% endif %}
+          
+            {% if all_attachments.has_next %}
+                <a href="{% url 'vendosAttachments' %}?page={{all_attachments.next_page_number}}" type="button" class="btn btn-light border0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                  </svg>
+                </a>
+          
+                <a href="{% url 'vendosAttachments' %}?page={{pg_number}}" type="button"  class="btn btn-light border0" >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-bar-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.146 3.646a.5.5 0 0 0 0 .708L7.793 8l-3.647 3.646a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708 0zM11.5 1a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-1 0v-13a.5.5 0 0 1 .5-.5z"/>
+                  </svg>
+                </a>
+          {% endif %}
+                <span >
+                 
+                  {% if useri.langSet == 0 %} Ukurasa wa {{pg_page}} kati ya {{pg_number}} {% else %} page {{pg_page}} of {{pg_number}} {% endif %}
+          
+                </span>
+            </p>
+
+
+            {% else %}
+                <p>{% if useri.langSet == 0 %}Hakuna viambatisho vilivyopatikana .{% else %}No attachments found.{% endif %}</p>
+            {% endif %}
+        </div>
+        {% else %}
+            <div id="attachments" class="report-section mt-4">
+                <h5>{% if useri.langSet == 0 %}Manunuzi Ambayo Hayana Viambatisho{% else %}Purchases Missing Attachments{% endif %}</h5>
+                
+                
+                    <table class="table table-bordered table-striped mt-3">
+                        <thead>
+                            <tr> 
+                                <th>{% if useri.langSet == 0 %}Tarehe {% else %} Date{% endif %}</th>
+                                <th>PU-{% if useri.langSet == 0 %} Manunuzi{% else %}Purchase{% endif %}</th>
+                               
+                                <th>{% if useri.langSet == 0 %}Muuzaji{% else %}Vendor{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Usafirishaji{% else %}Transporter{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Deleva{% else %}Driver{% endif %}</th>
+                                <th>{% if useri.langSet == 0 %}Kiwango{% else %}Amount{% endif %}(<span class="text-primary">{{currencii}}</span>) </th>
+                                <th>{% if useri.langSet == 0 %}Viambatisho Vilivyokosekana{% else %}Missing Attachments{% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in missingAttachments %}
+                            <tr>
+                                <td>
+                                    <script>
+                                        document.write(moment("{{ item.pu.purchase.recDate|date:'r' }}").format("DD/MM/YYYY HH:mm"))
+                                    </script>
+                                </td>
+                                <td>
+                                    <a href="/salepurchase/viewPurchase?i={{ item.pu.purchase.id }}" class="btn btn-sm btn-outline-primary">
+                                        PU-{{ item.pu.purchase.code }}
+                                    </a>
+                                </td>
+
+                                <td>
+                                    <a href="/salepurchase/viewVendor?v={{ item.pu.purchase.vendor.id }}" class="btn btn-sm btn-outline-primary">{{ item.pu.purchase.vendor.jina }}</a>
+                                    
+                                </td>
+                                <td>
+                                    <a href="/salepurchase/viewVendor?v={{ item.pu.purchase.vendor.id }}" class="btn btn-sm btn-outline-primary">
+                                        {% if item.pu.transp %}
+                                            {{ item.pu.transp.jina }}
+                                        {% else %}
+                                            ------
+                                        {% endif %}
+                                   </a>
+                                </td>
+                                <td>{{ item.pu.vihecle }}</td>
+                                <td>{{ item.pu.driver }}</td>
+                                <td>{{ item.fuel_amount|floatformat:2|intcomma }}</td>
+                                <td>
+                                    {% if not item.hasRecept %} 
+                                        <span 
+                                        data-vendor="{{item.pu.purchase.vendor.id}}"
+                                        data-amount="{{item.fuel_amount}}"
+                                        data-tr_amo="{{item.transp_amount}}"
+                                        data-vendor_name="{{item.pu.purchase.vendor.jina}}"
+                                        data-driver="{{item.pu.driver}}"
+                                        data-vihecle="{{item.pu.vihecle}}"
+                                        data-transporter="{{item.pu.transp.jina}}"
+                                        data-pu="{{item.pu.id}}"
+
+
+                                        data-recept=1
+                                        type="button" class="badge badge-danger  " data-toggle="modal" data-target="#addAttachmentModal" >
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                                               <path d="M706.92-334.23q0 97.46-67.81 165.84Q571.31-100 474.23-100q-97.46 0-165.46-68.39-68-68.38-68-165.84v-359.62q0-69.23 48.08-117.69Q336.92-860 406.15-860q69.23 0 117.31 48.46t48.08 117.69v340.39q0 40.61-28.35 69.34-28.34 28.73-68.96 28.73-40.61 0-69.34-28.53-28.73-28.54-28.73-69.54v-351.15h59.99v351.15q0 16.08 10.81 27.08t26.89 11q16.07 0 26.88-11 10.81-11 10.81-27.08v-340.77q-.62-44.31-30.85-75.04Q450.46-800 406.15-800q-44.3 0-74.84 30.92-30.54 30.93-30.54 75.23v359.62q-.62 72.54 50.15 123.38Q401.69-160 474.23-160q71.54 0 121.5-50.85 49.96-50.84 51.19-123.38v-370.38h60v370.38Z"/>
+                                            </svg>
+                                            {% if useri.langSet == 0 %}Risiti{% else %}Receipt{% endif %}
+                                        </span>
+                                    {% endif %}
+                                    {% if not item.hasInvo %}
+                                        <span 
+                                        data-vendor="{{item.pu.purchase.vendor.id}}"
+                                        data-amount="{{item.fuel_amount}}"
+                                        data-tr_amo="{{item.transp_amount}}"
+                                        data-vendor_name="{{item.pu.purchase.vendor.jina}}"
+                                        data-driver="{{item.pu.driver}}"
+                                        data-vihecle="{{item.pu.vihecle}}"
+                                        data-transporter="{{item.pu.transp.jina}}"
+                                        data-pu="{{item.pu.id}}"
+
+                                        data-invo=1
+                                        type="button" class="badge badge-danger  " data-toggle="modal" data-target="#addAttachmentModal" >
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                                               <path d="M706.92-334.23q0 97.46-67.81 165.84Q571.31-100 474.23-100q-97.46 0-165.46-68.39-68-68.38-68-165.84v-359.62q0-69.23 48.08-117.69Q336.92-860 406.15-860q69.23 0 117.31 48.46t48.08 117.69v340.39q0 40.61-28.35 69.34-28.34 28.73-68.96 28.73-40.61 0-69.34-28.53-28.73-28.54-28.73-69.54v-351.15h59.99v351.15q0 16.08 10.81 27.08t26.89 11q16.07 0 26.88-11 10.81-11 10.81-27.08v-340.77q-.62-44.31-30.85-75.04Q450.46-800 406.15-800q-44.3 0-74.84 30.92-30.54 30.93-30.54 75.23v359.62q-.62 72.54 50.15 123.38Q401.69-160 474.23-160q71.54 0 121.5-50.85 49.96-50.84 51.19-123.38v-370.38h60v370.38Z"/>
+                                            </svg>
+                                            {% if useri.langSet == 0 %}Ankara{% else %}Invoice{% endif %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                            </table>
+                            </div>
+
+        {% endif %}
+
+
+      </div>
+     </div>
+
+     <script>
+        $(document).ready(function(){
+            $('#vendorSelect').change(function(){
+                var selectedVendor = $(this).val();
+                if(selectedVendor){
+                    window.location.href = "?v=" + selectedVendor;
+                } else {
+                    window.location.href = "?v=0";
+                }
+            });
+        })
+
+           
+     </script>
+
+ {% if uns %}
+     <!-- Add attachments modal -->
+        <div class="modal fade" id="addAttachmentModal" tabindex="-1" role="dialog" aria-labelledby="addAttachmentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addAttachmentModalLabel">{% if useri.langSet == 0 %}Ongeza Kiambatisho{% else %}Add Attachment{% endif %}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Details Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">{% if useri.langSet == 0 %}Taarifa za Manunuzi{% else %}Purchase Details{% endif %}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>{% if useri.langSet == 0 %}Muuzaji{% else %}Vendor{% endif %}:</strong> <span  id="modalVendorName"></span></p>
+                                        <p><strong>{% if useri.langSet == 0 %}Usafirishaji{% else %}Transporter{% endif %}:</strong> <span id="modalTransporter"></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}:</strong> <span class="bluePrint" id="modalVehicle"></span></p>
+                                        <p><strong>{% if useri.langSet == 0 %}Deleva{% else %}Driver{% endif %}:</strong> <span class="bluePrint" id="modalDriver"></span></p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>{% if useri.langSet == 0 %}Kiwango{% else %}Amount{% endif %} ({{currencii}}):</strong> <span id="modalAmount"></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>{% if useri.langSet == 0 %}Kiwango cha Usafirishaji{% else %}Transport Amount{% endif %} ({{currencii}}):</strong> <span id="modalTransportAmount"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Upload Section -->
+                        <form id="addAttachmentForm" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group" hidden >
+                                <label for="attachmentFile">{% if useri.langSet == 0 %}Chagua Faili (Picha){% else %}Select File (Image){% endif %}</label>
+                                <input type="file" hidden class="form-control-file" id="attachmentFile" name="attachmentFile" accept="image/*" required>
+                                <small class="form-text text-muted">{% if useri.langSet == 0 %}Inayotakiwa: JPG, PNG, GIF{% else %}Supported: JPG, PNG, GIF{% endif %}</small>
+                            </div>
+
+                            <!-- Image Preview Section -->
+                            <div class="form-group">
+                                <h5 id="recept_or_invo" >{% if useri.langSet == 0 %}Muhtasari wa Kiambatanishi{% else %}Attachment Preview{% endif %}</h5>
+                                <label id="imagePreview" type="button" for="attachmentFile" class="border rounded p-3 bg-light text-center" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
+                                    <p class="text-muted">{% if useri.langSet == 0 %}Bonyeza Kuall_attachments picha{% else %}Click to add Image{% endif %}</p>
+                                    <div>
+                                          <small class="form-text text-muted">{% if useri.langSet == 0 %}Inayotakiwa: JPG, PNG, GIF{% else %}Supported: JPG, PNG, GIF{% endif %}</small>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <input type="hidden" id="purchaseId" name="purchaseId" value=0 >
+                            <input type="hidden" name="is_pu_receipt" id="is_pu_receipt" value=0 >
+                            <input type="hidden" name="is_pu_invo" id="is_pu_invo" value=0 >
+
+                            <p class="text-right">
+                                <button type="submit" class="btn btn-primary">{% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}</button>
+                            </p>
+                            
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+       
+            <script>
+                $(document).ready(function(){
+                    $('#addAttachmentModal').on('show.bs.modal', function (event) {
+                        const button = $(event.relatedTarget);
+                        const vendorName = button.data('vendor_name');
+                        const amount = button.data('amount');
+                        const transportAmount = button.data('tr_amo');
+                        const driver = button.data('driver');
+                        const vehicle = button.data('vihecle');
+                        const vendorId = button.data('vendor');
+                        const transporter = button.data('transporter');
+                        const purchaseId = button.data('pu');
+                        const recept = Number(button.data('recept'))||0;
+                        const invo = Number(button.data('invo'))||0;
+                        const modal = $(this);
+                        const isInvoRecept = recept?'{% if useri.langSet == 0 %}}Risiti{% else %}Receipt{% endif %}':'{% if useri.langSet == 0 %}Ankara{% else %}Invoice{% endif %}';
+                        modal.find('#recept_or_invo').text('{% if useri.langSet == 0 %}}Ambatanisha{% else %}Attach{% endif %} '+ isInvoRecept);
+                        modal.find('#modalVendorName').html(`<a href="/salepurchase/viewVendor?v=${vendorId}" class="btn btn-sm btn-outline-primary">${vendorName}</a>`);
+                        modal.find('#modalAmount').text(parseFloat(amount).toLocaleString());
+                        modal.find('#modalTransportAmount').text(parseFloat(transportAmount).toLocaleString());
+                        modal.find('#modalDriver').text(driver || '------');
+                        modal.find('#modalVehicle').text(vehicle || '------');
+                        modal.find('#purchaseId').val(purchaseId);
+                        modal.find('#is_pu_receipt').val(recept);
+                        modal.find('#is_pu_invo').val(invo);
+                        modal.find('#modalTransporter').html(`<a href="/salepurchase/viewTransp?v=${vendorId}" class="btn btn-sm btn-outline-primary">${transporter}</a>` || '------');
+                        // Clear preview and file input
+                        $('#attachmentFile').val('');
+                        $('#imagePreview').html(`
+                           <p class="text-muted">{% if useri.langSet == 0 %}Bonyeza Kuall_attachments picha{% else %}Click to add Image{% endif %}
+                            <br>
+                              <small class="form-text text-muted">{% if useri.langSet == 0 %}Inayotakiwa: JPG, PNG, GIF{% else %}Supported: JPG, PNG, GIF{% endif %}</small>
+                            </p>
+                           
+                        `);
+                    });
+
+                    // Image preview on file selection
+                    $('#attachmentFile').on('change', function(e) {
+                        var file = e.target.files[0];
+                        if (file) {
+                            var reader = new FileReader();
+                            reader.onload = function(event) {
+                                $('#imagePreview').html('<img src="' + event.target.result + '" style="max-width: 100%; max-height: 400px; object-fit: contain;">');
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                });
+
+                // compress the image if exceeds 200Kb then submit the form
+                $('#addAttachmentForm').on('submit', function(e){
+                    e.preventDefault();
+                    var fileInput = $('#attachmentFile')[0];
+                    var file = fileInput.files[0];
+                    if(!file){
+                        alert('{% if useri.langSet == 0 %}Tafadhali chagua faili ya picha.{% else %}Please select an image file.{% endif %}');
+                        return;
+                    }
+
+                    $('#addAttachmentModal').modal('hide');
+                    $('#loadMe').modal('show');
+
+
+                    // use compressImage to get either the original file or a compressed file, then submit
+                    compressImage(file, function(processedFile){
+                        var formData = new FormData($('#addAttachmentForm')[0]);
+                        formData.set('attachment', processedFile);
+                        formData.set('is_pu_receipt', $('#is_pu_receipt').val());
+                        formData.set('is_pu_invo', $('#is_pu_invo').val());
+                        formData.set('purchaseId', $('#purchaseId').val());
+                        
+
+                        $.ajax({
+                            url: '{% url "addAttach" %}',
+                            method: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function(response){
+                                const msg = lang(response.msg_swa, response.msg_eng);
+                                $('#loadMe').modal('hide');
+
+                                hideLoading();
+                                if(response.success){
+                                    toastr.success(msg,lang('Imefanikiwa','Success'),{timeOut:3000});
+                                    location.reload();
+                                }else{
+                                    toastr.error(msg,lang('Imeshindikana','Failed'),{timeOut:3000});
+                                }
+                                    
+                            },
+                            error: function(){
+                                alert('{% if useri.langSet == 0 %}Hitilafu ilitokea. Tafadhali jaribu tena.{% else %}An error occurred. Please try again.{% endif %}');
+                            }
+                        });
+                    });
+                });
+
+        
+            </script>
+         {% endif %}
+
+       
 
 
 {% endblock %}
+
+{% block vendors %} active  {% endblock %}

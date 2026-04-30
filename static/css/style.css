@@ -40,7 +40,7 @@ li {
 	--greyFont:#777;
 	--bluePrint:rgb(19, 62, 204);
 	/* --borderColor:#dee2e6; */
-	--borderColor:#cecece;
+	--borderColor:#dbe2ea;
 	--list-primary-color:#004085;
 	--list-primary-Bg:#b8daff;
 	--list-primary-hover:#9fcdff;
@@ -344,6 +344,10 @@ color: var(--bluePrint) !important;
 	overflow-x: hidden;
 }
 #sidebar .side-menu.top li.active a {
+	color: var(--blue);
+}
+
+#sidebar .side-menu.bottom li.active a {
 	color: var(--blue);
 }
 
@@ -1084,4 +1088,62 @@ span.optionbtns .btn_option.active, .tank_btn_option.active{
     overflow: hidden;
     clip: rect(0,0,0,0);
     border: 0;
+}
+
+/* Modern style for expense modal to match test.html */
+.modal .modal-content {
+	border: none;
+	border-radius: 12px;
+	box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+	overflow: hidden;
+}
+
+.modal .modal-header {
+	border-bottom: 2px solid #f1f5f9;
+	padding: 18px 20px;
+	background: #fff;
+}
+
+.modal .modal-title {
+	color: #2563eb;
+	font-weight: 700;
+}
+
+.modal .modal-body {
+	padding: 20px;
+	background: #fff;
+}
+
+.modal .modal-footer {
+	border-top: 2px solid #f1f5f9;
+	padding: 14px 20px;
+	background: #fff;
+}
+
+.modal .form-control,
+.modal select,
+.modal input[type="text"],
+.modal input[type="number"],
+.modal input[type="date"] {
+	border: 1.5px solid #e2e8f0;
+	border-radius: 8px;
+	min-height: 42px;
+	transition: all .2s ease;
+}
+
+.modal .form-control:focus,
+.modal select:focus,
+.modal input:focus {
+	border-color: #2563eb;
+	box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.modal .btn-primary {
+	background: #2563eb;
+	border-color: #2563eb;
+}
+
+.modal .btn-primary:hover {
+	background: #1e40af;
+	border-color: #1e40af;
 }

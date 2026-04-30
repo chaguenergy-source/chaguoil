@@ -1,8 +1,20 @@
 
 # Create your views here.
 from django.shortcuts import render,redirect
-from account.models import UserExtend,ToContena,PuList,Purchases,creditDebtOrder,DepositTo,CustmDebtPayRec,saleList,saleOnReceive,toaCash,tr_supervisor,shiftsTime,transFromTo,tankAdjust,adjustments,pumpTemper,PumpStation,notifications,fuelPriceChange,shiftSesion,tankContainer,shiftPump,rekodiMatumizi,attachments,fuelSales,receiveFromTr,TransferFuel,receivedFuel,ReceveFuel,transfer_from,PhoneMailConfirm,wekaCash,shifts,wateja,wasambazaji,fuel,fuel_pumps,fuel_tanks,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
+from account.models import (
+    UserExtend,
+    ToContena,PuList, Purchases,transporter,
+    creditDebtOrder,DepositTo,CustmDebtPayRec,
+    saleList,saleOnReceive,toaCash,tr_supervisor,
+    shiftsTime,transFromTo,tankAdjust,adjustments,
+    pumpTemper,PumpStation,notifications,fuelPriceChange,
+    shiftSesion,tankContainer,shiftPump,rekodiMatumizi,
+    attachments,fuelSales,receiveFromTr,TransferFuel,
+    receivedFuel,ReceveFuel,transfer_from,PhoneMailConfirm,
+    wekaCash,shifts,wateja,wasambazaji,fuel,fuel_pumps,fuel_tanks,
+    Interprise,InterprisePermissions,PaymentAkaunts,puAttachments,staff_akaunt_permissions)
 # Create your views here.
+
 from django.contrib import messages
 from django.contrib.auth.models import User, auth
 from django.contrib.auth.decorators import login_required
@@ -34,6 +46,7 @@ import random
 import os
 from django.conf import settings
 
+from django.core.files.storage import default_storage # Hii inahitajika kwa kufuta faili la zamani
 
 from account.todos import Todos,confirmMailF,invoCode,TCode
 from django.views.decorators.http import require_POST
@@ -48,13 +61,18 @@ def todoFunct(request):
 @login_required(login_url='login')
 def customers(request):
   todo = todoFunct(request)
-  cust = todo['customers']
+  
   general = todo['general']
   shell = todo['shell']
   allcust = int(request.GET.get('allst',0))
   st = int(request.GET.get('st',0))
+  kampuni = todo['kampuni']
 
-  wateja = []
+  cust = wateja.objects.filter(Interprise__company=kampuni).order_by('jina')
+#   if not general:
+#         cust = cust.filter(Q(Interprise=shell.id)|Q(allEntp=True))
+
+  watejaD = []
   madeni = 0
   for c in cust:
       denitr = fuelSales.objects.filter(customer=c.id,amount__gt=F('payed'))
@@ -65,7 +83,7 @@ def customers(request):
             denitr = denitr.filter(by__Interprise=st)
 
       deni = denitr.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'] or 0
-      wateja.append({
+      watejaD.append({
           'cust':c,
           'deni':deni
       })
@@ -78,13 +96,14 @@ def customers(request):
   if st:
     kituo = Interprise.objects.get(pk=st,company=todo['kampuni'])    
 
-
+  deni_count = sum(1 for item in watejaD if item['deni'] > 0)
   todo.update({
       'stations':stations,
       'isCustomer':True,
-      'wateja':wateja,
+      'wateja':watejaD,
       'madeni':madeni,
         'kituo':kituo,
+        'deni_count':deni_count
   })
   return render(request,'customers.html',todo)
 
@@ -810,8 +829,23 @@ def customerStatementData(request):
         sales_qs = fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni, recDate__gte=tFr, recDate__lte=tTo).order_by('pk')
         payments_qs = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__gte=tFr, tarehe__lte=tTo).order_by('pk')
         lastPay  = wekaCash.objects.filter(Q(customer=cust)|Q(cdOrder__customer=cust), Interprise__company=kampuni,Akaunt__isnull=False,tarehe__lt=tFr).exclude(Amount=0).order_by('pk').last()
+        # print('lastPay', lastPay.Amount if lastPay else None)
+        # print('lastPay', lastPay.tarehe if lastPay else None)
         # print(len(sales_qs),len(payments_qs))
         invo_payed = CustmDebtPayRec.objects.filter(pay = lastPay,sale__recDate__lt=tFr).order_by('pk')
+        last_payee = CustmDebtPayRec.objects.filter(sale__customer=cust).order_by('pk').last()
+        
+
+        # print('pay_Amo_last_pay',last_payee.pay.Amount)
+        # print('pay_Amo_last_payBalance',( last_payee.pay.Amount - last_payee.pay.used_amount) if last_payee else None  )
+        # print('Used Amount',(last_payee.pay.used_amount) if last_payee else None  )
+        # print('pay_Amo_last_payApay',( last_payee.Apay) if last_payee else None  )
+        # print('pay_Amo_last_pay',last_payee.pay.tarehe)
+
+        # print('last_pay_Invo',last_payee.sale.amount)
+        # print('last_pay_Invo',last_payee.sale.date)
+
+        # print('invo_payed', invo_payed.last().sale.amount if invo_payed.exists() else None)
         opening_balance = float(lastPay.Amount if lastPay else 0)
         opening_balance -= float(invo_payed.aggregate(total=Sum('Apay'))['total'] or 0)
         last_payed_invo = invo_payed.last() if invo_payed.exists() else None
@@ -1151,7 +1185,7 @@ def save_credit_order(request):
                     order.save()
 
                 if float(customer.debt_limit) == float(0)  or not consume.exists()  or useri.admin:      
-                    customer.debt_limit = debt_limit
+                    customer.debt_limit = debt_limit if not topUp else float(customer.debt_limit)
                     customer.save()
                 else:
                     if justLimit:
@@ -1181,6 +1215,7 @@ def save_credit_order(request):
                     payRec.Akaunt = acc
                     payRec.before = accAmo
                     payRec.customer = customer
+                    payRec.admin_approval = useri.admin
                     if NewOda:
                         payRec.After = float(float(accAmo) + float(paid))
                     else:
@@ -1204,7 +1239,7 @@ def save_credit_order(request):
                                 else:
                                     b.payed = float(lipwa + paid_amo)
                                     paid_amo = 0  
-                                    exit 
+                                    break
                                 if b.cdorder is None:    
                                     b.cdorder = order
                                 else:
@@ -1217,6 +1252,8 @@ def save_credit_order(request):
                                 custP = CustmDebtPayRec()  
                                 custP.sale = b
                                 custP.pay = payRec   
+                                custP.pay.used_amount = float(custP.pay.used_amount) + float(theP)
+                                custP.pay.save()
                                 custP.Debt =  deni 
                                 custP.Apay =  float(theP)
                                 custP.save()
@@ -1290,6 +1327,10 @@ def delete_unused_order(request):
                         lipwa = float(sale.payed)
                         sale.payed = float(lipwa - float(p.Apay))
                         sale.save()
+
+                        sale.cdorder.paid = float(float(sale.cdorder.paid) - float(p.Apay))
+                        sale.cdorder.save()
+
                         p.delete()
                     order.delete()
 
@@ -1697,7 +1738,7 @@ def saveFuelSaleMobileMoney(request):
                             payRec.by = useri
                             payRec.sales = sale
                             payRec.biforeShift = True
-                            
+                            payRec.admin_approval = useri.admin
                             payRec.shift = pmpA.shift
                             payRec.Akaunt = acc
                             payRec.before = accAmo
@@ -1855,11 +1896,19 @@ def fuelsales(request):
                     return JsonResponse(data)
                 sale.amount = float(amo)
                 
-                 
+                order_balance = 0
+                order_amount = 0
+                order_consumed = 0
+                order_paid = 0 
                 if cdOrder.exists():
+                    order_amount = float(lcdorder.amount)
+                    order_consumed = float(lcdorder.consumed)
+                    order_paid = float(lcdorder.paid)
+                    order_balance = float(lcdorder.amount) - float(lcdorder.consumed)
                     
-                    if float(lcdorder.amount) < float(float(lcdorder.consumed)+float(amo)):
-                        lcdorder.amount = float(float(lcdorder.consumed) + float(amo))
+                    if order_amount < float(order_consumed+float(amo)):
+
+                        lcdorder.amount = float(order_consumed + float(amo))
                         lcdorder.save()
                         custm.limited_order = False
                         custm.save()
@@ -1873,14 +1922,8 @@ def fuelsales(request):
                         # return JsonResponse(data)
 
 
-                    if lcdorder.paid > lcdorder.consumed:
-                        Od_balance = float(float(lcdorder.paid) - float(lcdorder.consumed))
-                        # print('paid',lcdorder.paid)
-                        # print('consumed',lcdorder.consumed)
-                        # print('Amount',lcdorder.amount)
-                        # print('customer',lcdorder.customer.jina)
-                        # print('ID',lcdorder.id)
-                        # print('Balance',Od_balance)
+                    if order_paid > order_consumed:
+                        Od_balance = float(float(order_paid) - float(order_consumed))
 
                         
                         if Od_balance >= float(amo):
@@ -1904,7 +1947,7 @@ def fuelsales(request):
 
                 
 
-                if cdOrder.exists() and int(lcdorder.paid) > int(lcdorder.consumed):
+                if cdOrder.exists() and order_paid > order_consumed:
                     ilolipwa = 0
                     daiwa = 0
                     zilizolipwa = wekaCash.objects.filter(cdOrder=lcdorder,used_amount__lt=F('Amount')).order_by('pk')
@@ -1916,7 +1959,7 @@ def fuelsales(request):
                             ilolipwa = float(denii)
                             paye.used_amount = float(float(paye.used_amount) + float(denii))
                             paye.save()
-                            exit
+                            break
                         else:
                             ilolipwa = paye_balance  
                             paye.used_amount = float(float(paye.used_amount) + float(paye_balance))
@@ -1942,6 +1985,7 @@ def fuelsales(request):
                     weka.tarehe = datetime.datetime.now(tz=timezone.utc)
                     weka.by=useri
                     weka.Interprise=shell
+                    weka.admin_approval = useri.admin
                     weka.saRec=True
                     weka.mauzo=True
                     weka.tInvo = len(deni_nyuma)
@@ -3466,7 +3510,7 @@ def viewShift(request):
     # print(isLastsh)  
 
     if sh.To is  None:
-        shby = InterprisePermissions.objects.get(user=sh.by,Interprise=shell.id)
+        shby = InterprisePermissions.objects.filter(user=sh.by,Interprise=shell.id).first()
         return redirect(f'/salepurchase/StartEndShift?usr={shby.id}')
        
   
@@ -3798,6 +3842,11 @@ def  lipaInvo(request):
                       }  
 
                       return JsonResponse(data)
+                  
+                #   if paid_amo:
+                #     print(paid_amo)     
+                #     data = {'success':True}
+                #     return JsonResponse(data)
 
                   ilolipwa = 0
                   malipo = 0
@@ -3834,6 +3883,7 @@ def  lipaInvo(request):
                      custOders = creditDebtOrder.objects.filter(customer=cust,paid__lt=F('amount')).order_by('-pk')
                      custOder = custOders.first() if custOders.exists() else None
                      order_due = float(custOder.amount - custOder.paid) if custOder is not None else 0
+
                      if not custOder and  total_deni < paid_amo and not edit:
                         data = {
                             'pay':True,  
@@ -3889,11 +3939,13 @@ def  lipaInvo(request):
                         weka.tInvo = len(bill) if bill.exists() else 0
                         weka.tDebt = float(bill.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'] or 0)
                         weka.customer = cust
+
                         if prepaid_order and not edit:
                             weka.cdOrder = custOder
                             custOder.paid = float(float(custOder.paid) + paid_amo) if order_due <= paid_amo else float(custOder.amount)
                             custOder.prepaid_order = True if order_due <= paid_amo else False
                             custOder.save()
+
                         if edit and weka.cdOrder is not None:
                             cdOd = weka.cdOrder
                             pay_diff = float(paid_amo - float(weka.Amount))
@@ -3928,7 +3980,7 @@ def  lipaInvo(request):
                                     else:
                                         b.payed = float(lipwa + paid_amo)
                                         paid_amo = 0  
-                                        exit  
+                                        break  
                                     b.save()
 
                                     if b.cdorder is not None and not prepaid_order:
@@ -4038,6 +4090,11 @@ def addAttach(request):
             adj = int(request.POST.get('adj',0))
             pu = int(request.POST.get('pu',0))
             cust = int(request.POST.get('cust',0))
+            is_pu = int(request.POST.get('purchaseId',0))
+            is_pu_recept = int(request.POST.get('is_pu_receipt',0))
+            is_pu_invo = int(request.POST.get('is_pu_invo',0))
+
+            is_exp = int(request.POST.get('is_exp',0))
 
             attName = request.POST.get('attach_name')
             printDoc = int(request.POST.get('printedDoc',0))
@@ -4048,20 +4105,47 @@ def addAttach(request):
             kampuni = todo['kampuni']
                   
             if useri.admin or manager:
-                gcs_storage = settings.GCS_STORAGE_INSTANCE
+                gcs_storage = default_storage
+                if not settings.DEBUG:
+                    gcs_storage = settings.GCS_STORAGE_INSTANCE
+
                 ext = file.name.split('.')[-1]
                 filename = f"attachments/{kampuni.id}_{int(time.time())}.{ext}"
                 path = gcs_storage.save(filename, file)
 
                 att = attachments()
+                
                 att.file = path
+                # att.file.save(file.name, file)
                 att.date = datetime.datetime.now(tz=timezone.utc)
                 att.by = useri
-
-                att.printedDocu = printDoc
-                att.attach_name = attName
+                # print(is_exp)
+                if is_exp:
+                    expense = rekodiMatumizi.objects.get(pk=is_exp,Interprise__company=kampuni)
+                    att.expAttach = expense
+                    attName = expense.matumizi.matumizi
 
                 # print(printDoc)
+                if is_pu:
+                    if not useri.admin or useri.pu:
+                        data = {
+                            'success':False,
+                            'msg_swa':'Hauna ruhusa ya kuunganisha kiambatanisho hiki tafadhari wasiliana na uongozi',
+                            'msg_eng':'You have no permission to attach this attachment please contact admin'
+                        }
+                        return JsonResponse(data)
+                    
+                    puAtt = puAttachments.objects.get(pk=is_pu,purchase__vendor__compan=kampuni)
+                    att.puAttach = puAtt
+                    att.receipt = is_pu_recept
+                    att.puInvo = is_pu_invo
+                    att.purchase = puAtt.purchase
+                    if is_pu_recept:
+                        attName = f"PU-{puAtt.purchase.code} Receipt "
+                    if is_pu_invo:
+                        attName = f"PU-{puAtt.purchase.code} Invoice "    
+
+
 
                 if tr:
                     ftr=TransferFuel.objects.get(pk=tr)
@@ -4094,6 +4178,9 @@ def addAttach(request):
                     ftr = wateja.objects.get(pk=cust) 
                     att.cust = ftr
 
+
+                att.printedDocu = printDoc
+                att.attach_name = attName
                 att.save()    
 
                 data = {
@@ -4577,7 +4664,7 @@ def endshift(request):
                                 TheTnk=soldBreceive.filter(tank=rt.tank)
                                 BsoldCost = float(TheTnk.aggregate(sumi=Sum(F('qty')*F('cost')))['sumi'] or 0)
                                 BsoldQty = float(TheTnk.aggregate(sumi=Sum('qty'))['sumi'] or 0)
-                                shiftSale = saleList.objects.filter(sale__session=ses,shift__pump__tank=rt.tank,shiftBy__session=ses,sale__mobile_pay=False)
+                                shiftSale = saleList.objects.filter(sale__session=ses,shift__pump__tank=rt.tank,shift__shift__session=ses,sale__mobile_pay=False)
                                 SoldQty = float(shiftSale.aggregate(sumi=Sum('qty_sold'))['sumi'] or 0)
                                 soldAfterRc = float(SoldQty - BsoldQty)
                                 Soldcost = soldAfterRc * float(rt.tank.cost) 
@@ -4855,21 +4942,32 @@ def deleteShift(request):
             if not rems.exists():
                 saleAmo = theSale.amount
                 payedAmo = theSale.payed
-                accs = wekaCash.objects.filter(sales=theSale.id)
-                for ac in accs:
-                    acc = ac.Akaunt
-                    acc.Amount = float(float(acc.Amount) - float(payedAmo))
-                    acc.save()
-                    ac.delete()
+                
+
                 IsCreditor = theSale.cdorder
                 if IsCreditor is not None:
                     IsCreditor.consumed = float(float(IsCreditor.consumed) - float(saleAmo))
                     IsCreditor.save()
                     custm = IsCreditor.customer
                     custm.limited_order = True
+                  
                     custm.save()
 
+                sale_payed = CustmDebtPayRec.objects.filter(sale=theSale.id)
+                for sp in sale_payed:
+                    paytr = sp.pay
+                    paytr.used_amount = float(float(paytr.used_amount) - float(sp.Apay))
+                    paytr.save()
+                accs = wekaCash.objects.filter(sales=theSale.id,cdOrder__isnull=True)
+                for ac in accs:
+                    acc = ac.Akaunt
+                    acc.Amount = float(float(acc.Amount) - float(payedAmo))
+                    acc.save()
+                    ac.delete()
+
                 theSale.delete()
+
+
 
         tr = transFromTo.objects.filter(shift__shift=shiftToD.id)
         for ft in tr:
@@ -4932,13 +5030,7 @@ def deleteCDSales(request):
             for saL in saleL:
 
                     sale = saL.sale
-                    accs = wekaCash.objects.filter(sales=sale.id)
-                    
-                    for ac in accs:
-                        acc = ac.Akaunt
-                        acc.Amount = float(float(acc.Amount) - float(sale.payed))
-                        acc.save()
-                        ac.delete()
+
                     IsCreditor = sale.cdorder
                     if IsCreditor is not None:
                         IsCreditor.consumed = float(float(IsCreditor.consumed) - float(sale.amount))
@@ -4946,6 +5038,18 @@ def deleteCDSales(request):
                         custm = IsCreditor.customer
                         custm.limited_order = True
                         custm.save()
+                    sale_payed = CustmDebtPayRec.objects.filter(sale=sale.id)
+                    for sp in sale_payed:
+                        paytr = sp.pay
+                        paytr.used_amount = float(float(paytr.used_amount) - float(sp.Apay))
+                        paytr.save()
+
+                    accs = wekaCash.objects.filter(sales=sale.id,cdOrder__isnull=True)
+                    for ac in accs:
+                        acc = ac.Akaunt
+                        acc.Amount = float(float(acc.Amount) - float(sale.payed))
+                        acc.save()
+                        ac.delete()                        
 
                     sale.delete()  
                 
@@ -5523,7 +5627,7 @@ def cashOut(request):
                         toa.Interprise=fA.Interprise
                         toa.admin_approval = useri.admin
                         toa.kuhamisha = True
-
+                        
                         toa.kuhamishaNje =  acount.Interprise is not fA.Interprise
                         toa.depoTo = depoTo
                         toa.save()
@@ -5602,7 +5706,7 @@ def addcustomer(request):
              shell = todo['shell']
              kampuni = todo['kampuni']
              if useri.admin or manager:  
-
+                isActive = int(request.POST.get('isActive',0))
                 name=request.POST.get('jina')
                 address=request.POST.get('adress')
                 code=request.POST.get('code')
@@ -5634,7 +5738,9 @@ def addcustomer(request):
                 teja.simu1 = simu1
                 teja.simu2 = simu2
                 teja.email = mail
-                    
+                if edit:
+                    teja.active = isActive  
+
                 if wateja.objects.filter(simu1=simu1).exists() and not edit:
                     data={
                         'success':False,
@@ -5675,8 +5781,75 @@ def addcustomer(request):
 def vendosAttachments(request):
     try:
         todo = todoFunct(request)
+        pu_invo_recept = todo['pu_invo_recept']
+        ven = int(request.GET.get('v',0))
+        uns = int(request.GET.get('uns',0))
+        kampuni = todo['kampuni']
+        vend = wasambazaji.objects.get(pk=ven,compan=todo['kampuni'].id) if ven else None
+        all_ven = wasambazaji.objects.filter(compan=todo['kampuni'].id,active=True)
+        if vend is not None:
+            all_ven = all_ven.exclude(pk=ven)
+       
+        if uns and not pu_invo_recept:
+            uns = 0
+        missingAttachments = []    
+        all_attachments = None
+        if uns and pu_invo_recept:
+           puAttach = puAttachments.objects.filter(purchase__record_by__company=kampuni.id)     
+           for pu in puAttach:
+                 pu_recept = attachments.objects.filter(puAttach=pu.id,receipt=True)
+                 pu_invo = attachments.objects.filter(puAttach=pu.id,puInvo=True)
+                 if not pu_recept.exists() or not pu_invo.exists():
+                     missingAttachments.append({
+                         'pu':pu,
+                         'hasRecept':pu_recept.exists(),
+                         'hasInvo':pu_invo.exists(),
+                         'transp_amount':PuList.objects.filter(puAttach=pu).aggregate(amo=Sum('trn_amo'))['amo'] or 0,
+                         'fuel_amount':PuList.objects.filter(puAttach=pu).aggregate(amo=Sum(F('qty')*F('cost')))['amo'] or 0
+                     })
+        else:
+            all_attachments = attachments.objects.filter(purchase__record_by__company=kampuni.id).order_by('-pk')  
+            if ven:
+                all_attachments = all_attachments.filter(purchase__vendor=ven)
+            
+            # Add pagination
+            num = all_attachments.count()
+            p = Paginator(all_attachments, 15)
+            page_num = request.GET.get('page', 1)
+            
+            try:
+                page = p.page(page_num)
+            except EmptyPage:
+                page = p.page(1)
+            
+            pg_number = p.num_pages
+            all_attachments = page  
+            todo.update({
+                'pg_number':pg_number,
+                'pg_page':page.number,
+                'num':num,
+                'all_attachments':all_attachments,
+            })
+   
+
+        todo.update({
+            'attach_tab':True,
+            'ven':vend,
+            'vendors':all_ven,
+            'thereisVen':True if vend is not None else False,
+            'uns':uns,
+            'missingAttachments':missingAttachments,
+            
+        
+         
+           
+            })
+        
         return render(request,'vendosAttachments.html',todo)
-    except:
+    
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
         return render(request,'pagenotFound.html',todoFunct(request))
 
 @login_required(login_url='login')
@@ -5685,16 +5858,41 @@ def purchaseStatement(request):
         todo = todoFunct(request)
         ven = int(request.GET.get('v',0))
         vend = wasambazaji.objects.get(pk=ven,compan=todo['kampuni'].id) if ven else None
+        all_ven = wasambazaji.objects.filter(compan=todo['kampuni'].id,active=True)
         todo.update({
             'statement_tab':True,
             'venIid':ven,
             'ven':vend,
-            'thereisVen':True if vend is not None else False
+            'thereisVen':True if vend is not None else False,
+            'all_ven':all_ven
         })
         return render(request,'vendorsStatement.html',todo)
     except Exception as err:
         print(err)
         return render(request,'pagenotFound.html',todoFunct(request))
+
+
+
+@login_required(login_url='login')
+def vendorStatementData(request):
+    try:
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        ven = int(request.GET.get('v',0))
+        tFr = request.GET.get('tFr')
+        tTo = request.GET.get('tTo')
+
+       
+        purchases = Purchases.objects.filter(record_by__company=kampuni.id)
+
+    except Exception as err:
+        print(err)
+        data = {
+            'success':False,
+            'swa':'Tatizo limetokea katika kupata taarifa za muuzaji tafadhari jaribu tena',
+            'eng':'An error occurred while fetching vendor statements please try again'
+        }
+        return JsonResponse(data)
 
 
 @login_required(login_url='login')
@@ -5714,13 +5912,42 @@ def vendors(request):
                 'deni':deni
             })
             madeni += deni
-            
+        deni_count = sum(1 for item in vend if item['deni'] > 0)
         todo.update({
             'vendors':vend,
-            'isVendor':True,
+            'isVendor':1,
+            'madeni':madeni,
+            'deni_count': deni_count
+        })
+       
+        return render(request,'vendors.html',todo)
+  else:
+      return redirect('/userdash')
+  
+@login_required(login_url='login')
+def transporters(request):
+  todo = todoFunct(request)
+  useri = todo['useri']
+  if useri.admin or (useri.ceo and useri.pu):
+        kampuni = todo['kampuni']
+        transport = transporter.objects.filter(compan = kampuni.id).order_by('-pk')
+        vend = []
+        madeni = 0
+        for v in transport:
+            denitr = PuList.objects.filter(transp=v.id)
+            deni = denitr.aggregate(sumi=Sum(F('trn_amo')-F('trn_paid')))['sumi'] or 0
+            vend.append({
+                'ven':v,
+                'deni':deni
+            })
+            madeni += deni
+            
+        todo.update({
+            'transport':vend,
+            'isTranspoter':1,
             'madeni':madeni
         })
-        return render(request,'vendors.html',todo)
+        return render(request,'vendortransport.html',todo)
   else:
       return redirect('/userdash')
   
@@ -5752,19 +5979,38 @@ def addPurchase(request):
                 pu.save()
                 totAmo = 0
                 for rec in puData:
+                    trsp = transporter.objects.get(pk=rec['transporter'],compan=kampuni)
 
+                    vihePu = puAttachments.objects.filter(purchase=pu,vihecle=rec['vehicle'])
+                    vAtt = None
+                    if not vihePu.exists():
+                        vAtt = puAttachments()
+                        vAtt.purchase = pu
+                        vAtt.vihecle = rec['vehicle']
+                        vAtt.driver = rec['driver']
+                        vAtt.transp = trsp
+                        vAtt.save()
+                    else:
+                        vAtt = vihePu.last()
                     pL = PuList()
                     fl = fuel.objects.get(pk=rec['fuel'])
                     pL.pu = pu
+                    
+                   
+                    pL.trn_amo = rec['charges']
                     pL.cost = float(rec['puPr'])
                     pL.qty = float(rec['puQty'])
                     pL.Fuel = fl
+                    pL.puAttach = vAtt
                     pL.save()
+
+
 
                     totPr = rec['puPr'] * rec['puQty']
                     totAmo += totPr
                 pu.amount = float(totAmo)
                 pu.save()
+                
 
                 data = {
                     'success':True,
@@ -5782,7 +6028,9 @@ def addPurchase(request):
                     'success':False
                 }
                 return JsonResponse(data)
-        except:
+        except Exception as err:
+             print(err)
+             traceback.print_exc()  
              data={
                  'success':False,
                  'swa':'Taarifa za Manunuzi hazijahifadhiwa kutokana na hitilafu. tafadhari jaribu tena kuweka data kwa usahihi',
@@ -5834,7 +6082,7 @@ def lipaBill(request):
                                     bill.payed = float(float(bill.payed) + lipwa)
                                     lipwa = 0
                                     bill.save()
-                                    exit
+                                    break
 
                     
                         
@@ -5947,7 +6195,7 @@ def PuLIST(request):
             'b':b,
             'rcvd':rcvd,
             'qty':qty,
-            'rperc':100*rcvd/qty
+            'rperc':100*rcvd/qty if qty else 0,
         })
 
     todo.update({
@@ -5977,7 +6225,7 @@ def viewPurchase(request):
 
             rcvd=pL.aggregate(sumi=Sum('rcvd'))['sumi'] or 0
             qty=pL.aggregate(sumi=Sum('qty'))['sumi'] or 0
-
+    
 
 
             todo.update({
@@ -5988,8 +6236,9 @@ def viewPurchase(request):
                 'baki':pu.amount-pu.payed,
                 'rcvd':rcvd,
                 'qty':qty,
-                'rperc':100*rcvd/qty ,
-                'rcd':RL
+                'rperc':100*rcvd/qty if qty else 0,
+                'rcd':RL,
+                'dispatch': RL.exists()
             })
 
             return render(request,'venPurchasesView.html',todo)
@@ -5998,9 +6247,45 @@ def viewPurchase(request):
             return redirect('/userdash')
 
 
-    except:
+    except Exception as e:
+        print(e)
+        traceback.print_exc()
         return render(request,'pagenotFound.html')
 
+@login_required(login_url='login')
+def deletePurchase(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            useri = todo['useri']
+            if useri.admin or (useri.ceo and useri.pu):
+                i = int(request.POST.get('pu',0))
+                kampuni = todo['kampuni']
+                
+                pu = Purchases.objects.get(pk=i,vendor__compan=kampuni)
+                pu.delete()
+                data={
+                    'success':True,
+                    'swa':'Imefanikiwa kufuta bili',
+                    'eng':'Purchase was deleted successfully'
+                }
+            else:
+                data={
+                    'success':False,
+                    'swa':'Hauna ruhusa kwa kitendo hiki tafadhari wasiliana na uongozi',
+                    'eng':'You have no permission for this please contanct administration'
+                }
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
+            data={
+                'success':False,
+                'swa':'Imeshindwa kufuta bili',
+                'eng':'Failed to delete purchase'
+            }
+        return JsonResponse(data)
+    else:
+        return render(request,'pagenotFound.html')
 @login_required(login_url='login')
 def viewVendor(request):
     try:
@@ -6019,7 +6304,7 @@ def viewVendor(request):
             thisMonth = leo.strftime('%Y-%m-01 00:00:00%z') 
             #   print(int(leo.strftime('%m')))
 
-        
+            trnsp = transporter.objects.filter(compan=kampuni,active=True)
             
             MonthBill = bills.filter(date__gte=thisMonth)
             bill_prev = bills.filter(date__lt=thisMonth,payed__lt=F('amount')) 
@@ -6042,7 +6327,7 @@ def viewVendor(request):
                     'b':b,
                     'rcvd':rcvd,
                     'qty':qty,
-                    'rperc':100*rcvd/qty,
+                    'rperc':100*rcvd/qty if qty else 0,
                 })
             prevBill = []
             for b in bill_prev:
@@ -6053,14 +6338,14 @@ def viewVendor(request):
                     'b':b,
                     'rcvd':puL.aggregate(sumi=Sum('rcvd'))['sumi'] or 0,
                     'qty':puL.aggregate(sumi=Sum('qty'))['sumi'] or 0,
-                    'rperc':100*rcvd/qty,
+                    'rperc':100*rcvd/qty if qty else 0,
                 })
         
         
             todo.update({
                 'allfuel':TheFuel,
-                'isVendor':True,
-                'isViewVend':True,
+                'isVendor':1,
+                'isViewVend':1,
                 
                 'ven':vendor,
 
@@ -6070,7 +6355,7 @@ def viewVendor(request):
                 'bakiM':debt,
                 'baki':baki,
                 'paid':paid,
-                
+                 'trnsp':trnsp,
                 'debtprev':debtprev,
                 'totprev':totprev,
                 'prevsale':prevBill,
@@ -6099,6 +6384,87 @@ def viewVendor(request):
         return render(request,'pagenotFound.html',todoFunct(request))
 
 @login_required(login_url='login')
+def addTransporter(request):
+     if request.method == "POST":
+        try: 
+            #  intp= InterprisePermissions.objects.get(user__user=request.user,default=True)
+             todo = todoFunct(request)
+             useri = todo['useri']
+             cheo = todo['cheo']
+             admin = todo['admin']
+             if useri.admin:  
+                name=request.POST.get('name')
+                address=request.POST.get('address')
+                code=request.POST.get('code1')
+                simu1=request.POST.get('phone1')
+                simu2=request.POST.get('phone2')
+                mail=request.POST.get('mail')
+                # isActive=request.POST.get('isactive')
+                value=request.POST.get('value')
+                edit=int(request.POST.get('edit',0))
+                valued=int(request.POST.get('valued',0))
+
+                kampuni = todo['kampuni']
+
+                if not useri.admin:
+                    data = {
+                        'success':False,
+                        'swa':'Hauna ruhusa ya kitendo hiki tafadhari wasiliana na uongozi',
+                        'eng':'You have no permission on this please contact admin'
+                    }
+
+                    return JsonResponse(data)
+
+                transp=transporter()
+                trsp = transporter.objects.filter(pk=valued)
+                if edit and trsp.exists():
+                    transp = trsp.last()
+
+                transp.jina = name
+                transp.address = address
+                transp.code = code
+                transp.simu1 = simu1
+                transp.simu2 = simu2
+                transp.email = mail
+                transp.compan = kampuni
+                    
+                if transporter.objects.filter(simu1=simu1,compan=kampuni).exists() and not edit:
+                    data={
+                        'success':False,
+                        'swa':'Tayari kuna Msambazaji mwingine mwenye jina kama hili kama ni mwinginae unaweza kubadili jina au ondoa taarifa za Msambazaji zilizowekwa awali',
+                        'eng':'The same  Supplier name  exists you can change the name or remove the previos saved Supplier details'
+                    
+                    }
+
+                else:
+                    transp.save()    
+                    data={
+                        'success':True,
+                        'swa':'Taarifa za Msambazaji zimehifadhiwa kikamilifu',
+                        'eng':'new Supplier added successfully',
+                        'id':transp.id
+                    }
+                return JsonResponse(data)  
+             else:
+                 data={
+                     'success':False,
+                     'swa':'Hauna ruhusa ya kuongeza Msambazaji kwa sasa tafadhari wasiliana na uongozi wako kupata ruhusa',
+                     'eng':'You have no permission to add Supplier please contact your administrator',
+                 } 
+                 return JsonResponse(data)    
+        except Exception as err :
+             print(err)
+             traceback.print_exc()
+             data={
+                 'success':False,
+                 'swa':'Taarifa za Msambazaji hazijahifadhiwa kutokana na hitilafu. tafadhari jaribu tena kuweka data kwa usahihi',
+                 'eng':'Supplier info was not successfully saved. Please try again to fill correct Supplier informations'
+             }
+             return JsonResponse(data)          
+     else:
+       return render(request,'pagenotFound.html',todoFunct(request)) 
+     
+@login_required(login_url='login')
 def addvendor(request):
      if request.method == "POST":
         try: 
@@ -6107,16 +6473,14 @@ def addvendor(request):
              useri = todo['useri']
              cheo = todo['cheo']
              admin = todo['admin']
-
              if useri.admin:  
-
                 name=request.POST.get('jina')
                 address=request.POST.get('adress')
                 code=request.POST.get('code')
                 simu1=request.POST.get('simu1')
                 simu2=request.POST.get('simu2')
                 mail=request.POST.get('mail')
-                # isActive=request.POST.get('isactive')
+                isActive=int(request.POST.get('isActive',0))
                 value=request.POST.get('value')
                 edit=int(request.POST.get('edit',0))
                 valued=int(request.POST.get('valued',0))
@@ -6127,9 +6491,6 @@ def addvendor(request):
                 wtj = wasambazaji.objects.filter(pk=valued)
                 if edit and wtj.exists():
                     teja = wtj.last()
-          
-               
-               
                     
                 teja.jina = name
                     
@@ -6139,8 +6500,11 @@ def addvendor(request):
                 teja.simu2 = simu2
                 teja.email = mail
                 teja.compan = kampuni
+                
+                if edit:
+                    teja.active = bool(isActive)
                     
-                if wasambazaji.objects.filter(Q(simu1=simu1)|Q(simu2=simu2)).exists() and not edit:
+                if wasambazaji.objects.filter(simu1=simu1,compan=kampuni).exists() and not edit:
                     data={
                         'success':False,
                         'message_swa':'Tayari kuna Msambazaji mwingine mwenye jina kama hili kama ni mwinginae unaweza kubadili jina au ondoa taarifa za Msambazaji zilizowekwa awali',

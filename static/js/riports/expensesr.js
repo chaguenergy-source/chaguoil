@@ -31,7 +31,9 @@ const getRData = d =>{
                     toastr.error(lang('Tatizo limetokea jaribu tena','An error occurred please try again'), lang('Taarifa','info '), {timeOut: 2000})
                     return
                 }
-              
+
+               
+               
               summaryR({resp,rname,init,tFr,tTo})
 
          
@@ -102,7 +104,7 @@ const init = Number($('#generalSaleR tr').length==0)
 
                  
 
-        tr+=`<tr class="${r.id>3?'table-info':''}"  ${hide?'style="display:none"':''}   id="dataRow${r.id}" >
+        tr+=`<tr class="${r.id>3?'table-info':''} cursor-pointer viewDetails" data-val=${r.id}  ${hide?'style="display:none"':''}   id="dataRow${r.id}" >
             <td> <a type="button" data-val=${r.id} class="bluePrint viewDetails" >${r.rname} </a> </td>
             <td>${Number(exp.length).toLocaleString()}  </td>
             <td>${Number(fuelAmo).toLocaleString()}  </td>
@@ -285,6 +287,8 @@ const detailReport = () =>{
         daterExpenses()
         byCategory()
         byStation()
+        byStaff()
+        byTaxGroup()
 
 
 
@@ -346,15 +350,15 @@ const daterExpenses = () =>{
               fuelAmo = Number(exp.filter(e=>Number(e.fuel_qty)>0).reduce((a,b)=>a+Number(b.kiasi),0))||0,
               totAmo = expAmo + fuelAmo,
               date = groupBy==='date'?moment(key).format('DD/MM/YYYY'):groupBy==='month'?moment(key).format('MMMM YYYY'):moment(key).format('YYYY')  
-            tr+=`<tr>
-            <td>
-                <a type="button" data-val="${key}" class="bluePrint viewDateDetails" title="${lang('Onesha zaidi','More Info')}">${date}</a>
-            </td>
-            <td>${Number(exp.length).toLocaleString()}</td>
-            <td>${Number(expAmo.toFixed(2)).toLocaleString()}</td>
-            <td>${Number(fuelAmo.toFixed(2)).toLocaleString()}</td>
-            <td>${Number(totAmo.toFixed(2)).toLocaleString()}</td>
-            </tr>`
+            tr+=`<tr data-val="${key}" class="cursor-pointer viewDateDetails">
+                    <td>
+                        <a type="button" data-val="${key}" class="bluePrint viewDateDetails" title="${lang('Onesha zaidi','More Info')}">${date}</a>
+                    </td>
+                    <td>${Number(exp.length).toLocaleString()}</td>
+                    <td>${Number(expAmo.toFixed(2)).toLocaleString()}</td>
+                    <td>${Number(fuelAmo.toFixed(2)).toLocaleString()}</td>
+                    <td>${Number(totAmo.toFixed(2)).toLocaleString()}</td>
+               </tr>`
 
             theData.push({
                 
@@ -401,6 +405,7 @@ const daterExpenses = () =>{
 
 // Expenses by category
 const byCategory = () =>{
+
      
     const {expenses} = VDATA,
           {st} = filters(),
@@ -417,9 +422,9 @@ const byCategory = () =>{
                         totAmo = expAmo + fuelAmo,
                         
                         catId = exp[0]?.expId||0
-                        tr+=`<tr>
+                        tr+=`<tr data-val=${catId} data-salary=${exp[0]?.salary?1:0} class="cursor-pointer viewCategoryDetails">
                             <td>${categories.indexOf(cat) + 1}</td>
-                            <td><a type="button" data-val=${catId} class="bluePrint viewCategoryDetails" >${cat} </a></td>
+                            <td><a type="button" data-val=${catId} data-salary=${exp[0]?.salary?1:0} class="bluePrint viewCategoryDetails" >${cat||lang('Mshahara','Salary')} ${exp[0]?.salary_advance?`(${lang('Malipo ya awali ya mshahara','Salary Advance')})`:''} </a></td>
                             
                             <td>${Number(exp.length).toLocaleString()}</td>
                        
@@ -484,7 +489,7 @@ const byStation = () =>{
                       expAmo = Number(exp.filter(e=>!Number(e.fuel_qty)).reduce((a,b)=>a+Number(b.kiasi),0))||0,
                         fuelAmo = Number(exp.filter(e=>Number(e.fuel_qty)>0).reduce((a,b)=>a+Number(b.kiasi),0))||0,
                         totAmo = expAmo + fuelAmo
-                        tr+=`<tr>
+                        tr+=`<tr data-val=${exp[0].st} class="viewStationDetails cursor-pointer" >
                             <td>${stations.indexOf(st) + 1}</td>
                             <td><a type="button" data-val=${exp[0].st} class="bluePrint viewStationDetails" >${st} </a></td>
                             <td>${Number(exp.length).toLocaleString()}</td>
@@ -506,13 +511,13 @@ const byStation = () =>{
             // add the total row below
             const totalExp = Number(expenses.reduce((a,b)=>a+Number(b.kiasi),0))||0
             tr+=`<tr class="table-info weight600">
-                <td>${lang('Jumla','Total')}</td>
-                <td></td>
-                <td>${Number(expenses.length).toLocaleString()}</td>
-                <td>${Number(expenses.filter(e=>Number(e.fuel_qty)>0).reduce((a,b)=>a+Number(b.kiasi),0)).toLocaleString()}</td>
-                <td>${Number((totalExp - (expenses.filter(e=>Number(e.fuel_qty)>0).reduce((a,b)=>a+Number(b.kiasi),0))).toFixed(2)).toLocaleString()}</td>
-                <td>${Number(totalExp.toFixed(2)).toLocaleString()}</td>
-            </tr>`
+                    <td>${lang('Jumla','Total')}</td>
+                    <td></td>
+                    <td>${Number(expenses.length).toLocaleString()}</td>
+                    <td>${Number(expenses.filter(e=>Number(e.fuel_qty)>0).reduce((a,b)=>a+Number(b.kiasi),0)).toLocaleString()}</td>
+                    <td>${Number((totalExp - (expenses.filter(e=>Number(e.fuel_qty)>0).reduce((a,b)=>a+Number(b.kiasi),0))).toFixed(2)).toLocaleString()}</td>
+                    <td>${Number(totalExp.toFixed(2)).toLocaleString()}</td>
+                </tr>`
 
             const table = `<table class="table table-bordered table-sm" >
                         <thead>
@@ -534,6 +539,134 @@ const byStation = () =>{
             $('#EvaluateByStationTable').html(table)
             setDataTable('#EvaluateByStationTable')
 }
+
+
+// Expenses by Staff
+const byStaff = () => {
+    const {expenses} = VDATA,
+          {st} = filters(),
+          filteredExpenses = st ? expenses.filter(e => e.st === st) : expenses,
+          eligibleExpenses = filteredExpenses.filter(e => {
+              const isSalaryOrPosho = !!e.salary || !!e.posho;
+              const isFuelOrSupplies = !!e.mafuta || !!e.manunuzi;
+              return isSalaryOrPosho && !isFuelOrSupplies;
+          });
+
+    const groups = eligibleExpenses.reduce((acc, exp) => {
+        const sid = Number(exp.staffId || 0);
+        const snameRaw = `${exp.staffFName || ''} ${exp.staffLName || ''}`.trim();
+        const sname = snameRaw || exp.givenTo || lang('Haijabainishwa', 'Unspecified');
+        const tin = (exp.tinNumber || exp.tin_number || '').toString().trim();
+        const key = `${sid}-${sname}-${tin}`;
+        if (!acc[key]) {
+            acc[key] = {sid, sname, tin, rows: []};
+        }
+        acc[key].rows.push(exp);
+        return acc;
+    }, {});
+
+    let tr = '', theData = [];
+    const keys = Object.keys(groups);
+    keys.forEach((key, idx) => {
+        const grp = groups[key];
+        const totAmo = Number(grp.rows.reduce((a, b) => a + Number(b.kiasi), 0)) || 0;
+        tr += `<tr data-val="${grp.sid}" data-name="${grp.sname}" data-tin="${grp.tin || ''}" class="cursor-pointer viewStaffDetails">
+                <td>${idx + 1}</td>
+            <td class="text-capitalize"><a type="button" data-val="${grp.sid}" data-name="${grp.sname}" data-tin="${grp.tin || ''}" class="bluePrint viewStaffDetails text-capitalize">${grp.sname}</a></td>
+                <td>${grp.tin || '-'}</td>
+                <td>${Number(grp.rows.length).toLocaleString()}</td>
+                <td>${Number(totAmo.toFixed(2)).toLocaleString()}</td>
+            </tr>`;
+        theData.push({name: grp.sname, amount: totAmo});
+    });
+
+    SAOBJ = SAOBJ.filter(n => n.name != 'sf');
+    SAOBJ.push({name: 'sf', data: theData, title: lang('Matumizi kwa staff', 'Expenses by Staff')});
+
+        const totalExp = Number(eligibleExpenses.reduce((a, b) => a + Number(b.kiasi), 0)) || 0;
+    tr += `<tr class="table-info weight600">
+            <td>${lang('Jumla', 'Total')}</td>
+            <td></td>
+            <td></td>
+            <td>${Number(eligibleExpenses.length).toLocaleString()}</td>
+            <td>${Number(totalExp.toFixed(2)).toLocaleString()}</td>
+        </tr>`;
+
+    const table = `<table class="table table-bordered table-sm" >
+                    <thead>
+                        <tr class="smallFont">
+                            <th>#</th>
+                            <th>${lang('Staff', 'Staff')}</th>
+                            <th>${lang('TIN Number', 'TIN Number')}</th>
+                            <th>${lang('Idadi ya Matumizi', 'No. of Expenses')}</th>
+                            <th>${lang('Jumla ya Matumizi', 'Total Expenses')}${fedha}</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tr}</tbody>
+                </table>`;
+
+    $('#EvaluateByStaffTable').html(table);
+    setDataTable('#EvaluateByStaffTable');
+};
+
+
+// Expenses by Tax Group
+const byTaxGroup = () => {
+    const {expenses} = VDATA,
+          {st} = filters(),
+          filteredExpenses = st ? expenses.filter(e => e.st === st) : expenses;
+
+    const groups = filteredExpenses.reduce((acc, exp) => {
+        const taxId = exp.tax || 0;
+        const taxName = exp.taxGroup || lang('Tax Group Haijabainishwa', 'Unspecified Tax Group');
+        const key = `${taxId}-${taxName}`;
+        if (!acc[key]) {
+            acc[key] = {taxId, taxName, rows: []};
+        }
+        acc[key].rows.push(exp);
+        return acc;
+    }, {});
+
+    let tr = '', theData = [];
+    const keys = Object.keys(groups);
+    keys.forEach((key, idx) => {
+        const grp = groups[key];
+        const totAmo = Number(grp.rows.reduce((a, b) => a + Number(b.kiasi), 0)) || 0;
+        tr += `<tr data-val="${grp.taxId}" data-name="${grp.taxName}" class="cursor-pointer viewTaxGroupDetails">
+                <td>${idx + 1}</td>
+                <td><a type="button" data-val="${grp.taxId}" data-name="${grp.taxName}" class="bluePrint viewTaxGroupDetails">${grp.taxName}</a></td>
+                <td>${Number(grp.rows.length).toLocaleString()}</td>
+                <td>${Number(totAmo.toFixed(2)).toLocaleString()}</td>
+            </tr>`;
+        theData.push({name: grp.taxName, amount: totAmo});
+    });
+
+    SAOBJ = SAOBJ.filter(n => n.name != 'tax');
+    SAOBJ.push({name: 'tax', data: theData, title: lang('Matumizi kwa tax group', 'Expenses by Tax Group')});
+
+    const totalExp = Number(filteredExpenses.reduce((a, b) => a + Number(b.kiasi), 0)) || 0;
+    tr += `<tr class="table-info weight600">
+            <td>${lang('Jumla', 'Total')}</td>
+            <td></td>
+            <td>${Number(filteredExpenses.length).toLocaleString()}</td>
+            <td>${Number(totalExp.toFixed(2)).toLocaleString()}</td>
+        </tr>`;
+
+    const table = `<table class="table table-bordered table-sm" >
+                    <thead>
+                        <tr class="smallFont">
+                            <th>#</th>
+                            <th>${lang('Tax Group', 'Tax Group')}</th>
+                            <th>${lang('Idadi ya Matumizi', 'No. of Expenses')}</th>
+                            <th>${lang('Jumla ya Matumizi', 'Total Expenses')}${fedha}</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tr}</tbody>
+                </table>`;
+
+    $('#EvaluateByTaxGroupTable').html(table);
+    setDataTable('#EvaluateByTaxGroupTable');
+};
 
 
 // Function to set dataTable for category and station tables
@@ -580,7 +713,12 @@ const setDataTable = tableId => {
 //add the function to view expenses details by either date, category or station depending on the button clicked
 $('body').on('click','.viewDateDetails',function(){
     const date = $(this).data('val'),
-          exp = VDATA.expenses?.filter(e=>moment(e.tarehe).format('YYYY-MM-DD')===date)
+          is_month_format = moment(date,'YYYY-MM',true).isValid(),
+          is_year_format = moment(date,'YYYY',true).isValid(),
+          is_date_format = moment(date,'YYYY-MM-DD',true).isValid(),
+          compare_format = is_month_format?'YYYY-MM':is_year_format?'YYYY':is_date_format?'YYYY-MM-DD':'YYYY-MM-DD',
+          exp = VDATA.expenses?.filter(e=>moment(e.tarehe).format(compare_format)===date)
+        //   console.log({exp,date,dta:VDATA.expenses})
             title = `${lang('Matumizi kwa siku','Expenses by Date')} <span class="bluePrint">${moment(date).format('DD/MM/YYYY')}</span>`
             VOBJ = {data:exp,title}
             moreDetails()
@@ -589,7 +727,9 @@ $('body').on('click','.viewDateDetails',function(){
 
 $('body').on('click','.viewCategoryDetails',function(){
     const catId = $(this).data('val'),
-          exp = VDATA.expenses?.filter(e=>e.expId===catId)
+          isSalary = Number($(this).data('salary')) === 1
+          
+       const   exp = isSalary ? VDATA.expenses?.filter(e=>e.salary) : VDATA.expenses?.filter(e=>e.expId===catId)
             title = `${lang('Matumizi kwa aina','Expenses by Category')} <span class="bluePrint">${exp[0]?.expN||''}</span>`
             VOBJ = {data:exp,title}
             moreDetails()
@@ -606,6 +746,33 @@ $('body').on('click','.viewStationDetails',function(){
             moreDetails()
         }
 )
+
+$('body').on('click','.viewStaffDetails',function(){
+        const staffId = Number($(this).data('val')),
+                    staffName = $(this).data('name') || '',
+                    tin = ($(this).data('tin') || '').toString().trim(),
+                    exp = VDATA.expenses?.filter(e => {
+                        const isEligible = (!!e.salary || !!e.posho) && !e.mafuta && !e.manunuzi;
+                        if (!isEligible) return false;
+                        if (staffId) return Number(e.staffId || 0) === staffId;
+                        const eTin = (e.tinNumber || e.tin_number || '').toString().trim();
+                        return !Number(e.staffId || 0) && (e.givenTo || '') === staffName && eTin === tin;
+                    });
+        title = `${lang('Matumizi kwa staff','Expenses by Staff')} <span class="bluePrint text-capitalize">${staffName}</span>`;
+        VOBJ = {data:exp,title};
+        moreDetails();
+})
+
+$('body').on('click','.viewTaxGroupDetails',function(){
+        const taxId = Number($(this).data('val')),
+                    taxName = $(this).data('name') || '',
+                    exp = taxId
+                        ? VDATA.expenses?.filter(e => Number(e.tax || 0) === taxId)
+                        : VDATA.expenses?.filter(e => !Number(e.tax || 0) && (e.taxGroup || lang('Tax Group Haijabainishwa','Unspecified Tax Group')) === taxName);
+        title = `${lang('Matumizi kwa tax group','Expenses by Tax Group')} <span class="bluePrint">${taxName}</span>`;
+        VOBJ = {data:exp,title};
+        moreDetails();
+})
 
 
 // create the chart
@@ -631,7 +798,7 @@ const createChart = () =>{
     VOBJ = {data:theObj?.data,title:theObj?.title}
 
     let data;
-    if (chartT === 'exp') {
+    if (chartT === 'exp' || chartT === 'sf' || chartT === 'tax') {
         // Expenses by category: single bar chart
         data = {
             labels: theObj.data.map(d => d.name),
@@ -715,12 +882,12 @@ const moreDetails = () =>{
     filteredData.reverse().forEach((d,i)=>{
         tr+=`<tr>
             <td>${i + 1}</td>
-           
+            <td>${moment(d.tarehe).format('DD/MM/YYYY HH:mm')}</td>
             ${!st?`<td>${d.stationName}</td>`:''}
-            <td>${d.expN}</td>
+            <td>${d.expN||lang('Mshahara','Salary')} ${d.salary_advance?`(${lang('Malipo ya awali ya mshahara','Salary Advance')})`:''}</td>
             <td>${d.maelezo}</td>
-            <td>${d.givenTo}</td>
-            <td>${d.byFName} ${d.byLname}</td>
+            <td class="text-capitalize">${d.givenTo || ''}</td>
+            <td class="text-capitalize">${d.byFName || ''} ${d.byLname || ''}</td>
             <td>${Number(d.kiasi).toLocaleString()}</td>
         </tr>`
     })
@@ -728,14 +895,14 @@ const moreDetails = () =>{
     // add the total row below
     const totalExp = Number(filteredData.reduce((a,b)=>a+Number(b.kiasi),0))||0
     tr+=`<tr class="table-info weight600">
-        <td colspan="${st?5:6}">${lang('Jumla','Total')}</td>
+        <td colspan="${st?6:7}">${lang('Jumla','Total')}</td>
         <td>${Number(totalExp.toFixed(2)).toLocaleString()}</td>
     </tr>`
     const table = `<table class="table table-bordered table-sm" >
                     <thead>
                         <tr class="smallFont">
                             <th>#</th>
-                          
+                            <th>${lang('Tarehe','Date')}</th>
                             ${!st?`<th>${lang('Kituo','Station')}</th>`:''}
                             <th>${lang('Matumizi','Expense')}</th>
                             <th>${lang('Maelezo','Description')}</th>
@@ -796,4 +963,55 @@ $('body').on('click','.riportListChatOn, .chartType',function(){
 
         
 
+})
+
+$('#printRBtn').click(function(){
+    const userN = $(this).data('user')
+
+    const summary = `<div class="row my-3">
+                        <div class="col-9 row">
+                            ${$('#SaLDetail .col-md-7').html() || ''}
+
+                            <div class="col-6 col-lg-4">
+                                ${lang('Imetolewa','Issued on')}:  
+                            </div>
+                            <div class="col-6 col-lg-8 ">
+                                ${moment().format('DD/MM/YYYY HH:mm')}  
+                            </div>
+
+                            <div class="col-6 col-lg-4">
+                                ${lang('Imetolewa na','Issued by')}:  
+                            </div>
+                            <div class="col-6 col-lg-8 text-capitalize">
+                                ${userN}
+                            </div>
+                        </div>
+                    </div>`
+
+    let head = ''
+    let tableHtml = ''
+
+    const isDetailView = $('#MoreDetails').is(':visible')
+
+    if (isDetailView) {
+        head = `<h3>${$('#MoredetailRHeading span').html() || lang('Mchanganuo wa matumizi','Expense Details')}</h3>`
+        tableHtml = $('#MoredetailRContent').find('table').first().prop('outerHTML') || ''
+    } else {
+        const activeSection = $('#Salecateg .DetailsTable:visible').first()
+        const activeHeading = activeSection.find('h6').first().text() || lang('Ripoti ya Matumizi','Expenses Report')
+        head = `<h3>${activeHeading}</h3>`
+        tableHtml = activeSection.find('table').first().prop('outerHTML') || ''
+    }
+
+    if (!tableHtml) {
+        toastr.info(lang('Hakuna jedwali la kuchapisha kwa sasa','No visible table to print right now'), lang('Taarifa','Info'), {timeOut: 2500})
+        return
+    }
+
+    const printWindow = window.open('', '', 'height=650,width=980')
+    printWindow.document.write(company_header)
+    printWindow.document.write(`${head}${summary}${tableHtml}`)
+    printWindow.document.write(`</div></body></html>`)
+    printWindow.document.close()
+    printWindow.focus()
 })

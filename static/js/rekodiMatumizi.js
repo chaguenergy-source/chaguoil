@@ -12,6 +12,13 @@
             pumpAttendant: false
         };
 
+        const getExpenseGroupsForSource = () => {
+            if (currentSource === 'fuel') {
+                return EXPENSE_GROUPS.filter(g => !!g.mafuta);
+            }
+            return EXPENSE_GROUPS;
+        };
+
  // --- SIMULATED DATA ---
         let EXPENSE_GROUPS = [
             { id: 'OFS', name: 'Office Supplies', type: 'CASH' },
@@ -25,7 +32,7 @@
         ];
 
         var SOURCE_TYPES = [
-            { id: 'payment', name: `1. ${lang("Akaunti za Malipo","Payments Account")} (Bank/Cash)` } ,
+            { id: 'payment', name: `1. ${lang("Matumizi Ofisi Kuu","Head Office Expenses")} (Bank/Cash)` } ,
             { id: 'attendant', name: `2. ${lang("Mhusika wa Pampu","Pump Attendant Cash")}` },
             { id: 'fuel', name: `3. ${lang("Mafuta/ Lita ya Kuchota (Matumizi ya Ofisi)","Fuel/Litre Draw (Office Use)")}` }
         ];
@@ -80,6 +87,8 @@
                     ATTENDANTS = response.attendants
                     PUMPS = response.shift_pumps
                     SELPUMPS = response.shift_pumps
+
+                    // console.log(response.attachments);
                    readData()
                  
                     // Process the successful response
@@ -126,7 +135,6 @@
         // --- SEARCHABLE SELECT CORE LOGIC: REVISED FOR OVERFLOW FIX ---
 
         function createSearchableSelectHTML(id, name, placeholder, options, recycleField, extraButtons = '', classes='') {
-            const isRecycleOn = recycleSettings[recycleField] ? 'btn-warning' : 'btn-secondary';
             const recycleTitle = recycleSettings[recycleField] 
                 ? 'Recycling ON: Next rows will copy last value.' 
                 : 'Recycling OFF: Click to copy last value to next rows.';
@@ -134,10 +142,14 @@
             let recycleButtonHtml = '';
             if (recycleField) {
                 recycleButtonHtml = `
-                    <button type="button" class="btn btn-sm ms-1 recycle-btn recycle-${recycleField}" onclick="toggleRecycle('${recycleField}', event)" title="${recycleTitle}">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.205 13m0 0l2.12-2.12M20 20v-5h-.581m0 0l-2.12 2.12M20.595 13A8.001 8.001 0 013.404 11"></path></svg>
-                    </button>
-                `;
+                                <div class="text-end">
+                                    <button type="button" class="ms-1 recycle-btn recycle-${recycleField}" onclick="toggleRecycle('${recycleField}', event)" title="${recycleTitle}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" height=".87em" viewBox="0 -960 960 960" stroke-width="1" width=".87em"  fill="currentColor">
+                                             <path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm380 26L640-300l57-56 43 43v-487h80v488l44-44 56 56-140 140Z"/>
+                                          </svg>
+                                    </button>
+                                </div>
+                                `;
             }
 
             // Options List is NOT INCLUDED here. It will be created once and attached to <body>.
@@ -160,8 +172,8 @@
                                value="">
                     </div>
                     ${extraButtons}
-                    ${recycleButtonHtml}
                 </div>
+                ${recycleButtonHtml}
             `;
         }
         
@@ -360,8 +372,7 @@
             const selector = `.recycle-${fieldName}`;
             
             document.querySelectorAll(selector).forEach(btn => {
-                btn.classList.remove('btn-secondary', 'btn-warning');
-                btn.classList.add(isOn ? 'btn-warning' : 'btn-secondary');
+                btn.classList.toggle('activeRecyle', isOn);
                 btn.title = isOn 
                     ? `Recycling ON: Next rows will copy last value.` 
                     : `Recycling OFF: Click to copy last value to next rows.`;
@@ -549,16 +560,14 @@
                 <button type="button" class="btn btn-sm btn-info ms-2" onclick="openNewGroupModal()" title="Ongeza Group Jipya">New</button>
             `;
 
-            EXPENSE_GROUPS = currentSource === 'fuel'
-                ? EXPENSE_GROUPS.filter(g => g.mafuta)
-                : EXPENSE_GROUPS;
+            const expenseGroupsForSource = getExpenseGroupsForSource();
             rowHtml += `
                 <td class="expense-group-cell">
                     ${createSearchableSelectHTML(
                         `groupSelect-${currentId}`, 
                         `groupSelect-${currentId}`, 
                         lang('Tafuta Matumizi...','Search Expense'), 
-                        EXPENSE_GROUPS, 
+                        expenseGroupsForSource, 
                         'expenseGroup', 
                         newGroupButtonHtml
                     )}
@@ -571,12 +580,14 @@
                 // Amount (KES/TZS)
                 rowHtml += `
                     <td>
+                    <div class="input-group  " >  
                       <div class="wrapped">
-                        <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
-                            <label class="mt-1 text-danger " for="amountInput-${currentId}"></label> 
-                        <div class="box-pointer d-inline "></div>
-                        </div>
-                        <input id="amountInput-${currentId}" type="number" step="0.01" min="0" placeholder="0.00" class="form-control money-fomat form-control-sm" name="amount-${currentId}" required oninput="calculateTotal()">
+                            <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
+                                <label class="mt-1 text-danger " for="amountInput-${currentId}"></label> 
+                            <div class="box-pointer d-inline "></div>
+                            </div>
+                            <input id="amountInput-${currentId}" type="number" step="0.01" min="0" placeholder="0.00" class="form-control money-fomat form-control-sm" name="amount-${currentId}" required oninput="calculateTotal()">
+                         </div>
                          </div>
                     </td>
                 `;
@@ -611,6 +622,7 @@
                 // Qty (Litres) - Bidirectional
                 rowHtml += `
                     <td>
+                    <div class="input-group  " >  
                     <div class="wrapped">
                         <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
                                 <label class="mt-1 text-danger " for="qtyInput-${currentId}"></label> 
@@ -619,12 +631,14 @@
 
                         <input id="qtyInput-${currentId}" type="number" step="0.0000001" min="0" placeholder="0.00" class="form-control money-fomat form-control-sm" name="quantity-${currentId}"  oninput="calculateAmount(${currentId})">
                      </div>
+                     </div>
                   </td>
                 `;
                 
                 // Amount (KES/TZS) - Bidirectional
                 rowHtml += `
                     <td>
+                    <div class="input-group  " >  
                     <div class="wrapped">
                             <div class="show_curency_inline show_curency position-absolute   px-3" style="display: none ;">
                                 <label class="mt-1 text-danger " for="price-${currentId}"></label> 
@@ -633,6 +647,7 @@
 
                         <input id="amountInput-${currentId}" type="number" step="0.01" min="0" placeholder="0.00" class="form-control money-fomat form-control-sm" name="amount-${currentId}" required oninput="calculateQty(${currentId})">
                         <input type="hidden" id="price-${currentId}" value="${PRICE_PER_LITRE_SIMULATED}">
+                        </div>
                         </div>
                     </td>
                 `;
@@ -670,7 +685,7 @@
             // --- ATTACH LISTENERS AND APPLY RECYCLE LOGIC ---
             
             // 1. Attach Search Listeners (Tukitumia data ya options inatakiwa kuwa parameter)
-            attachSearchableSelectListeners(`groupSelect-${currentId}`, EXPENSE_GROUPS);
+            attachSearchableSelectListeners(`groupSelect-${currentId}`, expenseGroupsForSource);
             if (currentSource === 'payment') {
                 attachSearchableSelectListeners(`paymentAccount-${currentId}`, PAYMENT_ACCOUNTS);
             } else if (currentSource === 'attendant' || currentSource === 'fuel') {
@@ -913,7 +928,7 @@
                      isFuel: Number(currentSource === 'fuel'),
                     isPumpAttendant: Number(currentSource === 'attendant'),
                     isPayment: Number(currentSource === 'payment'),
-                    expDate: moment(moment(document.getElementById('expenseDate').value).format('YYYY-MM-DD 00:10:00')).format(),
+                    expDate: moment(moment(document.getElementById('expenseDate').value).format()).format(),
                     expenses: JSON.stringify(data.expenses)
                 },
                 url:'/accounting/addExpense'
@@ -950,7 +965,12 @@ document.getElementById('newExpenseGroupForm')?.addEventListener('submit', funct
     const formData = new FormData(event.target);
     const newGroupName = formData.get('expense_group_name')?.trim();
     const newExpenseType = Number($('#isFuelExp').prop('checked'));
-
+    const TaxGroup = Number($('#taxGroup').val()) || 0;
+    const newTaxGroup = Number($('#newTaxGroup').is(':checked'));
+    const TaxGroupName = $('#taxName').val();
+    const TaxGroupRate = Number($('#taxRate').val())||0;
+  
+    const attachReceipt = $('#compulsoryReceipt').is(':checked') ? 1 : 0;
     // console.log(newExpenseType);
 
     if (!newGroupName) {
@@ -958,10 +978,24 @@ document.getElementById('newExpenseGroupForm')?.addEventListener('submit', funct
         return;
     }
 
+     if(newTaxGroup) {
+            if(TaxGroupName.trim() === '') {
+                alert('Tax group name is required');
+                redborder('#taxName');
+                return;
+            }
+            
+        }
+
     const toSend = {
         data: {
             groupName: newGroupName,
             isFuel: newExpenseType,
+            taxGroup: TaxGroup,
+            newTaxGroup,
+            TaxGroupName,
+            TaxGroupRate,
+            attachReceipt,
            
         },
         url: '/accounting/addExpenseGroup'

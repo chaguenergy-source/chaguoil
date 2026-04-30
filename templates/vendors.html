@@ -66,7 +66,8 @@
              <div class="row classic_div   py-2 border ">
                 <div class="col-6">
                       {% if useri.langSet == 0 %}Pesa Inayodaiwa Jumla{% else %}Total InDebt{%endif%}
-                </div>
+                       <small>({{deni_count}}vendor(s) )</small>
+                    </div>
                 <div class="col-6 brown text-right">
                     <span class="text-primary">{{currencii}}.</span> {{madeni|floatformat:'-2'|intcomma}}
                 </div>              
@@ -87,6 +88,7 @@
                         <th>{% if useri.langSet == 0 %}Simu{% else %}Phone{% endif %}</th>
                         <th>{% if useri.langSet == 0 %}Barua Pepe{% else %}Email{% endif %}</th>
                         <th>{% if useri.langSet == 0 %}Anadai{% else %}Debt{% endif %} <span class="text-primary">{{currencii}}</span> </th>
+                        <th>{% if useri.langSet == 0 %}Hali{% else %}Status{% endif %}</th>
                         <th>{% if useri.langSet == 0 %}Kitendo{% else %}Action{% endif %}</th>
                     </tr>
                     </thead>
@@ -105,6 +107,15 @@
                                 <td>{{s.ven.code}}{{s.ven.simu1}} {% if s.ven.simu2 %} ,{{s.ven.code}}{{s.ven.simu2}} {% endif %} </td>
                                 <td> {% if s.ven.email %} {{s.ven.email}} {% else %} --- {% endif %} </td>
                                 <td class="{% if s.deni %}brown{% endif %}" > {% if s.deni %} {{s.deni|floatformat:'-2'|intcomma}} {% else %} --- {% endif %} </td>
+                                <td>
+                                     <span class="badge {% if s.ven.active %}badge-success{% else %}badge-danger{% endif %}">
+                                        {% if s.ven.active %}
+                                            {% if useri.langSet == 0 %}Hai{% else %}Active{% endif %}
+                                        {% else %}
+                                            {% if useri.langSet == 0 %}Imesitishwa{% else %}Inactive{% endif %}
+                                        {% endif %}
+                                    </span>  
+                                </td> 
                                 <td> 
                                     
                                      {% if useri.admin or useri.ceo  %}                                 

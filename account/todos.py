@@ -1,4 +1,5 @@
-from .models import UserExtend,wateja,shiftsTime,notifications,shifts,InterprisePermissions,fuel_tanks,fuel_pumps,PaymentAkaunts,matumizi
+import traceback
+from .models import UserExtend, attachments,Interprise, rekodiMatumizi,wateja,shiftsTime,puAttachments,notifications,shifts,InterprisePermissions,fuel_tanks,fuel_pumps,PaymentAkaunts,matumizi
 from django.utils import timezone
 from django.db.models import Q
 from datetime import date
@@ -45,6 +46,17 @@ class Todos:
         admin = UserExtend.objects.get(admin=True,company=kampuni)
         manager = False
         allowed=InterprisePermissions.objects.filter(user=user.id,Allow=True)
+        pu_invo_recept = 0
+        exp_recepts = 0
+        if user.admin or user.pu:
+            puAttach = puAttachments.objects.filter(purchase__record_by__company=kampuni.id)
+            for attach in puAttach:
+                  pu_recept = attachments.objects.filter(puAttach=attach.id,receipt=True)
+                  pu_invo = attachments.objects.filter(puAttach=attach.id,puInvo=True)
+                  pu_invo_recept += (1 if not pu_recept.exists() else 0)
+                  pu_invo_recept += (1 if not pu_invo.exists() else 0)
+
+
 
         if not allowed.filter(default=True).exists() and not general:
              alloW = allowed.last()
@@ -53,7 +65,7 @@ class Todos:
 
         allowed = allowed.filter(default=True)
         payacc = PaymentAkaunts.objects.filter(Interprise__company=kampuni.id).order_by('pk')
-        tumizi = matumizi.objects.filter(owner__company=kampuni.id,duration=0)
+        tumizi = matumizi.objects.filter(compani=kampuni.id,duration=0)
         tr_pump =  fuel_pumps.objects.filter(tank__Interprise__company=kampuni)
         settPump = tr_pump
         acc_sup = UserExtend.objects.filter(company=kampuni,acc_supv=True)
@@ -73,7 +85,6 @@ class Todos:
         tr_tank = tanks.filter(moving=True)
       #   shifts.objects.all().delete()
       #   shiftsTime.objects.all().delete()
-
         
         if allowed.exists():
            cheo = allowed.last()
@@ -89,6 +100,17 @@ class Todos:
            
            tanksSup = tanksSup.filter(Interprise=shell)
            tanks = tanks.filter(Interprise=shell.id)
+       
+        expReceipts = rekodiMatumizi.objects.filter(by__company=kampuni.id,attachReceipt=True)
+        if not general:
+             expReceipts = expReceipts.filter(Interprise=shell.id)
+        for exp in expReceipts:
+              exp_recept = attachments.objects.filter(expAttach=exp.id)
+              
+              exp_recepts += (1 if not exp_recept.exists() else 0)
+             
+        allAttach = pu_invo_recept + exp_recepts
+
 
         disp = settPump.distinct('station')
         fuel_price = tanks.distinct('fuel')
@@ -96,10 +118,14 @@ class Todos:
         tankContainer = tr_tank.distinct('tank')
         shell_tanks = tanks.filter(moving=False)
            
-        cust = wateja.objects.filter(Interprise__company=kampuni)
+      #   cust = wateja.objects.filter(Interprise__company=kampuni)
         if not general:
-            cust = cust.filter(Q(Interprise=shell.id)|Q(allEntp=True))
+            # cust = cust.filter(Q(Interprise=shell.id)|Q(allEntp=True))
             fuel_price = tanks.filter(Interprise=shell.id).distinct('fuel')
+
+        stations = None
+        if user.admin:
+             stations = Interprise.objects.filter(company=kampuni)   
 
         todo = {
         'useri':user,
@@ -107,6 +133,9 @@ class Todos:
         'shell':shell,
         'general':general,
         'shell_tanks':shell_tanks,
+        'pu_invo_recept':pu_invo_recept,
+        'exp_recept':exp_recepts,
+        'all_attach':allAttach,
         'admin':admin,
         'disp':disp,
         'settPump':settPump,
@@ -116,7 +145,7 @@ class Todos:
         'tr_pump':tr_pump,
         'tr_tank':tr_tank,
         'tr_by':tr_by,
-        'customers':cust,
+      #   'customers':cust,
         'currencii':user.currencii,
         'kampuni':kampuni,
         'PumpAttend':pumpAttend,
@@ -124,11 +153,14 @@ class Todos:
         'fuel_price':fuel_price,
         'notify':notify,
          'tanksSup':tanksSup,
-         'acc_sup':acc_sup
+         'acc_sup':acc_sup,
+         'stations':stations
         
         }
 
-      except:
+      except Exception as e:
+        print(e)
+        traceback.print_exc()
         todo={
            
             'useri':None,

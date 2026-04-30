@@ -170,6 +170,7 @@
            <hr>
         {% endif %}
        
+        {% if cust.active %}
         <div class="d-flex justify-content-end align-items-center mb-4 bg-light p-3 rounded">
             <div class="btn-toolbar" role="toolbar">
                 <div class="btn-group mr-2 mt-2" role="group">
@@ -290,7 +291,12 @@
                 </div>
             </div>
         </div>
+       {% else %}
 
+        <div class="alert alert-danger" role="alert">
+            {% if useri.langSet == 0 %}Akaunti ya Mteja Imesitishwa kwa sasa.{% else %}Customer Account is currently disabled.{% endif %}
+         </div>
+        {% endif %}
 
          {% if not general %}
          <select hidden  name="allFuel" id="allFuel">
@@ -951,11 +957,11 @@
                     <thead>
                             <tr class="border-bottom weight600 smallerFont" >
                                 <td rowspan="2" >#</td>
-                                <td rowspan="2" > {% if useri.langSet == 0 %}Date{% else %}Tarehe{% endif %} </td>
+                                <td rowspan="2" > {% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %} </td>
                                 <td rowspan="2" > {% if useri.langSet == 0 %}Ankara{% else %}Invoice{% endif %}</td>
                                 <td rowspan="2" >{% if useri.langSet == 0 %}Jina la Deleva{% else %}Driver Name {% endif %}</td>
                                 <td rowspan="2" >{% if useri.langSet == 0 %}Gari/Chombo{% else %} Vihecle{% endif %}</td>
-                                <td rowspan="2" > {% if useri.langSet == 0 %}MpangoZamu{% else %} Session{% endif %}</td>
+                                <!-- <td rowspan="2" > {% if useri.langSet == 0 %}MpangoZamu{% else %} Session{% endif %}</td> -->
                                 {% if not kituo %}
                                     <td rowspan="2" > {% if useri.langSet == 0 %}Kituo{% else %} Station{% endif %}</td>
                                 {% endif %}
@@ -999,7 +1005,7 @@
                             <td> <a href="/salepurchase/viewFuelSales?i={{row.sale.id}}" >INVO-{{ row.sale.code }}</a> </td>
                             <td>{{ row.sale.driver }}</td>
                             <td>{{ row.sale.vihecle }}</td>
-                            <td>{{ row.sale.session.session.name }}</td>
+                            <!-- <td>{{ row.sale.session.session.name }}</td> -->
 
                             {% if not kituo %}
                                 <td>{{ row.sale.by.Interprise.name }}</td>
@@ -1029,7 +1035,7 @@
                         {% endfor %}
 
                         <tr>
-                            <th colspan="{% if not kituo %}8{%else%}7{%endif%}" >{% if useri.langSet == 0 %}Jumla{% else %} Total {% endif %}</th>
+                            <th colspan="{% if not kituo %}7{%else%}6{%endif%}" >{% if useri.langSet == 0 %}Jumla{% else %} Total {% endif %}</th>
                             {% for fuel in totSummary.fuels %}
                                 <th>{{ fuel.qty|floatformat:'-2'|intcomma }}</th>
                                 <th>{{ fuel.price|floatformat:'-2'|intcomma }}</th>
@@ -1064,7 +1070,7 @@
                                 <td rowspan="2" > {% if useri.langSet == 0 %}Ankara{% else %}Invoice{% endif %}</td>
                                 <td rowspan="2" >{% if useri.langSet == 0 %}Jina la Deleva{% else %}Driver Name {% endif %}</td>
                                 <td rowspan="2" >{% if useri.langSet == 0 %}Gari/Chombo{% else %} Vihecle{% endif %}</td>
-                                <td rowspan="2" > {% if useri.langSet == 0 %}MpangoZamu{% else %} Session{% endif %}</td>
+                                <!-- <td rowspan="2" > {% if useri.langSet == 0 %}MpangoZamu{% else %} Session{% endif %}</td> -->
                                 {% if not kituo %}
                                     <td rowspan="2" > {% if useri.langSet == 0 %}Kituo{% else %} Station{% endif %}</td>
                                 {% endif %}
@@ -1109,7 +1115,7 @@
                             <td> <a href="/salepurchase/viewFuelSales?i={{row.sale.id}}" >INVO-{{ row.sale.code }}</a> </td>
                             <td>{{ row.sale.driver }}</td>
                             <td>{{ row.sale.vihecle }}</td>
-                            <td>{{ row.sale.session.session.name }}</td>
+                            <!-- <td>{{ row.sale.session.session.name }}</td> -->
                             {% if not kituo %}
                                 <td>{{ row.sale.by.Interprise.name }}</td>
                             {% endif %}
@@ -1136,7 +1142,7 @@
                         {% endfor %}
 
                         <tr>
-                            <th colspan="{% if not kituo %}8{%else%}7{%endif%}" >{% if useri.langSet == 0 %}Jumla{% else %} Total {% endif %}</th>
+                            <th colspan="{% if not kituo %}7{%else%}6{%endif%}" >{% if useri.langSet == 0 %}Jumla{% else %} Total {% endif %}</th>
                             {% for fuel in totSummary_prev.fuels %}
                                 <th>{{ fuel.qty|floatformat:'-2'|intcomma }}</th>
                                 <th>{{ fuel.price|floatformat:'-2'|intcomma }}</th>
@@ -1546,7 +1552,7 @@
                         const orderId = $('#orderId').val();
                         let orderAmount = parseFloat($('#orderAmount').val())||0;
                         const orderType = $('#orderType').val();
-                        const paymentAccount = $('#paymentAccount').val();
+                        const paymentAccount =  Number($('#paymentAccount').val())||0;
                         const paidAmount = parseFloat($('#paidAmount').val())||0;
                         const custId = Number('{{cust.id}}');
                         const prepaid = orderType === 'prepaid' ? 1 : 0;
@@ -1581,8 +1587,10 @@
                             redborder('#orderAmount');
                             return;
                         }
-                        if(orderType === 'prepaid'){
+                        if(orderType == "prepaid"){
+                          
                             if(!paymentAccount){
+                                
                                 alert('{% if useri.langSet == 0 %}Tafadhali chagua akaunti ya malipo{% else %}Please select a payment account{% endif %}');
                                 redborder('#paymentAccount');
                                 return;
@@ -1594,12 +1602,13 @@
                                 return;
                             }
                         }
-                        if(orderType != 'debt' && orderType != 'prepaid' && orderType!='postpaid'){
+                        if(orderType != 'debt' && orderType != "prepaid" && orderType!='postpaid'){
                             alert('{% if useri.langSet == 0 %}Tafadhali chagua aina ya oda{% else %}Please select an order type{% endif %}');
                             redborder('#orderType');
                             return;
                         }
 
+                     
 
                         $('#credit_debt_order').modal('hide');
                         $('#loadMe').modal('show');
@@ -1780,12 +1789,21 @@
             
             </div>
 
-          <div class="custom-control py-3 custom-checkbox">
-            {% if cust.allEntp %}
-               <input type="checkbox" checked class="custom-control-input cursor-pointer" id="uni_cust">
-             {% else %}
-               <input type="checkbox" class="custom-control-input cursor-pointer" id="uni_cust">
-             {% endif %}
+                                <!-- is active vendor -->
+            <div class="form-group mt-3">
+                
+                <div class="custom-control custom-switch cursor-pointer">
+                
+                        <input type="checkbox" class="custom-control-input cursor-pointer" id="isActiveCustomer" {% if cust.active %} checked {% endif %} >
+                    <label class="custom-control-label smallFont weight600 cursor-pointer" for="isActiveCustomer">{% if useri.langSet == 0 %} Mteja Hai{% else %} Active Customer{% endif %}</label>
+                </div>
+            </div>
+
+
+          <div class="custom-control mb-3 custom-checkbox">
+            
+            <input type="checkbox"class="custom-control-input cursor-pointer" id="uni_cust" {% if cust.allEntp %} checked {% endif %} >
+             
             <label class="custom-control-label cursor-pointer" for="uni_cust"> 
               {% if useri.langSet == 0 %}
                   Mteja kwa Stationi zote
@@ -1795,6 +1813,8 @@
               
             </label>
           </div>
+
+          
             
             <div class="row py-3">
             
@@ -2309,7 +2329,10 @@ $('body').on("submit", "#savepaymentForm" ,function(e){
             const invo = Number('{{cust.id}}'),
                     url = $(this).attr("action"),
                     ac = Number($('#malipo-akaunti').val()),
-                    amo = Number('{% if lastCd and lastCd.paid < lastCd.amount %}{{lastCd.bal_deni}}{% else %}{{totD}}{% endif %}'),
+
+
+                    amo = Number('{{totD}}'),
+
                     pay_amo = Number($('#lipa_kiasi').val())||Number(amo),
                     isCredit = Number($('#lipa_kiasi').data('hasorder')),
                     date = $('#pay_d').val(),
