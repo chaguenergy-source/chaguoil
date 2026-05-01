@@ -2802,19 +2802,24 @@ def deleteShiftExpenses(request):
         expense_ids = [int(eid) for eid in expense_ids if str(eid).isdigit()]
         if not expense_ids:
             return JsonResponse({'success': False, 'eng': 'No valid expense IDs provided.','swa':'Hakuna vitambulisho halali vya matumizi vilivyotolewa.'})
+        
+        # Allow deletion of:
+        # 1. Payment account expenses (akaunti__isnull=False) with admin_approval=False
+        # 2. Pump attendant expenses (fromShift__isnull=False) regardless of approval status
         expenses = rekodiMatumizi.objects.filter(
             pk__in=expense_ids,
-            Interprise__company=kampuni,
-            admin_approval=False,
-            akaunti__isnull=False
-        ).select_related('akaunti')
+            Interprise__company=kampuni
+        ).filter(
+            Q(akaunti__isnull=False, admin_approval=False) |  # Account expenses, unapproved
+            Q(fromShift__isnull=False)  # Pump attendant expenses (already managed by station manager)
+        ).select_related('akaunti', 'fromShift')
         if not todo['useri'].admin:
             expenses = expenses.filter(Interprise=shell.id)
 
         with transaction.atomic():
             expenses = list(expenses.select_for_update())
             if not expenses:
-                return JsonResponse({'success': False, 'eng': 'No eligible expenses deleted. Only unapproved account-based expenses can be deleted.','swa':'Hakuna matumizi yanayoruhusiwa kufutwa. Matumizi ambayo hayajahakikiwa na yametoka kwenye akaunti tu ndiyo yanaweza kufutwa.'})
+                return JsonResponse({'success': False, 'eng': 'No eligible expenses deleted. Only unapproved account-based expenses or pump attendant expenses can be deleted.','swa':'Hakuna matumizi yanayoruhusiwa kufutwa. Matumizi ambayo hayajahakikiwa na yametoka kwenye akaunti au matumizi ya pump attendant ndiyo yanaweza kufutwa.'})
 
             expense_ids = [exp.id for exp in expenses]
 
@@ -2854,7 +2859,7 @@ def deleteShiftExpenses(request):
         if deleted > 0:
             return JsonResponse({'success': True, 'eng': 'Expenses deleted successfully.','swa':'Matumizi yamefutwa kwa mafanikio.'})
         else:
-            return JsonResponse({'success': False, 'eng': 'No eligible expenses deleted. Only unapproved account-based expenses can be deleted.','swa':'Hakuna matumizi yanayoruhusiwa kufutwa. Matumizi ambayo hayajahakikiwa na yametoka kwenye akaunti tu ndiyo yanaweza kufutwa.'})
+            return JsonResponse({'success': False, 'eng': 'No eligible expenses deleted. Only unapproved account-based expenses or pump attendant expenses can be deleted.','swa':'Hakuna matumizi yanayoruhusiwa kufutwa. Matumizi ambayo hayajahakikiwa na yametoka kwenye akaunti au matumizi ya pump attendant ndiyo yanaweza kufutwa.'})
     except Exception as e:
         return JsonResponse({'success': False, 'eng': f'Error: {str(e)}'})
 
