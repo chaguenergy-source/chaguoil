@@ -2722,6 +2722,7 @@ def getShiftExpenses(request):
                 staffLname=F('staff__user__last_name'),
                 fuel_name=F('Fuel__name'),
                 pump_attendant_fname=F('fromShift__shift__by__user__first_name'),
+                paye = F('matumizi__paye'),
                 pump_attendant_lname=F('fromShift__shift__by__user__last_name'),
                 payment_source=Case(
                     When(fromShift__isnull=False, then=Value('pump_attendant')),
@@ -2806,18 +2807,24 @@ def deleteShiftExpenses(request):
         # Allow deletion of:
         # 1. Payment account expenses (akaunti__isnull=False) with admin_approval=False
         # 2. Pump attendant expenses (fromShift__isnull=False) regardless of approval status
-        expenses = rekodiMatumizi.objects.filter(
+        expenses_queryset = rekodiMatumizi.objects.filter(
             pk__in=expense_ids,
             Interprise__company=kampuni
         ).filter(
             Q(akaunti__isnull=False, admin_approval=False) |  # Account expenses, unapproved
             Q(fromShift__isnull=False)  # Pump attendant expenses (already managed by station manager)
-        ).select_related('akaunti', 'fromShift')
+        )
         if not todo['useri'].admin:
-            expenses = expenses.filter(Interprise=shell.id)
+            expenses_queryset = expenses_queryset.filter(Interprise=shell.id)
 
         with transaction.atomic():
-            expenses = list(expenses.select_for_update())
+            # Get expense IDs first without select_for_update (to avoid nullable join lock issue)
+            expense_list = list(expenses_queryset.values_list('id', flat=True))
+            if not expense_list:
+                return JsonResponse({'success': False, 'eng': 'No eligible expenses deleted. Only unapproved account-based expenses or pump attendant expenses can be deleted.','swa':'Hakuna matumizi yanayoruhusiwa kufutwa. Matumizi ambayo hayajahakikiwa na yametoka kwenye akaunti au matumizi ya pump attendant ndiyo yanaweza kufutwa.'})
+            
+            # Now lock and fetch the actual records
+            expenses = list(rekodiMatumizi.objects.filter(pk__in=expense_list).select_for_update())
             if not expenses:
                 return JsonResponse({'success': False, 'eng': 'No eligible expenses deleted. Only unapproved account-based expenses or pump attendant expenses can be deleted.','swa':'Hakuna matumizi yanayoruhusiwa kufutwa. Matumizi ambayo hayajahakikiwa na yametoka kwenye akaunti au matumizi ya pump attendant ndiyo yanaweza kufutwa.'})
 
@@ -2861,6 +2868,7 @@ def deleteShiftExpenses(request):
         else:
             return JsonResponse({'success': False, 'eng': 'No eligible expenses deleted. Only unapproved account-based expenses or pump attendant expenses can be deleted.','swa':'Hakuna matumizi yanayoruhusiwa kufutwa. Matumizi ambayo hayajahakikiwa na yametoka kwenye akaunti au matumizi ya pump attendant ndiyo yanaweza kufutwa.'})
     except Exception as e:
+        traceback.print_exc()
         return JsonResponse({'success': False, 'eng': f'Error: {str(e)}'})
 
 @login_required(login_url='login')

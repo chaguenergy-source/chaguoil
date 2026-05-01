@@ -187,7 +187,7 @@ const renderPaymentDetails = d => {
 					<td>${moment(p.tarehe).format('DD/MM/YYYY HH:mm')}</td>
 					<td>${p.stN || ''}</td>
 					<td class="text-capitalize">${p.BFname || ''} ${p.BLname || ''}</td>
-					<td>${p.expN || ''}${p.salary_advance ? ` (${lang('Malipo ya awali', 'Salary Advance')})` : ''}</td>
+					<td>${p.expN || p.paye?lang('Mshahara','Salary') : ''}${p.salary_advance ? ` (${lang('Malipo ya awali', 'Salary Advance')})` : ''}</td>
 					<td>${paymentSourceLabel(p)}</td>
 					<td class="text-capitalize">${pumpAttendant}</td>
 					<td>${p.account_name || '-'}</td>
