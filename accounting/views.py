@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.shortcuts import render,redirect
-from account.models import StaffLoan, UserExtend, attachments, exptaxGroup,shifts,shiftPump,fuel_pumps,DepositTo,matumizi,rekodiMatumizi,wekaCash,toaCash,PhoneMailConfirm,wateja,wasambazaji,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
+from account.models import StaffLoan, UserExtend, attachments, exptaxGroup, loanPayMent,shifts,shiftPump,fuel_pumps,DepositTo,matumizi,rekodiMatumizi,wekaCash,toaCash,PhoneMailConfirm,wateja,wasambazaji,Interprise,InterprisePermissions,PaymentAkaunts,staff_akaunt_permissions
 # Create your views here.
 from django.contrib import messages
 from django.contrib.auth.models import User, auth
@@ -716,6 +716,11 @@ def _apply_loan_deduction(matum, rec, amount, kampuni):
         if actual_deduction > 0:
             active_loan.paid_amount = active_loan.paid_amount + actual_deduction
             active_loan.save(update_fields=['paid_amount'])
+            loan_pay_rec = loanPayMent()
+            loan_pay_rec.loan = active_loan
+            loan_pay_rec.amount = actual_deduction
+            loan_pay_rec.record = rec
+            loan_pay_rec.save()
     except Exception:
         traceback.print_exc()
 

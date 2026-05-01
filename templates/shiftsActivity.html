@@ -77,6 +77,14 @@
                 </li>
 
                 <li class="nav-item ">
+                    <a class="nav-link  {% block matumizi %}{% endblock %}" href="/salepurchase/expensesList"> 
+                        {% if useri.langSet == 0 %}Matumizi{% else %}Expenses{% endif %}
+                        {% if approval.shift_expenses > 0 %}
+                            <span class="badge bg-danger text-light ms-2" title="{% if useri.langSet == 0 %}Matumizi mapya yasiyotambulika{% else %}New unapproved expenses{% endif %}">{{ approval.shift_expenses|intcomma }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item ">
                     <a class="nav-link  {% block transfer %}{% endblock %}" href="#daily-sales"> 
                         {% if useri.langSet == 0 %}Kutoa{% else %}Transfer{% endif %}
                     </a>

@@ -566,6 +566,11 @@ class StaffLoan(models.Model):
     by = models.ForeignKey(UserExtend, on_delete=models.SET_NULL, null=True, blank=True, related_name='staff_loan_recorded_by')
     created = models.DateTimeField(auto_now_add=True)
 
+class loanPayMent(models.Model):
+    loan = models.ForeignKey(StaffLoan, on_delete=models.CASCADE, related_name='repayments')
+    amount = models.DecimalField(max_digits=20, decimal_places=7, default=0)
+    date = models.DateTimeField(auto_now_add=True)
+    record = models.ForeignKey(rekodiMatumizi, on_delete=models.CASCADE, null=True, blank=True)
 
 class wekaCash(models.Model):
     Interprise=models.ForeignKey(Interprise,on_delete=models.CASCADE)

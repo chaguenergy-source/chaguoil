@@ -12,7 +12,8 @@ from account.models import (
     attachments,fuelSales,receiveFromTr,TransferFuel,
     receivedFuel,ReceveFuel,transfer_from,PhoneMailConfirm,
     wekaCash,shifts,wateja,wasambazaji,fuel,fuel_pumps,fuel_tanks,
-    Interprise,InterprisePermissions,PaymentAkaunts,puAttachments,staff_akaunt_permissions)
+    Interprise,InterprisePermissions,PaymentAkaunts,puAttachments,staff_akaunt_permissions,
+    StaffLoan,loanPayMent)
 # Create your views here.
 
 from django.contrib import messages
@@ -20,7 +21,8 @@ from django.contrib.auth.models import User, auth
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
-from django.db.models import F
+from django.db.models import F, Case, When, Value, CharField
+from django.db import transaction
 from django.core import serializers
 from django.db.models import Q
 # from datetime import datetime
@@ -36,6 +38,7 @@ from django.core.paginator import Paginator,EmptyPage
 import requests
 #Session model stores the session data
 from django.contrib.sessions.models import Session
+from decimal import Decimal
 
 import time  
 import pytz
@@ -115,18 +118,22 @@ def toApprovalPayments(request):
         shell = todo['shell']
         kampuni = todo['kampuni']
         useri = todo['useri']
-        general = todo['useri']
+        general = useri.admin or useri.ceo
 
         pym = wekaCash.objects.filter(Q(customer__isnull=False)|Q(sales__mobile_pay=True)|Q(kuhamisha=True)|Q(biforeShift=True),Interprise__company=kampuni,admin_approval=False,Amount__gt=0)
         toa = toaCash.objects.filter(kuhamisha=True,Akaunt__aina__icontains="Cash",Interprise__company=kampuni,admin_approval=False,Amount__gt=0) 
+        exp = rekodiMatumizi.objects.filter(Interprise__company=kampuni,admin_approval=False)
         if not general:
             pym = pym.filter(Interprise=shell.id)
+            toa = toa.filter(Interprise=shell.id)
+            exp = exp.filter(Interprise=shell.id)
 
         todo.update({
             'mobile_pym':len(pym.filter(sales__mobile_pay=True)),
             'customer_pym':len(pym.filter(customer__isnull=False)),
             'cashDeposit':len(toa),
             'cashDepositBefore':len(pym.filter(biforeShift=True,shift__isnull=False,sales__mobile_pay__isnull=True)),
+            'shift_expenses':len(exp),
             'isToApprovalPayments':True
         })   
         return todo
@@ -2574,6 +2581,23 @@ def CashDeposit(request):
      return render(request,'shiftCashDeposit.html',todo)
 
 
+@login_required(login_url='login')
+def shiftExpenses(request):
+     stations = None
+     todo =  todoFunct(request)
+     useri = todo['useri']
+     kampuni = todo['kampuni']
+     shell = todo['shell']
+     if useri.admin or useri.ceo:
+         stations= Interprise.objects.filter(company=kampuni)
+     todo.update({
+        'stations':stations,
+        'approval':toApprovalPayments(request)
+     })
+
+     return render(request,'shiftExpenseList.html',todo)
+
+
  
 
 @login_required(login_url='login')
@@ -2669,6 +2693,77 @@ def getShiftCustomerMobilePayments(request):
         }
         return JsonResponse(data)
 
+
+@login_required(login_url='login')
+def getShiftExpenses(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            shell = todo['shell']
+            kampuni = todo['kampuni']
+            tFr = request.POST.get('tFr')
+            tTo = request.POST.get('tTo')
+            from_session = int(request.POST.get('from_session',0))
+
+            exp_ids = request.POST.getlist('exp_Ids[]')
+            if not exp_ids:
+                exp_ids = json.loads(request.POST.get('exp_Ids','[]'))
+
+            useri = todo['useri']
+
+            expenses = rekodiMatumizi.objects.filter(Interprise__company=kampuni).annotate(
+                stN=F('Interprise__name'),
+                st=F('Interprise'),
+                account_name=F('akaunti__Akaunt_name'),
+                BFname=F('by__user__first_name'),
+                BLname=F('by__user__last_name'),
+                expN=F('matumizi__matumizi'),
+                staffFname=F('staff__user__first_name'),
+                staffLname=F('staff__user__last_name'),
+                fuel_name=F('Fuel__name'),
+                pump_attendant_fname=F('fromShift__shift__by__user__first_name'),
+                pump_attendant_lname=F('fromShift__shift__by__user__last_name'),
+                payment_source=Case(
+                    When(fromShift__isnull=False, then=Value('pump_attendant')),
+                    When(akaunti__isnull=False, then=Value('payment_account')),
+                    default=Value('unknown'),
+                    output_field=CharField()
+                )
+            ).order_by('-pk')
+
+            if from_session and exp_ids:
+                expense_ids = [int(eid) for eid in exp_ids if str(eid).isdigit()]
+                expenses = expenses.filter(pk__in=expense_ids)
+            else:
+                expenses = expenses.filter(tarehe__range=[tFr,tTo])
+
+            if not useri.admin and not useri.ceo:
+                expenses = expenses.filter(Interprise=shell.id)
+
+            data = {
+                'success':True,
+                'expenses':list(expenses.values()),
+                'isadmin':useri.admin
+            }
+            return JsonResponse(data)
+
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
+            data = {
+                'success':False,
+                'swa':'Haikufanikiwa',
+                'eng':'Bad Request'
+            }
+            return JsonResponse(data)
+    else:
+        data = {
+            'success':False,
+            'swa':'Haikufanikiwa',
+            'eng':'Bad Request'
+        }
+        return JsonResponse(data)
+
 @login_required(login_url='login')
 def theshiftsTime(request):
     todo = todoFunct(request)
@@ -2695,6 +2790,7 @@ def deleteShiftExpenses(request):
     try:
         todo = todoFunct(request)
         shell = todo['shell']
+        kampuni = todo['kampuni']
         manager = todo['manager']
         if not manager and not todo['useri'].admin:
             return JsonResponse({'success': False, 'eng': 'Permission denied.','swa':'Ruhusa imeruhusiwa.'})
@@ -2706,11 +2802,59 @@ def deleteShiftExpenses(request):
         expense_ids = [int(eid) for eid in expense_ids if str(eid).isdigit()]
         if not expense_ids:
             return JsonResponse({'success': False, 'eng': 'No valid expense IDs provided.','swa':'Hakuna vitambulisho halali vya matumizi vilivyotolewa.'})
-        deleted, _ = rekodiMatumizi.objects.filter(pk__in=expense_ids,Interprise=shell.id).delete()
+        expenses = rekodiMatumizi.objects.filter(
+            pk__in=expense_ids,
+            Interprise__company=kampuni,
+            admin_approval=False,
+            akaunti__isnull=False
+        ).select_related('akaunti')
+        if not todo['useri'].admin:
+            expenses = expenses.filter(Interprise=shell.id)
+
+        with transaction.atomic():
+            expenses = list(expenses.select_for_update())
+            if not expenses:
+                return JsonResponse({'success': False, 'eng': 'No eligible expenses deleted. Only unapproved account-based expenses can be deleted.','swa':'Hakuna matumizi yanayoruhusiwa kufutwa. Matumizi ambayo hayajahakikiwa na yametoka kwenye akaunti tu ndiyo yanaweza kufutwa.'})
+
+            expense_ids = [exp.id for exp in expenses]
+
+            # Rudisha fedha kwenye payment account husika
+            account_totals = {}
+            for exp in expenses:
+                if exp.akaunti_id:
+                    account_totals[exp.akaunti_id] = account_totals.get(exp.akaunti_id, Decimal('0')) + Decimal(exp.kiasi or 0)
+
+            if account_totals:
+                accounts = PaymentAkaunts.objects.filter(pk__in=account_totals.keys()).select_for_update()
+                for acc in accounts:
+                    acc.Amount = Decimal(acc.Amount or 0) + Decimal(account_totals.get(acc.id, Decimal('0')))
+                    acc.save(update_fields=['Amount'])
+
+            # Kama kuna repayment iliyofungwa kwenye record, punguza paid_amount ya StaffLoan
+            repayments = loanPayMent.objects.filter(record_id__in=expense_ids).select_for_update()
+            loan_totals = {}
+            repayment_ids = []
+            for rep in repayments:
+                repayment_ids.append(rep.id)
+                loan_totals[rep.loan_id] = loan_totals.get(rep.loan_id, Decimal('0')) + Decimal(rep.amount or 0)
+
+            if loan_totals:
+                loans = StaffLoan.objects.filter(pk__in=loan_totals.keys()).select_for_update()
+                for loan in loans:
+                    current_paid = Decimal(loan.paid_amount or 0)
+                    to_reverse = Decimal(loan_totals.get(loan.id, Decimal('0')))
+                    loan.paid_amount = current_paid - to_reverse if current_paid > to_reverse else Decimal('0')
+                    loan.save(update_fields=['paid_amount'])
+
+            if repayment_ids:
+                loanPayMent.objects.filter(pk__in=repayment_ids).delete()
+
+            deleted, _ = rekodiMatumizi.objects.filter(pk__in=expense_ids).delete()
+
         if deleted > 0:
             return JsonResponse({'success': True, 'eng': 'Expenses deleted successfully.','swa':'Matumizi yamefutwa kwa mafanikio.'})
         else:
-            return JsonResponse({'success': False, 'eng': 'No expenses deleted.','swa':'Hakuna matumizi yaliyofutwa.'})
+            return JsonResponse({'success': False, 'eng': 'No eligible expenses deleted. Only unapproved account-based expenses can be deleted.','swa':'Hakuna matumizi yanayoruhusiwa kufutwa. Matumizi ambayo hayajahakikiwa na yametoka kwenye akaunti tu ndiyo yanaweza kufutwa.'})
     except Exception as e:
         return JsonResponse({'success': False, 'eng': f'Error: {str(e)}'})
 
@@ -3678,6 +3822,7 @@ def  approveShiftCustomerMobilePayments(request):
             kampuni = todo['kampuni']
             useri = todo['useri']
             cashD = int(request.POST.get('cashD',0))
+            expense = int(request.POST.get('expense',0))
            
             if not useri.admin:
                 data = {
@@ -3690,6 +3835,8 @@ def  approveShiftCustomerMobilePayments(request):
                 pay = None
                 if cashD:
                     pay = toaCash.objects.get(pk=pid,Interprise__company=kampuni)
+                elif expense:
+                    pay = rekodiMatumizi.objects.get(pk=pid,Interprise__company=kampuni)
                 else:    
                     pay = wekaCash.objects.get(pk=pid,Interprise__company=kampuni)
                 pay.admin_approval = True
