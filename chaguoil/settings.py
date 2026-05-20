@@ -200,12 +200,17 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'fanyabiasharaapp@gmail.com'
-EMAIL_HOST_PASSWORD = 'whrzddczljnprbyy'
+# Mipangilio ya Email ya Namecheap
+EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST='mail.privateemail.com'
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER='security@cfspump.com'
+EMAIL_HOST_PASSWORD='Chagu@2026'
+
+# Hii inafanya email ionekane imetoka kwa jina la App yako badala ya email tupu
+DEFAULT_FROM_EMAIL='cfspump <security@cfspump.com>'
+
 
 
 STATICFILES_FINDERS = (
