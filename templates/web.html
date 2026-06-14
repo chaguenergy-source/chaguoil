@@ -5,14 +5,3 @@ sudo nano /etc/systemd/system/gunicorn.service
 source venv/bin/activate
 nano account/management/commands/test_gcs_upload.py
 python manage.py test_gcs_upload
-
-   DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'cfspump_db', 
-            'USER': 'django_admin', 
-            'PASSWORD': 'Chagu@me122', 
-            'HOST': '34.44.22.51', # PUBLIC_IP_YA_CLOUDSQL
-            'PORT': '5432',
-        }
-    }
