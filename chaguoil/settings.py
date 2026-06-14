@@ -15,17 +15,46 @@ from storages.backends.gcloud import GoogleCloudStorage
 # Define BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def _load_env_file():
+    env_path = BASE_DIR / '.env'
+    if not env_path.exists():
+        return
+
+    with env_path.open(encoding='utf-8') as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            os.environ.setdefault(key, value)
+
+
+def _get_bool_env(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+_load_env_file()
+
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-^j_@e@m#zhpukh@dihazvzftkyr($0!q8m8yja&6!=v*6lyz)i'
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured('Set SECRET_KEY in the .env file.')
 
 # USALAMA: Zima DEBUG katika Production (Inalazimisha kutumia STATICFILES_STORAGE)
-DEBUG = False 
+DEBUG = _get_bool_env('DEBUG', False)
 
-# Badilisha na IP Address mpya ya VM, na nimeacha '*'
-if  DEBUG:
-    ALLOWED_HOSTS = ['*']
-else:
-    ALLOWED_HOSTS = ['34.61.173.58','cfspump.com','localhost']
+allowed_hosts = os.getenv('ALLOWED_HOSTS', '')
+# ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(',') if host.strip()]
+
+# if not ALLOWED_HOSTS:
+# ALLOWED_HOSTS = ['*']
 
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
@@ -141,33 +170,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'chaguoil.wsgi.application'
 
-if not DEBUG:
-    # Database - CLOUD SQL SETTINGS (Inabaki vilevile)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'cfspump_db', 
-            'USER': 'django_admin', 
-            'PASSWORD': 'Chagu@me122', 
-            'HOST': '34.44.22.51', # PUBLIC_IP_YA_CLOUDSQL
-            'PORT': '5432',
-        }
+DB_ENGINE = os.getenv('DB_ENGINE', 'django.db.backends.postgresql')
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT', '5432')
+
+if not DB_NAME or not DB_USER or not DB_PASSWORD or not DB_HOST:
+    raise ImproperlyConfigured('Set DB_NAME, DB_USER, DB_PASSWORD, and DB_HOST in the .env file.')
+
+DATABASES = {
+    'default': {
+        'ENGINE': DB_ENGINE,
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
-
-else:
-    # LOCAL DEVELOPMENT DATABASE SETTINGS (USALAMA: HIZI HAZITUMIKI KATIKA PRODUCTION)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            # 'NAME': 'chaguoil',
-            'NAME': 'mafuta',
-            'USER': 'postgres',
-            'PASSWORD' : '1152',
-            'HOST' : 'localhost'
-
-     }
-
-    }
+}
 
 
 
@@ -201,15 +223,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Mipangilio ya Email ya Namecheap
-EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST='mail.privateemail.com'
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_HOST_USER='security@cfspump.com'
-EMAIL_HOST_PASSWORD='Chagu@2026'
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = _get_bool_env('EMAIL_USE_TLS', True)
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
-# Hii inafanya email ionekane imetoka kwa jina la App yako badala ya email tupu
-DEFAULT_FROM_EMAIL='cfspump <security@cfspump.com>'
+if not EMAIL_HOST or not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD or not DEFAULT_FROM_EMAIL:
+    raise ImproperlyConfigured('Set EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, and DEFAULT_FROM_EMAIL in the .env file.')
 
 
 

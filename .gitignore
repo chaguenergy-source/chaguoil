@@ -11,9 +11,10 @@ out/
 coverage/
 
 # Environment files
-.env
+*.env
 .env.local
 .env.*.local
+*.env.example
 
 # OS generated files
 .DS_Store
