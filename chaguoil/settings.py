@@ -51,10 +51,10 @@ if not SECRET_KEY:
 DEBUG = _get_bool_env('DEBUG', False)
 
 allowed_hosts = os.getenv('ALLOWED_HOSTS', '')
-# ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(',') if host.strip()]
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(',') if host.strip()]
 
-# if not ALLOWED_HOSTS:
-# ALLOWED_HOSTS = ['*']
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']
 
 # =======================================================
 # --- GOOGLE CLOUD STORAGE SETTINGS (PRODUCTION) ---
