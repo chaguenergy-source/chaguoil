@@ -191,9 +191,14 @@
    <h6 class="weight600 mt-3">{% if useri.langSet == 0 %}Kupokea{% else %}Receive{% endif %}</h6>
    
      <div class="table-responsive">
-        <table class="table-sm">
+        <table class="table-sm" id="receiveTable" >
             <thead>
                 <th>#</th>
+
+                <th>{% if useri.langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Dereva{% else %}Driver{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}</th>
+
                 <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
                 <th>{% if useri.langSet == 0 %}Kwenda/Tanki{% else %}To Tank{% endif %}</th>
                 <th>{% if useri.langSet == 0 %}Stick/Kabla{% else %}Stick/Before{% endif %} <span class="text-primary">LTRS</span> </th>
@@ -204,13 +209,56 @@
             <tbody id="trRows" >
                 <tr data-pos=1 >
                     <td  class="IndexNo" data-pos=1 >1</td>
+
+                                <td class="px-1">
+                                         <select name="TranspOpt1" id="TranspOpt1" data-pos=1 class="form-control brown tripTranspSel">
+                                            <option value=0 data-val=0 selected>-----------</option>
+                                            {% for t in trip_transporters %}
+                                                <option value="{{t.transpoter_id}}"
+                                                          data-val="{{t.transpoter_id}}"
+                                                          data-name="{{t.name}}">
+                                                     {{t.name}}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                </td>
+
+                                <td class="px-1">
+                                         <select name="DriverOpt1" id="DriverOpt1" data-pos=1 class="form-control brown tripDriverSel">
+                                            <option value="" data-val=0 selected>-----------</option>
+                                            {% for d in trip_drivers %}
+                                                <option value="{{d.driver}}"
+                                                          data-val="{{d.driver}}"
+                                                          data-transp-id="{{d.transpoter_id}}">
+                                                     {{d.driver}}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                </td>
+
+                                <td class="px-1">
+                                         <select name="VehicleOpt1" id="VehicleOpt1" data-pos=1 class="form-control brown tripVehicleSel">
+                                            <option value="" data-val=0 selected>-----------</option>
+                                            {% for v in trip_vehicles %}
+                                                <option value="{{v.vehicle}}"
+                                                          data-val="{{v.vehicle}}"
+                                                          data-transp-id="{{v.transpoter_id}}">
+                                                     {{v.vehicle}}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                </td>
                        
                         <td class="px-1"  >
                              
                                <select name="FuelOpt1"  id="FuelOpt1" data-pos=1 class="form-control brown incaseIsFuel">
                                  <option value=0 data-value=0 selected>-----------</option>
                                  {% for f in list %}
-                                    <option data-val="{{f.id}}" value={{f.Fuel.id}} data-cost="{{f.cost}}" data-tr="{{f.pu}}" data-fname="{{f.Fuel.name}}" data-fuel="{{f.Fuel.id}}" data-qty="{{f.qty}}" data-pu=0 data-value={{f.Fuel.id}}  >{{f.Fuel.name}}</option>  
+                                                <option data-val="{{f.id}}" value={{f.Fuel.id}} data-cost="{{f.cost}}" data-tr="{{f.pu}}" data-fname="{{f.Fuel.name}}" data-fuel="{{f.Fuel.id}}" data-qty="{{f.qty}}" data-pu=0 data-value={{f.Fuel.id}}
+                                                          data-transp-id="{% if f.puAttach and f.puAttach.transp %}{{f.puAttach.transp.id}}{% else %}0{% endif %}"
+                                                          data-transp-name="{% if f.puAttach and f.puAttach.transp %}{{f.puAttach.transp.jina}}{% endif %}"
+                                                          data-driver="{% if f.puAttach %}{{f.puAttach.driver}}{% endif %}"
+                                                          data-vehicle="{% if f.puAttach %}{{f.puAttach.vihecle}}{% endif %}">{{f.Fuel.name}}</option>  
                                  {% endfor %}
                               </select>
                         </td>

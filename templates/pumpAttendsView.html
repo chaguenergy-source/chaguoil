@@ -242,14 +242,17 @@
                         </div>
 
                         <div class="col-9 mx-0 smallFont weight500 row p-0 border">
-                            <div class="col-4 mx-0">
+                            <div class="col-3 mx-0">
                                 {% if useri.langSet == 0 %}Pampu  {% else %} Pumps  {% endif %}
                             </div>
 
-                            <div class="col-4 smallFont weight500">
-                                {% if useri.langSet == 0 %}Mita/Inasoma  {% else %} Reading  {% endif %}
+                            <div class="col-3 smallFont weight500">
+                                {% if useri.langSet == 0 %}Mita ya Digitali  {% else %} Digital Reading  {% endif %}
                             </div>
-                            <div class="col-4 mx-0 smallFont weight500">{% if useri.langSet == 0 %}Anzisha {% else %}Start  {% endif %}</div>
+                            <div class="col-3 smallFont weight500">
+                                {% if useri.langSet == 0 %}Mita ya Analogi  {% else %} Analog Reading  {% endif %}
+                            </div>
+                            <div class="col-3 mx-0 smallFont weight500">{% if useri.langSet == 0 %}Anzisha {% else %}Start  {% endif %}</div>
                         </div>
 
                         
@@ -263,9 +266,12 @@
                         <div class="col-9 p-0 border mx-0 row">
                             {% for s in pumps %}
                                 {% if sp.station == s.station %}  
-                                <div class="col-4 mx-0 weight600">{{s.name}}</div>
-                                <div data-initial="{{s.readings|floatformat:'-3'}}" class="col-4">{{s.readings|floatformat:'-2'|intcomma}}</div>
-                                <div class="col-4 mx-0">
+                                <div class="col-3 mx-0 weight600">{{s.name}}</div>
+                                <div class="col-3 digital-read">{{s.readings|floatformat:'-2'|intcomma}}</div>
+                                <div class="col-3">
+                                    <input type="number" step="0.01" class="analog-input form-control form-control-sm" data-pump="{{s.id}}" placeholder="{{s.analog_readings|floatformat:'-3'}}">
+                                </div>
+                                <div class="col-3 mx-0">
                                     <label class="switch">
                                         <input type="checkbox" class="shiftStart" data-pump={{s.id}} >
                                     <span class="slider"></span>
@@ -325,7 +331,7 @@
 
                 <div class="classic_div mx-md-3 table-sm-responsive " >
                     
-                    <div class="row p-0 classic_div border" style="min-width: 900px;" >
+                    <div class="row p-0 classic_div border pump-end-table" style="min-width: 900px;" >
                         <!-- <div class="col-1 border">#</div> -->
                         <div class="col-2 col-md-3 mx-0 smallFont weight500 border">
                             <th>{% if useri.langSet == 0 %}Dispensa {% else %} Dispanser {% endif %}</th>
@@ -335,27 +341,20 @@
                             <div class="col-2 mx-0">
                                 {% if useri.langSet == 0 %}Pampu  {% else %} Pumps  {% endif %}
                             </div>
-
                             <div class="col-2 smallFont weight500">
                                 {% if useri.langSet == 0 %}Kufungua  {% else %} Opening  {% endif %}
                             </div>
                             <div class="col-2 mx-0 smallFont weight500">
                                 {% if useri.langSet == 0 %}Kufunga {% else %}Closing  {% endif %}
-
                             </div>
-
                             <div class="col-2 mx-0 smallFont weight500">
                                 {% if useri.langSet == 0 %}Bei {% else %}Price  {% endif %}/<span class="text-primary">LTR</span>
                             </div>      
-
                             <div class="col-2 mx-0 smallFont weight500">
                                 {% if useri.langSet == 0 %}Flow {% else %}Flow  {% endif %} <span class="text-primary">LTRS</span>
-
                             </div>
-
                             <div class="col-2 mx-0 smallFont weight500">
                                  {% if useri.langSet == 0 %}Kiasi {% else %}Amount  {% endif %} <span class="text-primary">({{currencii}})</span>
-
                             </div>
                         </div>
 
@@ -367,18 +366,48 @@
                         <div class="col-2 col-md-3 weight600 border mx-0">
                             {{sp.pump.station.name}}
                         </div>
-                        <div class="col-10 col-md-9 p-0 border mx-0 row">
+                        <div class="col-10 col-md-9 p-0 border mx-0">
                             {% for s in shpmp %}
-                                {% if sp.pump.station == s.pump.station %}  
-                                <div class="col-2 mx-0 weight600">{{s.pump.name}}</div>
-                                <div data-initial="{{s.pump.readings|floatformat:'-3'}}" class="col-2 dispensa{{sp.pump.station.id}} initial_read{{s.id}}"  >{{s.pump.readings|floatformat:'2'|intcomma}}</div>
-                                <div class="col-2 mx-0">
-                                   <input type="number" data-price="{{s.pump.tank.price}}"  data-initial="{{s.pump.readings|floatformat:'-3'}}" data-fuel="{{f.Fuel.id}}" style="width: 100%;background-color: var(--whiteBg);color:var(--inputColor)" data-pump="{{s.id}}" step="0.01" name="pump{{s.id}}" id="pump{{s.id}}"  class="dispensa{{sp.pump.station.id}} fuel{{f.Fuel.id}} final_read final_read{{s.id}}  weight600">
+                                {% if sp.pump.station == s.pump.station %}
+                                <div class="row pump-end-row mx-0 border-bottom smallFont" data-analog="{{s.pump.analog_readings|floatformat:'-3'}}">
+                                    <div class="col-2 mx-0 weight600 py-1">{{s.pump.name}}</div>
+                                    <div class="col-2 opening-cell py-1">
+                                        <div class="d-flex align-items-center">
+                                            <div class="dropdown pump-analog-menu mr-1 flex-shrink-0">
+                                                <button type="button" class="btn btn-link btn-sm p-0 pump-setting-btn text-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                                    title="{% if useri.langSet == 0 %}Mipangilio ya pampu{% else %}Pump settings{% endif %}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <circle cx="12" cy="12" r="3"></circle>
+                                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                                    </svg>
+                                                </button>
+                                                <div class="dropdown-menu dropdown-menu-left shadow-sm pump-analog-dropdown py-2 px-2">
+                                                    <label class="dropdown-item small mb-0 d-flex align-items-center pump-analog-option py-1 px-2">
+                                                        <input type="checkbox" class="analog-toggle mr-2 mt-0" data-pump="{{s.id}}">
+                                                        <span>{% if useri.langSet == 0 %}Tumia mita ya analogi{% else %}Use analog readings{% endif %}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="opening-values flex-grow-1 min-w-0">
+                                                <span class="opening-display initial_read{{s.id}}">{{s.initial|floatformat:'-2'|intcomma}}</span>
+                                                <input type="number" step="0.01" class="analog_opening form-control form-control-sm" style="display:none;width:100%;"
+                                                    data-pump="{{s.id}}"
+                                                    placeholder="{{s.pump.analog_readings|floatformat:'-3'}}"
+                                                    value="{{s.pump.analog_readings|floatformat:'-3'}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-2 mx-0 py-1">
+                                       <input type="number" data-price="{{s.pump.tank.price}}" data-initial="{{s.initial|floatformat:'-3'}}"
+                                            data-fuel="{{f.Fuel.id}}"
+                                            style="width: 100%;background-color: var(--whiteBg);color:var(--inputColor)"
+                                            data-pump="{{s.id}}" step="0.01" name="pump{{s.id}}" id="pump{{s.id}}"
+                                            class="dispensa{{sp.pump.station.id}} fuel{{f.Fuel.id}} final_read final_read{{s.id}} weight600">
+                                    </div>
+                                    <div class="col-2 py-1">{{s.pump.tank.price|floatformat:'2'|intcomma}}</div>
+                                    <div class="col-2 tot_pump_liter{{s.id}} py-1"></div>
+                                    <div class="col-2 tot_pump_Amount{{s.id}} py-1"></div>
                                 </div>
-                                <div class="col-2">{{s.pump.tank.price|floatformat:'2'|intcomma}}</div>
-
-                                 <div class="col-2 tot_pump_liter{{s.id}}"></div>
-                                <div class="col-2 tot_pump_Amount{{s.id}}"></div>    
                                 {% endif %}
                             {% endfor %}
                         </div>
@@ -393,7 +422,7 @@
                             <div class="col-2"></div>
                             <div class="col-2"></div>
                             <div class="col-2"></div>
-                            <div class="col-2"></div>  
+                            <div class="col-2"></div>
                             <div class="col-2 tot_fuel_ltr{{f.Fuel.id}}">0</div>
                             <div class="col-2 tot_fuel_Amo{{f.Fuel.id}}">0</div>
                         </div>
@@ -1300,7 +1329,17 @@
 {% endblock %}
 
 
-{% block additionaljs %} 
+{% block additionaljs %}
+<style>
+    .pump-analog-menu .pump-setting-btn { line-height: 1; opacity: 0.55; }
+    .pump-analog-menu .pump-setting-btn:hover { opacity: 1; }
+    .pump-end-row.analog-active .pump-setting-btn { color: #856404 !important; opacity: 1; }
+    .pump-analog-dropdown { min-width: 210px; }
+    .pump-analog-option { cursor: pointer; user-select: none; white-space: normal; }
+    .pump-analog-option:hover { background: #f8f9fa; }
+    .pump-analog-option input[type="checkbox"] { width: 14px; height: 14px; flex-shrink: 0; }
+    .opening-values .analog_opening { max-width: 100%; }
+</style>
            <!-- Update/Delete Expenses Fuel -->
           <script>
                             //  Delete Expenses By Amount
@@ -1508,12 +1547,66 @@
 <script>
 
 
+    const getPumpOpening = $finalInput => {
+        const $row = $finalInput.closest('.pump-end-row');
+        if ($row.length && $row.find('.analog-toggle').prop('checked')) {
+            return Number($row.find('.analog_opening').val()) || 0;
+        }
+        return Number($finalInput.data('initial')) || 0;
+    };
+
+    const syncAnalogOpening = $row => {
+        const useAnalog = $row.find('.analog-toggle').prop('checked');
+        const $final = $row.find('.final_read');
+        const $openingDisplay = $row.find('.opening-display');
+        const $analogOpening = $row.find('.analog_opening');
+        const $settingBtn = $row.find('.pump-setting-btn');
+        if (useAnalog) {
+            const analogVal = Number($row.data('analog')) || Number($analogOpening.val()) || 0;
+            $analogOpening.val(analogVal || '');
+            $openingDisplay.hide();
+            $analogOpening.show();
+            $row.addClass('analog-active');
+            $settingBtn.attr('title', lang('Mita ya analogi imewashwa', 'Analog readings enabled'));
+            $final.attr('placeholder', lang('Mita ya analogi ya kufunga', 'Analog closing reading'));
+            $final.data('initial', analogVal);
+        } else {
+            $openingDisplay.show();
+            $analogOpening.hide();
+            $row.removeClass('analog-active');
+            $settingBtn.attr('title', lang('Mipangilio ya pampu', 'Pump settings'));
+            $final.removeAttr('placeholder');
+            $final.data('initial', Number($final.data('initialStored') || $final.data('initial')));
+        }
+        $final.trigger('keyup');
+    };
+
+    $('body').on('click', '.pump-analog-dropdown, .pump-analog-option', function (e) {
+        e.stopPropagation();
+    });
+
+    $('body').on('change', '.analog-toggle', function () {
+        syncAnalogOpening($(this).closest('.pump-end-row'));
+    });
+
+    $('body').on('keyup change', '.analog_opening', function () {
+        const $row = $(this).closest('.pump-end-row');
+        if ($row.find('.analog-toggle').prop('checked')) {
+            $row.find('.final_read').data('initial', Number($(this).val()) || 0);
+            $row.find('.final_read').trigger('keyup');
+        }
+    });
+
+    $('.final_read').each(function () {
+        $(this).data('initialStored', Number($(this).data('initial')) || 0);
+    });
+
     $('.final_read').keyup(function(){
          const final = Number($(this).val()),
                 f =  Number($(this).data('fuel')),
                 pmp =  Number($(this).data('pump')),
                 pr =  Number($(this).data('price')),
-                init =  Number($(this).data('initial')),
+                init = getPumpOpening($(this)),
 
                 tot_lt = final>init?(final - init):0,
                 tot_amo = final>init?(tot_lt*pr):0,
@@ -1553,10 +1646,11 @@
 
                el.each(function(){
                 const final = Number($(this).val()),
-                        
                         pr =  Number($(this).data('price')),
                         pmp =  Number($(this).data('pump')),
-                        init =  Number($(this).data('initial')) ,
+                        init = getPumpOpening($(this)),
+                        $row = $(this).closest('.pump-end-row'),
+                        analogUsed = $row.length ? $row.find('.analog-toggle').prop('checked') : false,
                         pdiff = Number(Number(final - init).toFixed(3)),
                         pmp_lt = pdiff>0?(pdiff):0,
                         P_amo = pdiff?(pmp_lt*pr):0
@@ -1566,12 +1660,12 @@
                         tot_amo+=P_amo
                         tot_lt+=pmp_lt
 
-                        
-
                         pumps.push({
                             init,
                             final,
-                            pmp
+                            pmp,
+                            analog_used: analogUsed,
+                            analog_initial: analogUsed ? init : null
                         })
 
 
@@ -1689,10 +1783,11 @@
 
         $('.shiftStart').each(function(){
              const pump = $(this).data('pump'),
-                   start = Number($(this).prop('checked'))
+                   start = Number($(this).prop('checked')),
+                   analogVal = $(`.analog-input[data-pump="${pump}"]`).val()
                    if(start)pumps.push({
                      pump,
-                     
+                     analog: analogVal !== '' ? Number(analogVal) : null
                    })
         })
         

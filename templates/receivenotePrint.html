@@ -169,6 +169,9 @@
                                 <tr class="smallFont" >
                                     <th>#</th>
                                     <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Dereva{% else %}Driver{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}</th>
                                     <th>{% if useri.langSet == 0 %}Bei{% else %}Price{% endif %}<span class="text-primary">{{currencii}}</span> </th>
 
                                     <th>{% if useri.langSet == 0 %}Kutoka/Tanki{% else %}From/Tank{% endif %}</th>
@@ -189,6 +192,9 @@
                                        {{t.Fuel.name}}
                                        
                                    </td>
+                                              <td>{{t.transporter|default:'-'}}</td>
+                                              <td>{{t.driver|default:'-'}}</td>
+                                              <td>{{t.vehicle|default:'-'}}</td>
                                       <td>{{t.price|floatformat:'-2'|intcomma}}</td>
                                     <td>
                                       {% if t.receive.FromPurchase %}
@@ -211,7 +217,7 @@
                                 {% endfor %}
 
                                 <tr class="smallFont weight600" >
-                                  <td colspan=7 >{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %}  </td>
+                                                                    <td colspan=10 >{% if useri.langSet == 0 %}Jumla{% else %}Total{% endif %}  </td>
                                   <td>{{Tqty|floatformat:'-2'|intcomma}}</td>
                                   <td>{{Tworth|floatformat:'-2'|intcomma}}</td>
                                 </tr>

@@ -1,0 +1,30 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% block page_content %}
+
+<div class="head-title">
+    <div class="left">
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li><a href="#">Dashboard</a></li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#">{% block payments_activity_head %}{% if useri.langSet == 0 %}Malipo{% else %}Payments{% endif %}{% endblock %}</a>
+            </li>
+        </ul>
+    </div>
+    {% block payments_action_btn %}{% endblock %}
+</div>
+
+<div class="table-data">
+    <div class="order">
+        {% include 'paymentsActivityNav.html' %}
+        {% block payments_activity_content %}{% endblock %}
+    </div>
+</div>
+
+{% endblock %}

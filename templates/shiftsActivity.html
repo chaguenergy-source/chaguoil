@@ -1,131 +1,370 @@
 {% extends 'index.html' %}
+
 {% load humanize %}
+
 {% block page_content %}
 
+
+
 <div class="head-title">
+
     <div class="left">
+
         
+
         {% include 'heading.html' %}
+
         <ul class="breadcrumb">
+
             <li>
+
                 <a href="#">Dashboard</a>
+
             </li>
+
             <li>
+
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+
                     <polyline points="9 18 15 12 9 6"></polyline>
+
                     </svg>
+
             </li>
+
             <li>
+
                 <a class="active" href="#"> 
+
                     
+
                     {% block activityHead %} {% endblock %}
+
                 
+
                 </a>
+
             </li>
+
         </ul>
+
     </div>
+
     
+
 {% block actionBtn %}
+
   
+
 {% endblock %}
 
 
+
+
+
 </div>
+
+
+
 
 
 <div class="table-data">
+
     <div class="order">
 
+
+
         <!-- <nav class="tabs-nav"> -->
+
             <ul class="nav nav-tabs smallerFont  mt-3 mb-4 d-flex">
+
                 <li class="nav-item "><a class="nav-link  {% block tab_shifts %}{% endblock %}" href="/salepurchase/theshiftsAttend"> 
+
                     {% if useri.langSet == 0 %}Wahusika/Zamu{% else %}Pump/Attendants{% endif %}
+
                 </a>
+
                 </li>
+
                 <li class="nav-item "><a class="nav-link  {% block tab_payments %}{% endblock %}" href="/salepurchase/customerPayments">
+
                     {% if useri.langSet == 0 %}Malipo Kwa Simu{% else %}Mobile Payment{% endif %}
+
                     
+
                     {% if approval.mobile_pym > 0 %}
+
                         <span class="badge bg-danger text-light ms-2" title="{% if useri.langSet == 0 %}Malipo mapya yasiyotambulika{% else %}New unapproved payments{% endif %}">{{ approval.mobile_pym|intcomma }}</span>
+
                     {% endif %}
+
                     </a>
+
                 </li>
+
                 <li class="nav-item "><a class="nav-link  {% block tab_debt_payments %}{% endblock %}" href="/salepurchase/customerDebtPayments">
+
                     {% if useri.langSet == 0 %}Malipo ya Wateja{% else %}Customer Payment{% endif %}
+
                     {% if approval.customer_pym > 0 %}
+
                         <span class="badge bg-danger text-light ms-2" title="{% if useri.langSet == 0 %}Malipo mapya yasiyotambulika{% else %}New unapproved payments{% endif %}">{{ approval.customer_pym|intcomma }}</span>
+
                     {% endif %}
+
                     </a>
+
                 </li>
 
+
+
                 <li class="nav-item ">
+
                     <a class="nav-link  {% block tab_deposits_before %}{% endblock %}" href="/salepurchase/CashDepositBefore">
+
                         {% if useri.langSet == 0 %}Kutoa Pesa/Zamu{% else %}Cash Deposits/Before{% endif %}
+
                         {% if approval.cashDepositBefore > 0 %}
+
                             <span class="badge bg-danger text-light ms-2" title="{% if useri.langSet == 0 %}Kuweka benki mpya yasiyotambulika{% else %}New unapproved deposits{% endif %}">{{ approval.cashDepositBefore|intcomma }}</span>
+
                         {% endif %}
+
                     </a>
+
                 </li>
 
+
+
                 <li class="nav-item ">
+
                     <a class="nav-link  {% block tab_deposits %}{% endblock %}" href="/salepurchase/CashDeposit">
+
                         {% if useri.langSet == 0 %}Kuweka Benki{% else %}Cash Deposits{% endif %}
+
                         {% if approval.cashDeposit > 0 %}
+
                             <span class="badge bg-danger text-light ms-2" title="{% if useri.langSet == 0 %}Kuweka benki mpya yasiyotambulika{% else %}New unapproved deposits{% endif %}">{{ approval.cashDeposit|intcomma }}</span>
+
                         {% endif %}
+
                     </a>
+
                 </li>
 
+
+
                 <li class="nav-item ">
+
                     <a class="nav-link  {% block matumizi %}{% endblock %}" href="/salepurchase/expensesList"> 
+
                         {% if useri.langSet == 0 %}Matumizi{% else %}Expenses{% endif %}
+
                         {% if approval.shift_expenses > 0 %}
+
                             <span class="badge bg-danger text-light ms-2" title="{% if useri.langSet == 0 %}Matumizi mapya yasiyotambulika{% else %}New unapproved expenses{% endif %}">{{ approval.shift_expenses|intcomma }}</span>
+
                         {% endif %}
+
                     </a>
-                </li>
-                <li class="nav-item ">
-                    <a class="nav-link  {% block transfer %}{% endblock %}" href="#daily-sales"> 
-                        {% if useri.langSet == 0 %}Kutoa{% else %}Transfer{% endif %}
-                    </a>
-                </li>
-                <li class="nav-item ">
-                    <a class="nav-link  {% block receive %}{% endblock %}" href="#daily-sales"> 
-                        {% if useri.langSet == 0 %}Kupokea{% else %}Receives{% endif %}
-                    </a>
-                </li>
-                
-                <li class="nav-item ">
-                    <a class="nav-link  {% block adjst %}{% endblock %}" href="#daily-sales"> 
-                        {% if useri.langSet == 0 %}Kupima{% else %}Adjustment{% endif %}
-                    </a>
+
                 </li>
 
                 <li class="nav-item ">
-                    <a class="nav-link  {% block tab_sales %}{% endblock %}" href="#daily-sales"> 
-                        {% if useri.langSet == 0 %}Mauzo Kilasiku{% else %}Daily Sales{% endif %}
+
+                    <a class="nav-link  {% block transfer %}{% endblock %}" href="/salepurchase/shiftTransfersActivity"> 
+
+                        {% if useri.langSet == 0 %}Kutoa{% else %}Transfer{% endif %}
+
+                        {% if approval.fuel_transfers > 0 %}
+
+                            <span class="badge bg-danger text-light ms-2">{{ approval.fuel_transfers|intcomma }}</span>
+
+                        {% endif %}
+
                     </a>
+
                 </li>
+
+                <li class="nav-item ">
+
+                    <a class="nav-link  {% block receive %}{% endblock %}" href="/salepurchase/shiftReceivesActivity"> 
+
+                        {% if useri.langSet == 0 %}Kupokea{% else %}Receives{% endif %}
+
+                        {% if approval.fuel_receives > 0 %}
+
+                            <span class="badge bg-danger text-light ms-2" title="{% if useri.langSet == 0 %}Receives mpya hazijahakikiwa{% else %}New unapproved receives{% endif %}">{{ approval.fuel_receives|intcomma }}</span>
+
+                        {% endif %}
+
+                    </a>
+
+                </li>
+
+                
+
+                <li class="nav-item ">
+
+                    <a class="nav-link  {% block adjst %}{% endblock %}" href="/salepurchase/shiftAdjustmentsActivity"> 
+
+                        {% if useri.langSet == 0 %}Kupima{% else %}Adjustment{% endif %}
+
+                        {% if approval.fuel_adjs > 0 %}
+
+                            <span class="badge bg-danger text-light ms-2" title="{% if useri.langSet == 0 %}Adjustments mpya hazijahakikiwa{% else %}New unapproved adjustments{% endif %}">{{ approval.fuel_adjs|intcomma }}</span>
+
+                        {% endif %}
+
+                    </a>
+
+                </li>
+
+
+
+                <li class="nav-item ">
+
+                    <a class="nav-link  {% block tab_sales %}{% endblock %}" href="/salepurchase/dailySalesActivity"> 
+
+                        {% if useri.langSet == 0 %}Mauzo Kilasiku{% else %}Daily Sales{% endif %}
+
+                    </a>
+
+                </li>
+
             </ul>
+
         <!-- </nav -->
+
         
+
         {% block shiftactivity %}
+
       
+
        {% endblock %}
+
     
 
+
+
      
+
     </div>
+
 </div>
+
+
+
 
 
 <input type="hidden" name="user_userName" id="user_userName" value="{{useri.user.first_name}} {{useri.user.last_name}}" >
 
 
+
+<div class="modal fade" id="shiftAttachmentsModal" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <div class="modal-dialog modal-xl" role="document" style="max-width:96%;">
+
+        <div class="modal-content">
+
+            <div class="modal-header flex-wrap">
+
+                <div class="mr-3">
+
+                    <h5 class="modal-title mb-0">{% if useri.langSet == 0 %}Viambatisho{% else %}Attachments{% endif %}</h5>
+
+                    <div class="smallFont text-muted" id="shiftAttachmentsModalTitle"></div>
+
+                    <div class="smallFont text-info weight600" id="shiftAttachmentsModalSummary"></div>
+
+                </div>
+
+                <div class="ml-auto d-flex flex-wrap align-items-center">
+
+                    <div class="btn-group btn-group-sm mr-2 mb-1" role="group">
+
+                        <button type="button" class="btn btn-secondary shift-att-layout active" data-layout="1">1/{% if useri.langSet == 0 %}ukurasa{% else %}page{% endif %}</button>
+
+                        <button type="button" class="btn btn-outline-secondary shift-att-layout" data-layout="2">2/{% if useri.langSet == 0 %}ukurasa{% else %}page{% endif %}</button>
+
+                        <button type="button" class="btn btn-outline-secondary shift-att-layout" data-layout="4">4/{% if useri.langSet == 0 %}ukurasa{% else %}page{% endif %}</button>
+
+                    </div>
+
+                    <button type="button" id="printShiftAttachments" class="btn btn-secondary btn-sm mb-1">
+
+                        {% if useri.langSet == 0 %}Chapisha{% else %}Print{% endif %}
+
+                    </button>
+
+                    <button type="button" class="close ml-2 mb-1" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+                </div>
+
+            </div>
+
+            <div class="modal-body p-2 p-md-3">
+
+                <div id="shiftAttachmentsGallery" class="shift-att-gallery layout-1"></div>
+
+                <p id="shiftAttachmentsEmpty" class="text-muted text-center py-5 mb-0" style="display:none;">
+
+                    {% if useri.langSet == 0 %}Hakuna viambatisho{% else %}No attachments{% endif %}
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<style>
+
+    .shift-att-gallery { display: flex; flex-direction: column; gap: 12px; }
+
+    .shift-att-page { display: grid; gap: 10px; border: 1px dashed #dee2e6; border-radius: 6px; padding: 10px; background: #fafafa; }
+
+    .shift-att-gallery.layout-1 .shift-att-page { grid-template-columns: 1fr; }
+
+    .shift-att-gallery.layout-2 .shift-att-page { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; min-height: 720px; }
+
+    .shift-att-gallery.layout-4 .shift-att-page { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; min-height: 720px; }
+
+    .shift-att-item { display: flex; flex-direction: column; background: #fff; border: 1px solid #dee2e6; border-radius: 4px; overflow: hidden; min-height: 0; }
+
+    .shift-att-meta { padding: 6px 8px; border-bottom: 1px solid #eee; font-size: 12px; line-height: 1.3; }
+
+    .shift-att-item img, .shift-att-item iframe { width: 100%; flex: 1; background: #fff; min-height: 180px; border: 0; }
+
+    .shift-att-gallery.layout-1 .shift-att-item img, .shift-att-gallery.layout-1 .shift-att-item iframe { min-height: 420px; max-height: 75vh; }
+
+    .shift-att-gallery.layout-2 .shift-att-item img, .shift-att-gallery.layout-2 .shift-att-item iframe { min-height: 300px; max-height: 340px; }
+
+    .shift-att-gallery.layout-4 .shift-att-item img, .shift-att-gallery.layout-4 .shift-att-item iframe { min-height: 150px; max-height: 320px; }
+
+</style>
+
+
+
+
+
 {% endblock %}
+
+
+
+
+
+
 
 
 
 
 
 {% block shifts %} active {% endblock %}
+

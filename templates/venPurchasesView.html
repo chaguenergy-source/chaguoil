@@ -313,8 +313,11 @@
                             <thead>
                                 <tr class="smallFont" >
                                     <th>#</th>
-                                    <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Deleva{% else %}Driver{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Gari{% else %}Vihecle{% endif %}</th>
 
+                                    <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
                                     <th>{% if useri.langSet == 0 %}Kiasi{% else %} Qty{% endif %} <span class="text-primary">(LTRS)</span> </th>
                                     <th>{% if useri.langSet == 0 %}Bei{% else %} Price{% endif %} <span class="text-primary">/LTR</span> </th>
                                     <!-- <th>{% if useri.langSet == 0 %}Inayolipwa{% else %} Payable{% endif %} <span class="text-primary">/Liters</span> </th> -->
@@ -326,6 +329,9 @@
                                   {% for f in puList %}
                                     <tr>
                                         <td>{{forloop.counter}}</td>
+                                        <td>{{f.puAttach.transp.jina}}</td>
+                                        <td>{{f.puAttach.driver}}</td>
+                                        <td>{{f.puAttach.vihecle}}</td>
                                         <td class="brown" >{{f.Fuel.name}}</td>
                                         <td>{{f.qty|floatformat:'-2'|intcomma}}</td>
                                         <td>{{f.cost|floatformat:'-2'|intcomma}}</td>
@@ -348,7 +354,7 @@
                               <div class="col-6">
                                 {% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %}<small class="text-primary">(TZS)</small>
                               </div>
-                              <div class="col-6 brown ">
+                              <div class="col-6 brown text-right ">
                                 <script>
                                     var amo = Number('{{trf.amount}}'),
                                         paid = Number('{{trf.payed}}'),
@@ -357,10 +363,10 @@
                                </script>                              
                                </div>
 
-                            <div class="col-6">
+                            <div class="col-6 ">
                                 {% if useri.langSet == 0 %}Ilolipwa{% else %}Paid{% endif %}<small class="text-primary">(TZS)</small>
                               </div>
-                              <div class="col-6">
+                              <div class="col-6  text-right ">
                                 {{trf.payed | floatformat:'-2'  | intcomma}} 
                               </div>
 
@@ -370,7 +376,7 @@
                               <div class="col-6 weight600">
                                 {% if useri.langSet == 0 %}Malipo Jumla{% else %}Total Amount{% endif %}<small class="text-primary">(TZS)</small>
                               </div>
-                              <div class="col-6  weight600">
+                              <div class="col-6  text-right weight600">
                                 {{trf.amount | floatformat:'-2'  | intcomma}} 
                               </div>
                          

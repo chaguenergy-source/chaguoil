@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function(){
+  var Kituo = lang('Wasambazaji wote','All Vendors');
+  let puAttachmentsData = [];
+  let puAttFilter = 'all';
+  let puAttLayout = 1;
 
   const container = document.getElementById('customer_statement');
   if(!container) return;
@@ -104,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     const {tFr, tTo, st} = filters();
     const url = `/salepurchase/vendorStatementData`;
-    const data = {data:{tFr,tTo},url};
+    const data = {data:{tFr,tTo,vendor:st},url};
     $('#loadMe').modal('show');
     // console.log(filters());
     const sendIt = POSTREQUEST(data);
@@ -112,11 +116,16 @@ document.addEventListener('DOMContentLoaded', function(){
       // handle response here
         $('#loadMe').modal('hide');
         hideLoading();
+
+        Kituo = response.kituo || Kituo;
         
         renderFuelSummary(response.fuel_summary || []);
         renderPaymentsSummary(response.payments_summary || []);
         
         renderTransactions(st?response.transactions.filter(r => (r.st === st||r.st===0)) : response.transactions || []);
+
+        updateAttachmentsBadge(response.attachment_counts || {}, response.attachments || []);
+        puAttachmentsData = response.attachments || [];
 
         // check whether the duration is not this month, this year or last month then show custom date range in #durationSelect;
         const fromDateObj = moment(tFr);
@@ -157,6 +166,8 @@ document.addEventListener('DOMContentLoaded', function(){
     // show loading state
     clearTables();
     showLoadingRows();
+    updateAttachmentsBadge({}, []);
+    puAttachmentsData = [];
 
 
   }
@@ -205,52 +216,85 @@ document.addEventListener('DOMContentLoaded', function(){
   function renderTransactions(rows){
     const tbody = document.querySelector('#transactionsTable tbody');
     tbody.innerHTML = '';
-    const {st} = filters();
-   
 
-    const last_row = rows[rows.length - 1];
-    updateOutstandingBalance(last_row);
+    let runningBalance = 0;
 
     if(rows.length === 0){
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="13">No transactions found for the selected period</td>`;
+      tr.innerHTML = `<td colspan="14">No transactions found for the selected period</td>`;
       tbody.appendChild(tr);
+      updateOutstandingBalance(0);
       return;
     }
     rows.forEach(r => {
+      const fuelPrice = Number(r.fuel_price) || 0;
+      const qty = Number(r.qty) || 0;
+      const rawDebt = Number(r.debt) || 0;
+      const rawCredit = Number(r.credit) || 0;
+      const rowAmount = Number(r.amount) || 0;
+      const isPurchase = !!r.use;
+      const isPayment = !!r.pay;
+
+      let debtValue = 0;
+      let creditValue = 0;
+
+      if(isPurchase){
+        debtValue = fuelPrice * qty;
+      } else if(isPayment){
+        creditValue = rowAmount;
+      } else {
+        debtValue = rawDebt;
+        creditValue = rawCredit;
+      }
+
+      if(typeof r.balance !== 'undefined' && r.balance !== null){
+        runningBalance = Number(r.balance) || 0;
+      } else {
+        runningBalance = runningBalance + debtValue - creditValue;
+      }
+
+      const balanceDisplay = runningBalance > 0
+        ? `-${formatNumber(runningBalance)}`
+        : formatNumber(Math.abs(runningBalance));
+      const transporterDisplay = String(r.transporter || '').trim() ? escapeHtml(r.transporter) : '---';
+      const driverDisplay = String(r.driver || '').trim() ? escapeHtml(r.driver) : '---';
+      const vehicleDisplay = String(r.vehicle || '').trim() ? escapeHtml(r.vehicle) : '---';
+      const fuelDisplay = String(r.fuelN || '').trim() ? escapeHtml(r.fuelN) : '---';
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${moment(r.date).format('DD/MM/YYYY HH:mm')}</td>
         <td>${escapeHtml(r.type||'')}</td>
-        <td>${r.use?escapeHtml(r.station||''):'-----'}</td>
-        <td class="text-capitalize">${r.use?escapeHtml(r.recorded_by||r.user||''):'-----'}</td>
-        <td>${r.use?escapeHtml(r.details||''):'-----'}</td>
-        <td>${r.use?escapeHtml(r.driver||''):'-----'}</td>
-        <td>${r.use?escapeHtml(r.vehicle||''):'-----'}</td>
-        
-        <td class="text-right">${r.use?escapeHtml(r.fuelN||''):'----'}</td>
-        <td class="text-right">${r.use?formatNumber(r.fuel_price||0):'-----'}</td>
-        <td class="text-right">${r.use?formatNumber(r.qty||0):'-----'}</td>
-
-        <td class="text-right">${(r.use||r.amount<=0)?formatNumber(r.amount||0):'-----'}</td>
-        <td class="text-right">${(!r.use)&&r.amount>0?formatNumber(r.amount||0):'-----'}</td>
-      
-        <td class="text-right">${Number(r.debt).toFixed(2)>0?'-': ''}${formatNumber(r.debt>0?r.debt:r.credit||0)}</td>
+        <td>${escapeHtml(r.station||'')}</td>
+        <td class="text-capitalize">${escapeHtml(r.recorded_by||'')}</td>
+        <td>${escapeHtml(r.details||'')}</td>
+        <td>${transporterDisplay}</td>
+        <td>${driverDisplay}</td>
+        <td>${vehicleDisplay}</td>
+        <td class="text-right">${fuelDisplay}</td>
+        <td class="text-right">${formatNumber(fuelPrice)}</td>
+        <td class="text-right">${formatNumber(qty)}</td>
+        <td class="text-right">${formatNumber(debtValue)}</td>
+        <td class="text-right">${formatNumber(creditValue)}</td>
+        <td class="text-right">${balanceDisplay}</td>
       `;
       tbody.appendChild(tr);
     });
+
+    updateOutstandingBalance(runningBalance);
 
     // get the last row's debt and credit to calculate outstanding balance
 
   }
 
-  function updateOutstandingBalance(last_row){
-    const debt = Number(last_row?.debt) || 0;
-    const credit = Number(last_row?.credit) || 0;
-   
+  function updateOutstandingBalance(balanceValue){
+    const balance = Number(balanceValue) || 0;
+    const hasDebt = balance > 0;
+    const shownAmount = Math.abs(balance);
+
     const balanceSpan =` 
-                      <strong>${debt?lang('Deni','Debt'):lang('Salio','Balance')}:</strong>
-                        <span id="outstandingBalance" class="h5 ${debt ? 'text-danger' : 'green'}">${debt?formatNumber(debt):formatNumber(credit)}</span> <span class="text-primary">${hela}</span>
+                      <strong>${hasDebt?lang('Deni','Debt'):lang('Salio','Balance')}:</strong>
+                        <span id="outstandingBalance" class="h5 ${hasDebt ? 'text-danger' : 'green'}">${formatNumber(shownAmount)}</span> <span class="text-primary">${hela}</span>
                        `
     $('#deni_au_balance').html(balanceSpan);
 
@@ -267,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function(){
     // const pay = document.querySelector('#paymentsSummaryTable tbody');
     // pay.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
     const tx = document.querySelector('#transactionsTable tbody');
-    tx.innerHTML = '<tr><td colspan="13">Loading...</td></tr>';
+    tx.innerHTML = '<tr><td colspan="14">Loading...</td></tr>';
   }
   function showErrorRows(){
     const fuel = document.querySelector('#fuelSummaryTable tbody');
@@ -275,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function(){
     // const pay = document.querySelector('#paymentsSummaryTable tbody');
     // pay.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
     const tx = document.querySelector('#transactionsTable tbody');
-    tx.innerHTML = '<tr><td colspan="13">Error loading data</td></tr>';
+    tx.innerHTML = '<tr><td colspan="14">Error loading data</td></tr>';
   }
 
 
@@ -299,18 +343,193 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }
 
+  function updateAttachmentsBadge(counts, items){
+    const btn = document.getElementById('puAttachmentsBtn');
+    const countEl = document.getElementById('puAttachmentsCount');
+    if(!btn || !countEl) return;
+
+    const invoices = Number(counts.invoices) || 0;
+    const receipts = Number(counts.receipts) || 0;
+    const total = (items || []).length;
+
+    countEl.textContent = `${invoices} ${lang('ankara','invoice')} | ${receipts} ${lang('risiti','receipt')}`;
+    btn.disabled = total === 0;
+  }
+
+  function getFilteredAttachments(){
+    if(puAttFilter === 'invoice'){
+      return puAttachmentsData.filter(a => a.invoice);
+    }
+    if(puAttFilter === 'receipt'){
+      return puAttachmentsData.filter(a => a.receipt);
+    }
+    return puAttachmentsData.slice();
+  }
+
+  function attachmentLabel(att){
+    const typeLabel = att.invoice
+      ? lang('Ankara','Invoice')
+      : lang('Risiti','Receipt');
+    const code = att.purchase_code ? `PU-${escapeHtml(att.purchase_code)}` : lang('Manunuzi','Purchase');
+    const dateText = att.date ? moment(att.date).format('DD/MM/YYYY HH:mm') : '';
+    const vendorText = att.vendor ? escapeHtml(att.vendor) : '';
+    return `${code} · ${typeLabel}${dateText ? ` · ${dateText}` : ''}${vendorText ? ` · ${vendorText}` : ''}`;
+  }
+
+  function buildAttachmentItemHtml(att){
+    const badgeClass = att.invoice ? 'badge-info' : 'badge-success';
+    const typeLabel = att.invoice ? lang('Ankara','Invoice') : lang('Risiti','Receipt');
+    return `
+      <div class="pu-att-item" data-type="${att.invoice ? 'invoice' : 'receipt'}">
+        <div class="pu-att-meta">
+          <span class="badge ${badgeClass} mr-1">${typeLabel}</span>
+          ${attachmentLabel(att)}
+        </div>
+        <img src="${escapeHtml(att.url)}" alt="${escapeHtml(att.attach_name || typeLabel)}" loading="lazy">
+      </div>
+    `;
+  }
+
+  function renderAttachmentsGallery(){
+    const gallery = document.getElementById('puAttachmentsGallery');
+    const emptyEl = document.getElementById('puAttachmentsEmpty');
+    if(!gallery) return;
+
+    const filtered = getFilteredAttachments();
+    gallery.className = `pu-att-gallery layout-${puAttLayout}`;
+
+    if(filtered.length === 0){
+      gallery.innerHTML = '';
+      if(emptyEl) emptyEl.style.display = 'block';
+      return;
+    }
+
+    if(emptyEl) emptyEl.style.display = 'none';
+
+    const perPage = Number(puAttLayout) || 1;
+    let html = '';
+    for(let i = 0; i < filtered.length; i += perPage){
+      const pageItems = filtered.slice(i, i + perPage);
+      html += `<div class="pu-att-page">${pageItems.map(buildAttachmentItemHtml).join('')}</div>`;
+    }
+    gallery.innerHTML = html;
+  }
+
+  function buildAttachmentsPrintHtml(filtered){
+    const perPage = Number(puAttLayout) || 1;
+    const durationName = $('#durationSelect').val() || '';
+    const heading = `<h4 class="text-center mb-2">${lang('Viambatisho vya Manunuzi','Purchase Attachments')} - ${escapeHtml(durationName)}</h4>
+      <p class="text-center small mb-3">${lang('Msambazaji','Vendor')}: ${escapeHtml(Kituo)} · ${filtered.length} ${lang('viambatisho','attachments')} · ${puAttLayout}/${lang('ukurasa','page')}</p>`;
+
+    let pagesHtml = '';
+    for(let i = 0; i < filtered.length; i += perPage){
+      const pageItems = filtered.slice(i, i + perPage);
+      pagesHtml += `<div class="print-page layout-${puAttLayout}">${pageItems.map(att => `
+        <div class="print-item">
+          <div class="print-meta">${attachmentLabel(att)}</div>
+          <img src="${escapeHtml(att.url)}" alt="">
+        </div>
+      `).join('')}</div>`;
+    }
+
+    const printStyles = `
+      <style>
+        @page { size: A4; margin: 8mm; }
+        body { margin: 0; padding: 0; color: #000; font-family: Arial, sans-serif; }
+        .print-page { page-break-after: always; box-sizing: border-box; }
+        .print-page:last-child { page-break-after: auto; }
+        .print-item { box-sizing: border-box; overflow: hidden; }
+        .print-meta { font-size: 11px; margin-bottom: 4px; font-weight: 600; }
+        .print-item img { width: 100%; object-fit: contain; display: block; background: #fff; }
+        .layout-1.print-page { min-height: 277mm; display: flex; flex-direction: column; justify-content: center; }
+        .layout-1 .print-item img { max-height: 255mm; }
+        .layout-2.print-page { min-height: 277mm; display: grid; grid-template-rows: 1fr 1fr; gap: 6mm; }
+        .layout-2 .print-item img { max-height: 125mm; }
+        .layout-4.print-page { min-height: 277mm; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4mm; }
+        .layout-4 .print-item img { max-height: 120mm; }
+      </style>
+    `;
+
+    return printStyles + heading + pagesHtml;
+  }
+
+  function setAttachmentFilterButtons(activeFilter){
+    $('.pu-att-filter').each(function(){
+      const f = $(this).data('filter');
+      $(this).removeClass('active btn-secondary btn-outline-secondary btn-outline-info btn-outline-success');
+      if(f === activeFilter){
+        $(this).addClass('active btn-secondary');
+      } else if(f === 'invoice'){
+        $(this).addClass('btn-outline-info');
+      } else if(f === 'receipt'){
+        $(this).addClass('btn-outline-success');
+      } else {
+        $(this).addClass('btn-outline-secondary');
+      }
+    });
+  }
+
+  $('#puAttachmentsBtn').on('click', function(){
+    if($(this).prop('disabled')) return;
+    puAttFilter = 'all';
+    puAttLayout = 1;
+    setAttachmentFilterButtons('all');
+    $('.pu-att-layout').removeClass('btn-secondary active').addClass('btn-outline-secondary');
+    $('.pu-att-layout[data-layout="1"]').addClass('active btn-secondary').removeClass('btn-outline-secondary');
+    $('#puAttachmentsModalDuration').text($('#durationSelect').val() || '');
+    renderAttachmentsGallery();
+    $('#puAttachmentsModal').modal('show');
+  });
+
+  $('.pu-att-filter').on('click', function(){
+    puAttFilter = $(this).data('filter') || 'all';
+    setAttachmentFilterButtons(puAttFilter);
+    renderAttachmentsGallery();
+  });
+
+  $('.pu-att-layout').on('click', function(){
+    $('.pu-att-layout').removeClass('btn-secondary active').addClass('btn-outline-secondary');
+    $(this).addClass('active btn-secondary').removeClass('btn-outline-secondary');
+    puAttLayout = Number($(this).data('layout')) || 1;
+    renderAttachmentsGallery();
+  });
+
+  $('#printPuAttachments').on('click', function(){
+    const filtered = getFilteredAttachments();
+    if(!filtered.length){
+      toastr.info(lang('Hakuna viambatisho vya kuchapisha','No attachments to print'), lang('Taarifa','Info'), {timeOut: 2500});
+      return;
+    }
+
+    const printWindow = window.open('', '', 'height=800,width=1000');
+    if(!printWindow){
+      toastr.warning(lang('Kivinjari kimezuia popup ya print. Tafadhali ruhusu popups kisha jaribu tena.','Your browser blocked the print popup. Please allow popups and try again.'));
+      return;
+    }
+
+    printWindow.document.write(company_header);
+    printWindow.document.write(buildAttachmentsPrintHtml(filtered));
+    printWindow.document.write('</div></body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(function(){
+      printWindow.print();
+      printWindow.close();
+    }, 900);
+  });
+
 // Print the Report ......//
 $('#printStatement').click(function(){
-  const customerDetails = document.getElementById('customerDetails');
+  const customerDetails = document.getElementById('venomerDetails') || document.getElementById('customerDetails');
   const userN = $('#printedBy').val() || 'Admin';
   const duration_name = $('#durationSelect').val() || '';
-  const heading = `<h3 class="text-center mb-0" > ${lang('Taarifa ya Mteja','Customer Statement')} ${duration_name} </h3>`
+  const heading = `<h3 class="text-center mb-0" > ${lang('Taarifa ya Msambazaji','Vendor Statement')} ${duration_name} </h3>`
   const statementDetails = `<div class="row my-3">
                             <div class="col-6 row">
                              
                                   
                                 <div class="col-5">
-                                    ${lang('Kituo','Station')}:  
+                  ${lang('Msambazaji','Vendor')}:  
                                 </div>
                                 <div class="col-7 ">
                                     ${Kituo}  
@@ -338,7 +557,7 @@ $('#printStatement').click(function(){
   const theReportData = document.getElementById('TheReportData').innerHTML;
   // document.body.innerHTML = heading + customerDetails.outerHTML + statementDetails + theReportData;
 
-  const reportData = heading + customerDetails.outerHTML + statementDetails + theReportData;
+  const reportData = heading + (customerDetails ? customerDetails.outerHTML : '') + statementDetails + theReportData;
      const printWindow = window.open('', '', 'height=600,width=1000');
     printWindow.document.write(company_header);
     printWindow.document.write(`${reportData}`); 

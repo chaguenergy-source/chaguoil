@@ -140,8 +140,8 @@ const init = Number($('#generalSaleR tr').length==0)
 // The seleted time duration Data....................................//
 const ArryCreate = d =>{
             const {tFr,tTo,rname} = d,
-                     sale = d.sale?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo ),
-                     saL = d.saL?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo ),
+                     sale = d.sale?.filter(s=>moment(s.sesDate).format() >= tFr && moment(s.sesDate).format() <= tTo ),
+                     saL = d.saL?.filter(s=>moment(s.sesDate).format() >= tFr && moment(s.sesDate).format() <= tTo ),
                      pay = d.pay?.filter(s=>moment(s.tarehe).format() >= tFr && moment(s.tarehe).format() <= tTo ),
                      payRec = d.payRec?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo )
             thedt = {
@@ -612,10 +612,10 @@ const dateSaleTable = d =>{
             diff = moment(tTo).diff(moment(tFr),'months'),
             formt = diff>0?'MMMM, YYYY':'DD/MM/YYYY',
 
-            flter = st=>moment(st.date).format(formt),
+            flter = st=>moment(st.sesDate).format(formt),
             Stxns = [... new Set(PASale.map(st=>flter(st)))],
             StationData = (at) =>{
-            const ftr = a=>moment(a.date).format(formt)===at,
+            const ftr = a=>moment(a.sesDate).format(formt)===at,
                     Atsa = PASale.filter(a=>ftr(a)),
                 AtsaL = PASaL.filter(a=>ftr(a)),
                 atF = FUEL.map(f=>StaxnFuel(f))
@@ -1221,8 +1221,8 @@ const saleLAtt = d =>{
              AttSaL = saL.filter(sa=>sa.pAtt===att)
              if(st) AttSa = AttSa.filter(sa=>sa.st===st)
              if(st) AttSaL = AttSaL.filter(sa=>sa.st===st)
-             if(isMonth) AttSa = AttSa.filter(sa=>moment(sa.date).format(fomat)===isMonth)
-             if(isMonth) AttSaL = AttSaL.filter(sa=>moment(sa.date).format(fomat)===isMonth)
+             if(isMonth) AttSa = AttSa.filter(sa=>moment(sa.sesDate).format(fomat)===isMonth)
+             if(isMonth) AttSaL = AttSaL.filter(sa=>moment(sa.sesDate).format(fomat)===isMonth)
 
     const   totCost = AttSaL.reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0),
             totPay = AttSa.reduce((a,b)=>a+Number(b.payed),0),
@@ -1288,10 +1288,10 @@ const saleLAtt = d =>{
 
                 } 
 
-           const  flter = st=>moment(st.date).format(formt),
+           const  flter = st=>moment(st.sesDate).format(formt),
             Stxns = [... new Set(AttSa.map(st=>flter(st)))],
             StationData = (at) =>{
-            const ftr = a=>moment(a.date).format(formt)===at,
+            const ftr = a=>moment(a.sesDate).format(formt)===at,
                     Atsa = AttSa.filter(a=>ftr(a)),
                 AtsaL = AttSaL.filter(a=>ftr(a)),
                 atF = FUEL.map(f=>StaxnFuel(f))
@@ -1472,8 +1472,8 @@ const saleLCustomer = d =>{
              AttSaL = saL.filter(sa=>sa.cust===cust)
              if(st) AttSa = AttSa.filter(sa=>sa.st===st)
              if(st) AttSaL = AttSaL.filter(sa=>sa.st===st)
-             if(isMonth) AttSa = AttSa.filter(sa=>moment(sa.date).format(fomat)===isMonth)
-             if(isMonth) AttSaL = AttSaL.filter(sa=>moment(sa.date).format(fomat)===isMonth)   
+             if(isMonth) AttSa = AttSa.filter(sa=>moment(sa.sesDate).format(fomat)===isMonth)
+             if(isMonth) AttSaL = AttSaL.filter(sa=>moment(sa.sesDate).format(fomat)===isMonth)   
 
     const   totCost = AttSaL.reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0),
             totPay = AttSa.reduce((a,b)=>a+Number(b.payed),0),
@@ -1574,10 +1574,10 @@ const saleLCustomer = d =>{
 
 
                   
-            const  flter = st=>moment(st.date).format(formt),
+            const  flter = st=>moment(st.sesDate).format(formt),
             Stxns = [... new Set(AttSa.map(st=>flter(st)))],
                 StationData = (at) =>{
-                const ftr = a=>moment(a.date).format(formt)===at,
+                const ftr = a=>moment(a.sesDate).format(formt)===at,
                         Atsa = AttSa.filter(a=>ftr(a)),
                     AtsaL = AttSaL.filter(a=>ftr(a)),
                     atF = FUEL.filter(f=>only_used_fuel.includes(f.fuel)).map(f=>StaxnFuel(f))
@@ -1758,8 +1758,8 @@ const saleLDate = d =>{
            {hdt,dt,fomat} = d,
            h = `${lang('Orodha ya Mauzo ','Sales List ')} <span class="bluePrint"> ${dt} </span>`
 
-        let  AttSa = sale.filter(sa=>moment(sa.date).format(fomat)===dt),
-             AttSaL = saL.filter(sa=>moment(sa.date).format(fomat)===dt)
+           let  AttSa = sale.filter(sa=>moment(sa.sesDate).format(fomat)===dt),
+               AttSaL = saL.filter(sa=>moment(sa.sesDate).format(fomat)===dt)
          
 
     const   totCost = AttSaL.reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0),
@@ -1950,8 +1950,8 @@ const saleLStaxn = d =>{
 
         let  AttSa = sale.filter(sa=>sa.st===st),
              AttSaL = saL.filter(sa=>sa.st===st)
-            if(isMonth) AttSa = AttSa.filter(sa=>moment(sa.date).format(fomat)===isMonth)
-             if(isMonth) AttSaL = AttSaL.filter(sa=>moment(sa.date).format(fomat)===isMonth)
+            if(isMonth) AttSa = AttSa.filter(sa=>moment(sa.sesDate).format(fomat)===isMonth)
+             if(isMonth) AttSaL = AttSaL.filter(sa=>moment(sa.sesDate).format(fomat)===isMonth)
          
 
     const   totCost = AttSaL.reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0),
@@ -2009,10 +2009,10 @@ const saleLStaxn = d =>{
 
                 } 
 
-                            const  flter = st=>moment(st.date).format(formt),
+                            const  flter = st=>moment(st.sesDate).format(formt),
             Stxns = [... new Set(AttSa.map(st=>flter(st)))],
                 StationData = (at) =>{
-                const ftr = a=>moment(a.date).format(formt)===at,
+                const ftr = a=>moment(a.sesDate).format(formt)===at,
                         Atsa = AttSa.filter(a=>ftr(a)),
                     AtsaL = AttSaL.filter(a=>ftr(a)),
                     atF = FUEL.map(f=>StaxnFuel(f))
@@ -2548,7 +2548,7 @@ const pAttPayList = d =>{
         
         theSale = theSale.filter(fltr)
         thePay = thePay.filter(fltr)
-        theSale = month?theSale.filter(sa=>moment(sa.date).format('MMMM, YYYY')===month):theSale
+        theSale = month?theSale.filter(sa=>moment(sa.sesDate).format('MMMM, YYYY')===month):theSale
         thePay = month?thePay.filter(sa=>moment(sa.date).format('MMMM, YYYY')===month):thePay
 
         const  attN = `${thePay[0]?.pAtt_fname} ${thePay[0]?.pAtt_lname}`
@@ -2738,7 +2738,7 @@ const custmPayList = d =>{
         theSale = theSale.filter(fltr)
         thePay = thePay.filter(fltr)
 
-        theSale = month?theSale.filter(sa=>moment(sa.date).format('MMMM, YYYY')===month):theSale
+        theSale = month?theSale.filter(sa=>moment(sa.sesDate).format('MMMM, YYYY')===month):theSale
         thePay = month?thePay.filter(sa=>moment(sa.date).format('MMMM, YYYY')===month):thePay
 
         const   custN = thePay[0]?.custN
@@ -3131,9 +3131,11 @@ const chartView = (d) =>{
 $('#printRBtn').click(function(){
     
     const inGeneral = $('#MoreDetails').is(":hidden")
-    const generalR = Array.from(document.getElementById('Salecateg').querySelectorAll('.DetailsTable')).filter(table => table.hidden === false)
-    const  generT = generalR[0]?.querySelector('table')?.innerHTML // Get the first visible table
-    const  generH = generalR[0]?.querySelector('h6')?.innerText// Get the first visible h6
+    const activeReportBtn = $('#riportSwitch .riportOn.btn-primary')
+    const activeSelector = activeReportBtn.data('r')
+    const activeSection = activeSelector ? $(activeSelector) : $()
+    const generT = activeSection.find('table').first().html()
+    const generH = activeSection.find('h6').first().text()
     const userN = $(this).data('user')
     const detR = document.getElementById('saleList')?.querySelector('table')?.innerHTML; // Get the table inside #saleList
     const summary = `<div class="row my-3">
@@ -3156,9 +3158,15 @@ $('#printRBtn').click(function(){
 
                         </div>
 
-                     </div>`,
-          head = `<h6>${inGeneral?generH:$('#MoredetailRHeading span').html()}</h6>`,
-          table = inGeneral?generT:summary+detR
+                     </div>` ,
+          head = `<h6>${inGeneral ? (generH || $('#detailRHeading').text()) : $('#MoredetailRHeading span').html()}</h6>`,
+          table = inGeneral ? generT : summary + detR
+
+    if (!table) {
+        toastr.error(lang('Hakuna taarifa za kuchapisha', 'No report content to print'), lang('Haikufanikiwa', 'Error'), { timeOut: 2000 })
+        return
+    }
+
     const printWindow = window.open('', '', 'height=600,width=800');
     printWindow.document.write(company_header);
     printWindow.document.write(`${head}<table class="table table-bordered" style="max-width:100%" >${table}</table>`); 

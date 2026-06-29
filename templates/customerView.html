@@ -44,11 +44,64 @@
                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                       </svg>                                   
-                                     </button> 
+                                     </button>
+                                     | <button type="button" class="btn btn-light btn-sm text-secondary" id="toggleCustomerSettingsPanel" title="{% if useri.langSet == 0 %}Mipangilio{% else %}Settings{% endif %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings">
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                        </svg>
+                                     </button>
                                      {% endif %}
             </div>              
         </div>
 
+        {% if useri.admin %}
+        <div class="row mb-3 d-none" id="customerSettingsPanel">
+            <div class="col-lg-10">
+                <div class="card p-3 border">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <strong>{% if useri.langSet == 0 %}Mipangilio ya Rekodi za Mteja{% else %}Customer Record Settings{% endif %}</strong>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="closeCustomerSettingsPanel">
+                            {% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}
+                        </button>
+                    </div>
+
+                    <div class="d-flex flex-wrap mb-3" style="gap: 8px;">
+                        <button type="button" id="checkCustomerRecordsBtn" class="btn btn-sm btn-outline-primary">
+                            {% if useri.langSet == 0 %}Kagua Rekodi{% else %}Check Records{% endif %}
+                        </button>
+                        <button type="button" id="rebuildCustomerPaymentLinksBtn" class="btn btn-sm btn-outline-warning">
+                            {% if useri.langSet == 0 %}Rejesha Linkage ya Malipo{% else %}Rebuild Payment Links{% endif %}
+                        </button>
+                    </div>
+
+                    <div id="customerRecordsCheckResult" class="d-none smallFont"></div>
+
+                    <div id="customerRecordsCorrectionForm" class="d-none mt-3 border-top pt-3">
+                        <strong class="d-block mb-2">{% if useri.langSet == 0 %}Rekebisha Deni / Mkopo Halisi{% else %}Correct Actual Debt / Credit{% endif %}</strong>
+                        <div class="row">
+                            <div class="col-md-4 form-group">
+                                <label for="actualCustomerDebt">{% if useri.langSet == 0 %}Deni Halisi{% else %}Actual Debt{% endif %}</label>
+                                <input type="number" step="any" min="0" class="form-control form-control-sm" id="actualCustomerDebt" placeholder="0">
+                            </div>
+                            <div class="col-md-4 form-group">
+                                <label for="actualCustomerCredit">{% if useri.langSet == 0 %}Mkopo Halisi{% else %}Actual Credit{% endif %}</label>
+                                <input type="number" step="any" min="0" class="form-control form-control-sm" id="actualCustomerCredit" placeholder="0">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" id="applyCustomerRecordCorrectionBtn" class="btn btn-sm btn-success mb-1">
+                                    {% if useri.langSet == 0 %}Hifadhi Marekebisho{% else %}Save Correction{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            {% if useri.langSet == 0 %}Jaza deni halisi AU mkopo halisi, si zote mbili.{% else %}Enter either actual debt OR actual credit, not both.{% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <div class="row" id="customerDetails" >
             <div class="col-md-5 row">
@@ -891,6 +944,7 @@
         </div>
         
       {% endif %}
+
 </div>
         <ul class="nav nav-tabs smallerFont mt-3 d-flex">
             <li class="nav-item">
@@ -2318,11 +2372,197 @@
 
 {% block additionaljs %}
 
+{% if useri.admin %}
+<div class="modal fade" id="rebuildCustomerLinksModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% if useri.langSet == 0 %}Rejesha Linkage ya Malipo{% else %}Rebuild Payment Links{% endif %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body smallFont">
+                {% if useri.langSet == 0 %}
+                    Hii ita-rebuild linkage ya malipo kwa ankara za mteja huyu kulingana na mpangilio wa tarehe.
+                {% else %}
+                    This will rebuild payment-to-invoice links for this customer by chronological order.
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                <button type="button" id="runRebuildCustomerPaymentLinks" class="btn btn-warning">{% if useri.langSet == 0 %}Anza{% else %}Run{% endif %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
   <script src="{% static 'js/customers.js' %}" ></script>
   <script src="{% static 'js/sales.js' %}" ></script>
 <script>
 
-    
+    '{% if useri.admin %}'
+    const customerRecordsCustId = Number('{{cust.id}}');
+    const customerCurrency = '{{currencii}}';
+
+    function renderCustomerRecordsResult(resp){
+        const isOk = resp.status === 'ok';
+        const statusBadge = isOk
+            ? `<span class="badge badge-success">${lang('Sawa','OK')}</span>`
+            : `<span class="badge badge-warning">${lang('Ina Tatizo','Issue Found')}</span>`;
+
+        let html = `
+            <div class="mb-2">${statusBadge}</div>
+            <div class="mb-2">
+                ${lang('Jumla ya Malipo (wekaCash):','Total Paid (wekaCash):')}
+                <strong>${Number(resp.total_paid || 0).toLocaleString()}</strong> ${customerCurrency}
+                |
+                ${lang('Jumla ya Matumizi (fuelSales):','Total Consumed (fuelSales):')}
+                <strong>${Number(resp.total_consumed || 0).toLocaleString()}</strong> ${customerCurrency}
+                |
+                ${lang('Tofauti:','Difference:')}
+                <strong class="${Number(resp.difference || 0) >= 0 ? 'green' : 'brown'}">${Number(resp.difference || 0).toLocaleString()}</strong> ${customerCurrency}
+            </div>
+            <div class="mb-2">
+                ${lang('Salio la Oda (paid-consumed):','Order Surplus (paid-consumed):')}
+                <strong>${Number(resp.order_credit_surplus || 0).toLocaleString()}</strong> ${customerCurrency}
+                |
+                ${lang('Jumla ya Apay:','Total Apay:')}
+                <strong>${Number(resp.apay_total || 0).toLocaleString()}</strong> ${customerCurrency}
+            </div>
+            <div class="mb-2">
+                ${lang('Malipo:','Payments:')} <strong>${resp.payments_count || 0}</strong>
+                |
+                ${lang('Mauzo:','Sales:')} <strong>${resp.sales_count || 0}</strong>
+                |
+                ${lang('Oda za Mkopo:','Credit Orders:')} <strong>${resp.orders_count || 0}</strong>
+            </div>
+        `;
+
+        if((resp.issues || []).length){
+            html += `<div class="alert alert-warning py-2 mb-2"><ul class="mb-0 pl-3">`;
+            resp.issues.forEach(item => {
+                html += `<li>${lang(item.swa, item.eng)}</li>`;
+            });
+            html += `</ul></div>`;
+        }
+
+        if((resp.recommendations || []).length){
+            html += `<div class="alert alert-info py-2 mb-0"><ul class="mb-0 pl-3">`;
+            resp.recommendations.forEach(item => {
+                html += `<li>${lang(item.swa, item.eng)}</li>`;
+            });
+            html += `</ul></div>`;
+        }
+
+        $('#customerRecordsCheckResult').html(html).removeClass('d-none');
+
+        if(resp.show_debt_input || resp.show_credit_input){
+            $('#customerRecordsCorrectionForm').removeClass('d-none');
+            if(resp.show_debt_input && resp.debt_amount){
+                $('#actualCustomerDebt').val(Number(resp.debt_amount || 0));
+                $('#actualCustomerCredit').val('');
+            }
+            if(resp.show_credit_input && resp.credit_surplus){
+                $('#actualCustomerCredit').val(Number(resp.credit_surplus || 0));
+                $('#actualCustomerDebt').val('');
+            }
+        }else{
+            $('#customerRecordsCorrectionForm').addClass('d-none');
+        }
+    }
+
+    $('body').on('click', '#toggleCustomerSettingsPanel', function(){
+        $('#customerSettingsPanel').removeClass('d-none');
+    });
+
+    $('body').on('click', '#closeCustomerSettingsPanel', function(){
+        $('#customerSettingsPanel').addClass('d-none');
+    });
+
+    $('body').on('click', '#checkCustomerRecordsBtn', function(){
+        const data = {
+            data:{cust: customerRecordsCustId},
+            url:'/salepurchase/checkCustomerRecords'
+        };
+
+        $('#loadMe').modal('show');
+        POSTREQUEST(data).then(resp => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            const msg = lang(resp.swa, resp.eng);
+            if(resp.success){
+                renderCustomerRecordsResult(resp);
+                toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2500});
+            }else{
+                toastr.error(msg, lang('Imeshindikana','Failed'), {timeOut: 3000});
+            }
+        }).catch(() => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            toastr.error(lang('Hitilafu imejitokeza wakati wa kukagua records','An error occurred while checking records'), lang('Imeshindikana','Failed'), {timeOut: 3000});
+        });
+    });
+
+    $('body').on('click', '#rebuildCustomerPaymentLinksBtn', function(){
+        $('#rebuildCustomerLinksModal').modal('show');
+    });
+
+    $('body').on('click', '#runRebuildCustomerPaymentLinks', function(){
+        const data = {
+            data:{cust: customerRecordsCustId},
+            url:'/salepurchase/repairCustomerStatementLinks'
+        };
+
+        $('#rebuildCustomerLinksModal').modal('hide');
+        $('#loadMe').modal('show');
+
+        POSTREQUEST(data).then(resp => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            const msg = lang(resp.swa, resp.eng);
+            if(resp.success){
+                renderCustomerRecordsResult(resp);
+                toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2500});
+            }else{
+                toastr.error(msg, lang('Imeshindikana','Failed'), {timeOut: 3500});
+            }
+        }).catch(() => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            toastr.error(lang('Hitilafu imejitokeza wakati wa kurekebisha data','An error occurred while repairing data'), lang('Imeshindikana','Failed'), {timeOut: 3500});
+        });
+    });
+
+    $('body').on('click', '#applyCustomerRecordCorrectionBtn', function(){
+        const actualDebt = $('#actualCustomerDebt').val();
+        const actualCredit = $('#actualCustomerCredit').val();
+        const data = {
+            data:{
+                cust: customerRecordsCustId,
+                actualDebt,
+                actualCredit,
+            },
+            url:'/salepurchase/applyCustomerRecordCorrection'
+        };
+
+        $('#loadMe').modal('show');
+        POSTREQUEST(data).then(resp => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            const msg = lang(resp.swa, resp.eng);
+            if(resp.success){
+                renderCustomerRecordsResult(resp);
+                toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2500});
+            }else{
+                toastr.error(msg, lang('Imeshindikana','Failed'), {timeOut: 3500});
+            }
+        }).catch(() => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            toastr.error(lang('Hitilafu imejitokeza wakati wa kuhifadhi marekebisho','An error occurred while saving correction'), lang('Imeshindikana','Failed'), {timeOut: 3500});
+        });
+    });
+    '{% endif %}'
 
 $('body').on("submit", "#savepaymentForm" ,function(e){
             e.preventDefault();

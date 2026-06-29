@@ -192,9 +192,9 @@
                         <div class="col-10 smallFont col-md-9 p-0 border mx-0 row">
                             {% for s in s.pmps %}
                                 {% if sp.pump.station == s.pump.station %}  
-                                <div class="col-2 mx-0 weight600">{{s.pump.name}}</div>
-                                <div  class="col-2 "  >{{s.initial|floatformat:'-2'|intcomma}}</div>
-                                <div class="col-2">{{s.final|floatformat:'-2'|intcomma}}</div>
+                                <div class="col-2 mx-0 weight600">{{s.pump.name}}{% if s.analog_used %} <small>(Analog)</small>{% endif %}</div>
+                                <div  class="col-2 "  >{{s.initial|floatformat:'-2'|intcomma}}{% if s.analog_used %}*{% endif %}</div>
+                                <div class="col-2">{{s.final|floatformat:'-2'|intcomma}}{% if s.analog_used %}*{% endif %}</div>
                                
                                 <div class="col-2 mx-0">
                                     {{s.price|floatformat:'-2'|intcomma}}

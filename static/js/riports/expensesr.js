@@ -165,7 +165,8 @@ const ArryCreate = d =>{
                 tFr,
                 tTo,
                 st,
-                expenses: expx
+                expenses: expx,
+                attachments: (d.attachments || []).filter(a => expx.some(e => e.id === a.rekodiMatumizi))
          }
          saData.push(thedt)
 
@@ -184,9 +185,9 @@ function createArray(rname,tFr,tTo){
                      toastr.info(msg, lang('Taarifa','info '), {timeOut: 2000})
                 }else{
                 if(saDt.length>0){
-                     const {expenses} = saDt[0],
+                     const {expenses, attachments} = saDt[0],
 
-                     dt = {expenses,tFr,tTo,rname}
+                     dt = {expenses, attachments, tFr,tTo,rname}
                      ArryCreate(dt)
                      createtr()
 
@@ -403,6 +404,144 @@ const daterExpenses = () =>{
         
     }   
 
+const escapeExpHtml = text => {
+    if(text === null || text === undefined) return '';
+    return String(text).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+const getAttachmentsForExpenses = expList => {
+    const expIds = new Set((expList || []).map(e => e.id));
+    return (VDATA.attachments || []).filter(a => expIds.has(a.rekodiMatumizi));
+}
+
+const receiptStats = items => {
+    const amount = (items || []).reduce((s, a) => s + Number(a.kiasi || 0), 0);
+    return { count: (items || []).length, amount, items: items || [] };
+}
+
+const getAttachmentsForCategory = (catId, isSalary) => {
+    const {st} = filters();
+    let expenses = VDATA.expenses || [];
+    if(st) expenses = expenses.filter(e => e.st === st);
+    const catExpenses = isSalary
+        ? expenses.filter(e => e.salary)
+        : expenses.filter(e => e.expId === catId);
+    return getAttachmentsForExpenses(catExpenses);
+}
+
+const getAttachmentsForTaxGroup = (taxId, taxName) => {
+    const {st} = filters();
+    let expenses = VDATA.expenses || [];
+    if(st) expenses = expenses.filter(e => e.st === st);
+    const taxExpenses = taxId
+        ? expenses.filter(e => Number(e.tax || 0) === Number(taxId))
+        : expenses.filter(e => !Number(e.tax || 0) && (e.taxGroup || lang('Tax Group Haijabainishwa', 'Unspecified Tax Group')) === taxName);
+    return getAttachmentsForExpenses(taxExpenses);
+}
+
+const buildExpReceiptBtn = (stats, btnData) => {
+    if(!stats.count){
+        return `<span class="text-muted small">—</span>`;
+    }
+    const attrs = Object.entries(btnData).map(([k, v]) => `data-${k}="${escapeExpHtml(v)}"`).join(' ');
+    return `<button type="button" class="btn btn-outline-success btn-sm py-0 px-2 exp-receipts-btn" ${attrs}>
+        ${stats.count} ${lang('risiti','receipts')} · ${Number(stats.amount.toFixed(2)).toLocaleString()} ${fedha}
+    </button>`;
+}
+
+let expReceiptsData = [];
+let expReceiptLayout = 1;
+
+const buildExpReceiptItemHtml = att => {
+    const title = att.attach_name || att.expN || lang('Risiti','Receipt');
+    const meta = `${escapeExpHtml(att.expN || title)} · ${moment(att.date).format('DD/MM/YYYY HH:mm')} · ${Number(att.kiasi || 0).toLocaleString()} ${fedha}`;
+    return `
+      <div class="exp-att-item">
+        <div class="exp-att-meta">
+          <span class="badge badge-success mr-1">${lang('Risiti','Receipt')}</span>
+          ${meta}
+        </div>
+        <img src="${escapeExpHtml(att.file)}" alt="${escapeExpHtml(title)}" loading="lazy">
+      </div>
+    `;
+}
+
+const renderExpReceiptsGallery = () => {
+    const gallery = document.getElementById('expReceiptsGallery');
+    const emptyEl = document.getElementById('expReceiptsEmpty');
+    if(!gallery) return;
+
+    gallery.className = `exp-att-gallery layout-${expReceiptLayout}`;
+
+    if(!expReceiptsData.length){
+        gallery.innerHTML = '';
+        if(emptyEl) emptyEl.style.display = 'block';
+        return;
+    }
+
+    if(emptyEl) emptyEl.style.display = 'none';
+
+    const perPage = Number(expReceiptLayout) || 1;
+    let html = '';
+    for(let i = 0; i < expReceiptsData.length; i += perPage){
+        const pageItems = expReceiptsData.slice(i, i + perPage);
+        html += `<div class="exp-att-page">${pageItems.map(buildExpReceiptItemHtml).join('')}</div>`;
+    }
+    gallery.innerHTML = html;
+}
+
+const buildExpReceiptsPrintHtml = () => {
+    const perPage = Number(expReceiptLayout) || 1;
+    const modalTitle = $('#expReceiptsModalTitle').text() || lang('Risiti za Matumizi','Expense Receipts');
+    const totalAmount = expReceiptsData.reduce((s, a) => s + Number(a.kiasi || 0), 0);
+    const heading = `<h4 class="text-center mb-2">${escapeExpHtml(modalTitle)}</h4>
+      <p class="text-center small mb-3">${expReceiptsData.length} ${lang('risiti','receipts')} · ${Number(totalAmount.toFixed(2)).toLocaleString()} ${fedha} · ${expReceiptLayout}/${lang('ukurasa','page')}</p>`;
+
+    let pagesHtml = '';
+    for(let i = 0; i < expReceiptsData.length; i += perPage){
+        const pageItems = expReceiptsData.slice(i, i + perPage);
+        pagesHtml += `<div class="print-page layout-${expReceiptLayout}">${pageItems.map(att => `
+          <div class="print-item">
+            <div class="print-meta">${escapeExpHtml(att.expN || att.attach_name || '')} · ${moment(att.date).format('DD/MM/YYYY HH:mm')} · ${Number(att.kiasi || 0).toLocaleString()} ${fedha}</div>
+            <img src="${escapeExpHtml(att.file)}" alt="">
+          </div>
+        `).join('')}</div>`;
+    }
+
+    return `
+      <style>
+        @page { size: A4; margin: 8mm; }
+        body { margin: 0; padding: 0; color: #000; font-family: Arial, sans-serif; }
+        .print-page { page-break-after: always; box-sizing: border-box; }
+        .print-page:last-child { page-break-after: auto; }
+        .print-item { box-sizing: border-box; overflow: hidden; }
+        .print-meta { font-size: 11px; margin-bottom: 4px; font-weight: 600; }
+        .print-item img { width: 100%; object-fit: contain; display: block; background: #fff; }
+        .layout-1.print-page { min-height: 277mm; display: flex; flex-direction: column; justify-content: center; }
+        .layout-1 .print-item img { max-height: 255mm; }
+        .layout-2.print-page { min-height: 277mm; display: grid; grid-template-rows: 1fr 1fr; gap: 6mm; }
+        .layout-2 .print-item img { max-height: 125mm; }
+        .layout-4.print-page { min-height: 277mm; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4mm; }
+        .layout-4 .print-item img { max-height: 120mm; }
+      </style>
+      ${heading}${pagesHtml}
+    `;
+}
+
+const openExpReceiptsModal = (items, title) => {
+    expReceiptsData = items || [];
+    expReceiptLayout = 1;
+    $('.exp-att-layout').removeClass('btn-secondary active').addClass('btn-outline-secondary');
+    $('.exp-att-layout[data-layout="1"]').addClass('active btn-secondary').removeClass('btn-outline-secondary');
+    $('#expReceiptsModalTitle').text(title || lang('Risiti za Matumizi','Expense Receipts'));
+    const totalAmount = expReceiptsData.reduce((s, a) => s + Number(a.kiasi || 0), 0);
+    $('#expReceiptsModalSummary').html(
+        `${expReceiptsData.length} ${lang('risiti','receipts')} · ${Number(totalAmount.toFixed(2)).toLocaleString()} ${fedha}`
+    );
+    renderExpReceiptsGallery();
+    $('#expReceiptsModal').modal('show');
+}
+
 // Expenses by category
 const byCategory = () =>{
 
@@ -421,14 +560,22 @@ const byCategory = () =>{
                         fuelAmo = Number(exp.filter(e=>Number(e.fuel_qty)>0).reduce((a,b)=>a+Number(b.kiasi),0))||0,
                         totAmo = expAmo + fuelAmo,
                         
-                        catId = exp[0]?.expId||0
-                        tr+=`<tr data-val=${catId} data-salary=${exp[0]?.salary?1:0} class="cursor-pointer viewCategoryDetails">
+                        catId = exp[0]?.expId||0,
+                        isSalary = exp[0]?.salary ? 1 : 0,
+                        receiptInfo = receiptStats(getAttachmentsForCategory(catId, isSalary))
+                        tr+=`<tr data-val=${catId} data-salary=${isSalary} class="cursor-pointer viewCategoryDetails">
                             <td>${categories.indexOf(cat) + 1}</td>
-                            <td><a type="button" data-val=${catId} data-salary=${exp[0]?.salary?1:0} class="bluePrint viewCategoryDetails" >${cat||lang('Mshahara','Salary')} ${exp[0]?.salary_advance?`(${lang('Malipo ya awali ya mshahara','Salary Advance')})`:''} </a></td>
+                            <td><a type="button" data-val=${catId} data-salary=${isSalary} class="bluePrint viewCategoryDetails" >${cat||lang('Mshahara','Salary')} ${exp[0]?.salary_advance?`(${lang('Malipo ya awali ya mshahara','Salary Advance')})`:''} </a></td>
                             
                             <td>${Number(exp.length).toLocaleString()}</td>
                        
                             <td>${Number(totAmo.toFixed(2)).toLocaleString()}</td>
+                            <td>${buildExpReceiptBtn(receiptInfo, {
+                                'filter-type': 'category',
+                                'cat-id': catId,
+                                salary: isSalary,
+                                title: cat || lang('Mshahara','Salary')
+                            })}</td>
                         </tr>`
                         theData.push({name:cat,amount:totAmo})
 
@@ -439,11 +586,13 @@ const byCategory = () =>{
 
             // add the total row below
             const totalExp = Number(filteredExpenses.reduce((a,b)=>a+Number(b.kiasi),0))||0
+            const totalReceiptInfo = receiptStats(getAttachmentsForExpenses(filteredExpenses))
             tr+=`<tr class="table-info weight600">
                 <td >${lang('Jumla','Total')}</td>
                 <td></td>
                 <td>${Number(filteredExpenses.length).toLocaleString()}</td>
                 <td>${Number(totalExp.toFixed(2)).toLocaleString()}</td>
+                <td>${totalReceiptInfo.count ? `${totalReceiptInfo.count} ${lang('risiti','receipts')} · ${Number(totalReceiptInfo.amount.toFixed(2)).toLocaleString()} ${fedha}` : '—'}</td>
             </tr>`
             
             const table = `<table class="table table-bordered table-sm" >
@@ -453,6 +602,7 @@ const byCategory = () =>{
                                 <th>${lang('Aina ya Matumizi','Expense Category')}</th>
                                 <th>${lang('Idadi ya Matumizi','No. of Expenses')}</th>
                                 <th>${lang('Jumla ya Matumizi','Total Expenses')}${fedha}</th>
+                                <th>${lang('Risiti Zilizohifadhiwa','Saved Receipts')}</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -632,11 +782,18 @@ const byTaxGroup = () => {
     keys.forEach((key, idx) => {
         const grp = groups[key];
         const totAmo = Number(grp.rows.reduce((a, b) => a + Number(b.kiasi), 0)) || 0;
+        const receiptInfo = receiptStats(getAttachmentsForTaxGroup(grp.taxId, grp.taxName));
         tr += `<tr data-val="${grp.taxId}" data-name="${grp.taxName}" class="cursor-pointer viewTaxGroupDetails">
                 <td>${idx + 1}</td>
                 <td><a type="button" data-val="${grp.taxId}" data-name="${grp.taxName}" class="bluePrint viewTaxGroupDetails">${grp.taxName}</a></td>
                 <td>${Number(grp.rows.length).toLocaleString()}</td>
                 <td>${Number(totAmo.toFixed(2)).toLocaleString()}</td>
+                <td>${buildExpReceiptBtn(receiptInfo, {
+                    'filter-type': 'tax',
+                    'tax-id': grp.taxId,
+                    'tax-name': grp.taxName,
+                    title: grp.taxName
+                })}</td>
             </tr>`;
         theData.push({name: grp.taxName, amount: totAmo});
     });
@@ -645,11 +802,13 @@ const byTaxGroup = () => {
     SAOBJ.push({name: 'tax', data: theData, title: lang('Matumizi kwa tax group', 'Expenses by Tax Group')});
 
     const totalExp = Number(filteredExpenses.reduce((a, b) => a + Number(b.kiasi), 0)) || 0;
+    const totalReceiptInfo = receiptStats(getAttachmentsForExpenses(filteredExpenses));
     tr += `<tr class="table-info weight600">
             <td>${lang('Jumla', 'Total')}</td>
             <td></td>
             <td>${Number(filteredExpenses.length).toLocaleString()}</td>
             <td>${Number(totalExp.toFixed(2)).toLocaleString()}</td>
+            <td>${totalReceiptInfo.count ? `${totalReceiptInfo.count} ${lang('risiti','receipts')} · ${Number(totalReceiptInfo.amount.toFixed(2)).toLocaleString()} ${fedha}` : '—'}</td>
         </tr>`;
 
     const table = `<table class="table table-bordered table-sm" >
@@ -659,6 +818,7 @@ const byTaxGroup = () => {
                             <th>${lang('Tax Group', 'Tax Group')}</th>
                             <th>${lang('Idadi ya Matumizi', 'No. of Expenses')}</th>
                             <th>${lang('Jumla ya Matumizi', 'Total Expenses')}${fedha}</th>
+                            <th>${lang('Risiti Zilizohifadhiwa', 'Saved Receipts')}</th>
                         </tr>
                     </thead>
                     <tbody>${tr}</tbody>
@@ -772,6 +932,57 @@ $('body').on('click','.viewTaxGroupDetails',function(){
         title = `${lang('Matumizi kwa tax group','Expenses by Tax Group')} <span class="bluePrint">${taxName}</span>`;
         VOBJ = {data:exp,title};
         moreDetails();
+})
+
+$('body').on('click', '.exp-receipts-btn', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+
+    const filterType = $(this).data('filter-type');
+    const title = $(this).data('title') || lang('Risiti za Matumizi','Expense Receipts');
+    let items = [];
+
+    if(filterType === 'category'){
+        const catId = Number($(this).data('cat-id')) || 0;
+        const isSalary = Number($(this).data('salary')) === 1;
+        items = getAttachmentsForCategory(catId, isSalary);
+    } else if(filterType === 'tax'){
+        const taxId = Number($(this).data('tax-id')) || 0;
+        const taxName = $(this).data('tax-name') || '';
+        items = getAttachmentsForTaxGroup(taxId, taxName);
+    }
+
+    openExpReceiptsModal(items, `${lang('Risiti za Matumizi','Expense Receipts')} - ${title}`);
+})
+
+$('.exp-att-layout').on('click', function(){
+    $('.exp-att-layout').removeClass('btn-secondary active').addClass('btn-outline-secondary');
+    $(this).addClass('active btn-secondary').removeClass('btn-outline-secondary');
+    expReceiptLayout = Number($(this).data('layout')) || 1;
+    renderExpReceiptsGallery();
+})
+
+$('#printExpReceipts').on('click', function(){
+    if(!expReceiptsData.length){
+        toastr.info(lang('Hakuna risiti za kuchapisha','No receipts to print'), lang('Taarifa','Info'), {timeOut: 2500});
+        return;
+    }
+
+    const printWindow = window.open('', '', 'height=800,width=1000');
+    if(!printWindow){
+        toastr.warning(lang('Kivinjari kimezuia popup ya print. Tafadhali ruhusu popups kisha jaribu tena.','Your browser blocked the print popup. Please allow popups and try again.'));
+        return;
+    }
+
+    printWindow.document.write(company_header);
+    printWindow.document.write(buildExpReceiptsPrintHtml());
+    printWindow.document.write('</div></body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(function(){
+        printWindow.print();
+        printWindow.close();
+    }, 900);
 })
 
 

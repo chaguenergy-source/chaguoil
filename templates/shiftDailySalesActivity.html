@@ -1,0 +1,260 @@
+{% extends 'shiftsActivity.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{% static 'css/customerPayments.css' %}">
+<style>
+    .daily-sales-table th, .daily-sales-table td { font-size: 12px; vertical-align: middle; white-space: nowrap; text-align: left; }
+    .daily-sales-table .sub-label { display: block; font-size: 10px; color: #6c757d; font-weight: normal; }
+    .day-detail-row { cursor: pointer; }
+    .day-detail-row:hover { background: #f0f7ff; }
+    .daily-day-panel { font-size: 12px; }
+    .daily-day-header { background: linear-gradient(135deg, #e8f4fd 0%, #f8f9fa 100%); border: 1px solid #b8daff; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+    .daily-section { margin-bottom: 18px; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; }
+    .daily-section-title { font-weight: 700; font-size: 13px; padding: 8px 12px; color: #fff; background: linear-gradient(90deg, #006ae4 0%, #0056b3 100%); }
+    .daily-section-body { padding: 10px 12px; }
+    .daily-section-shifts .daily-section-title { background: linear-gradient(90deg, #0d6efd 0%, #084298 100%); }
+    .daily-section-sales .daily-section-title { background: linear-gradient(90deg, #198754 0%, #146c43 100%); }
+    .daily-section-payments .daily-section-title { background: linear-gradient(90deg, #6f42c1 0%, #59359a 100%); }
+    .daily-section-fuel .daily-section-title { background: linear-gradient(90deg, #fd7e14 0%, #ca6510 100%); }
+    .daily-section-adj .daily-section-title { background: linear-gradient(90deg, #20c997 0%, #15936b 100%); }
+    .daily-section-exp .daily-section-title { background: linear-gradient(90deg, #dc3545 0%, #b02a37 100%); }
+    .daily-section-summary .daily-section-title { background: linear-gradient(90deg, #343a40 0%, #212529 100%); }
+    .daily-session-group { border: 1px solid #cfe2ff; border-radius: 6px; padding: 10px; margin-bottom: 12px; background: #f8fbff; }
+    .daily-session-head { font-weight: 600; color: #0d6efd; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #b6d4fe; }
+    .daily-shift-card { border: 1px solid #dee2e6; border-radius: 6px; padding: 10px; margin-bottom: 10px; background: #fff; }
+    .daily-mini-table { width: 100%; font-size: 11px; margin-bottom: 0; border-collapse: collapse; table-layout: fixed; }
+    .daily-mini-table th, .daily-mini-table td { padding: 4px 6px; border: 1px solid #ced4da; text-align: left; vertical-align: top; white-space: normal; word-wrap: break-word; }
+    .daily-mini-table thead th { background: #e9ecef; font-weight: 600; color: #212529; }
+    .daily-mini-table tfoot td { font-weight: 700; background: #f1f3f5; }
+    .daily-mini-table tbody tr:nth-child(even) { background: #fafbfc; }
+    .daily-pump-table thead th { background: #e7f1ff; color: #084298; }
+    .daily-shift-meta-table td { width: 50%; }
+    .daily-sign-table td { width: 50%; min-height: 48px; }
+    .daily-day-header-table td { width: 33.33%; }
+    .daily-pump-title { font-weight: 600; margin: 4px 0 2px; }
+    .analog-shift-card { border-left: 3px solid #856404; }
+    .analog-pump-row td { background: #fff3cd; }
+    .daily-analog-tag {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: #000;
+        background: #ffc107;
+        border: 1px solid #856404;
+        border-radius: 3px;
+        padding: 2px 6px;
+        margin-left: 4px;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    .daily-analog-tag-sm { font-size: 9px; padding: 1px 5px; }
+    .daily-analog-tag-shift { font-size: 10px; margin-left: 6px; }
+    .daily-pump-title .daily-analog-tag { margin-left: 6px; }
+    .daily-shift-attachments { border-top: 1px dashed #dee2e6; padding-top: 8px; margin-top: 8px; }
+    .daily-attach-heading { font-size: 11px; font-weight: 700; color: #495057; margin-bottom: 6px; }
+    .daily-attach-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .daily-attach-card { display: block; border: 1px solid #dee2e6; border-radius: 6px; overflow: hidden; text-decoration: none; color: inherit; background: #fff; transition: box-shadow .15s; }
+    .daily-attach-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+    .daily-attach-thumb { width: 100%; height: 90px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .daily-attach-img { width: 100%; height: 90px; object-fit: cover; display: block; }
+    .daily-attach-file-fallback { font-size: 11px; font-weight: 600; color: #6c757d; }
+    .daily-attach-meta { padding: 4px 6px; }
+    .daily-attach-name { font-size: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .daily-attach-sub { font-size: 9px; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 992px) { .daily-attach-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 576px) { .daily-attach-grid { grid-template-columns: repeat(2, 1fr); } }
+    .daily-summary-table thead th { background: #343a40; color: #fff; }
+    .daily-empty-note { color: #6c757d; font-size: 11px; font-style: italic; padding: 6px 0; }
+    @media print {
+        .daily-day-panel { font-size: 9px; }
+        .daily-section { page-break-inside: auto; break-inside: auto; margin-bottom: 8px; border-width: 1px; }
+        .daily-section-title { padding: 4px 8px; font-size: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .daily-shift-card { page-break-inside: avoid; break-inside: avoid; padding: 6px; margin-bottom: 6px; }
+        .daily-session-group { page-break-inside: auto; break-inside: auto; padding: 6px; margin-bottom: 6px; }
+        .daily-mini-table { font-size: 8.5px; width: 100%; max-width: 100%; }
+        .daily-mini-table th, .daily-mini-table td { padding: 2px 4px; }
+        .daily-analog-tag { color: #000 !important; background: #ffc107 !important; border: 1px solid #856404; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .analog-pump-row td { background: #fff3cd !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .daily-attach-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .daily-attach-img { height: 72px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .btn, #backToDayList, #printDayDetail, #printIncludeAttachments { display: none !important; }
+        label[for="printIncludeAttachments"] { display: none !important; }
+    }
+</style>
+{% endblock %}
+
+{% block activityHead %}
+   {% if useri.langSet == 0 %}Mauzo Kilasiku{% else %}Daily Sales{% endif %}
+{% endblock %}
+
+{% block tab_sales %}active{% endblock %}
+
+{% block shiftactivity %}
+<div class="head">
+    <h5>
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.35em" height="1.35em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        {% if useri.langSet == 0 %}Mauzo na Shughuli za Kila Siku{% else %}Daily Sales & Station Activity{% endif %}
+    </h5>
+</div>
+
+<div id="paymentSummary">
+    <div class="payment-filters">
+        {% csrf_token %}
+        <div class="filter-group">
+            <label>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}:</label>
+            <div class="input-group">
+                <select id="stationFilter" class="form-control">
+                    {% if not general %}
+                        <option value="{{shell.id}}" data-stxn="{{shell.name}}">{{shell.name}}</option>
+                        {% if useri.admin or useri.ceo %}
+                            {% for station in stations %}
+                                {% if station != shell %}
+                                    <option value="{{ station.id }}" data-stxn="{{station.name}}">{{ station.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                            <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                        {% endif %}
+                    {% else %}
+                        <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                        {% for station in stations %}
+                            <option value="{{ station.id }}" data-stxn="{{station.name}}">{{ station.name }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+                <div class="input-group-append dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}
+                    </button>
+                    <div class="dropdown-menu" id="common_duration">
+                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Wiki Ilopita{% else %}Last Week{% endif %}',moment().startOf('isoWeek').subtract(1,'days').startOf('isoWeek').format(),moment().startOf('isoWeek').subtract(1,'days').endOf('isoWeek').format())">{% if useri.langSet == 0 %}Wiki Ilopita{% else %}Last Week{% endif %}</a>
+                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwezi ulopita{% else %}Last Month{% endif %}',moment().startOf('month').subtract(1,'days').startOf('month').format(),moment().startOf('month').subtract(1,'days').endOf('month').format())">{% if useri.langSet == 0 %}Mwezi Uliopita{% else %}Last Month{% endif %}</a>
+                       
+                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}',moment().startOf('year').format(),moment().endOf('year').format())">{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}</a>
+                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwaka Jana{% else %}Last Year{% endif %}',moment().startOf('year').subtract(1,'years').format(),moment().startOf('year').subtract(1,'years').endOf('year').format())">{% if useri.langSet == 0 %}Mwaka Jana{% else %}Last Year{% endif %}</a>
+                        <a class="dropdown-item" type="button" data-toggle="modal" data-target="#durationModal">{% if useri.langSet == 0 %}Weka Muda{% else %}Custom Date{% endif %}</a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h6 class="weight600">{% if useri.langSet == 0 %}Muhtasari wa Mauzo Kilasiku{% else %}Daily Sales Summary{% endif %}</h6>
+    <div class="table-responsive">
+        <table class="table table-sm daily-sales-table">
+            <thead>
+                <tr>
+                    <th>{% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Siku{% else %}Days{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mauzo{% else %}Sales{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Malipo Simu{% else %}Mobile Pay{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Malipo Wateja{% else %}Cust. Pay{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Toa Pesa{% else %}Dep. Before{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Benki{% else %}Cash Dep.{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Matumizi{% else %}Expenses{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Transfer{% else %}Transfer{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Receive{% else %}Receive{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody id="activitySummaryBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="paymentDetails" class="mt-4" style="display:none">
+    <div>
+        <button class="btn btn-sm btn-outline-secondary" id="backToSummary">{% if useri.langSet == 0 %}Rudi{% else %}Back{% endif %}</button>
+        <h6 id="activityDetailsTitle" class="d-inline weight600 ml-2"></h6>
+    </div>
+
+    <div class="d-flex justify-content-end align-items-center mb-3">
+        <button id="printPayments" class="btn btn-secondary btn-sm">{% if useri.langSet == 0 %}Chapisha{% else %}Print{% endif %}</button>
+    </div>
+
+    <div class="table-responsive" id="paymentsTable">
+        <table class="table table-striped daily-sales-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mauzo{% else %}Sales{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Malipo Simu{% else %}Mobile Pay{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Malipo Wateja{% else %}Cust. Pay{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Toa Pesa{% else %}Dep. Before{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Benki{% else %}Cash Dep.{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Matumizi{% else %}Expenses{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Transfer{% else %}Transfer{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Receive{% else %}Receive{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody id="activityDetailsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="paymentDayDetail" class="mt-4 daily-day-panel" style="display:none">
+    <div class="d-flex flex-wrap align-items-center mb-3">
+        <button class="btn btn-sm btn-outline-secondary" id="backToDayList">{% if useri.langSet == 0 %}Rudi{% else %}Back{% endif %}</button>
+        <h6 id="dayDetailTitle" class="d-inline weight600 ml-2 mb-0"></h6>
+        <div class="ml-auto d-flex align-items-center flex-wrap">
+            <div class="custom-control custom-checkbox mr-3 mb-1">
+                <input type="checkbox" class="custom-control-input" id="printIncludeAttachments" checked>
+                <label class="custom-control-label small" for="printIncludeAttachments">
+                    {% if useri.langSet == 0 %}Jumuisha viambatanisho kwenye chapisho{% else %}Include attachments in print{% endif %}
+                </label>
+            </div>
+            <button id="printDayDetail" class="btn btn-secondary btn-sm">{% if useri.langSet == 0 %}Chapisha{% else %}Print{% endif %}</button>
+        </div>
+    </div>
+    <div id="dayDetailContent"></div>
+</div>
+
+<div class="modal fade" id="durationModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{% if useri.langSet == 0 %}Chagua Muda{% else %}Select Duration{% endif %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+            <label for="durationName">{% if useri.langSet == 0 %}Jina la Muda{% else %}Duration Name{% endif %}:</label>
+            <input type="text" id="durationName" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="startDate">{% if useri.langSet == 0 %}Tarehe ya Kuanza{% else %}Start Date{% endif %}:</label>
+            <input type="date" id="startDate" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="endDate">{% if useri.langSet == 0 %}Tarehe ya Kumaliza{% else %}End Date{% endif %}:</label>
+            <input type="date" id="endDate" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}</button>
+        <button type="button" class="btn btn-primary" id="customDateSubmit">{% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+window.dailySalesConfig = {
+    endpoint: '/salepurchase/getDailySalesActivity',
+    dayDetailEndpoint: '/salepurchase/getDailySalesDayDetail',
+    currency: '{{currencii}}'
+};
+</script>
+<script src="{% static 'js/shiftDailySalesActivity.js' %}"></script>
+{% endblock %}

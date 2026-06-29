@@ -227,7 +227,10 @@
                             {% if useri.langSet == 0 %}Zamu{% else %} Shift{% endif %}#
                         </div>
                         <div class="col-6 ">
-                            <a href="/salepurchase/viewShift?i={{s.trf.id}}">SHF-{{s.trf.code}}</a> 
+                            <a href="/salepurchase/viewShift?i={{s.trf.id}}">SHF-{{s.trf.code}}</a>
+                            {% if s.has_analog %}
+                            <span class="badge badge-warning badge-sm ml-1">Analog</span>
+                            {% endif %}
                         </div>
                     </div>    
                     
@@ -290,9 +293,14 @@
                                     <div class="col-10 smallFont col-md-9 p-0 border mx-0 row">
                                         {% for s in s.pmps %}
                                             {% if sp.pump.station == s.pump.station %}  
-                                            <div class="col-2 mx-0 weight600">{{s.pump.name}}</div>
-                                            <div  class="col-2 "  >{{s.initial|floatformat:'-2'|intcomma}}</div>
-                                            <div class="col-2">{{s.final|floatformat:'-2'|intcomma}}</div>
+                                            <div class="col-2 mx-0 weight600">
+                                                {{s.pump.name}}
+                                                {% if s.analog_used %}
+                                                <span class="badge badge-warning badge-sm" title="{% if useri.langSet == 0 %}Mita ya analogi imetumika{% else %}Analog readings used{% endif %}">Analog</span>
+                                                {% endif %}
+                                            </div>
+                                            <div  class="col-2 "  >{{s.initial|floatformat:'-2'|intcomma}}{% if s.analog_used %} <small class="text-warning">({% if useri.langSet == 0 %}Analogi{% else %}Analog{% endif %})</small>{% endif %}</div>
+                                            <div class="col-2">{{s.final|floatformat:'-2'|intcomma}}{% if s.analog_used %} <small class="text-warning">({% if useri.langSet == 0 %}Analogi{% else %}Analog{% endif %})</small>{% endif %}</div>
                                            
                                             <div class="col-2 mx-0">
                                                 {{s.price|floatformat:'-2'|intcomma}}

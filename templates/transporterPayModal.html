@@ -1,0 +1,130 @@
+{% load humanize %}
+
+<div class="modal fade" id="transporterPayModal" tabindex="-1" role="dialog" aria-labelledby="transporterPayModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form action="/salepurchase/lipaTransporter" id="transporterPayForm" method="post">
+        {% csrf_token %}
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="transporterPayModalLabel">
+            {% if useri.langSet == 0 %}Lipa Msafirishaji{% else %}Pay Transporter{% endif %}
+          </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body px-4">
+          <div class="mb-3">
+            <div class="smallFont">{% if useri.langSet == 0 %}Deni la Msafirishaji{% else %}Transporter Debt{% endif %}</div>
+            <div class="weight600 brown">
+              <span class="text-primary">{{currencii}}</span> <span id="trspDebtValue">{{total_debt|default:0|floatformat:'-2'|intcomma}}</span>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="text-danger" for="trsp-pay-account">{% if useri.langSet == 0 %}Chagua Akaunti{% else %}Select account{% endif %} <sup>*</sup></label>
+            <select id="trsp-pay-account" class="form-control selectpicker" data-live-search="true">
+              <option value="0" data-amount="0">{% if useri.langSet == 0 %}--Chagua Akaunti--{% else %}--Select Account--{% endif %}</option>
+              {% for ac in payacc %}
+              <option value="{{ac.id}}" data-amount="{{ac.Amount|default:0}}">{{ac.Akaunt_name}} ({{ac.Amount|floatformat:'-2'|intcomma}})</option>
+              {% endfor %}
+            </select>
+            <small id="trsp-account-help" class="text-danger" hidden>{% if useri.langSet == 0 %}Tafadhali chagua akaunti{% else %}Please select account{% endif %}</small>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="text-danger" for="trsp-pay-amount">{% if useri.langSet == 0 %}Kiasi kinacholipwa{% else %}Amount{% endif %} <sup>*</sup></label>
+            <input type="text" id="trsp-pay-amount" class="form-control" placeholder="{{total_debt|default:0|floatformat:'-2'|intcomma}}" inputmode="decimal" autocomplete="off">
+            <small id="trsp-amount-help" class="text-danger" hidden>{% if useri.langSet == 0 %}Kiasi sio sahihi{% else %}Invalid amount{% endif %}</small>
+          </div>
+
+          <div class="form-group mb-1">
+            <label for="trsp-pay-desc">{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %}</label>
+            <input type="text" id="trsp-pay-desc" class="form-control" placeholder="{% if useri.langSet == 0 %}Malipo ya msafirishaji{% else %}Transporter payment{% endif %}">
+          </div>
+        </div>
+
+        <div class="text-center pb-2">
+          <button type="submit" id="save_transporter_pay_btn" class="btn btn-primary">{% if useri.langSet == 0 %}Lipa{% else %}Pay{% endif %}</button>
+        </div>
+
+        <div class="text-center pb-3">
+          <button type="button" class="btn btn-light btn-sm smallFont" data-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+$('body').on('input', '#trsp-pay-amount', function(){
+  const raw = String($(this).val() || '');
+  const cleaned = raw.replace(/[^\d.]/g, '');
+  const parts = cleaned.split('.');
+  const integerPart = (parts[0] || '').replace(/^0+(?=\d)/, '');
+  const decimalPart = (parts[1] || '').replace(/\./g, '').slice(0, 2);
+
+  let formattedInt = '';
+  if(integerPart !== ''){
+    formattedInt = Number(integerPart).toLocaleString('en-US');
+  }
+
+  const formatted = decimalPart !== '' ? `${formattedInt}.${decimalPart}` : formattedInt;
+  $(this).val(formatted);
+});
+
+$('body').on('submit', '#transporterPayForm', function(e){
+  e.preventDefault();
+
+  const parseMoney = (val) => Number(String(val || '').replace(/,/g, '').trim() || 0);
+
+  const acc = Number($('#trsp-pay-account').val() || 0);
+  const payRaw = String($('#trsp-pay-amount').val() || '').trim();
+  const pay = payRaw === '' ? Number('{{total_debt|default:0}}') : parseMoney(payRaw);
+  const accAmo = Number($('#trsp-pay-account').find('option:selected').data('amount') || 0);
+  const debt = Number('{{total_debt|default:0}}');
+  const transp = Number('{{trsp.id}}');
+  const desc = ($('#trsp-pay-desc').val() || '').trim();
+
+  $('#trsp-account-help').prop('hidden', true);
+  $('#trsp-amount-help').prop('hidden', true);
+
+  let hasError = false;
+
+  if(!acc){
+    $('#trsp-account-help').prop('hidden', false);
+    hasError = true;
+  }
+
+  if(!(pay > 0) || pay > debt || pay > accAmo){
+    $('#trsp-amount-help').prop('hidden', false);
+    hasError = true;
+  }
+
+  if(hasError){
+    return;
+  }
+
+  $('#transporterPayModal').modal('hide');
+  $('#loadMe').modal('show');
+
+  const data = {
+    data:{acc, pay, transp, desc},
+    url: $(this).attr('action')
+  };
+
+  POSTREQUEST(data).then(resp => {
+    $('#loadMe').modal('hide');
+    hideLoading();
+    const msg = lang(resp.swa, resp.eng);
+    if(resp.success){
+      toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2000});
+      location.reload();
+    }else{
+      toastr.error(msg, lang('Haikufanikiwa','Error'), {timeOut: 3000});
+    }
+  });
+});
+</script>

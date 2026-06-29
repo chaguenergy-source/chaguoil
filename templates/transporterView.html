@@ -1,0 +1,207 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block page_content %}
+<div class="head-title pb-md-4">
+    <div class="left">
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="#">Dashboard</a>
+            </li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li>
+                <a class="active" href="#">{% if useri.langSet == 0 %}Wasafirishaji{% else %}Transporters{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="table-data" id="invoice_wrapper" style="min-height: 85vh;overflow-y: auto;overflow-x: hidden;">
+    <div class="order fontColor">
+        {% include 'headingPurchases.html' %} 
+
+        <div class="row mb-3" id="transporterDetails">
+            <div class="col-md-6 row">
+                <div class="col-12">
+                    <strong>{% if useri.langSet == 0 %}Taarifa za Msafirishaji{% else %}Transporter Details{% endif %}</strong>
+                </div>
+                <div class="col-3">{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}</div>
+                <div class="col-9">
+                    <u class="bluePrint">{{trsp.jina}}</u> |
+                    <button class="btn btn-lightedit_btn text-primary" data-toggle="modal" data-target="#addTransporterModal" style="font-size: 16;" title="Edit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="col-3">{% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}</div>
+                <div class="col-9">{{trsp.address|title}}</div>
+                <div class="col-3">{% if useri.langSet == 0 %}Simu{% else %}Phone{% endif %}</div>
+                <div class="col-9">{{trsp.code}}{{trsp.simu1}}{% if trsp.simu2 %}, {{trsp.code}}{{trsp.simu2}}{% endif %}</div>
+                {% if trsp.email %}
+                <div class="col-3">Email</div>
+                <div class="col-9">{{trsp.email}}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="text-right">
+            <button type="button" id="openTransporterPayModal" class="btn btn-sm btn-outline-success smallerFont" title="{% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}">
+                $ {% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}
+            </button>
+
+            <button type="button"
+                    id="transporterStatement"
+                    data-station="{% if not general %}{{shell.name}}{% else %}{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}{% endif %}"
+                    data-user="{{useri.user.first_name}} {{useri.user.last_name}}"
+                    data-prev="{{prev_trips_len}}"
+                    data-month="{{month_trips_len}}"
+                    class="btn btn-sm btn-outline-info smallerFont"
+                    title="{% if useri.langSet == 0 %}Chapa{% else %}Print{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer mr-1">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                {% if useri.langSet == 0 %}Chapa{% else %}Print{% endif %}
+            </button>
+        </p>
+
+        {% include 'transporterNav.html' %}
+
+        <div class="row mb-4" id="transporterSummary">
+            <div class="col-md-4 mb-2">
+                <div class="card p-2">
+                    <div class="smallFont">{% if useri.langSet == 0 %}Safari za Mwezi Huu{% else %}This Month Trips{% endif %}</div>
+                    <div class="h5 mb-0 bluePrint">{{month_trips_len}}</div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-2">
+                <div class="card p-2">
+                    <div class="smallFont">{% if useri.langSet == 0 %}Deni la Nyuma{% else %}Previous Debt{% endif %}</div>
+                    <div class="h5 mb-0 brown"><span class="text-primary">{{currencii}}</span> {{debtprev|floatformat:'-2'|intcomma}}</div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-2">
+                <div class="card p-2">
+                    <div class="smallFont">{% if useri.langSet == 0 %}Jumla ya Madeni{% else %}Total Debt{% endif %}</div>
+                    <div class="h5 mb-0 brown"><span class="text-primary">{{currencii}}</span> {{total_debt|floatformat:'-2'|intcomma}}</div>
+                </div>
+            </div>
+        </div>
+
+        <h6 class="section-title">{% if useri.langSet == 0 %}Safari za Mwezi Huu{% else %}This Month Trips{% endif %}</h6>
+        <div class="table-responsive mb-4" id="transporter_this_Month">
+            <table class="table table-sm table-bordered smallFont">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Msambazaji{% else %}Vendor{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Dereva{% else %}Driver{% endif %}</th>
+                        <th class="text-right">{% if useri.langSet == 0 %}Lita{% else %}Qty{% endif %}</th>
+                        <th class="text-right">{% if useri.langSet == 0 %}Gharama{% else %}Charges{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                        <th class="text-right">{% if useri.langSet == 0 %}Zilizolipwa{% else %}Paid{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                        <th class="text-right">{% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tr in month_trips %}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{tr.att.purchase.date|date:'d/m/Y H:i'}}</td>
+                        <td>{% if tr.att.purchase.vendor %}{{tr.att.purchase.vendor.jina}}{% else %}---{% endif %}</td>
+                        <td>{% if tr.att.vihecle %}{{tr.att.vihecle}}{% else %}---{% endif %}</td>
+                        <td>{% if tr.att.driver %}{{tr.att.driver}}{% else %}---{% endif %}</td>
+                        <td class="text-right">{{tr.qty|floatformat:'-2'|intcomma}}</td>
+                        <td class="text-right">{{tr.charges|floatformat:'-2'|intcomma}}</td>
+                        <td class="text-right">{{tr.paid|floatformat:'-2'|intcomma}}</td>
+                        <td class="text-right {% if tr.debt %}brown{% endif %}">{{tr.debt|floatformat:'-2'|intcomma}}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9">{% if useri.langSet == 0 %}Hakuna safari za mwezi huu{% else %}No trips this month{% endif %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h6 class="section-title">{% if useri.langSet == 0 %}Madeni ya Nyuma{% else %}Previous Debts{% endif %}</h6>
+        <div class="table-responsive" id="transporter_last_Month">
+            <table class="table table-sm table-bordered smallFont">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Msambazaji{% else %}Vendor{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Dereva{% else %}Driver{% endif %}</th>
+                        <th class="text-right">{% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tr in prev_trips %}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{tr.att.purchase.date|date:'d/m/Y H:i'}}</td>
+                        <td>{% if tr.att.purchase.vendor %}{{tr.att.purchase.vendor.jina}}{% else %}---{% endif %}</td>
+                        <td>{% if tr.att.vihecle %}{{tr.att.vihecle}}{% else %}---{% endif %}</td>
+                        <td>{% if tr.att.driver %}{{tr.att.driver}}{% else %}---{% endif %}</td>
+                        <td class="text-right brown">{{tr.debt|floatformat:'-2'|intcomma}}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6">{% if useri.langSet == 0 %}Hakuna madeni ya nyuma{% else %}No previous debt records{% endif %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h6 class="section-title mt-4">{% if useri.langSet == 0 %}Historia ya Malipo{% else %}Payment History{% endif %}</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered smallFont">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Akaunti{% else %}Account{% endif %}</th>
+                        <th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} <span class="text-primary">{{currencii}}</span></th>
+                        <th>{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %}</th>
+                        <th>{% if useri.langSet == 0 %}Imewekwa na{% else %}Recorded by{% endif %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in trsp_payments %}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{p.tarehe|date:'d/m/Y H:i'}}</td>
+                        <td>{% if p.Akaunt %}{{p.Akaunt.Akaunt_name}}{% else %}---{% endif %}</td>
+                        <td class="text-right">{{p.Amount|floatformat:'-2'|intcomma}}</td>
+                        <td>{% if p.maelezo %}{{p.maelezo}}{% else %}---{% endif %}</td>
+                        <td>{% if p.by %}{{p.by.user.first_name}} {{p.by.user.last_name}}{% else %}---{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6">{% if useri.langSet == 0 %}Hakuna historia ya malipo{% else %}No payment history yet{% endif %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+{% include 'vendorTransportModal.html' %}
+{% include 'transporterPayModal.html' %}
+{% endblock %}
+
+{% block additionaljs %}
+<script src="{% static 'js/vendors.js' %}"></script>
+{% endblock %}
+
+{% block vendors %} active {% endblock %}

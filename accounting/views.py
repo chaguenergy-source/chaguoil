@@ -16,8 +16,9 @@ from django.db.models import Q
 from django.core.paginator import Paginator,EmptyPage
 
 # from datetime import datetime
-from django.utils import timezone
-timezone.now()
+from django.utils import timezone as django_tz
+from django.utils.dateparse import parse_datetime
+django_tz.now()
 
 from datetime import date,timedelta,timezone
 
@@ -43,6 +44,313 @@ def todoFunct(request):
   return usr.todoF()
 
 
+def payments_nav_context(todo, request, nav_key=None):
+    from salepurchase.views import toApprovalPayments
+    approval = toApprovalPayments(request) or {}
+    if isinstance(approval, dict) and approval.get('success') is False:
+        approval = {}
+    todo['approval'] = approval
+    if nav_key:
+        todo['payment_nav_active'] = nav_key
+    return todo
+
+
+def _payment_statement_account_qs(todo):
+    useri = todo['useri']
+    payacc = todo['payacc']
+    if not (useri.admin or useri.ceo):
+        payacc = payacc.filter(no_amount=False)
+    return payacc
+
+
+def _payment_statement_recorded_by_qs(todo):
+    kampuni = todo['kampuni']
+    general = todo['general']
+    shell = todo['shell']
+    allowed_accounts = _payment_statement_account_qs(todo).values_list('id', flat=True)
+
+    weka_by = wekaCash.objects.filter(
+        Interprise__company=kampuni,
+        Amount__gt=0,
+        Akaunt_id__in=allowed_accounts,
+        by__isnull=False,
+    )
+    toa_by = toaCash.objects.filter(
+        Interprise__company=kampuni,
+        Amount__gt=0,
+        Akaunt_id__in=allowed_accounts,
+        by__isnull=False,
+    )
+
+    if not general:
+        weka_by = weka_by.filter(Interprise=shell.id)
+        toa_by = toa_by.filter(Interprise=shell.id)
+
+    recorder_ids = set(
+        weka_by.values_list('by_id', flat=True).distinct()
+    ) | set(
+        toa_by.values_list('by_id', flat=True).distinct()
+    )
+
+    return UserExtend.objects.filter(pk__in=recorder_ids).order_by(
+        'user__first_name', 'user__last_name'
+    )
+
+
+def _classify_weka_payment(row):
+    if row.get('sales__mobile_pay') or row.get('mobile_pay'):
+        return 'mobile_payment'
+    if row.get('customer_id'):
+        return 'customer_payment'
+    if row.get('biforeShift'):
+        return 'cash_deposit'
+    if row.get('mauzo') or row.get('shift_id'):
+        return 'pump_attendant'
+    if row.get('kuhamisha'):
+        return 'bank_deposit'
+    return 'other_receive'
+
+
+def _classify_toa_payment(row):
+    if row.get('matumizi_id'):
+        return 'expense'
+    if row.get('bill_id') or row.get('trsp_bill_id'):
+        return 'bill_payment'
+    if row.get('kuhamisha'):
+        return 'bank_deposit'
+    if row.get('personal'):
+        return 'personal'
+    return 'other_payment'
+
+
+def _serialize_weka_rows(rows):
+    data = []
+    for row in rows:
+        data.append({
+            'id': row['id'],
+            'direction': 'in',
+            'date': row['tarehe'].isoformat() if row['tarehe'] else None,
+            'amount': float(row['Amount'] or 0),
+            'before': float(row['before'] or 0),
+            'after': float(row['After'] or 0),
+            'received_amount': float(row['Amount'] or 0),
+            'withdrawal_amount': None,
+            'account_id': row['Akaunt_id'],
+            'account_name': row.get('account_name') or '',
+            'station_id': row['Interprise_id'],
+            'station_name': row.get('station_name') or '',
+            'recorded_by': f"{row.get('BFname') or ''} {row.get('BLname') or ''}".strip(),
+            'kutoka': row.get('kutoka') or '',
+            'mauzo': bool(row.get('mauzo')),
+            'shift_id': row.get('shift_id'),
+            'cd_order_id': row.get('cdOrder_id'),
+            'kuhamisha': bool(row.get('kuhamisha')),
+            'huduma': bool(row.get('huduma')),
+            'bifore_shift': bool(row.get('biforeShift')),
+            'maelezo': row.get('maelezo') or '',
+            'customer_id': row.get('customer_id'),
+            'customer_name': row.get('custN') or '',
+            'mobile_pay': bool(row.get('mobile_pay')),
+            'shift_code': row.get('shift_code') or '',
+            'shift_by_name': f"{row.get('shiftBFname') or ''} {row.get('shiftBLname') or ''}".strip(),
+            'payment_type': _classify_weka_payment(row),
+            'approved': bool(row.get('admin_approval')),
+        })
+    return data
+
+
+def _serialize_toa_rows(rows):
+    data = []
+    for row in rows:
+        data.append({
+            'id': row['id'],
+            'direction': 'out',
+            'date': row['tarehe'].isoformat() if row['tarehe'] else None,
+            'amount': float(row['Amount'] or 0),
+            'before': float(row['before'] or 0),
+            'after': float(row['After'] or 0),
+            'received_amount': None,
+            'withdrawal_amount': float(row['Amount'] or 0),
+            'account_id': row['Akaunt_id'],
+            'account_name': row.get('account_name') or '',
+            'station_id': row['Interprise_id'],
+            'station_name': row.get('station_name') or '',
+            'recorded_by': f"{row.get('BFname') or ''} {row.get('BLname') or ''}".strip(),
+            'kwenda': row.get('kwenda') or '',
+            'kuhamisha': bool(row.get('kuhamisha')),
+            'personal': bool(row.get('personal')),
+            'expense_name': row.get('expense_name') or '',
+            'bill_id': row.get('bill_id'),
+            'bill_name': row.get('bill_name') or '',
+            'matumizi_id': row.get('matumizi_id'),
+            'trsp_bill_id': row.get('trsp_bill_id'),
+            'trsp_bill_name': row.get('trsp_bill_name') or '',
+            'maelezo': row.get('maelezo') or '',
+            'payment_type': _classify_toa_payment(row),
+            'approved': bool(row.get('admin_approval')),
+        })
+    return data
+
+
+def _payment_statement_summary(weka_qs, toa_qs):
+    received = Decimal(str(weka_qs.aggregate(total=Sum('Amount'))['total'] or 0))
+    paid = Decimal(str(toa_qs.aggregate(total=Sum('Amount'))['total'] or 0))
+    return {
+        'received': float(received),
+        'paid': float(paid),
+        'net': float(received - paid),
+        'count_in': weka_qs.count(),
+        'count_out': toa_qs.count(),
+    }
+
+
+def _parse_payment_statement_dt(value):
+    if not value:
+        return None
+    if isinstance(value, datetime.datetime):
+        dt = value
+    else:
+        dt = parse_datetime(str(value))
+        if dt is None:
+            try:
+                dt = datetime.datetime.fromisoformat(str(value))
+            except ValueError:
+                return None
+    if django_tz.is_naive(dt):
+        dt = django_tz.make_aware(dt, django_tz.get_current_timezone())
+    return dt
+
+
+def _payment_statement_overview(todo, account_id=0, recorded_by=0, payment_type='', direction='', station_id=0):
+    now = django_tz.now()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = today_start - datetime.timedelta(days=today_start.isoweekday() - 1)
+    month_start = today_start.replace(day=1)
+    last_month_end = month_start - datetime.timedelta(seconds=1)
+    last_month_start = last_month_end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    year_start = today_start.replace(month=1, day=1)
+    last_year_start = year_start.replace(year=year_start.year - 1)
+    last_year_end = year_start - datetime.timedelta(seconds=1)
+
+    ranges = {
+        'today': (today_start, now),
+        'week': (week_start, now),
+        'month': (month_start, now),
+        'last_month': (last_month_start, last_month_end),
+        'this_year': (year_start, now),
+        'last_year': (last_year_start, last_year_end),
+    }
+    overview = {}
+    for key, (t_fr, t_to) in ranges.items():
+        weka, toa = _build_payment_statement_qs(
+            todo, t_fr, t_to, account_id, recorded_by, payment_type, direction, station_id
+        )
+        overview[key] = _payment_statement_summary(weka, toa)
+    return overview
+
+
+def _filter_weka_by_type(qs, payment_type):
+    if not payment_type:
+        return qs
+    if payment_type == 'mobile_payment':
+        return qs.filter(sales__mobile_pay=True)
+    if payment_type == 'customer_payment':
+        return qs.filter(customer__isnull=False).exclude(sales__mobile_pay=True)
+    if payment_type == 'cash_deposit':
+        return qs.filter(biforeShift=True)
+    if payment_type == 'pump_attendant':
+        return qs.filter(Q(mauzo=True) | Q(shift__isnull=False))
+    if payment_type == 'bank_deposit':
+        return qs.filter(kuhamisha=True)
+    return qs.none()
+
+
+def _filter_toa_by_type(qs, payment_type):
+    if not payment_type:
+        return qs
+    if payment_type == 'expense':
+        return qs.filter(matumizi__isnull=False)
+    if payment_type == 'bank_deposit':
+        return qs.filter(kuhamisha=True)
+    if payment_type == 'bill_payment':
+        return qs.filter(Q(bill__isnull=False) | Q(trsp_bill__isnull=False))
+    if payment_type == 'personal':
+        return qs.filter(personal=True)
+    return qs.none()
+
+
+_WEKA_PAYMENT_TYPES = {
+    'mobile_payment', 'customer_payment', 'cash_deposit', 'pump_attendant', 'other_receive',
+}
+_TOA_PAYMENT_TYPES = {'expense', 'bill_payment', 'personal', 'other_payment'}
+
+
+def _build_payment_statement_qs(todo, t_fr, t_to, account_id=0, recorded_by=0, payment_type='', direction='', station_id=0):
+    kampuni = todo['kampuni']
+    useri = todo['useri']
+    general = todo['general']
+    shell = todo['shell']
+    allowed_accounts = _payment_statement_account_qs(todo).values_list('id', flat=True)
+
+    weka = wekaCash.objects.filter(
+        Interprise__company=kampuni,
+        Amount__gt=0,
+        Akaunt_id__in=allowed_accounts,
+        tarehe__range=[t_fr, t_to],
+    ).annotate(
+        station_name=F('Interprise__name'),
+        account_name=F('Akaunt__Akaunt_name'),
+        custN=F('customer__jina'),
+        BFname=F('by__user__first_name'),
+        BLname=F('by__user__last_name'),
+    )
+
+    toa = toaCash.objects.filter(
+        Interprise__company=kampuni,
+        Amount__gt=0,
+        Akaunt_id__in=allowed_accounts,
+        tarehe__range=[t_fr, t_to],
+    ).annotate(
+        station_name=F('Interprise__name'),
+        account_name=F('Akaunt__Akaunt_name'),
+        BFname=F('by__user__first_name'),
+        BLname=F('by__user__last_name'),
+    )
+
+    if station_id:
+        weka = weka.filter(Interprise_id=station_id)
+        toa = toa.filter(Interprise_id=station_id)
+    elif not general:
+        weka = weka.filter(Interprise=shell.id)
+        toa = toa.filter(Interprise=shell.id)
+
+    if account_id:
+        weka = weka.filter(Akaunt_id=account_id)
+        toa = toa.filter(Akaunt_id=account_id)
+
+    if recorded_by:
+        weka = weka.filter(by_id=recorded_by)
+        toa = toa.filter(by_id=recorded_by)
+
+    if payment_type:
+        if direction in ('', 'in'):
+            if payment_type == 'bank_deposit' or payment_type in _WEKA_PAYMENT_TYPES:
+                weka = _filter_weka_by_type(weka, payment_type)
+            else:
+                weka = weka.none()
+        if direction in ('', 'out'):
+            if payment_type == 'bank_deposit' or payment_type in _TOA_PAYMENT_TYPES:
+                toa = _filter_toa_by_type(toa, payment_type)
+            else:
+                toa = toa.none()
+    elif direction == 'in':
+        toa = toa.none()
+    elif direction == 'out':
+        weka = weka.none()
+
+    return weka, toa
+
+
 @login_required(login_url='login')
 def pdcBillsView(request):
     try:
@@ -53,8 +361,8 @@ def pdcBillsView(request):
         todo.update({
             'exp':exp,
             'isPdBills':True
-
-        }) 
+        })
+        payments_nav_context(todo, request, 'pdcbills')
 
         return render(request,'paypdcBillsView.html',todo)
     except:
@@ -77,6 +385,7 @@ def pdcBills(request):
       'pbills':pbills,
       'isPdBills':True
   })
+  payments_nav_context(todo, request, 'pdcbills')
   return render(request,'paypdcBills.html',todo)
 
 @login_required(login_url='login')
@@ -128,8 +437,9 @@ def payaccounts(request):
      stations = Interprise.objects.filter(company = kampuni)
   if not (useri.ceo or useri.admin):
       shell = todo['shell']
-      payaacc = payaacc.filter(Interprise=shell.id)
-      
+      payaacc = payaacc.filter(Interprise=shell.id, no_amount=False)
+  elif not useri.admin:
+      payaacc = payaacc.filter(no_amount=False)
 
   AccSum = payaacc.filter(no_amount=False).aggregate(sumi=Sum('Amount'))['sumi'] or 0
 
@@ -139,6 +449,7 @@ def payaccounts(request):
       'AccSum':AccSum,
       'isAkaunti':True
   })
+  payments_nav_context(todo, request, 'payaccounts')
   return render(request,'payaccounts.html',todo)
 
 
@@ -551,6 +862,7 @@ def deposit(request):
             'exists':weka.exists(),
             'isdeposit':True
         })    
+        payments_nav_context(todo, request, 'acct_deposit')
 
         return render(request,'payaDiposti.html',todo)
 
@@ -596,11 +908,116 @@ def withdraw(request):
             'exists':toa.exists(),
             'iswithdraw':True
         })    
+        payments_nav_context(todo, request, 'acct_withdraw')
 
         return render(request,'payawithdraw.html',todo)
 
     except:
         return render(request,'pagenotFound.html')
+
+
+@login_required(login_url='login')
+def paymentStatement(request):
+    try:
+        todo = todoFunct(request)
+        useri = todo['useri']
+        kampuni = todo['kampuni']
+        general = todo['general']
+        shell = todo['shell']
+
+        stations = Interprise.objects.filter(company=kampuni)
+        payacc = _payment_statement_account_qs(todo)
+        staff = _payment_statement_recorded_by_qs(todo)
+
+        if not general:
+            stations = stations.filter(pk=shell.id)
+            payacc = payacc.filter(Interprise=shell.id)
+
+        payments_nav_context(todo, request, 'payment_statement')
+        todo.update({
+            'stations': stations,
+            'payacc': payacc,
+            'staff_users': staff,
+            'isPaymentStatement': True,
+        })
+        return render(request, 'paymentStatement.html', todo)
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return render(request, 'pagenotFound.html')
+
+
+@login_required(login_url='login')
+def paymentStatementData(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
+
+    try:
+        todo = todoFunct(request)
+        t_fr = request.POST.get('tFr')
+        t_to = request.POST.get('tTo')
+        account_id = int(request.POST.get('account', 0) or 0)
+        recorded_by = int(request.POST.get('recordedBy', 0) or 0)
+        payment_type = request.POST.get('paymentType', '').strip()
+        direction = request.POST.get('direction', '').strip()
+        station_id = int(request.POST.get('station', 0) or 0)
+        overview = int(request.POST.get('overview', 0) or 0)
+        summary_only = int(request.POST.get('summaryOnly', 0) or 0)
+
+        if overview:
+            payload = {
+                'success': True,
+                'overview': _payment_statement_overview(
+                    todo, account_id, recorded_by, payment_type, direction, station_id
+                ),
+            }
+            return JsonResponse(payload)
+
+        t_fr_dt = _parse_payment_statement_dt(t_fr)
+        t_to_dt = _parse_payment_statement_dt(t_to)
+        if not t_fr_dt or not t_to_dt:
+            return JsonResponse({'success': False, 'swa': 'Tarehe hazipo', 'eng': 'Dates are required'})
+
+        weka, toa = _build_payment_statement_qs(
+            todo, t_fr_dt, t_to_dt, account_id, recorded_by, payment_type, direction, station_id
+        )
+        summary = _payment_statement_summary(weka, toa)
+
+        payload = {
+            'success': True,
+            'summary': summary,
+        }
+
+        if not summary_only:
+            weka_rows = list(weka.annotate(
+                mobile_pay=F('sales__mobile_pay'),
+                shift_code=F('shift__code'),
+                shiftBFname=F('shift__by__user__first_name'),
+                shiftBLname=F('shift__by__user__last_name'),
+            ).values(
+                'id', 'tarehe', 'Amount', 'before', 'After', 'Akaunt_id', 'Interprise_id', 'kutoka', 'maelezo',
+                'admin_approval', 'biforeShift', 'mauzo', 'kuhamisha', 'huduma', 'cdOrder_id', 'customer_id', 'shift_id',
+                'account_name', 'station_name', 'custN', 'BFname', 'BLname', 'mobile_pay',
+                'shift_code', 'shiftBFname', 'shiftBLname',
+            ))
+            toa_rows = list(toa.annotate(
+                expense_name=F('matumizi__matumizi__matumizi'),
+                bill_name=F('bill__jina'),
+                trsp_bill_name=F('trsp_bill__jina'),
+            ).values(
+                'id', 'tarehe', 'Amount', 'before', 'After', 'Akaunt_id', 'Interprise_id', 'kwenda', 'maelezo',
+                'admin_approval', 'kuhamisha', 'personal', 'matumizi_id', 'bill_id', 'trsp_bill_id',
+                'account_name', 'station_name', 'BFname', 'BLname', 'expense_name', 'bill_name', 'trsp_bill_name',
+            ))
+            transactions = _serialize_weka_rows(weka_rows) + _serialize_toa_rows(toa_rows)
+            transactions.sort(key=lambda x: x['date'] or '', reverse=True)
+            payload['transactions'] = transactions
+
+        return JsonResponse(payload)
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'swa': 'Imeshindikana', 'eng': 'Request failed'})
 
 
 @login_required(login_url='login')

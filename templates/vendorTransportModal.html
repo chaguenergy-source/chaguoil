@@ -15,7 +15,12 @@
         </svg>
             <!--  -->
 
-            {% if useri.langSet == 0 %} Ongeza Msafirishaji  {% else %} Add Transporter {% endif %}</h5>
+            {% if isViewTransporter %}
+              {% if useri.langSet == 0 %} Kuediti Msafirishaji {% else %} Edit Transporter {% endif %}
+            {% else %}
+              {% if useri.langSet == 0 %} Ongeza Msafirishaji  {% else %} Add Transporter {% endif %}
+            {% endif %}
+          </h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -24,7 +29,7 @@
             <!-- <form action=""> -->
   
                 <div class="container">
-            <form action="/salepurchase/addtransporter" data-active_customer=0 data-edit=0 data-customer_value=0 data-valued=0 class="pt-3" id="form-transporter">
+            <form action="/salepurchase/addtransporter" data-active_customer=0 data-edit={% if isViewTransporter %}1{% else %}0{% endif %} data-customer_value=0 data-valued={% if isViewTransporter %}{{trsp.id}}{% else %}0{% endif %} class="pt-3" id="form-transporter">
                             {% csrf_token %}
                 
                             
@@ -32,7 +37,7 @@
                             
                             <label for="transporter-name" class="smallFont brown ">{% if useri.langSet == 0 %} Jina la Msafirishaji{% else %} Transporter Name{% endif %} <sup class="text-danger font-weight-bold">*</sup></label>
                             
-                                <input type="text" id="transporter-name"  class="form-control input-data smallFont">
+                                <input type="text" id="transporter-name" value="{% if isViewTransporter %}{{trsp.jina}}{% endif %}" class="form-control input-data smallFont">
                             <small hidden class="smallerFont verify-transporter text-danger">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
                                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
@@ -45,7 +50,7 @@
                             <label for="transpoter-sehemu" class="smallFont brown "> {% if useri.langSet == 0 %} Anwani  {% else %} Transporter Address{% endif %}<sup class="text-danger font-weight-bold">*</sup> </label>
                             
                             
-                                <input type="text" id="transpoter-sehemu"  placeholder=" {% if useri.langSet == 0 %}Andika sehemu anayopatikana   {% else %} Write Transporter address {% endif %}" class="form-control input-data smallFont">
+                                <input type="text" id="transpoter-sehemu" value="{% if isViewTransporter %}{{trsp.address}}{% endif %}" placeholder=" {% if useri.langSet == 0 %}Andika sehemu anayopatikana   {% else %} Write Transporter address {% endif %}" class="form-control input-data smallFont">
                                 <small hidden class="smallerFont verify-transporter text-danger">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
                                     <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
@@ -63,9 +68,9 @@
                 
                                 <div class="input-group ">
                                 <div class="input-group-prepend">
-                                    <input type="text" value="+255" id="transp-simu-code" class="pl-2 smallerFont form-control simuCode" style="width:58px;">
+                                    <input type="text" value="{% if isViewTransporter %}{{trsp.code}}{% else %}+255{% endif %}" id="transp-simu-code" class="pl-2 smallerFont form-control simuCode" style="width:58px;">
                                 </div>
-                                    <input type="tel"  placeholder=" {% if useri.langSet == 0 %} kama.  712345678 {% else %} eg. 712345678{% endif %}" id="transp-simu" class="form-control made-input input-data smallFont" >
+                                    <input type="tel" value="{% if isViewTransporter %}{{trsp.simu1}}{% endif %}" placeholder=" {% if useri.langSet == 0 %} kama.  712345678 {% else %} eg. 712345678{% endif %}" id="transp-simu" class="form-control made-input input-data smallFont" >
                                     <small hidden class="smallerFont verify-transporter text-danger">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
                                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
@@ -89,7 +94,7 @@
                                     <input type="text" value="+255" class="pl-2 form-control simuCode smallerFont" id="transp-simu2-code" style="width:58px;">
                 
                                 </div>
-                                    <input type="number" value="{{ven.simu2}}" placeholder=" {% if useri.langSet == 0 %} kama.  712345678 {% else %} eg. 712345678{% endif %}" id="transp-simu2" class="made-input form-control input-data smallFont" >
+                                    <input type="number" value="{% if isViewTransporter %}{{trsp.simu2}}{% endif %}" placeholder=" {% if useri.langSet == 0 %} kama.  712345678 {% else %} eg. 712345678{% endif %}" id="transp-simu2" class="made-input form-control input-data smallFont" >
                 
                                 </div>
                             <small hidden class="smallerFont verify-transporter text-danger">
@@ -131,9 +136,16 @@
                             <label for="transp-mail" class="smallFont"> {% if useri.langSet == 0 %} Barua pepe(email)  {% else %} Email Address {% endif %}:  </label>
                             
                             
-                                <input type="email"  placeholder=" {% if useri.langSet == 0 %} kama.  {% else %} eg. {% endif %} mfanoemail@provider.com"  id="transp-mail" class="form-control smallFont input-data">
+                                <input type="email" value="{% if isViewTransporter %}{{trsp.email}}{% endif %}" placeholder=" {% if useri.langSet == 0 %} kama.  {% else %} eg. {% endif %} mfanoemail@provider.com"  id="transp-mail" class="form-control smallFont input-data">
                             
                             </div>
+
+                              <div class="form-group">
+                                <div class="custom-control custom-switch cursor-pointer">
+                                  <input type="checkbox" class="custom-control-input cursor-pointer" id="isActiveTransporter" {% if isViewTransporter %}{% if trsp.active %}checked{% endif %}{% else %}checked{% endif %}>
+                                  <label class="custom-control-label smallFont weight600 cursor-pointer" for="isActiveTransporter">{% if useri.langSet == 0 %} Msafirishaji Hai{% else %} Active Transporter{% endif %}</label>
+                                </div>
+                              </div>
                             <div class="row py-3">
                             
                             <div class="col-12 text-right">
@@ -165,7 +177,10 @@
     const mail = $('#transp-mail').val()
     const code1 = $('#transp-simu-code').val()
     const code2 = $('#transp-simu2-code').val()
-    const data = {data:{name, address, phone1, phone2, mail, code1, code2},url:'/salepurchase/addTransporter'}
+    const edit = Number($('#form-transporter').data('edit')) || 0
+    const valued = Number($('#form-transporter').data('valued')) || 0
+    const isActive = Number($('#isActiveTransporter').prop('checked')) || 0
+    const data = {data:{name, address, phone1, phone2, mail, code1, code2, edit, valued, isActive},url:'/salepurchase/addTransporter'}
     if(!name){redborder('#transporter-name'); $('.verify-transporter').show()}else{$('.verify-transporter').hide()}
     if(!address){redborder('#transpoter-sehemu'); $('.verify-transporter').show()}else{$('.verify-transporter').hide()}
     if(!phone1){redborder('#transp-simu'); $('.verify-transporter').show()}else{$('.verify-transporter').hide()}
@@ -184,7 +199,9 @@
               "timeOut": "5000"})
               const isTr = Number('{{isTranspoter}}')
               const isVen = Number('{{isViewVend}}')
+              const isTranspView = Number('{{isViewTransporter}}')
               if(isTr)location.reload()
+              if(isTranspView)location.reload()
               if(isVen){
                 // console.log(isVen);
                  const options = `<option value="${resp.id}">${name}</option>`

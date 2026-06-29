@@ -19,9 +19,11 @@ from account.models import (
 from django.contrib import messages
 from django.contrib.auth.models import User, auth
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, JsonResponse
-from django.db.models import F, Case, When, Value, CharField
+from django.http import HttpResponse, JsonResponse, FileResponse, Http404
+from django.db.models import F, Case, When, Value, CharField, Count, DateField
+from django.db.models.functions import Coalesce, TruncDate
 from django.db import transaction
 from django.core import serializers
 from django.db.models import Q
@@ -54,11 +56,117 @@ from django.core.files.storage import default_storage # Hii inahitajika kwa kufu
 from account.todos import Todos,confirmMailF,invoCode,TCode
 from django.views.decorators.http import require_POST
 import json
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import parse_datetime, parse_date
 import traceback
+import mimetypes
 def todoFunct(request):
   usr = Todos(request)
   return usr.todoF()
+
+
+def check_customer_records_metrics(cust, kampuni):
+    sales_qs = fuelSales.objects.filter(Q(customer=cust)|Q(cdorder__customer=cust), by__Interprise__company=kampuni)
+    payments_qs = wekaCash.objects.filter(
+        Interprise__company=kampuni,
+        Amount__gt=0,
+    ).filter(
+        Q(customer=cust) | Q(cdOrder__customer=cust)
+    )
+
+    total_paid = Decimal(str(payments_qs.aggregate(total=Sum('Amount'))['total'] or 0))
+    total_consumed = Decimal(str(sales_qs.aggregate(total=Sum('amount'))['total'] or 0))
+    difference = total_paid - total_consumed
+
+    orders_qs = creditDebtOrder.objects.filter(customer=cust, by__user__company=kampuni)
+    order_credit_surplus = Decimal('0')
+    for order in orders_qs:
+        order_credit_surplus += Decimal(str(order.paid or 0)) - Decimal(str(order.consumed or 0))
+
+    apay_total = Decimal(str(
+        CustmDebtPayRec.objects.filter(
+            Q(pay__in=payments_qs) | Q(sale__in=sales_qs)
+        ).aggregate(total=Sum('Apay'))['total'] or 0
+    ))
+
+    tolerance = Decimal('0.01')
+    issues = []
+    recommendations = []
+    status = 'ok'
+    scenario = 'balanced'
+
+    if difference > tolerance:
+        scenario = 'credit_surplus'
+        excess = difference
+        if abs(excess - order_credit_surplus) > tolerance:
+            status = 'mismatch'
+            issues.append({
+                'swa': (
+                    f'Malipo yamezidi matumizi kwa {excess:.2f}, '
+                    f'lakini jumla ya (paid - consumed) kwenye oda za mkopo ni {order_credit_surplus:.2f}.'
+                ),
+                'eng': (
+                    f'Payments exceed consumption by {excess:.2f}, '
+                    f'but total credit order surplus (paid - consumed) is {order_credit_surplus:.2f}.'
+                ),
+            })
+            recommendations.append({
+                'swa': 'Kagua oda zote za mkopo na ulinganishe paid - consumed na kiasi kilichozidi.',
+                'eng': 'Review all credit orders and compare paid - consumed with the payment surplus.',
+            })
+        else:
+            recommendations.append({
+                'swa': 'Rekodi zinaendana. Salio la mkopo linaendana na malipo yaliyozidi matumizi.',
+                'eng': 'Records match. Credit order surplus aligns with excess payments.',
+            })
+    elif difference < -tolerance:
+        scenario = 'debt'
+        debt_amount = abs(difference)
+        if abs(total_paid - apay_total) > tolerance:
+            status = 'mismatch'
+            issues.append({
+                'swa': (
+                    f'Jumla ya malipo kutoka wekaCash ({total_paid:.2f}) '
+                    f'haifanani na jumla ya CustmDebtPayRec.Apay ({apay_total:.2f}).'
+                ),
+                'eng': (
+                    f'Total wekaCash payments ({total_paid:.2f}) '
+                    f'do not match total CustmDebtPayRec.Apay ({apay_total:.2f}).'
+                ),
+            })
+            recommendations.append({
+                'swa': 'Rekebisha linkage ya malipo na ankara, kisha jaza deni halisi au mkopo halisi hapa chini.',
+                'eng': 'Fix payment-to-invoice links, then enter the actual debt or credit below.',
+            })
+        else:
+            recommendations.append({
+                'swa': 'Malipo na Apay yanaendana, lakini matumizi bado yamezidi malipo.',
+                'eng': 'Payments and Apay match, but consumption still exceeds payments.',
+            })
+    else:
+        recommendations.append({
+            'swa': 'Jumla ya malipo na matumizi yanaendana.',
+            'eng': 'Total payments and consumption are balanced.',
+        })
+
+    return {
+        'status': status,
+        'scenario': scenario,
+        'total_paid': float(total_paid),
+        'total_consumed': float(total_consumed),
+        'difference': float(difference),
+        'order_credit_surplus': float(order_credit_surplus),
+        'apay_total': float(apay_total),
+        'debt_amount': float(abs(difference)) if difference < -tolerance else 0,
+        'credit_surplus': float(difference) if difference > tolerance else 0,
+        'issues': issues,
+        'recommendations': recommendations,
+        'needs_correction': status == 'mismatch',
+        'show_debt_input': scenario == 'debt',
+        'show_credit_input': scenario == 'credit_surplus',
+        'payments_count': payments_qs.count(),
+        'sales_count': sales_qs.count(),
+        'orders_count': orders_qs.count(),
+    }
 
 
 @login_required(login_url='login')
@@ -123,10 +231,16 @@ def toApprovalPayments(request):
         pym = wekaCash.objects.filter(Q(customer__isnull=False)|Q(sales__mobile_pay=True)|Q(kuhamisha=True)|Q(biforeShift=True),Interprise__company=kampuni,admin_approval=False,Amount__gt=0)
         toa = toaCash.objects.filter(kuhamisha=True,Akaunt__aina__icontains="Cash",Interprise__company=kampuni,admin_approval=False,Amount__gt=0) 
         exp = rekodiMatumizi.objects.filter(Interprise__company=kampuni,admin_approval=False)
+        fuel_transfers = transFromTo.objects.filter(transfer__record_by__Interprise__company=kampuni,adminAproval=False)
+        fuel_receives = receivedFuel.objects.filter(receive__by__Interprise__company=kampuni,adminAproval=False)
+        fuel_adjs = tankAdjust.objects.filter(adj__Interprise__company=kampuni,adminAproval=False)
         if not general:
             pym = pym.filter(Interprise=shell.id)
             toa = toa.filter(Interprise=shell.id)
             exp = exp.filter(Interprise=shell.id)
+            fuel_transfers = fuel_transfers.filter(transfer__record_by__Interprise=shell.id)
+            fuel_receives = fuel_receives.filter(receive__by__Interprise=shell.id)
+            fuel_adjs = fuel_adjs.filter(adj__Interprise=shell.id)
 
         todo.update({
             'mobile_pym':len(pym.filter(sales__mobile_pay=True)),
@@ -134,6 +248,9 @@ def toApprovalPayments(request):
             'cashDeposit':len(toa),
             'cashDepositBefore':len(pym.filter(biforeShift=True,shift__isnull=False,sales__mobile_pay__isnull=True)),
             'shift_expenses':len(exp),
+            'fuel_transfers':fuel_transfers.count(),
+            'fuel_receives':fuel_receives.count(),
+            'fuel_adjs':fuel_adjs.count(),
             'isToApprovalPayments':True
         })   
         return todo
@@ -310,8 +427,6 @@ def ViewCustomer(request):
     stations = Interprise.objects.filter(company=todo['kampuni'].id)
     custBalance = float(debtprev+debt) - float(cust.debt_limit)
 
-  
-
     todo.update({
         'isCustomer':True,
         'isCustomerView':True,
@@ -339,9 +454,7 @@ def ViewCustomer(request):
         'totA':totAmo+totprev,
         'totD':debtprev+debt,
         'totP':paid+paidprev,
-        'totI':len(saleMonth) + len(sale_prev)
-
-        
+        'totI':len(saleMonth) + len(sale_prev),
 
     })
     return render(request,'customerView.html',todo)
@@ -350,6 +463,272 @@ def ViewCustomer(request):
       traceback.print_exc()
      
       return render(request,'pagenotFound.html')
+
+
+@login_required(login_url='login')
+def repairCustomerStatementLinks(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
+
+    try:
+        cust_id = int(request.POST.get('cust', 0))
+        todo = todoFunct(request)
+        useri = todo['useri']
+        kampuni = todo['kampuni']
+
+        if not useri.admin:
+            return JsonResponse({
+                'success': False,
+                'swa': 'Hauna ruhusa ya kufanya marekebisho haya',
+                'eng': 'You have no permission to run this repair'
+            })
+
+        cust = wateja.objects.get(pk=cust_id, Interprise__company=kampuni)
+        customer_order_ids = creditDebtOrder.objects.filter(
+            customer=cust,
+            by__user__company=kampuni
+        ).values_list('id', flat=True)
+
+        with transaction.atomic():
+            sales = list(
+                fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni)
+                .order_by('recDate', 'date', 'pk')
+                .select_for_update()
+            )
+
+            payment_ids = list(
+                wekaCash.objects.filter(
+                    Interprise__company=kampuni,
+                    Akaunt__isnull=False,
+                    Amount__gt=0
+                ).filter(
+                    Q(customer=cust) | Q(cdOrder_id__in=customer_order_ids)
+                ).values_list('id', flat=True)
+            )
+
+            payments = list(
+                wekaCash.objects.filter(pk__in=payment_ids)
+                .order_by('tarehe', 'pk')
+                .select_for_update()
+            )
+
+            CustmDebtPayRec.objects.filter(Q(sale__in=sales) | Q(pay__in=payments)).delete()
+
+            wekaCash.objects.filter(pk__in=payment_ids).update(used_amount=Decimal('0'))
+
+            for s in sales:
+                s.payed = Decimal('0')
+
+            orders = list(
+                creditDebtOrder.objects.filter(customer=cust, by__user__company=kampuni)
+                .order_by('pk')
+                .select_for_update()
+            )
+            last_order = orders[-1] if orders else None
+            topup_by_order = {}
+            topup_total = Decimal('0')
+
+            created_links = 0
+            sale_index = 0
+
+            for pay in payments:
+                remaining = Decimal(str(pay.Amount or 0))
+                allocated = Decimal('0')
+
+                while remaining > 0 and sale_index < len(sales):
+                    sale = sales[sale_index]
+                    amount = Decimal(str(sale.amount or 0))
+                    paid = Decimal(str(sale.payed or 0))
+                    due = amount - paid
+
+                    if due <= 0:
+                        sale_index += 1
+                        continue
+
+                    apay = due if due <= remaining else remaining
+
+                    rec = CustmDebtPayRec()
+                    rec.pay = pay
+                    rec.sale = sale
+                    rec.Debt = due
+                    rec.Apay = apay
+                    rec.save()
+                    created_links += 1
+
+                    sale.payed = paid + apay
+                    allocated += apay
+                    remaining -= apay
+
+                    if sale.payed >= amount:
+                        sale_index += 1
+
+                if remaining > 0 and last_order is not None:
+                    topup = remaining
+                    topup_by_order[last_order.id] = topup_by_order.get(last_order.id, Decimal('0')) + topup
+                    topup_total += topup
+                    remaining = Decimal('0')
+                    pay.cdOrder = last_order
+                    pay.used_amount = allocated + topup
+                    pay.save(update_fields=['used_amount', 'cdOrder'])
+                else:
+                    pay.cdOrder = None
+                    pay.used_amount = allocated
+                    pay.save(update_fields=['used_amount', 'cdOrder'])
+
+            for s in sales:
+                s.save(update_fields=['payed'])
+
+            for order in orders:
+                order_sales = [sale for sale in sales if sale.cdorder_id == order.id]
+                order_amount = sum(Decimal(str(sale.amount or 0)) for sale in order_sales)
+                order_paid_sales = sum(Decimal(str(sale.payed or 0)) for sale in order_sales)
+                order_topup = topup_by_order.get(order.id, Decimal('0'))
+                order_paid = order_paid_sales + order_topup
+
+                base_amount = order_amount if order_amount > 0 else Decimal(str(order.amount or 0))
+                base_consumed = order_amount if order_amount > 0 else Decimal(str(order.consumed or 0))
+
+                if order_paid > base_amount:
+                    base_amount = order_paid
+
+                order.amount = base_amount
+                order.consumed = base_consumed
+                order.paid = order_paid
+                order.prepaid_order = order_paid > base_consumed
+                order.save(update_fields=['amount', 'consumed', 'paid', 'prepaid_order'])
+
+        metrics = check_customer_records_metrics(cust, kampuni)
+
+        return JsonResponse({
+            'success': True,
+            'swa': 'Marekebisho ya malipo yamekamilika',
+            'eng': 'Payment reconciliation completed successfully',
+            'links': created_links,
+            'topup': float(topup_total),
+            **metrics,
+        })
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'swa': 'Marekebisho yameshindwa kutokana na hitilafu',
+            'eng': 'Reconciliation failed due to an error'
+        })
+
+
+@login_required(login_url='login')
+def checkCustomerRecords(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
+
+    try:
+        cust_id = int(request.POST.get('cust', 0))
+        todo = todoFunct(request)
+        useri = todo['useri']
+        kampuni = todo['kampuni']
+
+        if not useri.admin:
+            return JsonResponse({
+                'success': False,
+                'swa': 'Hauna ruhusa ya kufanya ukaguzi huu',
+                'eng': 'You have no permission to run this check',
+            })
+
+        cust = wateja.objects.get(Q(Interprise__company=kampuni) | Q(allEntp=True), pk=cust_id)
+        metrics = check_customer_records_metrics(cust, kampuni)
+
+        return JsonResponse({
+            'success': True,
+            'swa': 'Ukaguzi umekamilika',
+            'eng': 'Check completed successfully',
+            **metrics,
+        })
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'swa': 'Ukaguzi umeshindikana',
+            'eng': 'Check failed due to an error',
+        })
+
+
+@login_required(login_url='login')
+def applyCustomerRecordCorrection(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
+
+    try:
+        cust_id = int(request.POST.get('cust', 0))
+        actual_debt_raw = request.POST.get('actualDebt', '').strip()
+        actual_credit_raw = request.POST.get('actualCredit', '').strip()
+        todo = todoFunct(request)
+        useri = todo['useri']
+        kampuni = todo['kampuni']
+
+        if not useri.admin:
+            return JsonResponse({
+                'success': False,
+                'swa': 'Hauna ruhusa ya kufanya marekebisho haya',
+                'eng': 'You have no permission to apply this correction',
+            })
+
+        has_debt = actual_debt_raw not in ('', None)
+        has_credit = actual_credit_raw not in ('', None)
+        if has_debt == has_credit:
+            return JsonResponse({
+                'success': False,
+                'swa': 'Jaza deni halisi AU mkopo halisi, si zote mbili',
+                'eng': 'Enter either actual debt OR actual credit, not both',
+            })
+
+        cust = wateja.objects.get(Q(Interprise__company=kampuni) | Q(allEntp=True), pk=cust_id)
+        last_order = creditDebtOrder.objects.filter(
+            customer=cust,
+            by__user__company=kampuni,
+        ).order_by('pk').last()
+
+        if last_order is None:
+            return JsonResponse({
+                'success': False,
+                'swa': 'Hakuna oda ya mkopo ya kurekebisha',
+                'eng': 'No credit order found to apply correction',
+            })
+
+        with transaction.atomic():
+            order = creditDebtOrder.objects.select_for_update().get(pk=last_order.pk)
+            consumed = Decimal(str(order.consumed or 0))
+
+            if has_credit:
+                actual_credit = Decimal(str(actual_credit_raw or 0))
+                order.paid = consumed + actual_credit
+                if order.paid > Decimal(str(order.amount or 0)):
+                    order.amount = order.paid
+                order.prepaid_order = actual_credit > 0
+            else:
+                actual_debt = Decimal(str(actual_debt_raw or 0))
+                order.amount = consumed + actual_debt
+                order.paid = consumed
+                order.prepaid_order = False
+
+            order.save(update_fields=['amount', 'paid', 'consumed', 'prepaid_order'])
+
+        metrics = check_customer_records_metrics(cust, kampuni)
+        return JsonResponse({
+            'success': True,
+            'swa': 'Marekebisho yamehifadhiwa',
+            'eng': 'Correction saved successfully',
+            **metrics,
+        })
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'swa': 'Marekebisho yameshindikana',
+            'eng': 'Correction failed due to an error',
+        })
 
 
 @login_required(login_url='login')
@@ -1010,6 +1389,7 @@ def customerStatementData(request):
                 'type': 'Kianzio' if useri.langSet == 0 else 'Opening',
                 'station': '',
                 'details': '',
+                'transporter': '',
                 'driver': '',
                 'vehicle': '',
                 'recorded_by': '',
@@ -2526,12 +2906,12 @@ def customerPayments(request):
          stations= Interprise.objects.filter(company=kampuni)
      todo.update({
         'stations':stations,
-        'approval':toApprovalPayments(request)
-     }) 
+        'approval':toApprovalPayments(request),
+        'payment_nav_active':'mobile_payments',
+     })
 
      return render(request,'shiftCustomerPayments.html',todo)
 
-    
 @login_required(login_url='login')
 def customerDebtPayments(request):
      stations = None
@@ -2543,7 +2923,8 @@ def customerDebtPayments(request):
          stations= Interprise.objects.filter(company=kampuni)
      todo.update({
         'stations':stations,
-        'approval':toApprovalPayments(request)
+        'approval':toApprovalPayments(request),
+        'payment_nav_active':'customer_payments',
      }) 
 
      return render(request,'shiftCustomerDebtPay.html',todo)
@@ -2559,7 +2940,8 @@ def CashDepositBefore(request):
          stations= Interprise.objects.filter(company=kampuni)
      todo.update({
         'stations':stations,
-        'approval':toApprovalPayments(request)
+        'approval':toApprovalPayments(request),
+        'payment_nav_active':'deposits_before',
      }) 
 
      return render(request,'shiftCashDepositBefore.html',todo)
@@ -2575,7 +2957,8 @@ def CashDeposit(request):
          stations= Interprise.objects.filter(company=kampuni)
      todo.update({
         'stations':stations,
-        'approval':toApprovalPayments(request)
+        'approval':toApprovalPayments(request),
+        'payment_nav_active':'shift_deposits',
      }) 
 
      return render(request,'shiftCashDeposit.html',todo)
@@ -2592,10 +2975,1059 @@ def shiftExpenses(request):
          stations= Interprise.objects.filter(company=kampuni)
      todo.update({
         'stations':stations,
-        'approval':toApprovalPayments(request)
+        'approval':toApprovalPayments(request),
+        'payment_nav_active':'expenses',
      })
 
      return render(request,'shiftExpenseList.html',todo)
+
+
+@login_required(login_url='login')
+def shiftTransfersActivity(request):
+     stations = None
+     todo = todoFunct(request)
+     useri = todo['useri']
+     kampuni = todo['kampuni']
+     if useri.admin or useri.ceo:
+         stations = Interprise.objects.filter(company=kampuni)
+     todo.update({
+        'stations':stations,
+        'approval':toApprovalPayments(request)
+     })
+
+     return render(request,'shiftTransfersActivity.html',todo)
+
+
+@login_required(login_url='login')
+def shiftReceivesActivity(request):
+     stations = None
+     todo = todoFunct(request)
+     useri = todo['useri']
+     kampuni = todo['kampuni']
+     if useri.admin or useri.ceo:
+         stations = Interprise.objects.filter(company=kampuni)
+     todo.update({
+        'stations':stations,
+        'approval':toApprovalPayments(request)
+     })
+
+     return render(request,'shiftReceivesActivity.html',todo)
+
+
+@login_required(login_url='login')
+def shiftAdjustmentsActivity(request):
+     stations = None
+     todo = todoFunct(request)
+     useri = todo['useri']
+     kampuni = todo['kampuni']
+     if useri.admin or useri.ceo:
+         stations = Interprise.objects.filter(company=kampuni)
+     todo.update({
+        'stations':stations,
+        'approval':toApprovalPayments(request)
+     })
+
+     return render(request,'shiftAdjustmentsActivity.html',todo)
+
+
+def _parse_shift_session_date_range(tFr, tTo):
+    tFr_date = parse_date((tFr or '').split('T')[0])
+    tTo_date = parse_date((tTo or '').split('T')[0])
+    if not tFr_date or not tTo_date:
+        tFr_dt = parse_datetime(tFr or '')
+        tTo_dt = parse_datetime(tTo or '')
+        tFr_date = tFr_date or (tFr_dt.date() if tFr_dt else None)
+        tTo_date = tTo_date or (tTo_dt.date() if tTo_dt else None)
+    return tFr_date, tTo_date
+
+
+def _empty_daily_sales_row(ses_date, st, stN):
+    return {
+        'date': ses_date.isoformat() if ses_date else '',
+        'st': st,
+        'stN': stN or '',
+        'sales_count': 0,
+        'sales_amount': 0.0,
+        'mobile_count': 0,
+        'mobile_amount': 0.0,
+        'customer_pay_count': 0,
+        'customer_pay_amount': 0.0,
+        'dep_before_count': 0,
+        'dep_before_amount': 0.0,
+        'cash_dep_count': 0,
+        'cash_dep_amount': 0.0,
+        'expenses_count': 0,
+        'expenses_amount': 0.0,
+        'transfer_count': 0,
+        'transfer_qty': 0.0,
+        'transfer_worth': 0.0,
+        'receive_count': 0,
+        'receive_qty': 0.0,
+        'receive_worth': 0.0,
+    }
+
+
+def _daily_sales_bucket_key(ses_date, st):
+    return (ses_date.isoformat() if ses_date else '', int(st or 0))
+
+
+def _merge_daily_sales_bucket(buckets, ses_date, st, stN, updates):
+    key = _daily_sales_bucket_key(ses_date, st)
+    if key not in buckets:
+        buckets[key] = _empty_daily_sales_row(ses_date, st, stN)
+    for field, val in updates.items():
+        buckets[key][field] += val
+
+
+def _build_daily_sales_days(kampuni, shell, useri, tFr_date, tTo_date, tFr, tTo):
+    buckets = {}
+
+    session_rows = shiftSesion.objects.filter(
+        session__Interprise__company=kampuni,
+        date__gte=tFr_date,
+        date__lte=tTo_date,
+    ).values('date', st_id=F('session__Interprise'), stN=F('session__Interprise__name')).distinct()
+    if not useri.admin and not useri.ceo:
+        session_rows = session_rows.filter(session__Interprise=shell.id)
+    for row in session_rows:
+        _merge_daily_sales_bucket(buckets, row['date'], row['st_id'], row['stN'], {})
+
+    sales_rows = fuelSales.objects.filter(
+        by__Interprise__company=kampuni,
+        mobile_pay=False,
+        shiftBy__isnull=False,
+        shiftBy__session__date__gte=tFr_date,
+        shiftBy__session__date__lte=tTo_date,
+    ).annotate(
+        sesDate=F('shiftBy__session__date'),
+        st=F('by__Interprise'),
+        stN=F('by__Interprise__name'),
+    )
+    if not useri.admin and not useri.ceo:
+        sales_rows = sales_rows.filter(by__Interprise=shell.id)
+    for row in sales_rows.values('sesDate', 'st', 'stN').annotate(cnt=Count('id'), total=Sum('amount')):
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'sales_count': row['cnt'],
+            'sales_amount': float(row['total'] or 0),
+        })
+
+    mobile_rows = wekaCash.objects.filter(
+        Interprise__company=kampuni,
+        Amount__gt=0,
+        sales__mobile_pay=True,
+        shift__session__date__gte=tFr_date,
+        shift__session__date__lte=tTo_date,
+    ).annotate(
+        sesDate=F('shift__session__date'),
+        st=F('Interprise'),
+        stN=F('Interprise__name'),
+    )
+    if not useri.admin and not useri.ceo:
+        mobile_rows = mobile_rows.filter(Interprise=shell.id)
+    for row in mobile_rows.values('sesDate', 'st', 'stN').annotate(cnt=Count('id'), total=Sum('Amount')):
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'mobile_count': row['cnt'],
+            'mobile_amount': float(row['total'] or 0),
+        })
+
+    cust_rows = wekaCash.objects.filter(
+        Interprise__company=kampuni,
+        Amount__gt=0,
+        customer__isnull=False,
+        shift__session__date__gte=tFr_date,
+        shift__session__date__lte=tTo_date,
+    ).annotate(
+        sesDate=F('shift__session__date'),
+        st=F('Interprise'),
+        stN=F('Interprise__name'),
+    )
+    if not useri.admin and not useri.ceo:
+        cust_rows = cust_rows.filter(Interprise=shell.id)
+    for row in cust_rows.values('sesDate', 'st', 'stN').annotate(cnt=Count('id'), total=Sum('Amount')):
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'customer_pay_count': row['cnt'],
+            'customer_pay_amount': float(row['total'] or 0),
+        })
+
+    dep_before_rows = wekaCash.objects.filter(
+        Interprise__company=kampuni,
+        Amount__gt=0,
+        biforeShift=True,
+        sales__mobile_pay__isnull=True,
+        shift__session__date__gte=tFr_date,
+        shift__session__date__lte=tTo_date,
+    ).annotate(
+        sesDate=F('shift__session__date'),
+        st=F('Interprise'),
+        stN=F('Interprise__name'),
+    )
+    if not useri.admin and not useri.ceo:
+        dep_before_rows = dep_before_rows.filter(Interprise=shell.id)
+    for row in dep_before_rows.values('sesDate', 'st', 'stN').annotate(cnt=Count('id'), total=Sum('Amount')):
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'dep_before_count': row['cnt'],
+            'dep_before_amount': float(row['total'] or 0),
+        })
+
+    cash_dep_rows = toaCash.objects.filter(
+        kuhamisha=True,
+        Akaunt__supv_acc=False,
+        Interprise__company=kampuni,
+        Amount__gt=0,
+        tarehe__range=[tFr, tTo],
+    ).annotate(
+        sesDate=TruncDate('tarehe'),
+        st=F('Interprise'),
+        stN=F('Interprise__name'),
+    )
+    if not useri.admin and not useri.ceo:
+        cash_dep_rows = cash_dep_rows.filter(Interprise=shell.id)
+    for row in cash_dep_rows.values('sesDate', 'st', 'stN').annotate(cnt=Count('id'), total=Sum('Amount')):
+        if not row['sesDate']:
+            continue
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'cash_dep_count': row['cnt'],
+            'cash_dep_amount': float(row['total'] or 0),
+        })
+
+    expense_rows = rekodiMatumizi.objects.filter(
+        Interprise__company=kampuni,
+    ).filter(
+        Q(fromShift__shift__session__date__gte=tFr_date, fromShift__shift__session__date__lte=tTo_date) |
+        Q(fromShift__isnull=True, tarehe__gte=tFr, tarehe__lte=tTo)
+    ).annotate(
+        sesDate=Coalesce(F('fromShift__shift__session__date'), TruncDate('tarehe'), output_field=DateField()),
+        st=F('Interprise'),
+        stN=F('Interprise__name'),
+    )
+    if not useri.admin and not useri.ceo:
+        expense_rows = expense_rows.filter(Interprise=shell.id)
+    for row in expense_rows.values('sesDate', 'st', 'stN').annotate(cnt=Count('id'), total=Sum('kiasi')):
+        if not row['sesDate']:
+            continue
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'expenses_count': row['cnt'],
+            'expenses_amount': float(row['total'] or 0),
+        })
+
+    transfer_rows = transFromTo.objects.filter(
+        transfer__record_by__Interprise__company=kampuni,
+    ).filter(
+        Q(shift__shift__session__date__gte=tFr_date, shift__shift__session__date__lte=tTo_date) |
+        Q(shift__isnull=True, transfer__date__gte=tFr, transfer__date__lte=tTo)
+    ).annotate(
+        sesDate=Coalesce(F('shift__shift__session__date'), TruncDate('transfer__date'), output_field=DateField()),
+        st=F('transfer__record_by__Interprise'),
+        stN=F('transfer__record_by__Interprise__name'),
+        worth=F('qty') * F('cost'),
+    )
+    if not useri.admin and not useri.ceo:
+        transfer_rows = transfer_rows.filter(transfer__record_by__Interprise=shell.id)
+    for row in transfer_rows.values('sesDate', 'st', 'stN').annotate(
+        cnt=Count('id'),
+        qty_total=Sum('qty'),
+        worth_total=Sum('worth'),
+    ):
+        if not row['sesDate']:
+            continue
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'transfer_count': row['cnt'],
+            'transfer_qty': float(row['qty_total'] or 0),
+            'transfer_worth': float(row['worth_total'] or 0),
+        })
+
+    receive_rows = receivedFuel.objects.filter(
+        receive__by__Interprise__company=kampuni,
+    ).filter(
+        Q(receive__ses__date__gte=tFr_date, receive__ses__date__lte=tTo_date) |
+        Q(receive__ses__isnull=True, receive__date__gte=tFr, receive__date__lte=tTo)
+    ).annotate(
+        sesDate=Coalesce(F('receive__ses__date'), TruncDate('receive__date'), output_field=DateField()),
+        st=F('receive__by__Interprise'),
+        stN=F('receive__by__Interprise__name'),
+        worth=F('qty') * F('price'),
+    )
+    if not useri.admin and not useri.ceo:
+        receive_rows = receive_rows.filter(receive__by__Interprise=shell.id)
+    for row in receive_rows.values('sesDate', 'st', 'stN').annotate(
+        cnt=Count('id'),
+        qty_total=Sum('qty'),
+        worth_total=Sum('worth'),
+    ):
+        if not row['sesDate']:
+            continue
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'receive_count': row['cnt'],
+            'receive_qty': float(row['qty_total'] or 0),
+            'receive_worth': float(row['worth_total'] or 0),
+        })
+
+    days = sorted(buckets.values(), key=lambda d: (d['date'], d['stN']), reverse=True)
+    return days
+
+
+@login_required(login_url='login')
+def dailySalesActivity(request):
+    stations = None
+    todo = todoFunct(request)
+    useri = todo['useri']
+    kampuni = todo['kampuni']
+    if useri.admin or useri.ceo:
+        stations = Interprise.objects.filter(company=kampuni)
+    todo.update({
+        'stations': stations,
+        'approval': toApprovalPayments(request),
+    })
+    return render(request, 'shiftDailySalesActivity.html', todo)
+
+
+@login_required(login_url='login')
+def getDailySalesActivity(request):
+    if request.method == 'POST':
+        try:
+            todo = todoFunct(request)
+            shell = todo['shell']
+            kampuni = todo['kampuni']
+            useri = todo['useri']
+            tFr = request.POST.get('tFr')
+            tTo = request.POST.get('tTo')
+
+            tFr_date, tTo_date = _parse_shift_session_date_range(tFr, tTo)
+            if not tFr_date or not tTo_date:
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Muda uliowekwa si sahihi',
+                    'eng': 'Invalid date range',
+                })
+
+            days = _build_daily_sales_days(kampuni, shell, useri, tFr_date, tTo_date, tFr, tTo)
+            return JsonResponse({
+                'success': True,
+                'days': days,
+            })
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
+            return JsonResponse({
+                'success': False,
+                'swa': 'Haikufanikiwa',
+                'eng': 'Bad Request',
+            })
+    return JsonResponse({
+        'success': False,
+        'swa': 'Haikufanikiwa',
+        'eng': 'Bad Request',
+    })
+
+
+def _person_name(fname, lname):
+    return f'{fname or ""} {lname or ""}'.strip().title()
+
+
+def _fval(val):
+    return float(val or 0)
+
+
+def _serialize_shift_transactions(shift_obj):
+    sales = list(saleList.objects.filter(
+        shift__shift=shift_obj,
+        sale__shiftBy__isnull=True,
+        sale__mobile_pay=False,
+    ).annotate(
+        amount=F('qty_sold') * F('sa_price'),
+        sale_code=F('sale__code'),
+        cust_name=F('sale__customer__jina'),
+        fuel_name=F('theFuel__name'),
+    ).values('sale_id', 'sale_code', 'cust_name', 'fuel_name', 'qty_sold', 'amount'))
+
+    transfers = list(transFromTo.objects.filter(shift__shift=shift_obj).annotate(
+        worth=F('qty') * F('saprice'),
+        fuel_name=F('Fuel__name'),
+        from_tank=F('From__tank__name'),
+        to_tank=F('to__name'),
+        transfer_code=F('transfer__code'),
+    ).values('id', 'transfer_id', 'transfer_code', 'fuel_name', 'from_tank', 'to_tank', 'qty', 'worth'))
+
+    expenses = list(rekodiMatumizi.objects.filter(fromShift__shift=shift_obj).annotate(
+        exp_name=F('matumizi__matumizi'),
+    ).values('id', 'exp_name', 'kiasi', 'fuel_qty', 'tarehe'))
+
+    cash_before = list(wekaCash.objects.filter(shift=shift_obj.id, biforeShift=True).annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+    ).values('id', 'Amount', 'account_name', 'tarehe', 'maelezo'))
+
+    mobile_pays = list(wekaCash.objects.filter(
+        shift=shift_obj.id,
+        sales__mobile_pay=True,
+        Amount__gt=0,
+    ).annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        cust_name=F('customer__jina'),
+        cust_label=F('sales__customer_name'),
+    ).values('id', 'Amount', 'account_name', 'cust_name', 'cust_label', 'tarehe'))
+
+    customer_pays = list(wekaCash.objects.filter(
+        shift=shift_obj.id,
+        customer__isnull=False,
+        Amount__gt=0,
+    ).exclude(sales__mobile_pay=True).annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        cust_name=F('customer__jina'),
+    ).values('id', 'Amount', 'account_name', 'cust_name', 'tarehe'))
+
+    for row in sales:
+        row['qty_sold'] = _fval(row.get('qty_sold'))
+        row['amount'] = _fval(row.get('amount'))
+    for row in transfers:
+        row['qty'] = _fval(row.get('qty'))
+        row['worth'] = _fval(row.get('worth'))
+    for row in expenses:
+        row['kiasi'] = _fval(row.get('kiasi'))
+        row['fuel_qty'] = _fval(row.get('fuel_qty'))
+    for row in cash_before + mobile_pays + customer_pays:
+        row['Amount'] = _fval(row.get('Amount'))
+
+    return {
+        'sales': sales,
+        'transfers': transfers,
+        'expenses': expenses,
+        'cash_before': cash_before,
+        'mobile_pays': mobile_pays,
+        'customer_pays': customer_pays,
+    }
+
+
+def _serialize_shift_pumps(shift_obj):
+    pmps = shiftPump.objects.filter(shift=shift_obj.id).annotate(
+        fuel_name=F('Fuel__name'),
+        fuel_id=F('Fuel_id'),
+        pump_name=F('pump__name'),
+        station_name=F('pump__station__name'),
+    ).values('fuel_id', 'fuel_name', 'pump_name', 'station_name', 'initial', 'final', 'price', 'qty', 'amount', 'analog_used')
+
+    fuels_map = {}
+    for p in pmps:
+        fid = p['fuel_id']
+        if fid not in fuels_map:
+            fuels_map[fid] = {
+                'fuel_name': p['fuel_name'] or '',
+                'pumps': [],
+                'total_qty': 0.0,
+                'total_amount': 0.0,
+            }
+        fuels_map[fid]['pumps'].append({
+            'station_name': p['station_name'] or '',
+            'pump_name': p['pump_name'] or '',
+            'initial': _fval(p['initial']),
+            'final': _fval(p['final']),
+            'price': _fval(p['price']),
+            'qty': _fval(p['qty']),
+            'amount': _fval(p['amount']),
+            'analog_used': bool(p.get('analog_used')),
+        })
+        fuels_map[fid]['total_qty'] += _fval(p['qty'])
+        fuels_map[fid]['total_amount'] += _fval(p['amount'])
+        if p.get('analog_used'):
+            fuels_map[fid]['analog_used'] = True
+
+    result = list(fuels_map.values())
+    for fuel in result:
+        fuel.setdefault('analog_used', False)
+    return result
+
+
+def _serialize_shift_detail(shift_obj):
+    pmps = shiftPump.objects.filter(shift=shift_obj.id)
+    sale_qs = saleList.objects.filter(shift__shift=shift_obj, sale__shiftBy__isnull=True, sale__mobile_pay=False).annotate(
+        amount=F('qty_sold') * F('sa_price')
+    )
+    tr_qs = transFromTo.objects.filter(shift__shift=shift_obj).annotate(worth=F('qty') * F('saprice'))
+    exp_qs = rekodiMatumizi.objects.filter(fromShift__shift=shift_obj)
+    cash_b = wekaCash.objects.filter(shift=shift_obj.id, biforeShift=True)
+
+    sale_a = _fval(sale_qs.aggregate(v=Sum('amount'))['v'])
+    sale_q = _fval(sale_qs.aggregate(v=Sum('qty_sold'))['v'])
+    tr_a = _fval(tr_qs.aggregate(v=Sum('worth'))['v'])
+    tr_q = _fval(tr_qs.aggregate(v=Sum('qty'))['v'])
+    exp_f_a = _fval(exp_qs.filter(fuel_cost__gt=0).aggregate(v=Sum('kiasi'))['v'])
+    exp_f_q = _fval(exp_qs.aggregate(v=Sum('fuel_qty'))['v'])
+    exp_a = _fval(exp_qs.filter(fuel_cost=0).aggregate(v=Sum('kiasi'))['v'])
+    cash_b_a = _fval(cash_b.aggregate(v=Sum('Amount'))['v'])
+    tot_q = _fval(pmps.aggregate(v=Sum('qty'))['v'])
+    tot_a = _fval(shift_obj.amount) + exp_a + cash_b_a
+    toex_q = sale_q + tr_q + exp_f_q
+    toex_a = sale_a + tr_a + exp_f_a + exp_a + cash_b_a
+    loss_prof = _fval(shift_obj.paid) - _fval(shift_obj.amount)
+
+    attendant = shift_obj.by
+    manager = shift_obj.record_by.user if shift_obj.record_by else None
+
+    txs = _serialize_shift_transactions(shift_obj)
+
+    return {
+        'id': shift_obj.id,
+        'code': shift_obj.code or '',
+        'from_dt': shift_obj.From.isoformat() if shift_obj.From else None,
+        'to_dt': shift_obj.To.isoformat() if shift_obj.To else None,
+        'amount': _fval(shift_obj.amount),
+        'paid': _fval(shift_obj.paid),
+        'attendant': _person_name(
+            attendant.user.first_name if attendant else '',
+            attendant.user.last_name if attendant else '',
+        ),
+        'manager': _person_name(
+            manager.user.first_name if manager else '',
+            manager.user.last_name if manager else '',
+        ),
+        'fuels': _serialize_shift_pumps(shift_obj),
+        'summary': {
+            'flow_qty': tot_q,
+            'flow_amount': _fval(shift_obj.amount) + toex_a,
+            'sale_qty': sale_q,
+            'sale_amount': sale_a,
+            'transfer_qty': tr_q,
+            'transfer_amount': tr_a,
+            'expense_fuel_qty': exp_f_q,
+            'expense_fuel_amount': exp_f_a,
+            'expense_cash': exp_a,
+            'cash_before': cash_b_a,
+            'pump_sale_qty': tot_q - toex_q,
+            'pump_sale_amount': tot_a,
+            'required': _fval(shift_obj.amount),
+            'paid': _fval(shift_obj.paid),
+            'loss_profit': abs(loss_prof),
+            'is_loss': _fval(shift_obj.amount) > _fval(shift_obj.paid),
+            'is_bonus': _fval(shift_obj.amount) < _fval(shift_obj.paid),
+        },
+        **txs,
+    }
+
+
+def _serialize_shift_attachments_map(shift_ids, request=None):
+    shift_ids = [sid for sid in set(shift_ids) if sid]
+    if not shift_ids:
+        return {}
+    img_ext = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'}
+    qs = attachments.objects.filter(
+        shift_id__in=shift_ids,
+    ).exclude(file='').select_related('by__user').order_by('date', 'pk')
+    by_shift = {}
+    for att in qs:
+        sid = att.shift_id
+        if sid not in by_shift:
+            by_shift[sid] = []
+        ext = os.path.splitext(att.file.name)[1].lower() if att.file else ''
+        file_url = None
+        if att.file:
+            file_url = request.build_absolute_uri(att.file.url) if request else att.file.url
+        by_user = att.by
+        by_shift[sid].append({
+            'id': att.id,
+            'url': file_url,
+            'name': att.attach_name or '',
+            'date': att.date.isoformat() if att.date else None,
+            'printed_doc': bool(att.printedDocu),
+            'is_image': ext in img_ext,
+            'by': _person_name(
+                by_user.user.first_name if by_user else '',
+                by_user.user.last_name if by_user else '',
+            ),
+        })
+    return by_shift
+
+
+def _serialize_shift_light(shift_obj, attachments=None):
+    attendant = shift_obj.by
+    manager_ue = shift_obj.record_by.user if shift_obj.record_by else None
+    fuels = _serialize_shift_pumps(shift_obj)
+    return {
+        'id': shift_obj.id,
+        'code': shift_obj.code or '',
+        'from_dt': shift_obj.From.isoformat() if shift_obj.From else None,
+        'to_dt': shift_obj.To.isoformat() if shift_obj.To else None,
+        'amount': _fval(shift_obj.amount),
+        'paid': _fval(shift_obj.paid),
+        'analog_used': any(f.get('analog_used') for f in fuels) or shiftPump.objects.filter(shift=shift_obj, analog_used=True).exists(),
+        'attendant': _person_name(
+            attendant.user.first_name if attendant else '',
+            attendant.user.last_name if attendant else '',
+        ),
+        'manager': _person_name(
+            manager_ue.user.first_name if manager_ue else '',
+            manager_ue.user.last_name if manager_ue else '',
+        ),
+        'fuels': fuels,
+        'attachments': attachments or [],
+    }
+
+
+def _serialize_session_shifts_only(ss, attach_map=None):
+    sh_from = ss.session.shFrom.strftime('%H:%M') if ss.session and ss.session.shFrom else ''
+    sh_to = ss.session.shTo.strftime('%H:%M') if ss.session and ss.session.shTo else ''
+    shift_list = shifts.objects.filter(session=ss).select_related(
+        'by__user', 'record_by__user__user'
+    ).order_by('From', 'pk')
+    return {
+        'id': ss.id,
+        'session_name': ss.session.name if ss.session else '',
+        'time_from': sh_from,
+        'time_to': sh_to,
+        'complete': bool(ss.complete),
+        'shifts': [
+            _serialize_shift_light(s, (attach_map or {}).get(s.id, []))
+            for s in shift_list
+        ],
+    }
+
+
+def _attach_session_label(rows, session_name):
+    for row in rows:
+        row['session_name'] = session_name
+    return rows
+
+
+def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, shell=None, useri=None):
+    empty = {
+        'sales': [], 'customer_pays': [], 'mobile_pays': [], 'cash_deposits': [],
+        'transfers': [], 'receives': [], 'adjustments': [], 'expenses': [],
+    }
+    if not session_ids:
+        return empty, {}
+
+    sales = list(saleList.objects.filter(
+        sale__session_id__in=session_ids,
+        sale__shiftBy__isnull=True,
+        sale__mobile_pay=False,
+    ).annotate(
+        amount=F('qty_sold') * F('sa_price'),
+        sale_code=F('sale__code'),
+        cust_name=F('sale__customer__jina'),
+        fuel_name=F('theFuel__name'),
+        session_name=F('sale__session__session__name'),
+    ).values('sale_id', 'sale_code', 'cust_name', 'fuel_name', 'qty_sold', 'amount', 'session_name'))
+
+    shift_sales = list(saleList.objects.filter(
+        shift__shift__session_id__in=session_ids,
+        sale__customer__isnull=False,
+        sale__mobile_pay=False,
+    ).annotate(
+        amount=F('qty_sold') * F('sa_price'),
+        sale_code=F('sale__code'),
+        cust_name=F('sale__customer__jina'),
+        fuel_name=F('theFuel__name'),
+        session_name=F('shift__shift__session__session__name'),
+        attendant_fname=F('shift__shift__by__user__first_name'),
+        attendant_lname=F('shift__shift__by__user__last_name'),
+    ).values('sale_id', 'sale_code', 'cust_name', 'fuel_name', 'qty_sold', 'amount', 'session_name', 'attendant_fname', 'attendant_lname'))
+
+    customer_pays = list(wekaCash.objects.filter(
+        shift__session_id__in=session_ids,
+        customer__isnull=False,
+        Amount__gt=0,
+    ).exclude(sales__mobile_pay=True).annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        cust_name=F('customer__jina'),
+        session_name=F('shift__session__session__name'),
+        attendant_fname=F('shift__by__user__first_name'),
+        attendant_lname=F('shift__by__user__last_name'),
+    ).values('id', 'Amount', 'account_name', 'cust_name', 'tarehe', 'session_name', 'attendant_fname', 'attendant_lname'))
+
+    mobile_pays = list(wekaCash.objects.filter(
+        shift__session_id__in=session_ids,
+        sales__mobile_pay=True,
+        Amount__gt=0,
+    ).annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        cust_name=F('customer__jina'),
+        cust_label=F('sales__customer_name'),
+        session_name=F('shift__session__session__name'),
+        attendant_fname=F('shift__by__user__first_name'),
+        attendant_lname=F('shift__by__user__last_name'),
+    ).values('id', 'Amount', 'account_name', 'cust_name', 'cust_label', 'tarehe', 'session_name', 'attendant_fname', 'attendant_lname'))
+
+    cash_before = list(wekaCash.objects.filter(
+        shift__session_id__in=session_ids,
+        biforeShift=True,
+        Amount__gt=0,
+    ).annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        session_name=F('shift__session__session__name'),
+        attendant_fname=F('shift__by__user__first_name'),
+        attendant_lname=F('shift__by__user__last_name'),
+    ).values('id', 'Amount', 'account_name', 'tarehe', 'maelezo', 'session_name', 'attendant_fname', 'attendant_lname'))
+
+    cash_bank_q = toaCash.objects.filter(
+        kuhamisha=True,
+        Akaunt__supv_acc=False,
+        Interprise__company=kampuni,
+        Amount__gt=0,
+        tarehe__range=[day_start, day_end],
+    )
+    if st:
+        cash_bank_q = cash_bank_q.filter(Interprise=st)
+    elif useri and not useri.admin and not useri.ceo and shell:
+        cash_bank_q = cash_bank_q.filter(Interprise=shell.id)
+
+    cash_bank = list(cash_bank_q.annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        stN=F('Interprise__name'),
+        by_fname=F('by__user__first_name'),
+        by_lname=F('by__user__last_name'),
+    ).values('id', 'Amount', 'account_name', 'stN', 'tarehe', 'maelezo', 'by_fname', 'by_lname'))
+
+    transfers = list(transFromTo.objects.filter(
+        shift__shift__session_id__in=session_ids,
+    ).annotate(
+        worth=F('qty') * F('saprice'),
+        fuel_name=F('Fuel__name'),
+        from_tank=F('From__tank__name'),
+        to_tank=F('to__name'),
+        transfer_code=F('transfer__code'),
+        session_name=F('shift__shift__session__session__name'),
+        attendant_fname=F('shift__shift__by__user__first_name'),
+        attendant_lname=F('shift__shift__by__user__last_name'),
+    ).values('id', 'transfer_id', 'transfer_code', 'fuel_name', 'from_tank', 'to_tank', 'qty', 'worth', 'session_name', 'attendant_fname', 'attendant_lname'))
+
+    receives = list(receivedFuel.objects.filter(
+        receive__ses_id__in=session_ids,
+    ).annotate(
+        receive_code=F('receive__code'),
+        fuel_name=F('Fuel__name'),
+        to_tank=F('To__name'),
+        worth=F('qty') * F('price'),
+        session_name=F('receive__ses__session__name'),
+    ).values('id', 'receive_id', 'receive_code', 'fuel_name', 'to_tank', 'qty', 'worth', 'session_name'))
+
+    adjustments = list(tankAdjust.objects.filter(
+        adj__session_id__in=session_ids,
+    ).annotate(
+        adj_code=F('adj__code'),
+        tank_name=F('tank__name'),
+        fuel_name=F('fuel__name'),
+        session_name=F('adj__session__session__name'),
+        worth=F('diff') * F('price'),
+    ).values('id', 'adj_id', 'adj_code', 'tank_name', 'fuel_name', 'read', 'stick', 'diff', 'price', 'worth', 'session_name'))
+
+    expenses = list(rekodiMatumizi.objects.filter(
+        fromShift__shift__session_id__in=session_ids,
+    ).annotate(
+        exp_name=F('matumizi__matumizi'),
+        session_name=F('fromShift__shift__session__session__name'),
+        attendant_fname=F('fromShift__shift__by__user__first_name'),
+        attendant_lname=F('fromShift__shift__by__user__last_name'),
+    ).values('id', 'exp_name', 'kiasi', 'fuel_qty', 'tarehe', 'session_name', 'attendant_fname', 'attendant_lname'))
+
+    for row in sales + shift_sales:
+        row['qty_sold'] = _fval(row.get('qty_sold'))
+        row['amount'] = _fval(row.get('amount'))
+    for row in shift_sales:
+        row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
+    for rows in (customer_pays, mobile_pays, cash_before, transfers, receives, expenses):
+        for row in rows:
+            for k in ('Amount', 'qty', 'worth', 'kiasi', 'fuel_qty'):
+                if k in row:
+                    row[k] = _fval(row.get(k))
+            if 'attendant_fname' in row:
+                row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
+    for row in cash_before:
+        if 'attendant_fname' in row:
+            row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
+    for row in adjustments:
+        for k in ('read', 'stick', 'diff', 'price', 'worth'):
+            row[k] = _fval(row.get(k))
+    for row in cash_bank:
+        row['Amount'] = _fval(row.get('Amount'))
+        row['by'] = _person_name(row.pop('by_fname', ''), row.pop('by_lname', ''))
+        row['deposit_type'] = 'bank'
+        row['session_name'] = '—'
+
+    cash_deposits = []
+    for row in cash_before:
+        cash_deposits.append({
+            **row,
+            'deposit_type': 'before_shift',
+            'by': row.get('attendant', ''),
+        })
+    for row in cash_bank:
+        cash_deposits.append(row)
+
+    all_sales = sales + shift_sales
+    tables = {
+        'sales': all_sales,
+        'customer_pays': customer_pays,
+        'mobile_pays': mobile_pays,
+        'cash_deposits': cash_deposits,
+        'transfers': transfers,
+        'receives': receives,
+        'adjustments': adjustments,
+        'expenses': expenses,
+    }
+    summary = {
+        'sales_count': len(all_sales),
+        'sales_amount': sum(r['amount'] for r in all_sales),
+        'sales_qty': sum(r['qty_sold'] for r in all_sales),
+        'customer_pay_count': len(customer_pays),
+        'customer_pay_amount': sum(r['Amount'] for r in customer_pays),
+        'mobile_count': len(mobile_pays),
+        'mobile_amount': sum(r['Amount'] for r in mobile_pays),
+        'cash_dep_count': len(cash_deposits),
+        'cash_dep_amount': sum(r['Amount'] for r in cash_deposits),
+        'transfer_count': len(transfers),
+        'transfer_qty': sum(r['qty'] for r in transfers),
+        'transfer_worth': sum(r['worth'] for r in transfers),
+        'receive_count': len(receives),
+        'receive_qty': sum(r['qty'] for r in receives),
+        'receive_worth': sum(r['worth'] for r in receives),
+        'adjustment_count': len(adjustments),
+        'adjustment_diff': sum(r['diff'] for r in adjustments),
+        'expense_count': len(expenses),
+        'expense_amount': sum(r['kiasi'] for r in expenses),
+        'expense_fuel_qty': sum(r['fuel_qty'] for r in expenses),
+        'shift_count': shifts.objects.filter(session_id__in=session_ids).count(),
+        'session_count': len(session_ids),
+    }
+    return tables, summary
+
+
+def _serialize_session_detail(ss):
+    fl_p = shiftPump.objects.filter(shift__session=ss)
+    shift_list = shifts.objects.filter(session=ss).select_related('by__user', 'record_by__user').order_by('From', 'pk')
+    shift_details = [_serialize_shift_detail(s) for s in shift_list]
+
+    session_sales = list(saleList.objects.filter(
+        sale__session=ss,
+        sale__shiftBy__isnull=True,
+        sale__mobile_pay=False,
+    ).annotate(
+        amount=F('qty_sold') * F('sa_price'),
+        sale_code=F('sale__code'),
+        cust_name=F('sale__customer__jina'),
+        fuel_name=F('theFuel__name'),
+    ).values('sale_id', 'sale_code', 'cust_name', 'fuel_name', 'qty_sold', 'amount'))
+
+    session_receives = list(receivedFuel.objects.filter(receive__ses=ss).annotate(
+        receive_code=F('receive__code'),
+        fuel_name=F('Fuel__name'),
+        to_tank=F('To__name'),
+        worth=F('qty') * F('price'),
+    ).values('id', 'receive_id', 'receive_code', 'fuel_name', 'to_tank', 'qty', 'worth'))
+
+    session_transfers = list(transFromTo.objects.filter(
+        shift__shift__session=ss,
+    ).annotate(
+        worth=F('qty') * F('saprice'),
+        fuel_name=F('Fuel__name'),
+        from_tank=F('From__tank__name'),
+        to_tank=F('to__name'),
+        transfer_code=F('transfer__code'),
+        attendant_fname=F('shift__shift__by__user__first_name'),
+        attendant_lname=F('shift__shift__by__user__last_name'),
+    ).values('id', 'transfer_code', 'fuel_name', 'from_tank', 'to_tank', 'qty', 'worth', 'attendant_fname', 'attendant_lname'))
+
+    session_expenses = list(rekodiMatumizi.objects.filter(fromShift__shift__session=ss).annotate(
+        exp_name=F('matumizi__matumizi'),
+        attendant_fname=F('fromShift__shift__by__user__first_name'),
+        attendant_lname=F('fromShift__shift__by__user__last_name'),
+    ).values('id', 'exp_name', 'kiasi', 'fuel_qty', 'tarehe', 'attendant_fname', 'attendant_lname'))
+
+    session_mobile = list(wekaCash.objects.filter(
+        shift__session=ss,
+        sales__mobile_pay=True,
+        Amount__gt=0,
+    ).annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        cust_name=F('customer__jina'),
+        cust_label=F('sales__customer_name'),
+        attendant_fname=F('shift__by__user__first_name'),
+        attendant_lname=F('shift__by__user__last_name'),
+    ).values('id', 'Amount', 'account_name', 'cust_name', 'cust_label', 'tarehe', 'attendant_fname', 'attendant_lname'))
+
+    session_customer = list(wekaCash.objects.filter(
+        shift__session=ss,
+        customer__isnull=False,
+        Amount__gt=0,
+    ).exclude(sales__mobile_pay=True).annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        cust_name=F('customer__jina'),
+        attendant_fname=F('shift__by__user__first_name'),
+        attendant_lname=F('shift__by__user__last_name'),
+    ).values('id', 'Amount', 'account_name', 'cust_name', 'tarehe', 'attendant_fname', 'attendant_lname'))
+
+    session_cash_before = list(wekaCash.objects.filter(
+        shift__session=ss,
+        biforeShift=True,
+        Amount__gt=0,
+    ).annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        attendant_fname=F('shift__by__user__first_name'),
+        attendant_lname=F('shift__by__user__last_name'),
+    ).values('id', 'Amount', 'account_name', 'tarehe', 'maelezo', 'attendant_fname', 'attendant_lname'))
+
+    for rows in (session_sales, session_receives, session_transfers, session_expenses, session_mobile, session_customer, session_cash_before):
+        for row in rows:
+            for k, v in list(row.items()):
+                if k in ('qty_sold', 'amount', 'qty', 'worth', 'kiasi', 'fuel_qty', 'Amount'):
+                    row[k] = _fval(v)
+            if 'attendant_fname' in row:
+                row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
+
+    fuel_ids = set(fl_p.values_list('Fuel_id', flat=True))
+    fuel_ev = []
+    t_flow_q = t_flow_a = t_tr_q = t_tr_a = t_sa_q = t_sa_a = t_exp_q = t_exp_a = t_pmp_q = t_pmp_a = 0.0
+
+    for fuel_id in fuel_ids:
+        if not fuel_id:
+            continue
+        fuel_name = fuel.objects.filter(pk=fuel_id).values_list('name', flat=True).first() or ''
+        sale = saleList.objects.filter(sale__session=ss, sale__shiftBy__isnull=True, sale__mobile_pay=False, theFuel=fuel_id).annotate(
+            amount=F('qty_sold') * F('sa_price')
+        )
+        tr = transFromTo.objects.filter(shift__shift__session=ss, shift__Fuel=fuel_id).annotate(worth=F('qty') * F('saprice'))
+        exp = rekodiMatumizi.objects.filter(fromShift__shift__session=ss, Fuel=fuel_id)
+        flow_q = _fval(fl_p.filter(Fuel=fuel_id).aggregate(v=Sum('qty'))['v'])
+        flow_a = _fval(fl_p.filter(Fuel=fuel_id).aggregate(v=Sum('amount'))['v'])
+        tr_a = _fval(tr.aggregate(v=Sum('worth'))['v'])
+        tr_q = _fval(tr.aggregate(v=Sum('qty'))['v'])
+        sa_a = _fval(sale.aggregate(v=Sum('amount'))['v'])
+        sa_q = _fval(sale.aggregate(v=Sum('qty_sold'))['v'])
+        exp_a = _fval(exp.aggregate(v=Sum('kiasi'))['v'])
+        exp_q = _fval(exp.aggregate(v=Sum('fuel_qty'))['v'])
+        pmp_a = flow_a - (tr_a + sa_a + exp_a)
+        pmp_q = flow_q - (tr_q + sa_q + exp_q)
+        price = _fval(fl_p.filter(Fuel=fuel_id).values_list('price', flat=True).first())
+        fuel_ev.append({
+            'fuel_name': fuel_name,
+            'price': price,
+            'flow_qty': flow_q,
+            'flow_amount': flow_a,
+            'transfer_qty': tr_q,
+            'transfer_amount': tr_a,
+            'expense_qty': exp_q,
+            'expense_amount': exp_a,
+            'sale_qty': sa_q,
+            'sale_amount': sa_a,
+            'pump_qty': pmp_q,
+            'pump_amount': pmp_a,
+        })
+        t_flow_q += flow_q
+        t_flow_a += flow_a
+        t_tr_q += tr_q
+        t_tr_a += tr_a
+        t_sa_q += sa_q
+        t_sa_a += sa_a
+        t_exp_q += exp_q
+        t_exp_a += exp_a
+        t_pmp_q += pmp_q
+        t_pmp_a += pmp_a
+
+    tot_psa = sum(s['summary']['pump_sale_amount'] for s in shift_details)
+    tot_exp = sum(s['summary']['expense_cash'] for s in shift_details)
+    tot_cab = sum(s['summary']['cash_before'] for s in shift_details)
+    tot_req = sum(s['summary']['required'] for s in shift_details)
+    tot_paid = sum(s['summary']['paid'] for s in shift_details)
+
+    sh_from = ss.session.shFrom.strftime('%H:%M') if ss.session and ss.session.shFrom else ''
+    sh_to = ss.session.shTo.strftime('%H:%M') if ss.session and ss.session.shTo else ''
+
+    return {
+        'id': ss.id,
+        'session_name': ss.session.name if ss.session else '',
+        'time_from': sh_from,
+        'time_to': sh_to,
+        'complete': bool(ss.complete),
+        'shifts': shift_details,
+        'session_sales': session_sales,
+        'session_receives': session_receives,
+        'session_transfers': session_transfers,
+        'session_expenses': session_expenses,
+        'session_mobile': session_mobile,
+        'session_customer': session_customer,
+        'session_cash_before': session_cash_before,
+        'fuel_ev': fuel_ev,
+        'fuel_ev_total': {
+            'flow_qty': t_flow_q,
+            'flow_amount': t_flow_a,
+            'transfer_qty': t_tr_q,
+            'transfer_amount': t_tr_a,
+            'expense_qty': t_exp_q,
+            'expense_amount': t_exp_a,
+            'sale_qty': t_sa_q,
+            'sale_amount': t_sa_a,
+            'pump_qty': t_pmp_q,
+            'pump_amount': t_pmp_a,
+        },
+        'session_pay_total': {
+            'pump_sales': tot_psa,
+            'expenses': tot_exp,
+            'cash_before': tot_cab,
+            'required': tot_req,
+            'paid': tot_paid,
+            'bonus_loss': tot_paid - tot_req,
+        },
+    }
+
+
+@login_required(login_url='login')
+def getDailySalesDayDetail(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'swa': 'Haikufanikiwa', 'eng': 'Bad Request'})
+
+    try:
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        shell = todo['shell']
+        useri = todo['useri']
+        day_date = parse_date((request.POST.get('date') or '').split('T')[0])
+        st = int(request.POST.get('st') or 0)
+
+        if not day_date:
+            return JsonResponse({'success': False, 'swa': 'Tarehe si sahihi', 'eng': 'Invalid date'})
+
+        sessions_qs = shiftSesion.objects.filter(
+            date=day_date,
+            session__Interprise__company=kampuni,
+        ).select_related('session', 'session__Interprise').order_by('session__shFrom', 'pk')
+
+        if st:
+            sessions_qs = sessions_qs.filter(session__Interprise=st)
+        elif not useri.admin and not useri.ceo:
+            sessions_qs = sessions_qs.filter(session__Interprise=shell.id)
+
+        shift_ids = list(
+            shifts.objects.filter(session_id__in=sessions_qs.values_list('pk', flat=True))
+            .values_list('pk', flat=True)
+        )
+        attach_map = _serialize_shift_attachments_map(shift_ids, request)
+        sessions = [_serialize_session_shifts_only(ss, attach_map) for ss in sessions_qs]
+        session_ids = list(sessions_qs.values_list('pk', flat=True))
+
+        stN = ''
+        if st:
+            stN = Interprise.objects.filter(pk=st).values_list('name', flat=True).first() or ''
+        elif sessions_qs.exists():
+            stN = sessions_qs.first().session.Interprise.name if sessions_qs.first().session else ''
+
+        day_start = datetime.datetime.combine(day_date, datetime.time.min)
+        day_end = datetime.datetime.combine(day_date, datetime.time.max)
+        from django.utils import timezone as dj_timezone
+        day_start = dj_timezone.make_aware(day_start)
+        day_end = dj_timezone.make_aware(day_end)
+
+        tables, summary = _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st, shell, useri)
+
+        return JsonResponse({
+            'success': True,
+            'date': day_date.isoformat(),
+            'st': st,
+            'stN': stN,
+            'sessions': sessions,
+            'tables': tables,
+            'summary': summary,
+        })
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'swa': 'Haikufanikiwa', 'eng': 'Bad Request'})
 
 
  
@@ -2744,6 +4176,550 @@ def getShiftExpenses(request):
             data = {
                 'success':True,
                 'expenses':list(expenses.values()),
+                'isadmin':useri.admin
+            }
+            return JsonResponse(data)
+
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
+            data = {
+                'success':False,
+                'swa':'Haikufanikiwa',
+                'eng':'Bad Request'
+            }
+            return JsonResponse(data)
+    else:
+        data = {
+            'success':False,
+            'swa':'Haikufanikiwa',
+            'eng':'Bad Request'
+        }
+        return JsonResponse(data)
+
+
+def _shift_attachment_allowed(att, todo):
+    kampuni = todo['kampuni']
+    shell = todo['shell']
+    useri = todo['useri']
+    parent_q = None
+
+    if att.transfer_id:
+        parent_q = TransferFuel.objects.filter(pk=att.transfer_id, record_by__Interprise__company=kampuni)
+        if not useri.admin and not useri.ceo:
+            parent_q = parent_q.filter(record_by__Interprise=shell.id)
+    elif att.receive_id:
+        parent_q = ReceveFuel.objects.filter(pk=att.receive_id, by__Interprise__company=kampuni)
+        if not useri.admin and not useri.ceo:
+            parent_q = parent_q.filter(by__Interprise=shell.id)
+    elif att.adj_id:
+        parent_q = adjustments.objects.filter(pk=att.adj_id, Interprise__company=kampuni)
+        if not useri.admin and not useri.ceo:
+            parent_q = parent_q.filter(Interprise=shell.id)
+    else:
+        return False
+
+    return parent_q.exists()
+
+
+@login_required(login_url='login')
+@xframe_options_sameorigin
+def embedShiftAttachment(request):
+    att_id = request.GET.get('i')
+    if not att_id:
+        raise Http404
+
+    try:
+        att = attachments.objects.get(pk=att_id)
+    except attachments.DoesNotExist:
+        raise Http404
+
+    if not att.file:
+        raise Http404
+
+    todo = todoFunct(request)
+    if not _shift_attachment_allowed(att, todo):
+        raise Http404
+
+    content_type, _ = mimetypes.guess_type(att.file.name)
+    if not content_type:
+        content_type = 'application/octet-stream'
+
+    filename = os.path.basename(att.file.name)
+    response = FileResponse(att.file.open('rb'), content_type=content_type)
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
+
+
+def _shift_flow_attachments(request, parent_ids, link_field):
+    parent_ids = [pid for pid in set(parent_ids) if pid]
+    if not parent_ids:
+        return []
+    filt = {f'{link_field}_id__in': parent_ids}
+    qs = attachments.objects.filter(**filt).exclude(file='').order_by('date', 'pk')
+    result = []
+    for att in qs:
+        parent_id = getattr(att, f'{link_field}_id', None)
+        result.append({
+            'parent_id': parent_id,
+            'id': att.id,
+            'file': request.build_absolute_uri(att.file.url) if att.file else None,
+            'embed_url': request.build_absolute_uri(f'/salepurchase/embedShiftAttachment?i={att.id}'),
+            'attach_name': att.attach_name or '',
+            'date': att.date.isoformat() if att.date else None,
+            'printedDocu': bool(att.printedDocu),
+        })
+    return result
+
+
+@login_required(login_url='login')
+def getShiftTransfers(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            shell = todo['shell']
+            kampuni = todo['kampuni']
+            tFr = request.POST.get('tFr')
+            tTo = request.POST.get('tTo')
+            from_session = int(request.POST.get('from_session',0))
+
+            tr_ids = request.POST.getlist('item_ids[]')
+            if not tr_ids:
+                tr_ids = json.loads(request.POST.get('item_ids','[]'))
+
+            useri = todo['useri']
+
+            transfers = transFromTo.objects.filter(
+                transfer__record_by__Interprise__company=kampuni
+            ).annotate(
+                tarehe=F('transfer__date'),
+                stN=F('transfer__record_by__Interprise__name'),
+                st=F('transfer__record_by__Interprise'),
+                transfer_code=F('transfer__code'),
+                fuel_name=F('Fuel__name'),
+                from_tank=F('From__tank__name'),
+                to_tank=F('to__name'),
+                by_fname=F('transfer__record_by__user__user__first_name'),
+                by_lname=F('transfer__record_by__user__user__last_name'),
+                worth=F('qty')*F('cost')
+            ).order_by('-pk')
+
+            if from_session and tr_ids:
+                transfer_ids = [int(tid) for tid in tr_ids if str(tid).isdigit()]
+                transfers = transfers.filter(pk__in=transfer_ids)
+            else:
+                transfers = transfers.filter(transfer__date__range=[tFr,tTo])
+
+            if not useri.admin and not useri.ceo:
+                transfers = transfers.filter(transfer__record_by__Interprise=shell.id)
+
+            rec_values = list(transfers.values())
+            transfer_ids = [r.get('transfer_id') for r in rec_values if r.get('transfer_id')]
+
+            data = {
+                'success':True,
+                'records':rec_values,
+                'attachments': _shift_flow_attachments(request, transfer_ids, 'transfer'),
+                'isadmin':useri.admin
+            }
+            return JsonResponse(data)
+
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
+            data = {
+                'success':False,
+                'swa':'Haikufanikiwa',
+                'eng':'Bad Request'
+            }
+            return JsonResponse(data)
+    else:
+        data = {
+            'success':False,
+            'swa':'Haikufanikiwa',
+            'eng':'Bad Request'
+        }
+        return JsonResponse(data)
+
+
+@login_required(login_url='login')
+def getShiftReceives(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            shell = todo['shell']
+            kampuni = todo['kampuni']
+            tFr = request.POST.get('tFr')
+            tTo = request.POST.get('tTo')
+            from_session = int(request.POST.get('from_session',0))
+
+            rc_ids = request.POST.getlist('item_ids[]')
+            if not rc_ids:
+                rc_ids = json.loads(request.POST.get('item_ids','[]'))
+
+            useri = todo['useri']
+
+            receives = receivedFuel.objects.filter(
+                receive__by__Interprise__company=kampuni
+            ).annotate(
+                tarehe=F('receive__date'),
+                stN=F('receive__by__Interprise__name'),
+                st=F('receive__by__Interprise'),
+                receive_code=F('receive__code'),
+                fuel_name=F('Fuel__name'),
+                from_tank=F('From__tank__name'),
+                to_tank=F('To__name'),
+                by_fname=F('receive__by__user__user__first_name'),
+                by_lname=F('receive__by__user__user__last_name'),
+                worth=F('qty')*F('price'),
+                from_purchase_id=F('receive__FromPurchase'),
+                from_purchase_code=F('receive__FromPurchase__code'),
+                from_transf_id=F('receive__FromTransf'),
+                from_transf_code=F('receive__FromTransf__code')
+            ).order_by('-pk')
+
+            if from_session and rc_ids:
+                receive_ids = [int(rid) for rid in rc_ids if str(rid).isdigit()]
+                receives = receives.filter(pk__in=receive_ids)
+            else:
+                receives = receives.filter(receive__date__range=[tFr,tTo])
+
+            if not useri.admin and not useri.ceo:
+                receives = receives.filter(receive__by__Interprise=shell.id)
+
+            rec_values = list(receives.values())
+            rec_ids = [r['id'] for r in rec_values]
+            sold_map = {
+                x['receive_id']: x['qty_sum'] for x in saleOnReceive.objects.filter(receive_id__in=rec_ids)
+                .values('receive_id').annotate(qty_sum=Sum('qty'))
+            }
+
+            for r in rec_values:
+                r['sold_on_receive'] = sold_map.get(r['id'], 0)
+
+            receive_ids = [r.get('receive_id') for r in rec_values if r.get('receive_id')]
+
+            data = {
+                'success':True,
+                'records':rec_values,
+                'attachments': _shift_flow_attachments(request, receive_ids, 'receive'),
+                'isadmin':useri.admin
+            }
+            return JsonResponse(data)
+
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
+            data = {
+                'success':False,
+                'swa':'Haikufanikiwa',
+                'eng':'Bad Request'
+            }
+            return JsonResponse(data)
+    else:
+        data = {
+            'success':False,
+            'swa':'Haikufanikiwa',
+            'eng':'Bad Request'
+        }
+        return JsonResponse(data)
+
+
+@login_required(login_url='login')
+@require_POST
+def approveFuelActivity(request):
+    try:
+        item_ids = json.loads(request.POST.get('item_ids','[]'))
+        activity = request.POST.get('activity','')  # 'transfer', 'receive', 'adjustment'
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        useri = todo['useri']
+
+        if not useri.admin:
+            return JsonResponse({'success':False,'swa':'Huna ruhusa hii','eng':'Permission denied'})
+
+        if not item_ids or not activity:
+            return JsonResponse({'success':False,'swa':'Data haikutolewa','eng':'Missing data'})
+
+        ids = [int(i) for i in item_ids if str(i).isdigit()]
+        if not ids:
+            return JsonResponse({'success':False,'swa':'Vitambulisho sivyo sahihi','eng':'Invalid IDs'})
+
+        if activity == 'transfer':
+            updated = transFromTo.objects.filter(pk__in=ids,transfer__record_by__Interprise__company=kampuni).update(adminAproval=True)
+        elif activity == 'receive':
+            updated = receivedFuel.objects.filter(pk__in=ids,receive__by__Interprise__company=kampuni).update(adminAproval=True)
+        elif activity == 'adjustment':
+            updated = tankAdjust.objects.filter(pk__in=ids,adj__Interprise__company=kampuni).update(adminAproval=True)
+        else:
+            return JsonResponse({'success':False,'swa':'Aina si sahihi','eng':'Invalid activity type'})
+
+        return JsonResponse({
+            'success':True,
+            'updated':updated,
+            'swa':'Imehakikiwa kwa mafanikio',
+            'eng':'Approved successfully'
+        })
+    except Exception as err:
+        traceback.print_exc()
+        return JsonResponse({'success':False,'swa':'Hitilafu','eng':str(err)})
+
+
+def _recalc_session_receive_costs(ses, tank):
+    soldBreceive = saleOnReceive.objects.filter(ses=ses, tank=tank)
+    if not soldBreceive.exists():
+        return
+    BsoldCost = float(soldBreceive.aggregate(sumi=Sum(F('qty') * F('cost')))['sumi'] or 0)
+    BsoldQty = float(soldBreceive.aggregate(sumi=Sum('qty'))['sumi'] or 0)
+    shiftSale = saleList.objects.filter(
+        sale__session=ses,
+        shift__pump__tank=tank,
+        shift__shift__session=ses,
+        sale__mobile_pay=False
+    )
+    SoldQty = float(shiftSale.aggregate(sumi=Sum('qty_sold'))['sumi'] or 0)
+    soldAfterRc = float(SoldQty - BsoldQty)
+    Soldcost = soldAfterRc * float(tank.cost)
+    TotCost = float(BsoldCost) + float(Soldcost)
+    if SoldQty > 0:
+        avgCost = TotCost / SoldQty
+        shiftSale.update(cost_sold=float(avgCost))
+
+
+def _reverse_received_fuel_line(rcf):
+    """Reverse stock and movement effects of a single receivedFuel line."""
+    rcv = rcf.receive
+    if rcv is None:
+        return
+
+    trqty = float(rcf.qty or 0)
+    trFuel = rcf.Fuel
+    tnkTo = rcf.To
+    qtyB = float(rcf.qtyB or 0)
+    qtyA = float(rcf.qtyA or 0)
+    fcost = float(rcf.cost or 0)
+
+    if trqty <= 0 or tnkTo is None:
+        return
+
+    if rcv.Fromcont_id:
+        if rcf.From_id and rcf.From.tank_id:
+            tnkFrom = fuel_tanks.objects.select_for_update().get(pk=rcf.From.tank_id)
+            tnkFrom.qty = float(tnkFrom.qty or 0) + trqty
+            tnkFrom.save(update_fields=['qty'])
+
+    elif rcv.FromTransf_id:
+        cont_From = rcv.FromTransf
+        trRec = transFromTo.objects.filter(
+            Fuel=trFuel, transfer=cont_From, taken__gt=0
+        ).order_by('-pk')
+        remaining = trqty
+        for t in trRec:
+            if remaining <= 0:
+                break
+            cur_taken = float(t.taken or 0)
+            reduce_by = min(cur_taken, remaining)
+            t.taken = cur_taken - reduce_by
+            t.save(update_fields=['taken'])
+            remaining -= reduce_by
+
+    elif rcv.FromPurchase_id:
+        cont_From = rcv.FromPurchase
+        pu_lines = PuList.objects.filter(
+            pu=cont_From, Fuel=trFuel, rcvd__gt=0
+        ).order_by('-rcvd')
+        remaining = trqty
+        for pl in pu_lines:
+            if remaining <= 0:
+                break
+            cur_rcvd = float(pl.rcvd or 0)
+            reduce_by = min(cur_rcvd, remaining)
+            pl.rcvd = cur_rcvd - reduce_by
+            pl.save(update_fields=['rcvd'])
+            remaining -= reduce_by
+        if cont_From.closed:
+            cont_From.closed = False
+            cont_From.save(update_fields=['closed'])
+
+    tnkTo = fuel_tanks.objects.select_for_update().get(pk=tnkTo.pk)
+    ses = rcv.ses
+
+    if tnkTo.moving or ses is None:
+        if qtyB > 0:
+            current_cost = float(tnkTo.cost or 0)
+            old_cost = (qtyA * current_cost - trqty * fcost) / qtyB
+            tnkTo.qty = qtyB
+            tnkTo.cost = old_cost
+        else:
+            tnkTo.qty = qtyB
+        tnkTo.save(update_fields=['qty', 'cost'])
+
+        tank_adj_qs = tankAdjust.objects.filter(
+            adj__receive=rcv, tank=tnkTo, fuel=trFuel, stick=rcf.qtyB
+        )
+        adj_ids = list(tank_adj_qs.values_list('adj_id', flat=True).distinct())
+        tank_adj_qs.delete()
+        for adj_id in adj_ids:
+            if adj_id and not tankAdjust.objects.filter(adj_id=adj_id).exists():
+                adjustments.objects.filter(pk=adj_id).delete()
+
+    elif ses.complete:
+        tnkTo.qty = float(tnkTo.qty or 0) - trqty
+        tnkTo.save(update_fields=['qty'])
+        saleOnReceive.objects.filter(receive=rcf).delete()
+        _recalc_session_receive_costs(ses, tnkTo)
+    else:
+        saleOnReceive.objects.filter(receive=rcf).delete()
+
+
+def _cleanup_receive_header(rcv):
+    if receivedFuel.objects.filter(receive=rcv).exists():
+        return
+    attachments.objects.filter(receive=rcv.id).delete()
+    adj_qs = adjustments.objects.filter(receive=rcv)
+    for adj in adj_qs:
+        tankAdjust.objects.filter(adj=adj).delete()
+    adj_qs.delete()
+    rcv.delete()
+
+
+@login_required(login_url='login')
+@require_POST
+def deleteFuelReceive(request):
+    try:
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        shell = todo['shell']
+        manager = todo['manager']
+        useri = todo['useri']
+
+        if not (useri.admin or manager):
+            return JsonResponse({
+                'success': False,
+                'swa': 'Huna ruhusa ya kufuta receive',
+                'eng': 'Permission denied'
+            })
+
+        item_ids = request.POST.getlist('item_ids[]')
+        if not item_ids:
+            item_ids = json.loads(request.POST.get('item_ids', '[]'))
+
+        ids = [int(i) for i in item_ids if str(i).isdigit()]
+        if not ids:
+            return JsonResponse({
+                'success': False,
+                'swa': 'Hakuna rekodi zilizochaguliwa',
+                'eng': 'No records selected'
+            })
+
+        rcf_qs = receivedFuel.objects.filter(
+            pk__in=ids,
+            receive__by__Interprise__company=kampuni,
+            adminAproval=False
+        )
+
+        if not useri.admin and not useri.ceo:
+            rcf_qs = rcf_qs.filter(receive__by__Interprise=shell.id)
+
+        with transaction.atomic():
+            rcf_ids = list(rcf_qs.values_list('id', flat=True))
+            if not rcf_ids:
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Hakuna rekodi zisizohakikiwa zilizopatikana',
+                    'eng': 'No unapproved receive records found'
+                })
+
+            if len(rcf_ids) != len(ids):
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Baadhi ya rekodi haziwezi kufutwa (zimehakikiwa au hazipo)',
+                    'eng': 'Some records cannot be deleted (approved or not found)'
+                })
+
+            # Lock receivedFuel rows only — avoid select_related with select_for_update (PostgreSQL outer join issue)
+            list(receivedFuel.objects.filter(pk__in=rcf_ids).select_for_update())
+
+            rcf_list = list(
+                receivedFuel.objects.filter(pk__in=rcf_ids).select_related(
+                    'receive', 'To', 'From', 'From__tank', 'Fuel',
+                    'receive__FromPurchase', 'receive__FromTransf', 'receive__ses'
+                )
+            )
+
+            receive_ids = set()
+            for rcf in rcf_list:
+                receive_ids.add(rcf.receive_id)
+                _reverse_received_fuel_line(rcf)
+                rcf.delete()
+
+            for rcv_id in receive_ids:
+                rcv = ReceveFuel.objects.filter(pk=rcv_id).first()
+                if rcv:
+                    _cleanup_receive_header(rcv)
+
+        return JsonResponse({
+            'success': True,
+            'deleted': len(rcf_list),
+            'swa': 'Receive imefutwa na stock imerejeshwa',
+            'eng': 'Receive deleted and stock restored'
+        })
+    except Exception as err:
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'swa': 'Hitilafu wakati wa kufuta receive',
+            'eng': str(err)
+        })
+
+
+@login_required(login_url='login')
+def getShiftAdjustments(request):
+    if request.method == "POST":
+        try:
+            todo = todoFunct(request)
+            shell = todo['shell']
+            kampuni = todo['kampuni']
+            tFr = request.POST.get('tFr')
+            tTo = request.POST.get('tTo')
+            from_session = int(request.POST.get('from_session',0))
+
+            adj_ids = request.POST.getlist('item_ids[]')
+            if not adj_ids:
+                adj_ids = json.loads(request.POST.get('item_ids','[]'))
+
+            useri = todo['useri']
+
+            adj_rows = tankAdjust.objects.filter(
+                adj__Interprise__company=kampuni
+            ).annotate(
+                tarehe=F('adj__tarehe'),
+                stN=F('adj__Interprise__name'),
+                st=F('adj__Interprise'),
+                adj_code=F('adj__code'),
+                fuel_name=F('fuel__name'),
+                tank_name=F('tank__name'),
+                by_fname=F('adj__by__user__user__first_name'),
+                by_lname=F('adj__by__user__user__last_name'),
+                worth=F('diff')*F('price')
+            ).order_by('-pk')
+
+            if from_session and adj_ids:
+                adjustment_ids = [int(aid) for aid in adj_ids if str(aid).isdigit()]
+                adj_rows = adj_rows.filter(pk__in=adjustment_ids)
+            else:
+                adj_rows = adj_rows.filter(adj__tarehe__range=[tFr,tTo])
+
+            if not useri.admin and not useri.ceo:
+                adj_rows = adj_rows.filter(adj__Interprise=shell.id)
+
+            adj_values = list(adj_rows.values())
+            adj_parent_ids = [r.get('adj_id') for r in adj_values if r.get('adj_id')]
+
+            data = {
+                'success':True,
+                'records':adj_values,
+                'attachments': _shift_flow_attachments(request, adj_parent_ids, 'adj'),
                 'isadmin':useri.admin
             }
             return JsonResponse(data)
@@ -3310,6 +5286,7 @@ def SessionView(request):
             'fuel':flt,
             'exclude':exclude,
            'calcA':calcA,
+           'has_analog': pmps.filter(analog_used=True).exists(),
 
 
         })
@@ -3735,6 +5712,7 @@ def viewShift(request):
         'fshp':flt,
          'calcA':calcA,
         'shpmp':shp,
+        'has_analog_pumps': shp.filter(analog_used=True).exists(),
         'spancer_shp':spancer_shp,
         'attach':attach,
         'trf':sh,
@@ -3775,9 +5753,52 @@ def viewFuelReceive(request):
         
         trf = tr.last()
         attach = attachments.objects.filter(receive=trf.id)
-        rcd = receivedFuel.objects.filter(receive=trf.id).annotate(thamani=(F('qty')*F('price')))
-        Tqty = rcd.aggregate(sumi=Sum('qty'))['sumi']
-        Tworth = rcd.aggregate(sumi=Sum('thamani'))['sumi']
+        rcd_qs = receivedFuel.objects.filter(receive=trf.id).annotate(thamani=(F('qty')*F('price')))
+        Tqty = rcd_qs.aggregate(sumi=Sum('qty'))['sumi']
+        Tworth = rcd_qs.aggregate(sumi=Sum('thamani'))['sumi']
+
+        # For purchase receives, enrich each received row with transporter, driver and vehicle
+        # from linked purchase lines (PuList -> puAttach).
+        rcd = list(rcd_qs)
+        if trf is not None and trf.FromPurchase is not None:
+            pu_lines = list(
+                PuList.objects.filter(pu=trf.FromPurchase)
+                .select_related('Fuel', 'puAttach__transp')
+                .order_by('pk')
+            )
+
+            fuel_groups = {}
+            for pl in pu_lines:
+                fuel_id = pl.Fuel_id
+                if fuel_id not in fuel_groups:
+                    fuel_groups[fuel_id] = []
+                fuel_groups[fuel_id].append(pl)
+
+            used_line_ids = set()
+
+            for row in rcd:
+                row.transporter = ''
+                row.driver = ''
+                row.vehicle = ''
+
+                candidates = fuel_groups.get(row.Fuel_id, [])
+                if not candidates:
+                    continue
+
+                available = [pl for pl in candidates if pl.pk not in used_line_ids]
+                if not available:
+                    available = candidates
+
+                match = min(
+                    available,
+                    key=lambda pl: abs(float(pl.qty or 0) - float(row.qty or 0))
+                )
+                used_line_ids.add(match.pk)
+
+                if match.puAttach is not None:
+                    row.transporter = match.puAttach.transp.jina if match.puAttach.transp is not None else ''
+                    row.driver = match.puAttach.driver or ''
+                    row.vehicle = match.puAttach.vihecle or ''
 
         adj = adjustments.objects.filter(receive=trf,Interprise__company=kampuni)
         
@@ -4553,6 +6574,9 @@ def startshift(request):
 
                 for p in pumps:
                     pmp = fuel_pumps.objects.get(pk=p['pump'],tank__Interprise=shell.id)
+                    if p.get('analog') is not None:
+                        pmp.analog_readings = float(p['analog'])
+                        pmp.save(update_fields=['analog_readings'])
                     shfp = shiftPump()
                     shfp.pump = pmp
                     shfp.Fuel = pmp.tank.fuel
@@ -4717,13 +6741,40 @@ def endshift(request):
 
                     pmpsh = shiftPump.objects.get(pk=p['pmp'],shift=sh)
                     pmp = pmpsh.pump
-                    sh_diff = float(float(p['final'])-float(pmp.readings))
-                    pmpsh.final = float(p['final'])
+                    analog_used = bool(p.get('analog_used'))
+                    closing = float(p['final'])
+
+                    if analog_used:
+                        opening = float(p.get('analog_initial') or pmp.analog_readings or pmpsh.initial)
+                        sh_diff = float(closing - opening)
+                        pmpsh.initial = opening
+                        pmpsh.final = closing
+                        pmpsh.analog_used = True
+                        pmp.analog_readings = closing
+                    else:
+                        sh_diff = float(closing - float(pmp.readings))
+                        pmpsh.final = closing
+                        pmpsh.analog_used = False
+                        pmp.readings = closing
+
                     pmpsh.qty = sh_diff
                     pmpsh.cost = float(pmp.tank.cost)
                     pmpsh.price = float(pmp.tank.price)
                     pmpsh.amount = float(sh_diff * float(pmp.tank.price))
                     pmpsh.save()
+
+                    if analog_used:
+                        usr = InterprisePermissions.objects.filter(Interprise=shell, Allow=True)
+                        for us in usr:
+                            notify = notifications()
+                            notify.usr = us.user
+                            notify.analog_readings_used = pmpsh
+                            notify.desc = (
+                                f'Mita ya analogi imetumika kwenye pampu {pmp.name} '
+                                f'({pmp.station.name if pmp.station else ""}) zamu SHF-{sh.code}'
+                            )
+                            notify.date = datetime.datetime.now(tz=timezone.utc)
+                            notify.save()
 
                
                     sale = saleList.objects.filter(shift=pmpsh.id,sale__customer__Interprise__company=kampuni,sale__mobile_pay=False).aggregate(Sum('qty_sold'))['qty_sold__sum'] or 0
@@ -4760,7 +6811,6 @@ def endshift(request):
                     
                     pmp.fromi = None
                     pmp.Incharge = None
-                    pmp.readings = float(p['final'])
                     pmp.save()
                  
                     
@@ -4945,7 +6995,7 @@ def theshiftsAttend(request):
       'approval':toApprovalPayments(request),
       'Incharges':shiftAttend,
       'isShiftAttend':True,
-     
+      'payment_nav_active':'shifts',
   })
   return render(request,'pumpAttends.html',todo)
 
@@ -5873,7 +7923,7 @@ def addcustomer(request):
                 simu1=request.POST.get('simu1')
                 simu2=request.POST.get('simu2')
                 mail=request.POST.get('mail')
-                # isActive=request.POST.get('isactive')
+                isActive=int(request.POST.get('isActive',1))
                 value=request.POST.get('value')
                 edit=int(request.POST.get('edit',0))
                 valued=int(request.POST.get('valued',0))
@@ -6032,27 +8082,570 @@ def purchaseStatement(request):
         return render(request,'pagenotFound.html',todoFunct(request))
 
 
+@login_required(login_url='login')
+def transporterStatement(request):
+    try:
+        todo = todoFunct(request)
+        t = int(request.GET.get('t', 0))
+        trsp = transporter.objects.get(pk=t, compan=todo['kampuni'].id) if t else None
+        all_trsp = transporter.objects.filter(compan=todo['kampuni'].id, active=True)
+        if trsp is not None:
+            all_trsp = all_trsp.exclude(pk=trsp.id)
+
+        todo.update({
+            'transporter_statement_tab': True,
+            'trspIid': t,
+            'trsp': trsp,
+            'thereisTrsp': True if trsp is not None else False,
+            'all_trsp': all_trsp,
+            'isTranspoter': 1,
+        })
+        return render(request, 'transporterStatement.html', todo)
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return render(request, 'pagenotFound.html', todoFunct(request))
+
+
+@login_required(login_url='login')
+def transporterStatementData(request):
+    try:
+        trsp_id = int(request.POST.get('transporter', request.GET.get('transporter', 0)) or 0)
+        tFr = request.POST.get('tFr', request.GET.get('tFr', ''))
+        tTo = request.POST.get('tTo', request.GET.get('tTo', ''))
+
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+        useri = todo['useri']
+        trsp_obj = None
+
+        if trsp_id:
+            trsp_obj = transporter.objects.filter(pk=trsp_id, compan=kampuni.id).first()
+
+        def parse_dt(value):
+            if not value:
+                return None
+            if isinstance(value, str):
+                dt = parse_datetime(value)
+                if dt:
+                    return dt
+                try:
+                    return datetime.datetime.fromisoformat(value)
+                except Exception:
+                    return None
+            return value
+
+        tFr_dt = parse_dt(tFr)
+        tTo_dt = parse_dt(tTo)
+
+        purchases_qs = PuList.objects.filter(
+            pu__record_by__company=kampuni.id,
+            puAttach__isnull=False,
+            puAttach__transp__compan=kampuni.id,
+        )
+        payments_qs = toaCash.objects.filter(
+            Akaunt__isnull=False,
+            trsp_bill__isnull=False,
+            Interprise__company=kampuni,
+            trsp_bill__compan=kampuni.id,
+        )
+
+        if trsp_obj is not None:
+            purchases_qs = purchases_qs.filter(puAttach__transp=trsp_obj)
+            payments_qs = payments_qs.filter(trsp_bill=trsp_obj)
+
+        before_purchases_qs = purchases_qs
+        before_payments_qs = payments_qs
+
+        if tFr_dt is not None:
+            purchases_qs = purchases_qs.filter(pu__date__gte=tFr_dt)
+            payments_qs = payments_qs.filter(tarehe__gte=tFr_dt)
+            before_purchases_qs = before_purchases_qs.filter(pu__date__lt=tFr_dt)
+            before_payments_qs = before_payments_qs.filter(tarehe__lt=tFr_dt)
+
+        if tTo_dt is not None:
+            purchases_qs = purchases_qs.filter(pu__date__lte=tTo_dt)
+            payments_qs = payments_qs.filter(tarehe__lte=tTo_dt)
+
+        opening_purchases = float(before_purchases_qs.aggregate(total=Sum('trn_amo'))['total'] or 0)
+        opening_payments = float(before_payments_qs.aggregate(total=Sum('Amount'))['total'] or 0)
+        opening_balance = opening_purchases - opening_payments
+
+        fuel_summary = []
+        fuel_agg = purchases_qs.values('Fuel__name').annotate(
+            total_qty=Sum('qty'),
+            total_amount=Sum('trn_amo'),
+        )
+        for fa in fuel_agg:
+            qty = float(fa.get('total_qty') or 0)
+            amount = float(fa.get('total_amount') or 0)
+            fuel_summary.append({
+                'fuel': fa.get('Fuel__name') or '',
+                'qty': qty,
+                'amount': amount,
+                'avg_price': amount / qty if qty else 0
+            })
+
+        payments_summary = []
+        for p in payments_qs.order_by('pk'):
+            payments_summary.append({
+                'date': p.tarehe,
+                'account': p.Akaunt.Akaunt_name if p.Akaunt else p.kwenda,
+                'amount': float(getattr(p, 'Amount', 0) or 0)
+            })
+
+        txs = []
+        if opening_balance != 0:
+            date_val = tFr_dt if isinstance(tFr_dt, datetime.datetime) else parse_dt(tFr)
+            txs.append({
+                'st': trsp_obj.pk if trsp_obj else 0,
+                'pay': False,
+                'use': False,
+                'opening': True,
+                'date': date_val,
+                'type': 'Kianzio' if useri.langSet == 0 else 'Opening',
+                'station': trsp_obj.jina if trsp_obj else '',
+                'details': '',
+                'driver': '',
+                'vehicle': '',
+                'recorded_by': '',
+                'fuel_price': 0,
+                'qty': 0,
+                'amount': opening_balance,
+                'fuelN': ''
+            })
+
+        for item in purchases_qs.select_related('pu', 'pu__vendor', 'Fuel', 'pu__record_by', 'pu__record_by__user', 'puAttach', 'puAttach__transp').order_by('pu__date', 'pu__pk', 'pk'):
+            purchase = item.pu
+            if purchase is None:
+                continue
+
+            recorded_by = ''
+            if purchase.record_by and hasattr(purchase.record_by, 'user') and purchase.record_by.user is not None:
+                recorded_by = f"{purchase.record_by.user.first_name} {purchase.record_by.user.last_name}".strip()
+
+            fuel_name = item.Fuel.name if item.Fuel else ''
+            qty = float(item.qty or 0)
+            amount = float(item.trn_amo or 0)
+            unit_price = amount / qty if qty else 0
+
+            vehicle = ''
+            driver = ''
+            transporter_name = ''
+            if item.puAttach is not None:
+                vehicle = item.puAttach.vihecle or ''
+                driver = item.puAttach.driver or ''
+                if item.puAttach.transp is not None:
+                    transporter_name = item.puAttach.transp.jina or ''
+
+            txs.append({
+                'st': item.puAttach.transp.pk if item.puAttach and item.puAttach.transp else 0,
+                'pay': False,
+                'use': True,
+                'opening': False,
+                'date': purchase.date,
+                'type': 'Safari' if useri.langSet == 0 else 'Trip',
+                'station': purchase.vendor.jina if purchase.vendor else '',
+                'details': purchase.code or purchase.ref or '',
+                'transporter': transporter_name,
+                'driver': driver,
+                'vehicle': vehicle,
+                'recorded_by': recorded_by,
+                'fuel_price': unit_price,
+                'qty': qty,
+                'amount': amount,
+                'fuelN': fuel_name
+            })
+
+        for p in payments_qs.order_by('tarehe', 'pk'):
+            recorded_by = ''
+            if p.by and getattr(p.by, 'user', None):
+                recorded_by = f"{p.by.user.first_name} {p.by.user.last_name}".strip()
+
+            payment_amount = float(getattr(p, 'Amount', 0) or 0)
+            txs.append({
+                'st': p.trsp_bill.pk if p.trsp_bill else 0,
+                'pay': True,
+                'use': False,
+                'opening': False,
+                'date': p.tarehe,
+                'type': 'LipA' if useri.langSet == 0 else 'Pay',
+                'station': p.trsp_bill.jina if p.trsp_bill else '',
+                'details': p.Akaunt.Akaunt_name if p.Akaunt else p.kwenda,
+                'transporter': p.trsp_bill.jina if p.trsp_bill else '',
+                'driver': '',
+                'vehicle': '',
+                'recorded_by': recorded_by,
+                'fuel_price': 0,
+                'qty': 0,
+                'amount': payment_amount,
+                'payment_amount': payment_amount,
+                'fuelN': ''
+            })
+
+        txs_sorted = sorted(txs, key=lambda x: x.get('date') or datetime.datetime.min)
+
+        running_balance = float(opening_balance)
+        transactions = []
+        for t in txs_sorted:
+            amt = float(t.get('amount') or 0)
+            debt = 0.0
+            credit = 0.0
+
+            if t.get('opening'):
+                running_balance = amt
+                if amt >= 0:
+                    debt = amt
+                else:
+                    credit = abs(amt)
+            elif t.get('use'):
+                debt = amt
+                running_balance += debt
+            elif t.get('pay'):
+                credit = float(t.get('payment_amount') or amt or 0)
+                running_balance -= credit
+
+            transactions.append({
+                'st': t.get('st'),
+                'pay': t.get('pay'),
+                'use': t.get('use'),
+                'opening': t.get('opening'),
+                'date': t.get('date'),
+                'type': t.get('type'),
+                'station': t.get('station'),
+                'details': t.get('details'),
+                'transporter': t.get('transporter'),
+                'driver': t.get('driver'),
+                'vehicle': t.get('vehicle'),
+                'recorded_by': t.get('recorded_by'),
+                'fuel_price': t.get('fuel_price'),
+                'qty': t.get('qty'),
+                'amount': amt,
+                'credit': credit,
+                'debt': debt,
+                'balance': running_balance,
+                'fuelN': t.get('fuelN'),
+            })
+
+        kituo = 'Wote' if useri.langSet == 0 else 'All Transporters'
+        if trsp_obj is not None:
+            kituo = trsp_obj.jina
+
+        return JsonResponse({
+            'success': True,
+            'kituo': kituo,
+            'fuel_summary': fuel_summary,
+            'payments_summary': payments_summary,
+            'transactions': transactions,
+        }, safe=True)
+
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(err)
+        })
+
+
 
 @login_required(login_url='login')
 def vendorStatementData(request):
     try:
+        ven = int(request.POST.get('vendor', request.GET.get('vendor', 0)) or 0)
+        tFr = request.POST.get('tFr', request.GET.get('tFr', ''))
+        tTo = request.POST.get('tTo', request.GET.get('tTo', ''))
+
         todo = todoFunct(request)
         kampuni = todo['kampuni']
-        ven = int(request.GET.get('v',0))
-        tFr = request.GET.get('tFr')
-        tTo = request.GET.get('tTo')
+        useri = todo['useri']
+        vendor_obj = None
 
-       
-        purchases = Purchases.objects.filter(record_by__company=kampuni.id)
+        if ven:
+            vendor_obj = wasambazaji.objects.filter(pk=ven, compan=kampuni.id).first()
+
+        def parse_dt(value):
+            if not value:
+                return None
+            if isinstance(value, str):
+                dt = parse_datetime(value)
+                if dt:
+                    return dt
+                try:
+                    return datetime.datetime.fromisoformat(value)
+                except Exception:
+                    return None
+            return value
+
+        tFr_dt = parse_dt(tFr)
+        tTo_dt = parse_dt(tTo)
+
+        purchases_qs = PuList.objects.filter(
+            pu__record_by__company=kampuni.id,
+            pu__vendor__compan=kampuni.id,
+        )
+        payments_qs = toaCash.objects.filter(Akaunt__isnull=False, bill__isnull=False, Interprise__company=kampuni, bill__compan=kampuni.id)
+
+        if vendor_obj is not None:
+            purchases_qs = purchases_qs.filter(pu__vendor=vendor_obj)
+            payments_qs = payments_qs.filter(bill=vendor_obj)
+
+        before_purchases_qs = purchases_qs
+        before_payments_qs = payments_qs
+
+        if tFr_dt is not None:
+            purchases_qs = purchases_qs.filter(pu__date__gte=tFr_dt)
+            payments_qs = payments_qs.filter(tarehe__gte=tFr_dt)
+            before_purchases_qs = before_purchases_qs.filter(pu__date__lt=tFr_dt)
+            before_payments_qs = before_payments_qs.filter(tarehe__lt=tFr_dt)
+
+        if tTo_dt is not None:
+            purchases_qs = purchases_qs.filter(pu__date__lte=tTo_dt)
+            payments_qs = payments_qs.filter(tarehe__lte=tTo_dt)
+
+        opening_purchases = float(before_purchases_qs.aggregate(total=Sum(F('qty') * F('cost')))['total'] or 0)
+        opening_payments = float(before_payments_qs.aggregate(total=Sum('Amount'))['total'] or 0)
+        opening_balance = opening_purchases - opening_payments
+
+        fuel_summary = []
+        fuel_agg = purchases_qs.values('Fuel__name').annotate(
+            total_qty=Sum('qty'),
+            total_amount=Sum(F('qty') * F('cost')),
+        )
+        for fa in fuel_agg:
+            qty = float(fa.get('total_qty') or 0)
+            amount = float(fa.get('total_amount') or 0)
+            fuel_summary.append({
+                'fuel': fa.get('Fuel__name') or '',
+                'qty': qty,
+                'amount': amount,
+                'avg_price': amount / qty if qty else 0
+            })
+
+        payments_summary = []
+        for p in payments_qs.order_by('pk'):
+            payments_summary.append({
+                'date': p.tarehe,
+                'account': p.Akaunt.Akaunt_name if p.Akaunt else p.kwenda,
+                'amount': float(getattr(p, 'Amount', 0) or 0)
+            })
+
+        txs = []
+        if opening_balance != 0:
+            date_val = tFr_dt if isinstance(tFr_dt, datetime.datetime) else parse_dt(tFr)
+            if date_val is None and isinstance(tFr, str):
+                try:
+                    date_val = datetime.datetime.fromisoformat(tFr)
+                except Exception:
+                    date_val = tFr
+
+            txs.append({
+                'st': vendor_obj.pk if vendor_obj else 0,
+                'pay': False,
+                'use': False,
+                'opening': True,
+                'date': date_val,
+                'type': 'Kianzio' if useri.langSet == 0 else 'Opening',
+                'station': vendor_obj.jina if vendor_obj else '',
+                'details': '',
+                'driver': '',
+                'vehicle': '',
+                'recorded_by': '',
+                'fuel_price': 0,
+                'qty': 0,
+                'amount': opening_balance,
+                'fuelN': ''
+            })
+
+        for item in purchases_qs.select_related('pu', 'pu__vendor', 'Fuel', 'pu__record_by', 'pu__record_by__user', 'puAttach', 'puAttach__transp').order_by('pu__date', 'pu__pk', 'pk'):
+            purchase = item.pu
+            if purchase is None:
+                continue
+
+            recorded_by = ''
+            if purchase.record_by:
+                if hasattr(purchase.record_by, 'user') and purchase.record_by.user is not None:
+                    recorded_by = f"{purchase.record_by.user.first_name} {purchase.record_by.user.last_name}".strip()
+                else:
+                    recorded_by = str(purchase.record_by)
+
+            fuel_name = item.Fuel.name if item.Fuel else ''
+            unit_price = float(item.cost or 0)
+            qty = float(item.qty or 0)
+            amount = unit_price * qty
+            vehicle = ''
+            driver = ''
+            transporter_name = ''
+            if item.puAttach is not None:
+                vehicle = item.puAttach.vihecle or ''
+                driver = item.puAttach.driver or ''
+                if item.puAttach.transp is not None:
+                    transporter_name = item.puAttach.transp.jina or ''
+
+            txs.append({
+                'st': purchase.vendor.pk if purchase.vendor else 0,
+                'pay': False,
+                'use': True,
+                'opening': False,
+                'date': purchase.date,
+                'type': 'Manunuzi' if useri.langSet == 0 else 'Purchase',
+                'station': purchase.vendor.jina if purchase.vendor else '',
+                'details': purchase.code or purchase.ref or '',
+                'transporter': transporter_name,
+                'driver': driver,
+                'vehicle': vehicle,
+                'recorded_by': recorded_by,
+                'fuel_price': unit_price,
+                'qty': qty,
+                'amount': amount,
+                'fuelN': fuel_name
+            })
+
+        for p in payments_qs.order_by('tarehe', 'pk'):
+            recorded_by = ''
+            if p.by:
+                user_obj = getattr(p.by, 'user', None)
+                if user_obj:
+                    recorded_by = f"{user_obj.first_name} {user_obj.last_name}".strip()
+
+            payment_amount = float(getattr(p, 'Amount', 0) or 0)
+
+            txs.append({
+                'st': p.bill.pk if p.bill else 0,
+                'pay': True,
+                'use': False,
+                'opening': False,
+                'date': p.tarehe,
+                'type': 'LipA' if useri.langSet == 0 else 'Pay',
+                'station': p.bill.jina if p.bill else '',
+                'details': p.Akaunt.Akaunt_name if p.Akaunt else p.kwenda,
+                'transporter': '',
+                'driver': '',
+                'vehicle': '',
+                'recorded_by': recorded_by,
+                'fuel_price': 0,
+                'qty': 0,
+                'amount': payment_amount,
+                'payment_amount': payment_amount,
+                'fuelN': ''
+            })
+
+        txs_sorted = sorted(txs, key=lambda x: x.get('date') or datetime.datetime.min)
+
+        running_balance = float(opening_balance)
+
+        transactions = []
+        for t in txs_sorted:
+            amt = float(t.get('amount') or 0)
+            debt = 0.0
+            credit = 0.0
+
+            if t.get('opening'):
+                running_balance = amt
+                if amt >= 0:
+                    debt = amt
+                else:
+                    credit = abs(amt)
+            elif t.get('use'):
+                debt = amt
+                running_balance += debt
+            elif t.get('pay'):
+                credit = float(t.get('payment_amount') or amt or 0)
+                running_balance -= credit
+
+            transactions.append({
+                'st': t.get('st'),
+                'pay': t.get('pay'),
+                'use': t.get('use'),
+                'opening': t.get('opening'),
+                'date': t.get('date'),
+                'type': t.get('type'),
+                'station': t.get('station'),
+                'details': t.get('details'),
+                'transporter': t.get('transporter'),
+                'driver': t.get('driver'),
+                'vehicle': t.get('vehicle'),
+                'recorded_by': t.get('recorded_by'),
+                'fuel_price': t.get('fuel_price'),
+                'qty': t.get('qty'),
+                'amount': amt,
+                'credit': credit,
+                'debt': debt,
+                'balance': running_balance,
+                'fuelN': t.get('fuelN'),
+            })
+
+        kituo = 'Vyote' if useri.langSet == 0 else 'All Vendors'
+        if vendor_obj is not None:
+            kituo = vendor_obj.jina
+
+        attachments_qs = attachments.objects.filter(
+            puAttach__isnull=False,
+            purchase__record_by__company=kampuni.id,
+        ).exclude(file='').select_related('purchase', 'purchase__vendor', 'puAttach')
+
+        if vendor_obj is not None:
+            attachments_qs = attachments_qs.filter(purchase__vendor=vendor_obj)
+
+        if tFr_dt is not None:
+            attachments_qs = attachments_qs.filter(purchase__date__gte=tFr_dt)
+        if tTo_dt is not None:
+            attachments_qs = attachments_qs.filter(purchase__date__lte=tTo_dt)
+
+        attachments_list = []
+        invoice_count = 0
+        receipt_count = 0
+
+        for att in attachments_qs.order_by('purchase__date', 'pk'):
+            is_receipt = bool(att.receipt)
+            is_invoice = bool(att.puInvo)
+            if not is_receipt and not is_invoice:
+                continue
+            if is_invoice:
+                invoice_count += 1
+            if is_receipt:
+                receipt_count += 1
+
+            file_url = ''
+            if att.file:
+                file_url = request.build_absolute_uri(att.file.url)
+
+            purchase = att.purchase
+            attachments_list.append({
+                'id': att.id,
+                'url': file_url,
+                'receipt': is_receipt,
+                'invoice': is_invoice,
+                'type': 'invoice' if is_invoice else 'receipt',
+                'purchase_code': purchase.code if purchase else '',
+                'purchase_id': purchase.id if purchase else 0,
+                'date': purchase.date.isoformat() if purchase and purchase.date else (att.date.isoformat() if att.date else ''),
+                'vendor': purchase.vendor.jina if purchase and purchase.vendor else '',
+                'attach_name': att.attach_name or '',
+            })
+
+        data = {
+            'success': True,
+            'kituo': kituo,
+            'fuel_summary': fuel_summary,
+            'payments_summary': payments_summary,
+            'transactions': transactions,
+            'attachments': attachments_list,
+            'attachment_counts': {
+                'invoices': invoice_count,
+                'receipts': receipt_count,
+            },
+        }
+
+        return JsonResponse(data, safe=True)
 
     except Exception as err:
         print(err)
-        data = {
-            'success':False,
-            'swa':'Tatizo limetokea katika kupata taarifa za muuzaji tafadhari jaribu tena',
-            'eng':'An error occurred while fetching vendor statements please try again'
-        }
-        return JsonResponse(data)
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(err)
+        })
 
 
 @login_required(login_url='login')
@@ -6094,7 +8687,7 @@ def transporters(request):
         vend = []
         madeni = 0
         for v in transport:
-            denitr = PuList.objects.filter(transp=v.id)
+            denitr = PuList.objects.filter(puAttach__transp=v.id)
             deni = denitr.aggregate(sumi=Sum(F('trn_amo')-F('trn_paid')))['sumi'] or 0
             vend.append({
                 'ven':v,
@@ -6321,6 +8914,113 @@ def lipaBill(request):
 
 
 @login_required(login_url='login')
+def lipaTransporter(request):
+    if request.method == "POST":
+        try:
+            transp_id = int(request.POST.get('transp', 0))
+            ac = int(request.POST.get('acc', 0))
+            paid = Decimal(str(request.POST.get('pay', 0) or 0))
+            desc = request.POST.get('desc', 'Transporter Payment')
+
+            todo = todoFunct(request)
+            kampuni = todo['kampuni']
+            useri = todo['useri']
+
+            if not (useri.admin or (useri.ceo and useri.pu)):
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Hauna ruhusa kwa kitendo hiki tafadhari wasiliana na uongozi',
+                    'eng': 'You have no permission for this please contact administration'
+                })
+
+            if not transp_id or not ac or paid <= 0:
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Tafadhali jaza taarifa sahihi za malipo',
+                    'eng': 'Please provide valid payment details'
+                })
+
+            trsp = transporter.objects.get(pk=transp_id, compan=kampuni)
+            toakwa = PaymentAkaunts.objects.get(pk=ac, Interprise__company=kampuni)
+
+            open_lines = PuList.objects.filter(
+                puAttach__transp=trsp,
+                pu__record_by__company=kampuni,
+                trn_amo__gt=F('trn_paid')
+            ).order_by('pu__date', 'id')
+
+            daiwa = open_lines.aggregate(sumi=Sum(F('trn_amo') - F('trn_paid')))['sumi'] or Decimal('0')
+
+            if paid > daiwa:
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Malipo yamezidi deni halisi la msafirishaji',
+                    'eng': 'Payment exceeds transporter outstanding debt'
+                })
+
+            if Decimal(str(toakwa.Amount)) < paid:
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Akaunti haina kiasi cha kutosha kulipa',
+                    'eng': 'Insufficient account balance for this payment'
+                })
+
+            with transaction.atomic():
+                lipwa = paid
+                for line in open_lines:
+                    deni = Decimal(str(line.trn_amo)) - Decimal(str(line.trn_paid))
+                    if deni <= 0:
+                        continue
+
+                    if deni <= lipwa:
+                        line.trn_paid = line.trn_amo
+                        lipwa = lipwa - deni
+                    else:
+                        line.trn_paid = Decimal(str(line.trn_paid)) + lipwa
+                        lipwa = Decimal('0')
+
+                    line.save(update_fields=['trn_paid'])
+                    if lipwa <= 0:
+                        break
+
+                beforetoa = Decimal(str(toakwa.Amount))
+                toakwa.Amount = beforetoa - paid
+                toakwa.save(update_fields=['Amount'])
+
+                toa = toaCash()
+                toa.Akaunt = toakwa
+                toa.Amount = paid
+                toa.before = beforetoa
+                toa.After = toakwa.Amount
+                toa.kwenda = "Transporter Payment"
+                toa.maelezo = desc or 'Transporter Payment'
+                toa.tarehe = datetime.datetime.now(tz=timezone.utc)
+                toa.by = useri
+                toa.Interprise = toakwa.Interprise
+                toa.usiri = toakwa.onesha
+                toa.bill = None
+                toa.trsp_bill = trsp
+                toa.save()
+
+            return JsonResponse({
+                'success': True,
+                'swa': 'Malipo ya msafirishaji yamehifadhiwa kikamilifu',
+                'eng': 'Transporter payment recorded successfully'
+            })
+
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
+            return JsonResponse({
+                'success': False,
+                'swa': 'Imeshindwa kuhifadhi malipo ya msafirishaji',
+                'eng': 'Failed to record transporter payment'
+            })
+    else:
+        return render(request, 'pagenotFound.html', todoFunct(request))
+
+
+@login_required(login_url='login')
 def PuLIST(request):
     todo = todoFunct(request)
    
@@ -6400,8 +9100,17 @@ def viewPurchase(request):
                 'rcd':RL,
                 'dispatch': RL.exists()
             })
+            html = 'venPurchasesView.html'
+            pr = int(request.GET.get('t', 0))
+            lang = int(request.GET.get('lang', 0))
 
-            return render(request,'venPurchasesView.html',todo)
+            if pr:
+                todo.update({
+                    'langSet': lang
+                })
+                html = 'venPurchasesPrint.html'
+
+            return render(request, html, todo)
         
         else:
             return redirect('/userdash')
@@ -6446,6 +9155,111 @@ def deletePurchase(request):
         return JsonResponse(data)
     else:
         return render(request,'pagenotFound.html')
+
+
+@login_required(login_url='login')
+def viewTransporter(request):
+    try:
+        todo = todoFunct(request)
+        useri = todo['useri']
+        if useri.admin or (useri.ceo and useri.pu):
+            t = int(request.GET.get('t', 0))
+            kampuni = todo['kampuni']
+
+            trsp = transporter.objects.get(pk=t, compan=kampuni)
+            pu_lines = PuList.objects.filter(puAttach__transp=trsp.id, pu__record_by__company=kampuni)
+
+            leo = datetime.datetime.now().astimezone()
+            thisMonth = leo.strftime('%Y-%m-01 00:00:00%z')
+
+            month_lines = pu_lines.filter(pu__date__gte=thisMonth)
+            prev_lines = pu_lines.filter(pu__date__lt=thisMonth, trn_paid__lt=F('trn_amo'))
+
+            month_charges = month_lines.aggregate(Amo=Sum('trn_amo'))['Amo'] or 0
+            month_paid = month_lines.aggregate(Paid=Sum('trn_paid'))['Paid'] or 0
+            month_debt = month_charges - month_paid
+
+            prev_charges = prev_lines.aggregate(Amo=Sum('trn_amo'))['Amo'] or 0
+            prev_paid = prev_lines.aggregate(Paid=Sum('trn_paid'))['Paid'] or 0
+            debtprev = prev_charges - prev_paid
+
+            month_attach_qs = puAttachments.objects.filter(
+                transp=trsp.id,
+                purchase__record_by__company=kampuni,
+                purchase__date__gte=thisMonth
+            ).order_by('-purchase__date', '-pk')
+
+            prev_attach_qs = puAttachments.objects.filter(
+                transp=trsp.id,
+                purchase__record_by__company=kampuni,
+                purchase__date__lt=thisMonth
+            ).order_by('-purchase__date', '-pk')
+
+            month_trips = []
+            for att in month_attach_qs:
+                att_lines = PuList.objects.filter(puAttach=att.id)
+                qty = att_lines.aggregate(sumi=Sum('qty'))['sumi'] or 0
+                charges = att_lines.aggregate(sumi=Sum('trn_amo'))['sumi'] or 0
+                paid = att_lines.aggregate(sumi=Sum('trn_paid'))['sumi'] or 0
+                month_trips.append({
+                    'att': att,
+                    'qty': qty,
+                    'charges': charges,
+                    'paid': paid,
+                    'debt': charges - paid,
+                })
+
+            prev_trips = []
+            for att in prev_attach_qs:
+                att_lines = PuList.objects.filter(puAttach=att.id)
+                qty = att_lines.aggregate(sumi=Sum('qty'))['sumi'] or 0
+                charges = att_lines.aggregate(sumi=Sum('trn_amo'))['sumi'] or 0
+                paid = att_lines.aggregate(sumi=Sum('trn_paid'))['sumi'] or 0
+                debt = charges - paid
+                if debt > 0:
+                    prev_trips.append({
+                        'att': att,
+                        'qty': qty,
+                        'charges': charges,
+                        'paid': paid,
+                        'debt': debt,
+                    })
+
+            payacc = PaymentAkaunts.objects.filter(Interprise__company=kampuni)
+            trsp_payments = toaCash.objects.filter(
+                Interprise__company=kampuni,
+                trsp_bill=trsp
+            ).order_by('-tarehe', '-id')[:50]
+
+            todo.update({
+                'isTranspoter': 1,
+                'isViewTransporter': 1,
+                'trips_tab': 1,
+                'thereisTrsp': 1,
+                'trsp': trsp,
+                'month_trips': month_trips,
+                'month_trips_len': len(month_trips),
+                'prev_trips': prev_trips,
+                'prev_trips_len': len(prev_trips),
+                'month_charges': month_charges,
+                'month_paid': month_paid,
+                'month_debt': month_debt,
+                'debtprev': debtprev,
+                'total_debt': debtprev + month_debt,
+                'payacc': payacc,
+                'trsp_payments': trsp_payments,
+                'trsp_payments_len': len(trsp_payments),
+            })
+
+            return render(request, 'transporterView.html', todo)
+        else:
+            return redirect('/userdash')
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return render(request, 'pagenotFound.html', todoFunct(request))
+
+
 @login_required(login_url='login')
 def viewVendor(request):
     try:
@@ -6559,7 +9373,7 @@ def addTransporter(request):
                 simu1=request.POST.get('phone1')
                 simu2=request.POST.get('phone2')
                 mail=request.POST.get('mail')
-                # isActive=request.POST.get('isactive')
+                isActive=int(request.POST.get('isActive',1))
                 value=request.POST.get('value')
                 edit=int(request.POST.get('edit',0))
                 valued=int(request.POST.get('valued',0))
@@ -6586,6 +9400,7 @@ def addTransporter(request):
                 transp.simu1 = simu1
                 transp.simu2 = simu2
                 transp.email = mail
+                transp.active = bool(isActive)
                 transp.compan = kampuni
                     
                 if transporter.objects.filter(simu1=simu1,compan=kampuni).exists() and not edit:
@@ -6761,7 +9576,7 @@ def puReceive(request):
         useri = todo['useri']
         if useri.admin:
             pu = Purchases.objects.get(pk=i,record_by__company=kampuni) 
-            PL = PuList.objects.filter(pu=pu,qty__gt=F('rcvd'))
+            PL = PuList.objects.filter(pu=pu,qty__gt=F('rcvd')).select_related('puAttach', 'puAttach__transp', 'Fuel')
             Intp = Interprise.objects.filter(company=kampuni)
            
 
@@ -6773,6 +9588,62 @@ def puReceive(request):
         
             tanksSup = InterprisePermissions.objects.filter(Interprise__company=kampuni,user__tankSup=True)
 
+            transporter_map = {}
+            driver_seen = set()
+            vehicle_seen = set()
+            trip_drivers = []
+            trip_vehicles = []
+
+            for line in PL:
+                att = line.puAttach
+                if att is None:
+                    continue
+
+                tr = att.transp
+                tr_id = tr.id if tr is not None else 0
+                tr_name = tr.jina if tr is not None else ''
+                driver = (att.driver or '').strip()
+                vehicle = (att.vihecle or '').strip()
+
+                if tr_id not in transporter_map:
+                    transporter_map[tr_id] = {
+                        'transpoter_id': tr_id,
+                        'name': tr_name,
+                        'vihecles': []
+                    }
+
+                transporter_entry = transporter_map[tr_id]
+                if not any(v.get('puAttach_id') == att.id for v in transporter_entry['vihecles']):
+                    transporter_entry['vihecles'].append({
+                        'trasp_id': tr_id,
+                        'driver': driver,
+                        'vehicle': vehicle,
+                        'puAttach_id': att.id
+                    })
+
+                if driver:
+                    drv_key = (tr_id, driver)
+                    if drv_key not in driver_seen:
+                        driver_seen.add(drv_key)
+                        trip_drivers.append({
+                            'transpoter_id': tr_id,
+                            'driver': driver
+                        })
+
+                if vehicle:
+                    veh_key = (tr_id, vehicle)
+                    if veh_key not in vehicle_seen:
+                        vehicle_seen.add(veh_key)
+                        trip_vehicles.append({
+                            'transpoter_id': tr_id,
+                            'vehicle': vehicle
+                        })
+
+            trip_transporters = sorted(
+                transporter_map.values(),
+                key=lambda x: (x.get('name') or '').lower()
+            )
+
 
             todo.update({
                 'isreceive':True,
@@ -6783,7 +9654,10 @@ def puReceive(request):
                 'tr_tank':tr_tank,
                 'isPu':True,
                 'tanksSup':tanksSup,
-                'tankContainer':tankContainer
+                'tankContainer':tankContainer,
+                'trip_transporters': trip_transporters,
+                'trip_drivers': trip_drivers,
+                'trip_vehicles': trip_vehicles,
             })    
             
 

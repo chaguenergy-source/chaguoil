@@ -1,0 +1,194 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mediascreen.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/companyheader.css' %}">
+    <script src="{% static 'js/jquery.js' %}" crossorigin="anonymous"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/momentlocale.js' %}"></script>
+    <title>PU-{{trf.code}}</title>
+</head>
+<body>
+<div class="classic_div mt-sm-2 pt-3 pb-2 px-3 the_invo_page" id="the_invo_page">
+    {% include 'companyHeader.html' %}
+
+    <h5 class="text-secondary mt-1 pb-3 border-bottom font-weight-bold">
+        {% if langSet == 0 %}NOTISI YA MANUNUZI YA MAFUTA{% else %}FUEL PURCHASES NOTE{% endif %}
+    </h5>
+
+    <div class="row mt-3">
+        <div class="col-3">{% if langSet == 0 %}Tarehe{% else %}Date{% endif %}</div>
+        <div class="col-9">
+            <script>
+                document.write(moment('{{trf.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+            </script>
+        </div>
+
+        <div class="col-3">{% if langSet == 0 %}Manunuzi{% else %}Purchases{% endif %}#</div>
+        <div class="col-9">PU-{{trf.code}}</div>
+
+        {% if trf.ref %}
+        <div class="col-3">{% if langSet == 0 %}Rejeo{% else %}Reference{% endif %}#</div>
+        <div class="col-9">{{trf.ref}}</div>
+        {% endif %}
+
+        <div class="col-3">{% if langSet == 0 %}Malipo{% else %}Payment{% endif %}</div>
+        <div class="col-9">
+            {% if trf.amount == trf.payed %}
+            <span class="status completed">{% if langSet == 0 %}Imelipwa{% else %}Paid{% endif %}</span>
+            {% endif %}
+            {% if trf.amount > trf.payed and trf.payed > 0 %}
+            <span class="status process">{% if langSet == 0 %}Imelipwa Kiasi{% else %}Less Paid{% endif %}</span>
+            {% endif %}
+            {% if trf.payed == 0 %}
+            <span class="status pending">{% if langSet == 0 %}Haijalipwa{% else %}Unpaid{% endif %}</span>
+            {% endif %}
+        </div>
+
+        <div class="col-3 pt-2">{% if langSet == 0 %}Kupokelewa{% else %}Received{% endif %}</div>
+        <div class="col-9 pt-2">{{rperc|floatformat:'-2'}}%</div>
+
+        <div class="col-3">{% if langSet == 0 %}Statasi{% else %}Status{% endif %}</div>
+        <div class="col-9">
+            {% if rcvd == 0 and not trf.closed %}
+            <i class="brown">{% if langSet == 0 %}Bado..{% else %}pending..{% endif %}</i>
+            {% endif %}
+            {% if rcvd > 0 and not trf.closed %}
+            <i class="text-info">{% if langSet == 0 %}Inaendelea{% else %}In progress{% endif %}...</i>
+            {% endif %}
+            {% if trf.closed %}
+            <i class="text-primary">{% if langSet == 0 %}Imefungwa{% else %}Closed{% endif %}.</i>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-12"><strong>{% if langSet == 0 %}Msambazaji{% else %}Vendor{% endif %}</strong></div>
+                <div class="col-3">{% if langSet == 0 %}Jina{% else %}Name{% endif %}</div>
+                <div class="col-9">{{trf.vendor.jina | title}}</div>
+                <div class="col-3">{% if langSet == 0 %}Anwani{% else %}Address{% endif %}</div>
+                <div class="col-9">{{trf.vendor.address | title}}</div>
+                <div class="col-3">{% if langSet == 0 %}Simu{% else %}Phone{% endif %}</div>
+                <div class="col-9">{{trf.vendor.code}}{{trf.vendor.simu1}}{% if trf.vendor.simu2 %}, {{trf.vendor.code}}{{trf.vendor.simu2}}{% endif %}</div>
+                {% if trf.vendor.email %}
+                <div class="col-3">Email</div>
+                <div class="col-9">{{trf.vendor.email}}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <div class="table-responsive">
+        <strong>{% if langSet == 0 %}Mafuta yaliyonunuliwa{% else %}Purchase list{% endif %}</strong>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr class="smallFont">
+                    <th>#</th>
+                    <th>{% if langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</th>
+                    <th>{% if langSet == 0 %}Deleva{% else %}Driver{% endif %}</th>
+                    <th>{% if langSet == 0 %}Gari{% else %}Vihecle{% endif %}</th>
+                    <th>{% if langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                    <th>{% if langSet == 0 %}Kiasi{% else %}Qty{% endif %} <span class="text-primary">(LTRS)</span></th>
+                    <th>{% if langSet == 0 %}Bei{% else %}Price{% endif %} <span class="text-primary">/LTR</span></th>
+                    <th>{% if langSet == 0 %}Jumla{% else %}Total{% endif %} <span class="text-primary">({{currencii}})</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in puList %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{f.puAttach.transp.jina}}</td>
+                    <td>{{f.puAttach.driver}}</td>
+                    <td>{{f.puAttach.vihecle}}</td>
+                    <td class="brown">{{f.Fuel.name}}</td>
+                    <td>{{f.qty|floatformat:'-2'|intcomma}}</td>
+                    <td>{{f.cost|floatformat:'-2'|intcomma}}</td>
+                    <td>{{f.totAmo|floatformat:'-2'|intcomma}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6"></div>
+        <div class="col-md-6 row smallFont">
+            <div class="col-6">{% if langSet == 0 %}Deni{% else %}Debt{% endif %}<small class="text-primary">(TZS)</small></div>
+            <div class="col-6 text-right">{{baki|floatformat:'-2'|intcomma}}</div>
+            <div class="col-6">{% if langSet == 0 %}Ilolipwa{% else %}Paid{% endif %}<small class="text-primary">(TZS)</small></div>
+            <div class="col-6 text-right">{{trf.payed | floatformat:'-2' | intcomma}}</div>
+            <div class="col-6 weight600">{% if langSet == 0 %}Malipo Jumla{% else %}Total Amount{% endif %}<small class="text-primary">(TZS)</small></div>
+            <div class="col-6 text-right weight600">{{trf.amount | floatformat:'-2' | intcomma}}</div>
+        </div>
+    </div>
+
+    {% if rcd %}
+    <hr>
+    <div><strong>{% if langSet == 0 %}Mafuta Yaliyopokelewa{% else %}Received Fuel{% endif %}:</strong></div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr class="smallFont">
+                    <th>#</th>
+                    <th>{% if langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                    <th>{% if langSet == 0 %}Yaliyonunuliwa{% else %}Purchased{% endif %} <span class="text-primary">(LTRS)</span></th>
+                    <th>{% if langSet == 0 %}Yaliyopokelewa{% else %}Received{% endif %} <span class="text-primary">(LTRS)</span></th>
+                    <th>{% if langSet == 0 %}Yaliyobaki{% else %}Remeins{% endif %} <span class="text-primary">(LTRS)</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in puList %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td class="brown">{{t.Fuel.name}}</td>
+                    <td>{{t.qty|floatformat:'-2'|intcomma}}</td>
+                    <td>{{t.rcvd|floatformat:'-2'|intcomma}}</td>
+                    <td>{{t.remain|floatformat:'-2'|intcomma}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <hr>
+    <div><strong>{% if langSet == 0 %}Viambatanisho{% else %}Attachments{% endif %}:</strong></div>
+    {% if attach %}
+    <ul class="list-unstyled">
+        {% for at in attach %}
+        <li>
+            <small>
+                <script>
+                    document.write(moment('{{at.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
+                </script>
+                | {% if at.printedDocu %}{% if langSet == 0 %}Dokument iliyoprintiwa na kusainiwa{% else %}Printed and signed document{% endif %}{% else %}{{at.attach_name}}{% endif %}
+            </small>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="btn-sm">{% if langSet == 0 %}Hakuna Viambatanisho{% else %}No Attachments{% endif %}</p>
+    {% endif %}
+</div>
+
+<script>
+  window.onload = function(){
+    window.print()
+  }
+
+  window.onafterprint = function(){
+    window.close();
+  }
+</script>
+</body>
+</html>

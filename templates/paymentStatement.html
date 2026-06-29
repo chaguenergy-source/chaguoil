@@ -1,0 +1,212 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{% static 'css/customerPayments.css' %}">
+{% endblock %}
+
+{% block page_content %}
+<div class="head-title">
+    <div class="left">
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li><a href="#">Dashboard</a></li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </li>
+            <li><a class="active" href="#">{% if useri.langSet == 0 %}Taarifa ya Malipo{% else %}Payment Statement{% endif %}</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="table-data">
+    <div class="order">
+        {% include 'paymentsActivityNav.html' %}
+
+        <div class="head">
+            <h5>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-wallet" viewBox="0 0 16 16">
+                    <path d="M12.5 0h-9A2.5 2.5 0 0 0 1 2.5v11A2.5 2.5 0 0 0 2.5 16h9A2.5 2.5 0 0 0 14 13.5V2.5A2.5 2.5 0 0 0 12.5 0zM2 2.5A.5.5 0 0 1 2.5 2h9a.5.5 0 0 1 .5.5v1H2V2.5zM2 4h10v9H2V4zm10 10H2.5a.5.5 0 0 1-.5-.5V12h10v1.5a.5.5 0 0 1-.5.5z"/>
+                </svg>
+                {% if useri.langSet == 0 %}Taarifa ya Malipo{% else %}Payment Statement{% endif %}
+            </h5>
+        </div>
+
+        <div class="payment-filters">
+                {% csrf_token %}
+
+                <div class="filter-group">
+                    <label>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}:</label>
+                    <div class="input-group">
+                        <select id="stationFilter" class="form-control">
+                            {% if not general %}
+                                <option value="{{ shell.id }}" data-stxn="{{ shell.name }}">{{ shell.name }}</option>
+                                {% if useri.admin or useri.ceo %}
+                                    {% for station in stations %}
+                                        {% if station != shell %}
+                                            <option value="{{ station.id }}" data-stxn="{{ station.name }}">{{ station.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                                {% endif %}
+                            {% else %}
+                                <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                                {% for station in stations %}
+                                    <option value="{{ station.id }}" data-stxn="{{ station.name }}">{{ station.name }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                        <div class="input-group-append dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                            <div class="dropdown-menu" id="common_duration">
+                                <a class="dropdown-item duration-option" type="button" onclick="psCreateArray('{% if useri.langSet == 0 %}Wiki Ilopita{% else %}Last Week{% endif %}',moment().startOf('isoWeek').subtract(1,'days').startOf('isoWeek').format(),moment().startOf('isoWeek').subtract(1,'days').endOf('isoWeek').format())">{% if useri.langSet == 0 %}Wiki Ilopita{% else %}Last Week{% endif %}</a>
+                                <a class="dropdown-item duration-option" type="button" onclick="psCreateArray('{% if useri.langSet == 0 %}Mwezi Uliopita{% else %}Last Month{% endif %}',moment().startOf('month').subtract(1,'days').startOf('month').format(),moment().startOf('month').subtract(1,'days').endOf('month').format())">{% if useri.langSet == 0 %}Mwezi Uliopita{% else %}Last Month{% endif %}</a>
+                                <a class="dropdown-item duration-option" type="button" onclick="psCreateArray('{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}',moment().startOf('year').format(),moment().format())">{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}</a>
+                                <a class="dropdown-item duration-option" type="button" onclick="psCreateArray('{% if useri.langSet == 0 %}Mwaka Uliopita{% else %}Last Year{% endif %}',moment().subtract(1,'year').startOf('year').format(),moment().startOf('year').subtract(1,'second').format())">{% if useri.langSet == 0 %}Mwaka Uliopita{% else %}Last Year{% endif %}</a>
+                                <a class="dropdown-item duration-option" type="button" data-toggle="modal" data-target="#durationModal" data-value="custom_date">{% if useri.langSet == 0 %}Weka Muda{% else %}Custom Date{% endif %}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>{% if useri.langSet == 0 %}Akaunti{% else %}Account{% endif %}:</label>
+                    <select id="psAccountFilter" class="form-control">
+                        <option value="0">{% if useri.langSet == 0 %}Akaunti Zote{% else %}All Accounts{% endif %}</option>
+                        {% for ac in payacc %}
+                        <option value="{{ ac.id }}">{{ ac.Akaunt_name }} ({{ ac.Interprise.name }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>{% if useri.langSet == 0 %}Aliyerekebisha{% else %}Recorded By{% endif %}:</label>
+                    <select id="psRecordedByFilter" class="form-control text-capitalize">
+                        <option value="0">{% if useri.langSet == 0 %}Wote{% else %}All{% endif %}</option>
+                        {% for st in staff_users %}
+                        <option value="{{ st.id }}" class="text-capitalize">{{ st.user.first_name }} {{ st.user.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>{% if useri.langSet == 0 %}Aina ya Malipo{% else %}Payment Type{% endif %}:</label>
+                    <select id="psTypeFilter" class="form-control">
+                        <option value="">{% if useri.langSet == 0 %}Zote{% else %}All{% endif %}</option>
+                        <option value="mobile_payment">{% if useri.langSet == 0 %}Malipo kwa Simu{% else %}Mobile Payment{% endif %}</option>
+                        <option value="customer_payment">{% if useri.langSet == 0 %}Malipo ya Wateja{% else %}Customer Payment{% endif %}</option>
+                        <option value="cash_deposit">{% if useri.langSet == 0 %}Kuweka Kabla ya Zamu{% else %}Cash Deposit Before Shift{% endif %}</option>
+                        <option value="pump_attendant">{% if useri.langSet == 0 %}Malipo ya Pump Attendant{% else %}Pump Attendant Payment{% endif %}</option>
+                        <option value="bank_deposit">{% if useri.langSet == 0 %}Kuweka Benki{% else %}Bank Deposit{% endif %}</option>
+                        <option value="expense">{% if useri.langSet == 0 %}Matumizi{% else %}Expenses{% endif %}</option>
+                        <option value="bill_payment">{% if useri.langSet == 0 %}Malipo ya Bili{% else %}Bill Payment{% endif %}</option>
+                        <option value="personal">{% if useri.langSet == 0 %}Binafsi{% else %}Personal{% endif %}</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>{% if useri.langSet == 0 %}Mwelekeo{% else %}Direction{% endif %}:</label>
+                    <select id="psDirectionFilter" class="form-control">
+                        <option value="">{% if useri.langSet == 0 %}Zote{% else %}All{% endif %}</option>
+                        <option value="in">{% if useri.langSet == 0 %}Mapokezi{% else %}Received{% endif %}</option>
+                        <option value="out">{% if useri.langSet == 0 %}Malipo{% else %}Paid Out{% endif %}</option>
+                    </select>
+                </div>
+        </div>
+
+        <div id="paymentSummary">
+            <h6 class="weight600">
+                {% if useri.langSet == 0 %}Muhtasari wa Malipo{% else %}Payment Summary{% endif %}
+            </h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>{% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Rekodi{% else %}Records{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Mapokezi{% else %}Received{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Malipo{% else %}Paid{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Salio{% else %}Net{% endif %}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentSummaryBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="paymentDetails" class="mt-4" style="display:none">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary" id="backToSummary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H3.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L3.707 7.5H11.5a.5.5 0 0 1 .5.5z"/>
+                        </svg>
+                        {% if useri.langSet == 0 %}Rudi{% else %}Back{% endif %}
+                    </button>
+                    <h6 id="paymentDetailsTitle" class="d-inline weight600 ml-2">{% if useri.langSet == 0 %}Maelezo ya Malipo{% else %}Payment Details{% endif %}</h6>
+                </div>
+                <button id="printPaymentStatement" class="btn btn-secondary btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2.5 1A1.5 1.5 0 0 0 1 2.5v3A1.5 1.5 0 0 0 2.5 7h1v1h6v-1h1A1.5 1.5 0 0 0 15 5.5v-3A1.5 1.5 0 0 0 13.5 1h-11zM2 2.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-3z"/>
+                        <path d="M2 7v3a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 14 10V7H2z"/>
+                    </svg>
+                    {% if useri.langSet == 0 %}Chapisha{% else %}Print{% endif %}
+                </button>
+            </div>
+
+            <div class="table-responsive mt-3" id="paymentsTable">
+                <table class="table table-striped table-sm smallFont">
+                    <thead>
+                        <tr>
+                            <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Akaunti{% else %}Account{% endif %}</th>
+                            <th class="text-right">{% if useri.langSet == 0 %}Kabla{% else %}Before{% endif %} ({{ currencii }})</th>
+                            <th class="text-right">{% if useri.langSet == 0 %}Mapokezi{% else %}Received{% endif %} ({{ currencii }})</th>
+                            <th class="text-right">{% if useri.langSet == 0 %}Kutoa{% else %}Withdrawal{% endif %} ({{ currencii }})</th>
+                            <th class="text-right">{% if useri.langSet == 0 %}Baada{% else %}After{% endif %} ({{ currencii }})</th>
+                            <th>{% if useri.langSet == 0 %}Kutoka{% else %}From{% endif %} / {% if useri.langSet == 0 %}Kwenda{% else %}To{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Maelezo{% else %}Description{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Aliyerekebisha{% else %}Recorded By{% endif %}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="user_userName" value="{{ useri.user.first_name }} {{ useri.user.last_name }}">
+
+<div class="modal fade" id="durationModal" tabindex="-1" role="dialog" aria-labelledby="durationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="durationModalLabel">{% if useri.langSet == 0 %}Chagua Muda{% else %}Select Duration{% endif %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="durationName">{% if useri.langSet == 0 %}Jina la Muda{% else %}Duration Name{% endif %}:</label>
+                    <input type="text" id="durationName" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="startDate">{% if useri.langSet == 0 %}Tarehe ya Kuanza{% else %}Start Date{% endif %}:</label>
+                    <input type="date" id="startDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="endDate">{% if useri.langSet == 0 %}Tarehe ya Kumaliza{% else %}End Date{% endif %}:</label>
+                    <input type="date" id="endDate" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}</button>
+                <button type="button" class="btn btn-primary" id="customDateSubmit">{% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/paymentStatement.js' %}"></script>
+{% endblock %}

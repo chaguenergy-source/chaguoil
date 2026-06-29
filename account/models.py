@@ -251,6 +251,7 @@ class fuel_pumps(models.Model):
     readings = models.DecimalField(max_digits=20,decimal_places=7)
     Incharge = models.ForeignKey(UserExtend,on_delete=models.SET_NULL,null=True,blank=True)
     fromi = models.DateTimeField(blank=True,null=True)
+    analog_readings = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
 
 class shiftsTime(models.Model):
@@ -287,6 +288,7 @@ class shiftPump(models.Model):
     shift = models.ForeignKey(shifts,on_delete=models.SET_NULL,null=True,blank=True)
     initial = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     final = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    analog_used = models.BooleanField(default=False)
     qty = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     price = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)
@@ -366,7 +368,8 @@ class transFromTo(models.Model):
 
     taken = models.DecimalField(max_digits=20,decimal_places=7,default=0)
 
-    closed = models.BooleanField(default=False)    
+    closed = models.BooleanField(default=False)
+    adminAproval = models.BooleanField(default=False)
 
 class ToContena(models.Model):
     cont = models.ForeignKey(tankContainer,on_delete=models.SET_NULL,null=True,blank=True)
@@ -401,6 +404,7 @@ class receivedFuel(models.Model):
     price =  models.DecimalField(max_digits=20,decimal_places=7,default=0)
     cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)   
     Fuel = models.ForeignKey(fuel,on_delete=models.SET_NULL,null=True,blank=True)
+    adminAproval = models.BooleanField(default=False)
 
 
 class saleOnReceive(models.Model):
@@ -431,6 +435,7 @@ class tankAdjust(models.Model):
     diff = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     price = models.DecimalField(max_digits=20,decimal_places=7,default=0)
     cost = models.DecimalField(max_digits=20,decimal_places=7,default=0)
+    adminAproval = models.BooleanField(default=False)
 
 # CREDIT AND DEBT ORDERS ............//
 class creditDebtOrder(models.Model):
@@ -641,6 +646,7 @@ class  toaCash(models.Model):
 #INCASE OF BILL PAYMENT......................................//
     # pu = models.BooleanField(default=False)
     bill = models.ForeignKey(wasambazaji,on_delete=models.SET_NULL,null=True)
+    trsp_bill = models.ForeignKey(transporter,on_delete=models.SET_NULL,null=True,blank=True)
    
     
 class CustmDebtPayRec(models.Model):
@@ -661,6 +667,7 @@ class notifications(models.Model):
     usr =  models.ForeignKey(UserExtend, on_delete=models.CASCADE,blank=True, null=True)
     price = models.ForeignKey(fuelPriceChange, on_delete=models.CASCADE,blank=True, null=True)
     temper = models.ForeignKey(pumpTemper, on_delete=models.CASCADE,blank=True, null=True)
+    analog_readings_used = models.ForeignKey(shiftPump, on_delete=models.CASCADE,blank=True, null=True)
     desc = models.TextField(blank=True)
     read = models.BooleanField(default=False)
     date = models.DateTimeField(null=True)

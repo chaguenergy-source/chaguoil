@@ -186,6 +186,9 @@
                          </div>
                          <div class="col-9 text-primary ">
                             SHF-{{trf.code}}
+                            {% if has_analog_pumps %}
+                            <span class="badge badge-warning ml-1">{% if useri.langSet == 0 %}Mita ya Analogi{% else %}Analog Readings{% endif %}</span>
+                            {% endif %}
                          </div>
                          <div class="col-3">
                             {% if useri.langSet == 0 %}Mpango Zamu {% else %}Shift Session{% endif %}
@@ -299,9 +302,14 @@
                                     <div class="col-10 smallFont col-md-9 p-0 border mx-0 row">
                                         {% for s in shpmp %}
                                             {% if sp.pump.station == s.pump.station %}  
-                                            <div class="col-2 mx-0 weight600">{{s.pump.name}}</div>
-                                            <div  class="col-2 "  >{{s.initial|floatformat:'-2'|intcomma}}</div>
-                                            <div class="col-2">{{s.final|floatformat:'-2'|intcomma}}</div>
+                                            <div class="col-2 mx-0 weight600">
+                                                {{s.pump.name}}
+                                                {% if s.analog_used %}
+                                                <span class="badge badge-warning badge-sm" title="{% if useri.langSet == 0 %}Mita ya analogi imetumika{% else %}Analog readings used{% endif %}">Analog</span>
+                                                {% endif %}
+                                            </div>
+                                            <div  class="col-2 "  >{{s.initial|floatformat:'-2'|intcomma}}{% if s.analog_used %} <small class="text-warning">({% if useri.langSet == 0 %}Analogi{% else %}Analog{% endif %})</small>{% endif %}</div>
+                                            <div class="col-2">{{s.final|floatformat:'-2'|intcomma}}{% if s.analog_used %} <small class="text-warning">({% if useri.langSet == 0 %}Analogi{% else %}Analog{% endif %})</small>{% endif %}</div>
                                            
                                             <div class="col-2 mx-0">
                                                 {{s.price|floatformat:'-2'|intcomma}}
@@ -885,43 +893,35 @@
                      <hr>
                       <div><strong>{% if useri.langSet == 0 %}Viambatanisho{% else %}Attachments{% endif %}:</strong></div>
                       {% if attach%}
-                      <ul class="list-unstyled" >
+                      <div class="shift-attach-list row">
 
                          {% for at in attach %}
-                           <li>
-                               <a href="{{at.file.url}}" target="_blank" >
-                                   <div class="d-flex" >
-                                       <div class="p-2">
-                                        <span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
-                                              <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
-                                          </svg>
-                                        </span>
-                                          
+                           <div class="col-6 col-md-4 col-lg-3 mb-3">
+                               <a href="{{at.file.url}}" target="_blank" class="shift-attach-item d-block text-decoration-none">
+                                   <div class="shift-attach-thumb-wrap border rounded overflow-hidden bg-light">
+                                       <img src="{{at.file.url}}" alt="{{at.attach_name}}" class="shift-attach-thumb-img"
+                                            onerror="this.style.display='none';this.parentElement.querySelector('.shift-attach-fallback').style.display='flex';">
+                                       <div class="shift-attach-fallback align-items-center justify-content-center" style="display:none;min-height:90px;">
+                                           <svg xmlns="http://www.w3.org/2000/svg" width="1.6em" height="1.6em" fill="currentColor" class="bi bi-paperclip text-secondary" viewBox="0 0 16 16">
+                                             <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+                                           </svg>
                                        </div>
-
-                                       <div>
-                                           
-                                            <small class="d-block" >date: 
-
-                                              <script>
-                                                document.write(moment('{{at.date | date:"r" }}').format('DD/MM/YYYY HH:mm '))
-                                            </script> 
-                                            | {% if at.printedDocu %} {% if useri.langSet == 0 %}Dokument iliyoprintiwa na kusainiwa {% else %}Printed and signed document{% endif %} {% else %} {{at.attach_name}} {%endif%}
-                                            </small>
-
-                                            <small class="d-block" >
-                                                By: {{at.by.user.first_name|title}} {{at.by.user.last_name|title}}
- 
-                                            </small>
-                                           
-                                       </div>
-
                                    </div>
+                                   <small class="d-block mt-1 text-dark">
+                                     {% if at.printedDocu %}
+                                       {% if useri.langSet == 0 %}Dokument iliyoprintiwa na kusainiwa{% else %}Printed and signed document{% endif %}
+                                     {% else %}
+                                       {{at.attach_name}}
+                                     {% endif %}
+                                   </small>
+                                   <small class="d-block text-muted">
+                                     <script>document.write(moment('{{at.date | date:"r" }}').format('DD/MM/YYYY HH:mm'))</script>
+                                     · {{at.by.user.first_name|title}} {{at.by.user.last_name|title}}
+                                   </small>
                                </a>
-                           </li>
-                          {% endfor %} 
-                       </ul> 
+                           </div>
+                          {% endfor %}
+                       </div>
 
                        {% else %}
                             <p class="btn-sm" >{% if useri.langSet == 0 %}Hakuna Viambatanisho{% else %}No Attachments{% endif %} </p>  
@@ -986,67 +986,59 @@
 
     <!-- Modal Attachments -->
     <div class="modal fade" id="addAttachment" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-      <div class="modal-dialog modal-sm" role="document">
+      <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
-              {% if useri.langSet == 0 %}Kiambatanisho{% else %}Attachment {%endif%}
+              {% if useri.langSet == 0 %}Ongeza Picha{% else %}Add Photos{%endif%}
             </h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
           </div>
           <div class="modal-body">
-            <form id="attachform" action="/salepurchase/addAttach" method="post">
+            <form id="shiftAttachForm" action="/salepurchase/addAttach" method="post">
                  {% csrf_token %}
-              <div class="classic_div text-center">
-                    <label type="button" class="btn btn-light" for="attachment">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="3.3em" height="3.3em" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
-                        <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
-                    </svg>
-                      <div class="text-center">
-                         <small id="attach_name" > 
-                          
-                          {% if useri.langSet == 0 %}Bonyeza Kuongeza{% else %}Press to Add{% endif %}
-                        </small> 
-                      </div>
+                 <input type="hidden" name="sh" value="{{trf.id}}">
+                 <input type="hidden" value="0" id="shiftPrintedDoc" name="printedDoc">
+
+              <div class="form-group">
+                    <label class="btn btn-light btn-sm mb-2" for="shiftAttachmentInput">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" fill="currentColor" class="bi bi-image mr-1" viewBox="0 0 16 16">
+                        <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                        <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+                      </svg>
+                      {% if useri.langSet == 0 %}Chagua Picha (Zaidi ya moja){% else %}Select Images (Multiple){% endif %}
                     </label>
-                    <input type="file" name="attachment" onchange="
-                      const val = $(this).val();
-                       $('#submitattach').prop('disabled',val=='');
-                       $('#attach_name').html(val)
+                    <input type="file" accept="image/*" multiple hidden id="shiftAttachmentInput">
+                    <small class="form-text text-muted d-block" id="shiftAttachHint">
+                      {% if useri.langSet == 0 %}JPG, PNG, WEBP. Picha kubwa zitapunguzwa ukubwa kabla ya kupakiwa.{% else %}JPG, PNG, WEBP. Large images are compressed before upload.{% endif %}
+                    </small>
+              </div>
 
-                    " accept=".pdf" hidden id="attachment">
-                    <input type="hidden" name="sh" value="{{trf.id}}" >
-                </div>
+              <div id="shiftAttachPreview" class="shift-attach-preview-grid mb-3"></div>
 
-                <div class="form-group mt-3">
-                    <label for="attach_name" class="brown"  >{% if useri.langSet == 0 %}Jina la Kiambatanisho{% else %}Attachment Name{%endif%} <sup>*</sup> </label>
-                    <input type="text"
-                      class="form-control btn-sm" name="attach_name" id="attach_name" aria-describedby="helpId" placeholder="">
-                    
-                      <div class="custom-control custom-checkbox">
-                       <input type="checkbox" class="custom-control-input" 
-                        onchange="$('#printedDoc').val(Number($(this).prop('checked')))"
-                       name="printedDocIn"
-                       id="printedDocIn">
-                      
-                       
-                       <label class="custom-control-label latoFont smallFont cursor-pointer" style="cursor: pointer !important;" for="printedDocIn">
+                <div class="form-group mt-2">
+                    <label for="shiftAttachName" class="brown">{% if useri.langSet == 0 %}Jina la Kiambatanisho{% else %}Attachment Name{%endif%} <sup>*</sup></label>
+                    <input type="text" class="form-control btn-sm" name="attach_name" id="shiftAttachName" placeholder="{% if useri.langSet == 0 %}Mfano: Picha za zamu{% else %}e.g. Shift photos{% endif %}">
+                    <div class="custom-control custom-checkbox mt-2">
+                       <input type="checkbox" class="custom-control-input" id="shiftPrintedDocIn"
+                        onchange="$('#shiftPrintedDoc').val(Number($(this).prop('checked')))">
+                       <label class="custom-control-label latoFont smallFont cursor-pointer" style="cursor: pointer !important;" for="shiftPrintedDocIn">
                           <small>{% if useri.langSet == 0 %}Dokumenti iliyoprintiwa na kusainiwa{% else %}Printed and signed document{% endif %}</small>
                        </label>
-                       </div>
-                       <input type="hidden" value=0 id="printedDoc" name="printedDoc">
+                    </div>
                   </div>
 
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" id="submitattach" disabled class="btn btn-primary">
+                  <div class="modal-footer px-0 pb-0">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}</button>
+                    <button type="submit" id="shiftSubmitAttach" disabled class="btn btn-primary">
                       <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                         </svg>
+                        <span id="shiftAttachUploadLabel">{% if useri.langSet == 0 %}Pakia{% else %}Upload{% endif %}</span>
                     </button>
                   </div>
             </form>
@@ -1065,6 +1057,15 @@
 {% endblock %}
 
 {% block additionaljs %}
+<style>
+    .shift-attach-thumb-wrap { min-height: 90px; display: flex; align-items: center; justify-content: center; }
+    .shift-attach-thumb-img { width: 100%; height: 90px; object-fit: cover; display: block; }
+    .shift-attach-preview-grid { display: flex; flex-wrap: wrap; gap: 10px; min-height: 40px; }
+    .shift-attach-preview-item { position: relative; width: 110px; border: 1px solid #dee2e6; border-radius: 6px; overflow: hidden; background: #f8f9fa; }
+    .shift-attach-preview-item img { width: 100%; height: 90px; object-fit: cover; display: block; }
+    .shift-attach-preview-item small { display: block; padding: 2px 4px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .shift-attach-preview-remove { position: absolute; top: 2px; right: 2px; width: 22px; height: 22px; border: none; border-radius: 50%; background: rgba(220,53,69,.92); color: #fff; font-size: 14px; line-height: 1; cursor: pointer; }
+</style>
 <script>
 
     // Delete Shift
@@ -1143,8 +1144,178 @@
 
                   
                 })
-  
 
+    // Shift image attachments — multi preview + compress + upload
+    let shiftAttachQueue = [];
+
+    const resetShiftAttachModal = () => {
+        shiftAttachQueue.forEach(item => { if (item.preview) URL.revokeObjectURL(item.preview); });
+        shiftAttachQueue = [];
+        $('#shiftAttachmentInput').val('');
+        $('#shiftAttachName').val('').removeClass('redborder');
+        $('#shiftPrintedDocIn').prop('checked', false);
+        $('#shiftPrintedDoc').val(0);
+        renderShiftAttachPreviews();
+    };
+
+    const updateShiftAttachSubmit = () => {
+        const count = shiftAttachQueue.length;
+        $('#shiftSubmitAttach').prop('disabled', count === 0);
+        $('#shiftAttachUploadLabel').text(
+            count > 1
+                ? lang(`Pakia (${count})`, `Upload (${count})`)
+                : lang('Pakia', 'Upload')
+        );
+    };
+
+    const renderShiftAttachPreviews = () => {
+        const $grid = $('#shiftAttachPreview');
+        if (!shiftAttachQueue.length) {
+            $grid.html(`<p class="text-muted small mb-0">${lang('Hakuna picha zilizochaguliwa', 'No images selected yet')}</p>`);
+            updateShiftAttachSubmit();
+            return;
+        }
+        $grid.html(shiftAttachQueue.map(item => `
+            <div class="shift-attach-preview-item" data-id="${item.id}">
+                <button type="button" class="shift-attach-preview-remove" data-id="${item.id}" title="${lang('Ondoa', 'Remove')}">&times;</button>
+                <img src="${item.preview}" alt="${escapeHtml(item.file.name)}">
+                <small>${escapeHtml(item.file.name)}</small>
+            </div>
+        `).join(''));
+        updateShiftAttachSubmit();
+    };
+
+    const escapeHtml = text => $('<div>').text(text || '').html();
+
+    const compressImageAsync = file => new Promise(resolve => {
+        if (typeof compressImage === 'function') {
+            compressImage(file, resolve);
+        } else {
+            resolve(file);
+        }
+    });
+
+    const uploadShiftAttachment = (processedFile, attachName, printedDoc) => {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', $('input[name=csrfmiddlewaretoken]').val());
+        formData.append('attachment', processedFile);
+        formData.append('sh', '{{trf.id}}');
+        formData.append('attach_name', attachName);
+        formData.append('printedDoc', printedDoc);
+        formData.append('tr', 0);
+        formData.append('rc', 0);
+        formData.append('sa', 0);
+        formData.append('ses', 0);
+        formData.append('adj', 0);
+        formData.append('pu', 0);
+        formData.append('cust', 0);
+        formData.append('purchaseId', 0);
+        formData.append('is_pu_receipt', 0);
+        formData.append('is_pu_invo', 0);
+        formData.append('is_exp', 0);
+        return $.ajax({
+            url: '/salepurchase/addAttach',
+            type: 'POST',
+            data: formData,
+            cache: false,
+            processData: false,
+            contentType: false
+        });
+    };
+
+    $('#addAttachment').on('show.bs.modal', resetShiftAttachModal);
+    $('#addAttachment').on('hidden.bs.modal', resetShiftAttachModal);
+
+    $('#shiftAttachmentInput').on('change', function () {
+        const files = Array.from(this.files || []);
+        files.forEach(file => {
+            if (!file.type || !file.type.startsWith('image/')) return;
+            const preview = URL.createObjectURL(file);
+            shiftAttachQueue.push({
+                id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                file,
+                preview
+            });
+        });
+        this.value = '';
+        renderShiftAttachPreviews();
+    });
+
+    $('body').on('click', '.shift-attach-preview-remove', function () {
+        const id = $(this).data('id');
+        const idx = shiftAttachQueue.findIndex(item => item.id === id);
+        if (idx >= 0) {
+            URL.revokeObjectURL(shiftAttachQueue[idx].preview);
+            shiftAttachQueue.splice(idx, 1);
+            renderShiftAttachPreviews();
+        }
+    });
+
+    $('#shiftAttachForm').on('submit', async function (e) {
+        e.preventDefault();
+        if (!shiftAttachQueue.length) {
+            toastr.info(lang('Chagua angalau picha moja', 'Select at least one image'), lang('Taarifa', 'Info'), { timeOut: 2500 });
+            return;
+        }
+
+        const isDocu = Number($('#shiftPrintedDocIn').prop('checked'));
+        const baseName = $('#shiftAttachName').val().trim();
+        const printedLabel = lang('Dokumenti iliyoprintiwa na kusainiwa', 'Printed and signed document');
+
+        if (!isDocu && !baseName) {
+            redborder('#shiftAttachName');
+            return;
+        }
+        $('#shiftAttachName').removeClass('redborder');
+
+        $('#addAttachment').modal('hide');
+        $('#loadMe').modal('show');
+
+        let uploaded = 0;
+        let lastError = null;
+        const total = shiftAttachQueue.length;
+        const queueCopy = shiftAttachQueue.slice();
+
+        for (let i = 0; i < queueCopy.length; i++) {
+            const item = queueCopy[i];
+            try {
+                const processedFile = await compressImageAsync(item.file);
+                const attachName = isDocu
+                    ? (total > 1 ? `${printedLabel} ${i + 1}` : printedLabel)
+                    : (total > 1 ? `${baseName} ${i + 1}` : baseName);
+                const resp = await uploadShiftAttachment(processedFile, attachName, isDocu ? 1 : 0);
+                if (resp.success) {
+                    uploaded++;
+                } else {
+                    lastError = lang(resp.msg_swa, resp.msg_eng);
+                }
+            } catch (err) {
+                lastError = lang('Imeshindikana kupakia picha', 'Failed to upload image');
+            }
+        }
+
+        $('#loadMe').modal('hide');
+        hideLoading();
+        resetShiftAttachModal();
+
+        if (uploaded === total) {
+            toastr.success(
+                lang(`Picha ${uploaded} zimepakiwa`, `${uploaded} image(s) uploaded`),
+                lang('Imefanikiwa', 'Success'),
+                { timeOut: 2000 }
+            );
+            location.reload();
+        } else if (uploaded > 0) {
+            toastr.warning(
+                lang(`Picha ${uploaded}/${total} zimepakiwa`, `${uploaded}/${total} image(s) uploaded`),
+                lang('Onyo', 'Warning'),
+                { timeOut: 3000 }
+            );
+            location.reload();
+        } else {
+            toastr.error(lastError || lang('Imeshindikana kupakia picha', 'Failed to upload images'), lang('Haikufanikiwa', 'Error'), { timeOut: 3000 });
+        }
+    });
 
 
 </script>

@@ -1,4 +1,17 @@
 let saData = [],FUEL = [], VDATA = {},ISVIEW = 0,SAOBJ=[],VOBJ={}
+
+// Use session date (shiftSesion.date) when available — matches backend getEvaluation
+const evalDate = item => item?.sesDate || item?.date || item?.tarehe;
+const evalMoment = item => moment(evalDate(item));
+const evalInRange = (item, tFr, tTo) => {
+    const d = evalMoment(item);
+    if (!d.isValid()) return false;
+    return d.format() >= tFr && d.format() <= tTo;
+};
+const rowToTankId = r => Number(r.To_id ?? r.to_id ?? r.tank ?? 0);
+const rowFromTankId = r => Number(r.trFr ?? r.From_id ?? 0);
+const rowSaleTankId = r => Number(r.tank_id ?? r.tank ?? 0);
+
 const filters = () =>{
     const  st = Number($('#staxnF').val()),
          
@@ -170,13 +183,13 @@ const init = Number($('#generalSaleR tr').length==0)
 // The seleted time duration Data....................................//
 const ArryCreate = d =>{
             const {tFr,tTo,rname} = d,
-                     sale = d.sale?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo ),
-                     saL = d.saL?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo ),
-                     puch = d.puch?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo ),
-                     adj = d.adj?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo ),
-                     expx = d.expx?.filter(s=>moment(s.tarehe).format() >= tFr && moment(s.tarehe).format() <= tTo ),
-                     recv = d.recv?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo ),
-                     trf = d.trf?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo )
+                     sale = d.sale?.filter(s => evalInRange(s, tFr, tTo)),
+                     saL = d.saL?.filter(s => evalInRange(s, tFr, tTo)),
+                     puch = d.puch?.filter(s => moment(s.date).format() >= tFr && moment(s.date).format() <= tTo),
+                     adj = d.adj?.filter(s => evalInRange(s, tFr, tTo)),
+                     expx = d.expx?.filter(s => evalInRange(s, tFr, tTo)),
+                     recv = d.recv?.filter(s => evalInRange(s, tFr, tTo)),
+                     trf = d.trf?.filter(s => evalInRange(s, tFr, tTo))
                      let  stock = d.stock?.filter(s=>moment(s.tFr).format() === tFr && moment(s.tTo).format() === tTo )
 
                     //  on this the stock if the time range  does not march and is within the range of the data available we have to create the stock
@@ -192,23 +205,23 @@ const ArryCreate = d =>{
 
                             // Sum all movements after openingDate but before tFr
                             const recvdBefore = d.recv
-                                .filter(r => r.To_id === s.tank && moment(r.date).isAfter(openingDate) && moment(r.date).isBefore(tFr))
+                                .filter(r => rowToTankId(r) === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + Number(b.qty), 0);
                             const trfOutBefore = d.trf
-                                .filter(r => r.trFr === s.tank && moment(r.date).isAfter(openingDate) && moment(r.date).isBefore(tFr))
+                                .filter(r => rowFromTankId(r) === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + Number(b.qty), 0);
                             const trfInBefore = d.trf
-                                .filter(r => r.To_id === s.tank && moment(r.date).isAfter(openingDate) && moment(r.date).isBefore(tFr))
+                                .filter(r => rowToTankId(r) === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + Number(b.qty), 0);
                             const soldBefore = d.saL
-                                .filter(r => r.tank_id === s.tank && moment(r.date).isAfter(openingDate) && moment(r.date).isBefore(tFr))
+                                .filter(r => rowSaleTankId(r) === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + Number(b.qty_sold), 0);
                             const usedBefore = d.expx
-                                .filter(r => r.tank === s.tank && moment(r.tarehe).isAfter(openingDate) && moment(r.tarehe).isBefore(tFr))
+                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + Number(b.fuel_qty), 0);
 
                              const wastageBefore = d.adj   
-                                .filter(r => r.tank === s.tank && moment(r.tarehe).isAfter(openingDate) && moment(r.tarehe).isBefore(tFr))
+                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + Number(b.diff), 0);
 
                             // Calculate opening stock at tFr
@@ -219,22 +232,22 @@ const ArryCreate = d =>{
                             let openingValue = Number(s.opening) * Number(s.OpenCost);
                             
                             const recvdValue = d.recv
-                                .filter(r => r.To_id === s.tank && moment(r.date).isAfter(openingDate) && moment(r.date).isBefore(tFr))
+                                .filter(r => rowToTankId(r) === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + (Number(b.qty) * Number(b.cost)), 0);
                             const trfInValue = d.trf
-                                .filter(r => r.To_id === s.tank && moment(r.date).isAfter(openingDate) && moment(r.date).isBefore(tFr))
+                                .filter(r => rowToTankId(r) === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + (Number(b.qty) * Number(b.cost)), 0);
                             const trfOutValue = d.trf
-                                .filter(r => r.trFr === s.tank && moment(r.date).isAfter(openingDate) && moment(r.date).isBefore(tFr))    
+                                .filter(r => rowFromTankId(r) === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))    
                                 .reduce((a, b) => a + (Number(b.qty) * Number(b.cost)), 0);
                             const soldValue = d.saL
-                                .filter(r => r.tank_id === s.tank && moment(r.date).isAfter(openingDate) && moment(r.date).isBefore(tFr))
+                                .filter(r => rowSaleTankId(r) === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + (Number(b.qty_sold) * Number(b.cost_sold)), 0);
                             const usedValue = d.expx
-                                .filter(r => r.tank === s.tank && moment(r.tarehe).isAfter(openingDate) && moment(r.tarehe).isBefore(tFr))
+                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + (Number(b.fuel_qty) * Number(b.fuel_cost)), 0);
                             const wastageValue = d.adj
-                                .filter(r => r.tank === s.tank && moment(r.tarehe).isAfter(openingDate) && moment(r.tarehe).isBefore(tFr))
+                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + (Number(b.diff) * Number(b.cost)), 0);
 
                             openingValue = openingValue + recvdValue + wastageValue + trfInValue - trfOutValue - soldValue - usedValue;
@@ -250,22 +263,22 @@ const ArryCreate = d =>{
 
                             // Sum all movements after closingDate but before or at tTo
                             const recvdAfter = d.recv
-                                .filter(r => r.To_id === s.tank && moment(r.date).isAfter(closingDate) && moment(r.date).isSameOrBefore(tTo))
+                                .filter(r => rowToTankId(r) === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + Number(b.qty), 0);
                             const trfOutAfter = d.trf
-                                .filter(r => r.trFr === s.tank && moment(r.date).isAfter(closingDate) && moment(r.date).isSameOrBefore(tTo))
+                                .filter(r => rowFromTankId(r) === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + Number(b.qty), 0);
                             const trfInAfter = d.trf
-                                .filter(r => r.To_id === s.tank && moment(r.date).isAfter(closingDate) && moment(r.date).isSameOrBefore(tTo))
+                                .filter(r => rowToTankId(r) === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + Number(b.qty), 0);
                             const soldAfter = d.saL
-                                .filter(r => r.tank_id === s.tank && moment(r.date).isAfter(closingDate) && moment(r.date).isSameOrBefore(tTo))
+                                .filter(r => rowSaleTankId(r) === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + Number(b.qty_sold), 0);
                             const usedAfter = d.expx
-                                .filter(r => r.tank === s.tank && moment(r.tarehe).isAfter(closingDate) && moment(r.tarehe).isSameOrBefore(tTo))
+                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + Number(b.fuel_qty), 0);
                             const wastageAfter = d.adj
-                                .filter(r => r.tank === s.tank && moment(r.tarehe).isAfter(closingDate) && moment(r.tarehe).isSameOrBefore(tTo))
+                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + Number(b.diff), 0);
                             // Calculate closing stock at tTo
                             closing = s.opening + recvdAfter + wastageAfter + trfInAfter - trfOutAfter - soldAfter - usedAfter;
@@ -275,22 +288,22 @@ const ArryCreate = d =>{
                             
 
                             const recvdValueAfter = d.recv
-                                .filter(r => r.To_id === s.tank && moment(r.date).isAfter(closingDate) && moment(r.date).isSameOrBefore(tTo))
+                                .filter(r => rowToTankId(r) === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + (Number(b.qty) * Number(b.cost)), 0);
                             const trfInValueAfter = d.trf
-                                .filter(r => r.To_id === s.tank && moment(r.date).isAfter(closingDate) && moment(r.date).isSameOrBefore(tTo))
+                                .filter(r => rowToTankId(r) === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + (Number(b.qty) * Number(b.cost)), 0);
                             const trfOutValueAfter = d.trf
-                                .filter(r => r.trFr === s.tank && moment(r.date).isAfter(closingDate) && moment(r.date).isSameOrBefore(tTo))
+                                .filter(r => rowFromTankId(r) === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + (Number(b.qty) * Number(b.cost)), 0);
                             const soldValueAfter = d.saL
-                                .filter(r => r.tank_id === s.tank && moment(r.date).isAfter(closingDate) && moment(r.date).isSameOrBefore(tTo))
+                                .filter(r => rowSaleTankId(r) === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + (Number(b.qty_sold) * Number(b.cost_sold)), 0);
                             const usedValueAfter = d.expx
-                                .filter(r => r.tank === s.tank && moment(r.tarehe).isAfter(closingDate) && moment(r.tarehe).isSameOrBefore(tTo))
+                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + (Number(b.fuel_qty) * Number(b.fuel_cost)), 0);
                             const wastageValueAfter = d.adj
-                                .filter(r => r.tank === s.tank && moment(r.tarehe).isAfter(closingDate) && moment(r.tarehe).isSameOrBefore(tTo))
+                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + (Number(b.diff) * Number(b.cost)), 0);
                             
                                 closingValue = closingValue + recvdValueAfter + wastageValueAfter + trfInValueAfter - trfOutValueAfter - soldValueAfter - usedValueAfter;
@@ -493,22 +506,22 @@ if (st) {
 
 // if (end.diff(start, 'months', true) > 1) {
 //    allDates = [
-//         ...recv.map(r => moment(r.date).format('YYYY-MM')),
+//         ...recv.map(r => evalMoment(r).format('YYYY-MM')),
 //         ...puch.map(p => moment(p.date).format('YYYY-MM')),
-//         ...trf.map(t => moment(t.date).format('YYYY-MM')),
-//         ...expx.map(e => moment(e.tarehe).format('YYYY-MM')),
-//         ...adj.map(a => moment(a.date).format('YYYY-MM')),
+//         ...trf.map(t => evalMoment(t).format('YYYY-MM')),
+//         ...expx.map(e => evalMoment(e).format('YYYY-MM')),
+//         ...adj.map(a => evalMoment(a).format('YYYY-MM')),
 //         ...saL.map(s => moment(s.date).format('YYYY-MM')),
         
 //    ]
 // } else {
 //     // Else, extract set of dates (YYYY-MM-DD)
 //     allDates = [
-//         ...recv.map(r => moment(r.date).format('YYYY-MM-DD')),
+//         ...recv.map(r => evalMoment(r).format('YYYY-MM-DD')),
 //         ...puch.map(p => moment(p.date).format('YYYY-MM-DD')),
-//         ...trf.map(t => moment(t.date).format('YYYY-MM-DD')),
-//         ...expx.map(e => moment(e.tarehe).format('YYYY-MM-DD')),
-//         ...adj.map(a => moment(a.date).format('YYYY-MM-DD')),
+//         ...trf.map(t => evalMoment(t).format('YYYY-MM-DD')),
+//         ...expx.map(e => evalMoment(e).format('YYYY-MM-DD')),
+//         ...adj.map(a => evalMoment(a).format('YYYY-MM-DD')),
 //         ...saL.map(s => moment(s.date).format('YYYY-MM-DD')),
       
 //     ];
@@ -556,25 +569,25 @@ uniqueDates.reverse().forEach(dateKey => {
     }
 
     // Filter data for the period
-    let saleF = sale.filter(s => moment(s.date).isBetween(dateStart, dateEnd, null, '[]'));
-    let saLF = saL.filter(s => moment(s.date).isBetween(dateStart, dateEnd, null, '[]'));
+    let saleF = sale.filter(s => evalMoment(s).isBetween(dateStart, dateEnd, null, '[]'));
+    let saLF = saL.filter(s => evalMoment(s).isBetween(dateStart, dateEnd, null, '[]'));
     let puchF = puch.filter(p => moment(p.date).isBetween(dateStart, dateEnd, null, '[]'));
-    let trfF = trf.filter(t => moment(t.date).isBetween(dateStart, dateEnd, null, '[]'));
-    let expxF = expx.filter(e => moment(e.tarehe).isBetween(dateStart, dateEnd, null, '[]'));
-    let adjF = adj.filter(a => moment(a.date).isBetween(dateStart, dateEnd, null, '[]'));
-    let recvF = recv.filter(r => moment(r.date).isBetween(dateStart, dateEnd, null, '[]'));
+    let trfF = trf.filter(t => evalMoment(t).isBetween(dateStart, dateEnd, null, '[]'));
+    let expxF = expx.filter(e => evalMoment(e).isBetween(dateStart, dateEnd, null, '[]'));
+    let adjF = adj.filter(a => evalMoment(a).isBetween(dateStart, dateEnd, null, '[]'));
+    let recvF = recv.filter(r => evalMoment(r).isBetween(dateStart, dateEnd, null, '[]'));
  
     
     // Opening stock: sum opening for stocks at the start of the period
     let opening = stock.reduce((a, b) => a + Number(b.opening) * Number(b.OpenCost), 0);
         
-        const   recvdO = recv.filter(r=> moment(r.date).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty)*b.cost,0) || 0,
-                transfrO = trf.filter(r=> moment(r.date).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
+        const   recvdO = recv.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty)*b.cost,0) || 0,
+                transfrO = trf.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
                 
-                trToO = trf.filter(r=> moment(r.date).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
-                wastageO = adj.filter(r=> moment(r.date).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
-                soldO = saL.filter(r=> moment(r.date).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0) || 0,
-                usedO = expx.filter(r=> moment(r.tarehe).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.fuel_qty*b.fuel_cost),0) || 0,
+                trToO = trf.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
+                wastageO = adj.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
+                soldO = saL.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0) || 0,
+                usedO = expx.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.fuel_qty*b.fuel_cost),0) || 0,
                 theTrO = transfrO - trToO 
 
                 // console.log({dateKey,opening,recvdO,theTrO,soldO,usedO});
@@ -1029,15 +1042,15 @@ const tankAnalyze = () =>{
     // Received (when st != 0)
     if (st !== 0) {
         recv.forEach(r => {
-            if (!r.tank) return;
-            const key = r.tank;
+            const key = rowToTankId(r);
+            if (!key) return;
             if (!tankMap[key]) tankMap[key] = { tankName: r.TankName || '', fuelName: r.fuelName || r.fuel, stationName: r.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
             tankMap[key].receivedQty += Number(r.qty);
             tankMap[key].receivedCost += Number(r.cost) * Number(r.qty);
         });
         trf.forEach(t => {
-            if (!t.tank) return;
-            const key = t.tank;
+            const key = rowToTankId(t);
+            if (!key) return;
             if (!tankMap[key]) tankMap[key] = { tankName: t.TankName || '', fuelName: t.fuelName || t.fuel, stationName: t.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
             tankMap[key].transferredQty += Number(t.qty);
             tankMap[key].transferredCost += Number(t.cost) * Number(t.qty);
@@ -1055,8 +1068,8 @@ const tankAnalyze = () =>{
 
     // Sales
     saL.forEach(s => {
-        if (!s.tank_id) return;
-        const key = s.tank_id;
+        const key = rowSaleTankId(s);
+        if (!key) return;
         if (!tankMap[key]) tankMap[key] = { tankName: s.TankName || '', fuelName: s.fuelName || s.fuel, stationName: s.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
         tankMap[key].salesQty += Number(s.qty_sold);
         tankMap[key].salesCost += Number(s.qty_sold) * Number(s.cost_sold);
@@ -1445,11 +1458,11 @@ const MoreDetailsFuel = dt => {
         
         title = `${lang('Maelezo Zaidi Ya Tanki','More Details For Tank')} : <span class="bluePrint">${tnkObj ? tnkObj.TankName : ''}</span>`;
         puch = puch.filter(p => p.tank === tnk);
-        recv = recv.filter(r => r.tank === tnk);
-        trf = trf.filter(t => t.tank === tnk);
+        recv = recv.filter(r => rowToTankId(r) === tnk);
+        trf = trf.filter(t => rowToTankId(t) === tnk || rowFromTankId(t) === tnk);
         expx = expx.filter(e => e.tank === tnk);
         adj = adj.filter(a => a.tank === tnk);
-        saL = saL.filter(s => s.tank_id === tnk);
+        saL = saL.filter(s => rowSaleTankId(s) === tnk);
         stock = stock.filter(s => s.tank === tnk);
     }
     if (dte!=null) {
@@ -1475,25 +1488,25 @@ const MoreDetailsFuel = dt => {
                     // Opening stock: sum opening for stocks at the start of the period
         let opening = s.opening*s.OpenCost;
 
-            const   recvdO = recv.filter(r=>r.To_id===s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty)*b.cost,0) || 0,
-                    transfrO = trf.filter(r=> r.trFr===s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
+            const   recvdO = recv.filter(r=>rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty)*b.cost,0) || 0,
+                    transfrO = trf.filter(r=> rowFromTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
 
-                    trToO = trf.filter(r=> r.To_id===s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
-                    wastageO = adj.filter(r=> r.tank===s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
-                    soldO = saL.filter(r=> r.tank_id===s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0) || 0,
-                    usedO = expx.filter(r=>r.tank===s.tank && moment(r.tarehe).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.fuel_qty*b.fuel_cost),0) || 0,
+                    trToO = trf.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
+                    wastageO = adj.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
+                    soldO = saL.filter(r=> rowSaleTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0) || 0,
+                    usedO = expx.filter(r=>r.tank===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.fuel_qty*b.fuel_cost),0) || 0,
                     theTrO = transfrO - trToO
                     opening = (opening + recvdO + wastageO) - (soldO + usedO )
 
                     // get the opening stock quantity from the stock data since we have the opening stock value and cost
                    
              let openingQty = s.opening;
-             const recvdQty = recv.filter(r=> r.To_id === s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
-                   transfrQty = trf.filter(r=> r.trFr===s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
-                   trToQty = trf.filter(r=> r.To_id===s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
-                     wastageQty = adj.filter(r=> r.tank===s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.diff),0) || 0,
-                    soldQty = saL.filter(r=> r.tank_id===s.tank && moment(r.date).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty_sold),0) || 0,
-                    usedQty = expx.filter(r=> r.tank===s.tank && moment(r.tarehe).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.fuel_qty),0) || 0,
+             const recvdQty = recv.filter(r=> rowToTankId(r) === s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
+                   transfrQty = trf.filter(r=> rowFromTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
+                   trToQty = trf.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
+                     wastageQty = adj.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.diff),0) || 0,
+                    soldQty = saL.filter(r=> rowSaleTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty_sold),0) || 0,
+                    usedQty = expx.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.fuel_qty),0) || 0,
                     theTrQty = transfrQty - trToQty
                     openingQty = (openingQty + recvdQty + wastageQty) - (soldQty + usedQty + theTrQty)
                     s.OpenCost = openingQty ? (opening / openingQty) : 0;
@@ -1501,23 +1514,23 @@ const MoreDetailsFuel = dt => {
           
 
                     // get the stock movements qty for the date since we have got the opening stock value
-                    const   recvd = recv.filter(r=>r.To_id===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty)*b.cost,0) || 0,
-                            transfr = trf.filter(r=> r.trFr===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
-                            trTo = trf.filter(r=> r.To_id===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
-                            wastage = adj.filter(r=> r.tank===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
-                            sold = saL.filter(r=> r.tank_id===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0) || 0,
-                            used = expx.filter(r=> r.tank===s.tank && moment(r.tarehe).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.fuel_qty*b.fuel_cost),0) || 0,
+                    const   recvd = recv.filter(r=>rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty)*b.cost,0) || 0,
+                            transfr = trf.filter(r=> rowFromTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
+                            trTo = trf.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
+                            wastage = adj.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
+                            sold = saL.filter(r=> rowSaleTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0) || 0,
+                            used = expx.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.fuel_qty*b.fuel_cost),0) || 0,
                             theTr = transfr - trTo
                     // closing stock is opening + received + wastage - sold - used - net transfer
                     let closing = (opening + recvd + wastage) - (sold + used + theTr);
                     // get the closing stock quantity from the stock data since we have the closing stock value and cost
                     let closingQty = openingQty;
-                    const recvdQtyC = recv.filter(r=> r.To_id===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
-                          transfrQtyC = trf.filter(r=> r.trFr===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
-                          trToQtyC = trf.filter(r=> r.To_id===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
-                          wastageQtyC = adj.filter(r=> r.tank===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.diff),0) || 0,
-                          soldQtyC = saL.filter(r=> r.tank_id===s.tank && moment(r.date).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty_sold),0) || 0,
-                          usedQtyC = expx.filter(r=> r.tank===s.tank && moment(r.tarehe).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.fuel_qty),0) || 0,
+                    const recvdQtyC = recv.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
+                          transfrQtyC = trf.filter(r=> rowFromTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
+                          trToQtyC = trf.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
+                          wastageQtyC = adj.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.diff),0) || 0,
+                          soldQtyC = saL.filter(r=> rowSaleTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty_sold),0) || 0,
+                          usedQtyC = expx.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.fuel_qty),0) || 0,
                           theTrQtyC = transfrQtyC - trToQtyC
                         closingQty = (closingQty + recvdQtyC + wastageQtyC) - (soldQtyC + usedQtyC + theTrQtyC)
                     s.CloseCost = closingQty ? (closing / closingQty) : 0;
@@ -1533,11 +1546,11 @@ const MoreDetailsFuel = dt => {
         
 
         puch = puch.filter(p => moment(p.date).format(dtFormat) === dte);
-        recv = recv.filter(r => moment(r.date).format(dtFormat) === dte);
-        trf = trf.filter(t => moment(t.date).format(dtFormat) === dte);
-        expx = expx.filter(e => moment(e.tarehe).format(dtFormat) === dte);
-        adj = adj.filter(a => moment(a.date).format(dtFormat) === dte);
-        saL = saL.filter(s => moment(s.date).format(dtFormat) === dte);
+        recv = recv.filter(r => evalMoment(r).format(dtFormat) === dte);
+        trf = trf.filter(t => evalMoment(t).format(dtFormat) === dte);
+        expx = expx.filter(e => evalMoment(e).format(dtFormat) === dte);
+        adj = adj.filter(a => evalMoment(a).format(dtFormat) === dte);
+        saL = saL.filter(s => evalMoment(s).format(dtFormat) === dte);
 
         
 
@@ -1846,6 +1859,67 @@ $('#backBtn').click(function(){
               $('#MoreDetails').fadeOut();
               $('#Salecateg').fadeIn(100)
 
+})
+
+
+$('#printRBtn').click(function(){
+    const userN = $(this).data('user')
+
+    const summary = `<div class="row my-3">
+                        <div class="col-9 row">
+                            ${$('#SaLDetail .col-md-7').html() || ''}
+
+                            <div class="col-6 col-lg-4">
+                                ${lang('Imetolewa','Issued on')}:  
+                            </div>
+                            <div class="col-6 col-lg-8">
+                                ${moment().format('DD/MM/YYYY HH:mm')}  
+                            </div>
+
+                            <div class="col-6 col-lg-4">
+                                ${lang('Imetolewa na','Issued by')}:  
+                            </div>
+                            <div class="col-6 col-lg-8 text-capitalize">
+                                ${userN}
+                            </div>
+                        </div>
+                    </div>`
+
+    let head = ''
+    let tableHtml = ''
+    const reportHead = $('#detailRHeading').html() || ''
+    const isDetailView = $('#MoreDetails').is(':visible')
+
+    if (isDetailView) {
+        const detailTitle = $('#MoreDetailsRHeading span').html() || lang('Maelezo zaidi','More Details')
+        head = `<div class="mb-3">${reportHead ? `<h5>${reportHead}</h5>` : ''}<h6>${detailTitle}</h6></div>`
+        tableHtml = $('#MoreDetailsTable').find('table').first().prop('outerHTML') || ''
+    } else {
+        const activeSection = $('#Salecateg .DetailsTable:visible').first()
+        const activeHeading = activeSection.find('h6').first().text() || lang('Uchambuzi na Tathmini','Analysis and Evaluation')
+        head = `<div class="mb-3">${reportHead ? `<h5>${reportHead}</h5>` : ''}<h6>${activeHeading}</h6></div>`
+        tableHtml = activeSection.find('table').first().prop('outerHTML') || ''
+    }
+
+    if (!tableHtml) {
+        toastr.info(lang('Hakuna jedwali la kuchapisha kwa sasa','No visible table to print right now'), lang('Taarifa','Info'), {timeOut: 2500})
+        return
+    }
+
+    const printWindow = window.open('', '', 'height=650,width=980')
+    if (!printWindow) {
+        toastr.warning(lang('Kivinjari kimezuia popup ya print. Tafadhali ruhusu popups kisha jaribu tena.','Your browser blocked the print popup. Please allow popups and try again.'))
+        return
+    }
+    printWindow.document.write(company_header)
+    printWindow.document.write(`${head}${summary}${tableHtml}`)
+    printWindow.document.write('</div></body></html>')
+    printWindow.document.close()
+    printWindow.focus()
+    setTimeout(() => {
+        printWindow.print()
+        printWindow.close()
+    }, 700)
 })
 
 

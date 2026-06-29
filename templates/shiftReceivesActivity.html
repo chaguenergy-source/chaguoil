@@ -1,0 +1,198 @@
+{% extends 'shiftsActivity.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{% static 'css/customerPayments.css' %}">
+{% endblock %}
+
+{% block activityHead %}
+   {% if useri.langSet == 0 %}Miamala ya Kupokea Mafuta{% else %}Fuel Receives Activity{% endif %}
+{% endblock %}
+
+{% block receive %}active{% endblock %}
+
+{% block shiftactivity %}
+<div class="head">
+    <h5>
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.35em" height="1.35em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12h18"></path>
+            <path d="M12 3v18"></path>
+        </svg>
+        {% if useri.langSet == 0 %}Miamala ya Kupokea Mafuta{% else %}Fuel Receives Activity{% endif %}
+    </h5>
+</div>
+
+<div id="paymentSummary">
+    <div class="payment-filters">
+        {% csrf_token %}
+        <div class="filter-group">
+            <label>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}:</label>
+            <div class="input-group">
+                <select id="stationFilter" class="form-control">
+                    {% if not general %}
+                        <option value="{{shell.id}}" data-stxn="{{shell.name}}">{{shell.name}}</option>
+                        {% if useri.admin or useri.ceo %}
+                            {% for station in stations %}
+                                {% if station != shell %}
+                                    <option value="{{ station.id }}" data-stxn="{{station.name}}">{{ station.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                            <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                        {% endif %}
+                    {% else %}
+                        <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                        {% for station in stations %}
+                            <option value="{{ station.id }}" data-stxn="{{station.name}}">{{ station.name }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+                <div class="input-group-append dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      {% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}
+                      <span class="sr-only">{% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}</span>
+                    </button>
+                    <div class="dropdown-menu" id="common_duration">
+                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0  %}Wiki Ilopita {% else %}Last Week {% endif %}',moment().startOf('isoWeek').subtract(1,'days').startOf('isoWeek').format(),moment().startOf('isoWeek').subtract(1,'days').endOf('isoWeek').format())">{% if useri.langSet == 0 %}Wiki Ilopita {% else %}Last Week{% endif %}</a>
+                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwezi ulopita{% else %}Last Month{% endif %}',moment().startOf('month').subtract(1,'days').startOf('month').format(),moment().startOf('month').subtract(1,'days').endOf('month').format())">{% if useri.langSet == 0 %}Mwezi Uliopita{% else %}Last Month{% endif %}</a>
+                        <a class="dropdown-item" type="button" data-toggle="modal" data-target="#durationModal">{% if useri.langSet == 0 %}Weka Muda{% else %}Custom Date{% endif %}</a>
+                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}',moment().startOf('year').format(),moment().endOf('year').format())">{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}</a>
+                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwaka Jana{% else %}Last Year{% endif %}',moment().startOf('year').subtract(1,'years').format(),moment().startOf('year').subtract(1,'years').endOf('year').format())">{% if useri.langSet == 0 %}Mwaka Jana{% else %}Last Year{% endif %}</a>
+                      </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h6 class="weight600">{% if useri.langSet == 0 %}Muhtasari wa Receives{% else %}Receives Summary{% endif %}</h6>
+    <div class="table-responsive">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>{% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Rekodi{% else %}Records{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Kiasi (LTRS){% else %}Qty (LTRS){% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Thamani{% else %}Worth{% endif %} ({{currencii}})</th>
+                </tr>
+            </thead>
+            <tbody id="activitySummaryBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="paymentDetails" class="mt-4" style="display:none">
+    <div>
+        <button class="btn btn-sm btn-outline-secondary" id="backToSummary">{% if useri.langSet == 0 %}Rudi{% else %}Back{% endif %}</button>
+        <h6 id="activityDetailsTitle" class="d-inline weight600 ml-2"></h6>
+    </div>
+
+    <div class="d-flex justify-content-end align-items-center mb-3">
+        <button type="button" id="viewAllAttachmentsBtn" class="btn btn-outline-info btn-sm mr-2" style="display:none" disabled>
+            <span id="allAttachmentsCount">0</span> {% if useri.langSet == 0 %}viambatisho{% else %}attachments{% endif %}
+        </button>
+        <button id="approveAllBtn" data-toggle="modal" data-target="#confirmApprovalModal" disabled class="btn btn-success btn-sm mr-2" style="display:none">
+            {% if useri.langSet == 0 %}Hakiki{% else %}Approve{% endif %} (<span id="unapprovedCount">0</span>)
+        </button>
+        <button id="deleteReceiveBtn" data-toggle="modal" data-target="#confirmDeleteModal" disabled class="btn btn-danger btn-sm mr-2" style="display:none">
+            {% if useri.langSet == 0 %}Futa{% else %}Delete{% endif %} (<span id="deleteSelectedCount">0</span>)
+        </button>
+        <button id="printPayments" class="btn btn-secondary btn-sm">{% if useri.langSet == 0 %}Chapisha{% else %}Print{% endif %}</button>
+    </div>
+
+    <div class="table-responsive" id="paymentsTable">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    {% if useri.admin %}
+                    <th class="text-center"><input type="checkbox" id="selectAllRecords" title="{% if useri.langSet == 0 %}Chagua Yote{% else %}Select All{% endif %}"></th>
+                    {% endif %}
+                    <th>#</th>
+                    <th>{% if useri.langSet == 0 %}TareheMuda{% else %}DateTime{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Receive{% else %}Receive{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Kutoka{% else %}From{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Kwenda{% else %}To{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Thamani{% else %}Worth{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Viambatisho{% else %}Attachments{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Hali{% else %}Status{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody id="activityDetailsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{% if useri.langSet == 0 %}Thibitisha Ufutaji{% else %}Confirm Delete{% endif %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        {% if useri.langSet == 0 %}Je, unahakika unataka kufuta rekodi zilizochaguliwa? Stock na miamala yote itarejeshwa.{% else %}Are you sure you want to delete the selected records? Stock and all movements will be restored.{% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Hapana{% else %}No{% endif %}</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteRecords">{% if useri.langSet == 0 %}Ndiyo, Futa{% else %}Yes, Delete{% endif %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="confirmApprovalModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{% if useri.langSet == 0 %}Thibitisha Uhakiki{% else %}Confirm Approval{% endif %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        {% if useri.langSet == 0 %}Je, unahakika unataka kuhakiki rekodi zilizochaguliwa?{% else %}Are you sure you want to approve the selected records?{% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Hapana{% else %}No{% endif %}</button>
+        <button type="button" class="btn btn-success" id="confirmApproveRecords">{% if useri.langSet == 0 %}Ndiyo{% else %}Yes{% endif %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="durationModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{% if useri.langSet == 0 %}Chagua Muda{% else %}Select Duration{% endif %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+            <label for="durationName">{% if useri.langSet == 0 %}Jina la Muda{% else %}Duration Name{% endif %}:</label>
+            <input type="text" id="durationName" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="startDate">{% if useri.langSet == 0 %}Tarehe ya Kuanza{% else %}Start Date{% endif %}:</label>
+            <input type="date" id="startDate" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="endDate">{% if useri.langSet == 0 %}Tarehe ya Kumaliza{% else %}End Date{% endif %}:</label>
+            <input type="date" id="endDate" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}</button>
+        <button type="button" class="btn btn-primary" id="customDateSubmit">{% if useri.langSet == 0 %}Ongeza{% else %}Add{% endif %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+window.shiftFlowConfig = { mode: 'receive', endpoint: '/salepurchase/getShiftReceives', deleteEndpoint: '/salepurchase/deleteFuelReceive', currency: '{{currencii}}' };
+</script>
+<script src="{% static 'js/shiftFlowActivity.js' %}"></script>
+{% endblock %}

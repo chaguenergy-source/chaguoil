@@ -1,0 +1,19 @@
+{% load humanize %}
+<ul class="nav nav-tabs smallerFont mt-3 mb-4 d-flex">
+    <li class="nav-item">
+        {% if isViewTransporter or thereisTrsp %}
+            <a class="nav-link {% if isViewTransporter or trips_tab %}active{% endif %}" href="/salepurchase/viewTransporter?t={{trsp.id}}">
+                {% if useri.langSet == 0 %}Safari{% else %}Trips{% endif %}
+            </a>
+        {% else %}
+            <a class="nav-link {% if isTranspoter and not transporter_statement_tab %}active{% endif %}" href="/salepurchase/transporters">
+                {% if useri.langSet == 0 %}Wasafirishaji{% else %}Transporters{% endif %}
+            </a>
+        {% endif %}
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if transporter_statement_tab %}active{% endif %}" href="/salepurchase/transporterStatement?t={% if isViewTransporter or thereisTrsp %}{{trsp.id}}{% else %}0{% endif %}">
+            {% if useri.langSet == 0 %}Taarifa ya Msafirishaji{% else %}Transporter Statement{% endif %}
+        </a>
+    </li>
+</ul>

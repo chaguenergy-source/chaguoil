@@ -165,6 +165,10 @@
 
         <div class="row mb-3">
             <div class="col-md-12 text-right">
+                    <button type="button" id="puAttachmentsBtn" class="btn btn-outline-info btn-sm mr-1" disabled title="{% if useri.langSet == 0 %}Viambatanishi vya manunuzi{% else %}Purchase attachments{% endif %}">
+                        <span id="puAttachmentsCount">0 {% if useri.langSet == 0 %}ankara{% else %}invoice{% endif %} | 0 {% if useri.langSet == 0 %}risiti{% else %}receipt{% endif %}</span>
+                    </button>
+
                     <button id="printStatement" class="btn btn-secondary btn-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer">
                                 <polyline points="6 9 6 2 18 2 18 9"></polyline>
@@ -243,6 +247,9 @@
                             <th>{% if useri.langSet == 0 %}Imeandikishwa na{% else %}Recorded By{% endif %}</th>
 
                             <th>{% if useri.langSet == 0 %}Maelezo{% else %}Details{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Dereva{% else %}Driver{% endif %}</th>
+                            <th>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}</th>
                           
 
                             <th class="text-right">{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
@@ -263,11 +270,120 @@
 </div>
 
 
+
      
     </div>
 </div>
 
 
+
+<div class="modal fade" id="puAttachmentsModal" tabindex="-1" role="dialog" aria-labelledby="puAttachmentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document" style="max-width:96%;">
+        <div class="modal-content">
+            <div class="modal-header flex-wrap">
+                <h5 class="modal-title mr-3" id="puAttachmentsModalLabel">
+                    {% if useri.langSet == 0 %}Viambatisho vya Manunuzi{% else %}Purchase Attachments{% endif %}
+                    <small class="text-muted d-block smallFont" id="puAttachmentsModalDuration"></small>
+                </h5>
+                <div class="ml-auto d-flex flex-wrap align-items-center">
+                    <div class="btn-group btn-group-sm mr-2 mb-1 pu-att-filter-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary pu-att-filter" data-filter="all">{% if useri.langSet == 0 %}Zote{% else %}All{% endif %}</button>
+                        <button type="button" class="btn btn-outline-info pu-att-filter" data-filter="invoice">{% if useri.langSet == 0 %}Ankara{% else %}Invoices{% endif %}</button>
+                        <button type="button" class="btn btn-outline-success pu-att-filter" data-filter="receipt">{% if useri.langSet == 0 %}Risiti{% else %}Receipts{% endif %}</button>
+                    </div>
+                    <div class="btn-group btn-group-sm mr-2 mb-1 pu-att-layout-group" role="group">
+                        <button type="button" class="btn btn-secondary pu-att-layout active" data-layout="1">1/{% if useri.langSet == 0 %}ukurasa{% else %}page{% endif %}</button>
+                        <button type="button" class="btn btn-outline-secondary pu-att-layout" data-layout="2">2/{% if useri.langSet == 0 %}ukurasa{% else %}page{% endif %}</button>
+                        <button type="button" class="btn btn-outline-secondary pu-att-layout" data-layout="4">4/{% if useri.langSet == 0 %}ukurasa{% else %}page{% endif %}</button>
+                    </div>
+                    <button type="button" id="printPuAttachments" class="btn btn-secondary btn-sm mb-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <rect x="2" y="9" width="20" height="11" rx="2" ry="2"></rect>
+                            <path d="M6 19v2a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2"></path>
+                        </svg>
+                        {% if useri.langSet == 0 %}Chapisha{% else %}Print{% endif %}
+                    </button>
+                    <button type="button" class="close ml-2 mb-1" data-dismiss="modal" aria-label="{% if useri.langSet == 0 %}Funga{% else %}Close{% endif %}">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body p-2 p-md-3" id="puAttachmentsGalleryWrap">
+                <div id="puAttachmentsGallery" class="pu-att-gallery layout-1"></div>
+                <p id="puAttachmentsEmpty" class="text-muted text-center py-5 mb-0" style="display:none;">
+                    {% if useri.langSet == 0 %}Hakuna viambatisho kwa muda uliochaguliwa{% else %}No attachments for the selected period{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pu-att-gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .pu-att-page {
+        display: grid;
+        gap: 10px;
+        border: 1px dashed #dee2e6;
+        border-radius: 6px;
+        padding: 10px;
+        background: #fafafa;
+    }
+    .pu-att-gallery.layout-1 .pu-att-page {
+        grid-template-columns: 1fr;
+    }
+    .pu-att-gallery.layout-2 .pu-att-page {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        min-height: 720px;
+    }
+    .pu-att-gallery.layout-4 .pu-att-page {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        min-height: 720px;
+    }
+    .pu-att-item {
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        overflow: hidden;
+        min-height: 0;
+    }
+    .pu-att-meta {
+        padding: 6px 8px;
+        border-bottom: 1px solid #eee;
+        font-size: 12px;
+        line-height: 1.3;
+    }
+    .pu-att-item img {
+        width: 100%;
+        flex: 1;
+        object-fit: contain;
+        background: #fff;
+        min-height: 180px;
+    }
+    .pu-att-gallery.layout-1 .pu-att-item img {
+        min-height: 420px;
+        max-height: 75vh;
+    }
+    .pu-att-gallery.layout-2 .pu-att-item img {
+        min-height: 300px;
+        max-height: 340px;
+    }
+    .pu-att-gallery.layout-4 .pu-att-item img {
+        min-height: 150px;
+        max-height: 320px;
+    }
+    #puAttachmentsBtn:not(:disabled) {
+        cursor: pointer;
+    }
+</style>
 
 
 

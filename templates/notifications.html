@@ -33,7 +33,7 @@
           
 <div class="list-group" style="min-height: 60vh;" >
     {% for n in tr %}
-            <a href="#" class="list-group-item list-group-item-action {% if not n.read %} list-group-item-primary {% endif %}">
+            <a href="{% if n.analog_readings_used %}/salepurchase/viewShift?i={{n.analog_readings_used.shift.id}}{% else %}#{% endif %}" class="list-group-item list-group-item-action {% if not n.read %} list-group-item-primary {% endif %}">
                {% if n.price %}
                 <h6>{% if useri.langSet == 0 %}Bei ya Mafuta{% else %} Fuel Price {% endif %}</h6>   
                    <div class="smallFont" > 
@@ -78,6 +78,25 @@
                            document.write(moment('{{n.date | date:"r"}}').format('ddd DD/MM/YYYY HH:MM') )
                         </script>
                    </div>
+               {% endif %}
+
+               {% if n.analog_readings_used %}
+               <h6>{% if useri.langSet == 0 %}Vipimo vya analog vimetumika kwenye shift{% else %}Analog Readings Used in Shift {% endif %}</h6>   
+               <div class="smallFont" > 
+                {% if useri.langSet == 0 %}
+                Vipimo vyo vya analog vimetumika kwenye shift <span class="text-primary">SHFT-{{n.analog_readings_used.shift.code}}</span> Pampu <span class="brown">{{n.analog_readings_used.pump.station.name}} {{n.analog_readings_used.pump.name}}</span> 
+                  
+
+                {% else %} 
+                Analog readings used in shift <span class="text-primary">SHFT-{{n.analog_readings_used.shift.code}}</span> Pump <span class="brown">{{n.analog_readings_used.pump.station.name}} {{n.analog_readings_used.pump.name}}</span> 
+               
+               {% endif %}
+               | 
+               {% if n.analog_readings_used.desc %} {{n.analog_readings_used.desc}} | {% endif %}
+               <script> 
+                  document.write(moment('{{n.date | date:"r"}}').format('ddd DD/MM/YYYY HH:MM') )
+               </script>
+               </div>
                {% endif %}
             </a>
 

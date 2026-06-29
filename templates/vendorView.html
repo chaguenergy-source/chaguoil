@@ -37,7 +37,7 @@
         {% include 'headingPurchases.html'  %}    
 
     <div>    
-        <div class="row">
+        <div class="row" id="vendorDetails">
             <div class="col-md-5 row">
                 <div class="col-12">
                     <strong> {% if useri.langSet == 0 %}Taarifa za Msambazaji{% else %}Vendor Details{% endif %}</strong>
@@ -88,6 +88,25 @@
              <button data-toggle="modal" data-target="#modal_malipo" class="btn btn-sm btn-outline-success  smallerFont" title="{% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}" >
                $  {% if useri.langSet == 0 %}Malipo{% else %}Payment{% endif %}
              </button>
+
+            <button type="button"
+                    id="vendorStatement"
+                    data-station="{% if not general %}{{shell.name}}{%else%} {% if useri.langSet == 0 %}Vituo Vyote{%else%}All Stations {%endif%} {%endif%}"
+                    data-user="{{useri.user.first_name}}  {{useri.user.last_name}}"
+                    data-prev="{{prevsaleLen}}"
+                    data-month="{{saleLen}}"
+                    class="btn btn-sm btn-outline-info smallerFont"
+                    title="{% if useri.langSet == 0 %}Chapa{% else %}Print{% endif %}">
+
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer mr-1">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+
+                {% if useri.langSet == 0 %}Chapa{% else %}Print{% endif %}
+            </button>
+
             <button onclick="$('#newPurchase').toggle(200)" class="btn-sm btn btn-outline-primary smallerFont ">+{% if useri.langSet == 0 %}Ongeza Manunui{% else %}Add Purchase {% endif %}</button>
      
         </p>
@@ -362,7 +381,7 @@
 
         {% endif %}
 
-            <div class="row mt-4">
+            <div class="row mt-4" id="vendorSummary">
                 <div class="col-lg-6 ">
                     <div class="table-responsive mt-4">
                         <table class="table table-sm fontColor smallFont border "  >

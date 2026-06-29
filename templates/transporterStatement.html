@@ -1,0 +1,180 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block page_content %}
+<div class="head-title">
+    <div class="left">
+        {% include 'heading.html' %}
+        <ul class="breadcrumb">
+            <li><a href="#">Dashboard</a></li>
+            <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </li>
+            <li><a class="active" href="#">{% if useri.langSet == 0 %}Wasafirishaji{% else %}Transporters{% endif %}</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="table-data" id="invoice_wrapper" style="min-height: 85vh;overflow-y: auto;overflow-x: hidden;">
+    <div class="order">
+        {% include 'headingPurchases.html' %}
+
+        <h4>
+            <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="13" x2="8" y2="13"></line>
+                <line x1="12" y1="17" x2="8" y2="17"></line>
+                <line x1="16" y1="13" x2="14" y2="13"></line>
+                <line x1="16" y1="17" x2="14" y2="17"></line>
+            </svg>
+            {% if useri.langSet == 0 %}Taarifa ya Msafirishaji{% else %}Transporter Statement{% endif %}
+        </h4>
+
+        {% if trsp %}
+        <div class="row my-3" id="trspDetails">
+            <div class="col-12"><strong>{% if useri.langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</strong></div>
+            <div class="col-md-5 row">
+                <div class="col-3">{% if useri.langSet == 0 %}Jina{% else %}Name{% endif %}</div>
+                <div class="col-9 bluePrint weight600">{{trsp.jina}}</div>
+                <div class="col-3">{% if useri.langSet == 0 %}Anwani{% else %}Address{% endif %}</div>
+                <div class="col-9">{{trsp.address}}</div>
+                <div class="col-3">{% if useri.langSet == 0 %}Simu{% else %}Phone{% endif %}</div>
+                <div class="col-9">{{trsp.code}}{{trsp.simu1}}{% if trsp.simu2 %}, {{trsp.code}}{{trsp.simu2}}{% endif %}</div>
+                {% if trsp.email %}
+                    <div class="col-3">Email</div>
+                    <div class="col-9">{{trsp.email}}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% include 'transporterNav.html' %}
+
+        <div class="customer-statement-report mt-4 list_toggle customer_statement" id="customer_statement" data-trsp="{% if trsp %}{{trsp.id}}{% else %}0{% endif %}">
+            <div class="card p-3">
+                <div class="row mb-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="durationSelect" class="smallFont">{% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}</label>
+                        <div class="input-group">
+                            <input type="text" id="durationSelect" class="form-control form-control-sm" value="{% now 'F Y' %}">
+                            <div class="input-group-append dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown"></button>
+                                <div class="dropdown-menu" id="common_duration"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="fromDate" class="smallFont">{% if useri.langSet == 0 %}Kutoka{% else %}From{% endif %}</label>
+                        <input type="date" id="fromDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="toDate" class="smallFont">{% if useri.langSet == 0 %}Hadi{% else %}To{% endif %}</label>
+                        <input type="date" id="toDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="stationSelect" class="smallFont">{% if useri.langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</label>
+                        <select id="stationSelect" class="form-control form-control-sm">
+                            {% if trsp %}
+                                <option value="{{trsp.id}}" selected>{{trsp.jina}}</option>
+                            {% else %}
+                                <option value="0" selected>{% if useri.langSet == 0 %}Wasafirishaji wote{% else %}All Transporters{% endif %}</option>
+                            {% endif %}
+                            {% for t in all_trsp %}
+                                <option value="{{t.id}}">{{t.jina}}</option>
+                            {% endfor %}
+                            {% if trsp %}
+                                <option value="0">{% if useri.langSet == 0 %}Wasafirishaji wote{% else %}All Transporters{% endif %}</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12 text-right">
+                        <button id="printStatement" class="btn btn-secondary btn-sm">{% if useri.langSet == 0 %}Chapisha Ripoti{% else %}Print Report{% endif %}</button>
+                        <button id="generateStatement" class="btn btn-primary btn-sm">{% if useri.langSet == 0 %}Ongeza Ripoti{% else %}Generate Report{% endif %}</button>
+                    </div>
+                </div>
+
+                <div id="TheReportData">
+                    <div id="statementResults">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="section-title">{% if useri.langSet == 0 %}Muhtasari wa Safari/Mafuta{% else %}Trips/Fuel Summary{% endif %}</h6>
+                                <div class="table-responsive card px-2">
+                                    <table class="table table-sm table-striped" id="fuelSummaryTable">
+                                        <thead>
+                                            <tr>
+                                                <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                                                <th class="text-right">{% if useri.langSet == 0 %}Bei{% else %}Price{% endif %}</th>
+                                                <th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %}</th>
+                                                <th class="text-right">{% if useri.langSet == 0 %}Thamani{% else %}Amount{% endif %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="section-title">{% if useri.langSet == 0 %}Muhtasari wa Malipo{% else %}Payments Summary{% endif %}</h6>
+                                <div class="card p-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>{% if useri.langSet == 0 %}Malipo Yote{% else %}Total Paid{% endif %}</strong>
+                                        </div>
+                                        <div class="h4 m-0 text-success"><span id="totalPaidAmount">0.00</span> <span class="text-primary">{{currencii}}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mt-3">
+                                <h6 class="section-title">{% if useri.langSet == 0 %}Deni/Salio{% else %}Debt/Balance{% endif %}</h6>
+                                <div class="alert alert-info" id="deni_au_balance">
+                                    <strong>{% if useri.langSet == 0 %}Salio/Deni:{% else %}Debt/Balance:{% endif %}</strong>
+                                    <span id="outstandingBalance" class="h5 text-danger">0.00</span> <span class="text-primary">{{currencii}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="section-title">{% if useri.langSet == 0 %}Muamala (Safari & Malipo){% else %}Transactions (Trips & Payments){% endif %}</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered" id="transactionsTable">
+                            <thead>
+                                <tr>
+                                    <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Muamala{% else %}Transaction{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Msambazaji{% else %}Vendor{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Imeandikishwa na{% else %}Recorded By{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Maelezo{% else %}Details{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Dereva{% else %}Driver{% endif %}</th>
+                                    <th>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}</th>
+                                    <th class="text-right">{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                                    <th class="text-right">{% if useri.langSet == 0 %}Bei{% else %}Price{% endif %}/<span class="text-primary">{% if useri.langSet == 0 %}Lita{% else %}Litre{% endif %}</span> </th>
+                                    <th class="text-right">{% if useri.langSet == 0 %}Kiasi{% else %}Qty{% endif %}(<span class="text-primary">{% if useri.langSet == 0 %}Lita{% else %}Litre{% endif %}</span>)</th>
+                                    <th class="text-right">{% if useri.langSet == 0 %}Deni{% else %}Debt{% endif %}(<span class="text-primary">{{currencii}}</span>)</th>
+                                    <th class="text-right">{% if useri.langSet == 0 %}Crediti{% else %}Credit{% endif %}(<span class="text-primary">{{currencii}}</span>)</th>
+                                    <th class="text-right">{% if useri.langSet == 0 %}Salio{% else %}Balance{% endif %}(<span class="text-primary">{{currencii}}</span>)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+<script src="{% static 'js/vendors.js' %}"></script>
+<script src="{% static 'js/transporterStatement.js' %}"></script>
+{% endblock %}
+
+{% block vendors %} active {% endblock %}

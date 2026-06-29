@@ -1,0 +1,18 @@
+{% load humanize %}
+<ul class="nav nav-tabs smallerFont mt-3 mb-4 d-flex flex-wrap">
+    <li class="nav-item">
+        <a class="nav-link {% if isAkaunti %}active{% endif %}" href="/accounting/payaccounts">
+            {% if useri.langSet == 0 %}Akaunti{% else %}Accounts{% endif %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if isPdBills %}active{% endif %}" href="/accounting/pdcBills">
+            {% if useri.langSet == 0 %}Malipo na Muda{% else %}Periodic Bills{% endif %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if isPaymentStatement %}active{% endif %}" href="/accounting/paymentStatement">
+            {% if useri.langSet == 0 %}Taarifa ya Malipo{% else %}Payment Statement{% endif %}
+        </a>
+    </li>
+</ul>

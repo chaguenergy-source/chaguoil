@@ -80,7 +80,7 @@
 
 
       <div class="table-responsive">
-                <table id="all_staffs" class=" smallFont"  >
+                <table id="all_transporters" class=" smallFont"  >
                     <thead>
                     <tr>
                          <th>#</th>
@@ -103,7 +103,7 @@
                         {% for s in transport %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
-                                <td> <a href="/salepurchase/viewVendor?v={{s.ven.id}}">{{s.ven.jina }}</a> </td>
+                                <td> <a href="/salepurchase/viewTransporter?t={{s.ven.id}}">{{s.ven.jina }}</a> </td>
                                 <td>{{s.ven.address | title }} </td>
                                 <td>{{s.ven.code}}{{s.ven.simu1}} {% if s.ven.simu2 %} ,{{s.ven.code}}{{s.ven.simu2}} {% endif %} </td>
                                 <td> {% if s.ven.email %} {{s.ven.email}} {% else %} --- {% endif %} </td>
@@ -120,7 +120,7 @@
                                 <td> 
                                     
                                      {% if useri.admin or useri.ceo  %}                                 
-                                      <a href="/salepurchase/viewVendor?v={{s.ven.id}}" class="btn btn-light btn-sm"  title="View" >
+                                      <a href="/salepurchase/viewTransporter?t={{s.ven.id}}" class="btn btn-light btn-sm"  title="View" >
                                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye">
                                               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                               <circle cx="12" cy="12" r="3"></circle>
@@ -163,7 +163,7 @@
 
 
 $(document).ready(function(){
-      $('#all_staffs').DataTable();
+      $('#all_transporters').DataTable();
 
     })
 
