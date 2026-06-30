@@ -3048,8 +3048,14 @@ def _empty_daily_sales_row(ses_date, st, stN):
         'stN': stN or '',
         'sales_count': 0,
         'sales_amount': 0.0,
+        'credit_sales_count': 0,
+        'credit_sales_amount': 0.0,
+        'cash_payment_count': 0,
+        'cash_payment_amount': 0.0,
         'mobile_count': 0,
         'mobile_amount': 0.0,
+        'total_received': 0.0,
+        'loss_bonus': 0.0,
         'customer_pay_count': 0,
         'customer_pay_amount': 0.0,
         'dep_before_count': 0,
@@ -3064,6 +3070,276 @@ def _empty_daily_sales_row(ses_date, st, stN):
         'receive_count': 0,
         'receive_qty': 0.0,
         'receive_worth': 0.0,
+    }
+
+
+def _finalize_daily_sales_bucket(row):
+    row['total_received'] = row['cash_payment_amount'] + row['mobile_amount']
+    row['loss_bonus'] = row['sales_amount'] - row['total_received']
+    return row
+
+
+def _credit_debt_sale_list_qs(session_ids):
+    session_credit = Q(
+        sale__session_id__in=session_ids,
+        sale__shiftBy__isnull=True,
+        sale__mobile_pay=False,
+    )
+    shift_credit = Q(
+        shift__shift__session_id__in=session_ids,
+        sale__customer__isnull=False,
+        sale__mobile_pay=False,
+    )
+    return saleList.objects.filter(session_credit | shift_credit)
+
+
+def _total_shift_sale_list_qs(session_ids):
+    return saleList.objects.filter(shift__shift__session_id__in=session_ids)
+
+
+def _apply_daily_sales_station_filter(qs, st, shell, useri):
+    if st:
+        return qs.filter(Interprise=st)
+    if useri and not useri.admin and not useri.ceo and shell:
+        return qs.filter(Interprise=shell.id)
+    return qs
+
+
+def _customer_debt_payments_qs(kampuni, pay_date, st=0, shell=None, useri=None):
+    qs = wekaCash.objects.filter(
+        Interprise__company=kampuni,
+        Amount__gt=0,
+    ).filter(
+        Q(customer__isnull=False) | Q(cdOrder__isnull=False),
+    ).exclude(sales__mobile_pay=True).annotate(
+        pay_date=TruncDate('tarehe'),
+    ).filter(pay_date=pay_date)
+    return _apply_daily_sales_station_filter(qs, st, shell, useri)
+
+
+def _compute_session_stock_tanks(ss):
+    fl_p = shiftPump.objects.filter(shift__session=ss)
+    sesadj = adjustments.objects.filter(session=ss)
+    rows = []
+    if sesadj.exists():
+        for t in tankAdjust.objects.filter(adj__session=ss).select_related('tank', 'tank__fuel', 'fuel'):
+            tank = t.tank
+            if not tank:
+                continue
+            rcq = _fval(receivedFuel.objects.filter(receive__ses=ss, To=tank).aggregate(v=Sum('qty'))['v'])
+            ses_flow = _fval(fl_p.filter(pump__tank=tank).aggregate(v=Sum('qty'))['v'])
+            read = _fval(t.read)
+            fuel_name = ''
+            if t.fuel:
+                fuel_name = t.fuel.name or ''
+            elif tank.fuel:
+                fuel_name = tank.fuel.name or ''
+            rows.append({
+                'tank_id': tank.id,
+                'tank_name': tank.name or '',
+                'fuel_name': fuel_name,
+                'bses': read + (ses_flow - rcq),
+                'ses_flow': ses_flow,
+                'a_flow': read - rcq,
+                'rcq': rcq,
+                'read': read,
+                'stick': _fval(t.stick),
+                'diff': _fval(t.diff),
+            })
+        return rows, True
+
+    for t in fl_p.distinct('pump__tank'):
+        tank = t.pump.tank if t.pump else None
+        if not tank:
+            continue
+        rcq = _fval(receivedFuel.objects.filter(receive__ses=ss, To=tank).aggregate(v=Sum('qty'))['v'])
+        ses_flow = _fval(fl_p.filter(pump__tank=tank).aggregate(v=Sum('qty'))['v'])
+        read = _fval(tank.qty)
+        rows.append({
+            'tank_id': tank.id,
+            'tank_name': tank.name or '',
+            'fuel_name': tank.fuel.name if tank.fuel else '',
+            'bses': read + (ses_flow - rcq),
+            'ses_flow': ses_flow,
+            'a_flow': read - rcq,
+            'rcq': rcq,
+            'read': read,
+            'stick': 0.0,
+            'diff': 0.0,
+        })
+    return rows, False
+
+
+def _compute_session_fuel_flow(ss):
+    fl_p = shiftPump.objects.filter(shift__session=ss)
+    rows = []
+    totals = {
+        'flow_q': 0.0, 'flow_a': 0.0, 'tr_q': 0.0, 'tr_a': 0.0,
+        'sa_q': 0.0, 'sa_a': 0.0, 'exp_q': 0.0, 'exp_a': 0.0,
+        'pmp_q': 0.0, 'pmp_a': 0.0,
+    }
+    for fl in fl_p.distinct('Fuel'):
+        if not fl.Fuel_id:
+            continue
+        fuel_id = fl.Fuel_id
+        sale = saleList.objects.filter(
+            sale__session=ss,
+            sale__shiftBy__isnull=True,
+            theFuel=fuel_id,
+            sale__mobile_pay=False,
+        ).annotate(amount=F('qty_sold') * F('sa_price'))
+        tr = transFromTo.objects.filter(shift__shift__session=ss, Fuel_id=fuel_id).annotate(
+            worth=F('qty') * F('saprice')
+        )
+        exp = rekodiMatumizi.objects.filter(fromShift__shift__session=ss, Fuel_id=fuel_id)
+        flow_q = _fval(fl_p.filter(Fuel_id=fuel_id).aggregate(v=Sum('qty'))['v'])
+        flow_a = _fval(fl_p.filter(Fuel_id=fuel_id).aggregate(v=Sum('amount'))['v'])
+        tr_a = _fval(tr.aggregate(v=Sum('worth'))['v'])
+        tr_q = _fval(tr.aggregate(v=Sum('qty'))['v'])
+        sa_a = _fval(sale.aggregate(v=Sum('amount'))['v'])
+        sa_q = _fval(sale.aggregate(v=Sum('qty_sold'))['v'])
+        exp_a = _fval(exp.aggregate(v=Sum('kiasi'))['v'])
+        exp_q = _fval(exp.aggregate(v=Sum('fuel_qty'))['v'])
+        pmp_a = flow_a - (tr_a + sa_a + exp_a)
+        pmp_q = flow_q - (tr_q + sa_q + exp_q)
+        rows.append({
+            'fuel_id': fuel_id,
+            'fuel_name': fl.Fuel.name if fl.Fuel else '',
+            'price': _fval(fl.price),
+            'flow_q': flow_q,
+            'flow_a': flow_a,
+            'tr_q': tr_q,
+            'tr_a': tr_a,
+            'sa_q': sa_q,
+            'sa_a': sa_a,
+            'exp_q': exp_q,
+            'exp_a': exp_a,
+            'pmp_q': pmp_q,
+            'pmp_a': pmp_a,
+        })
+        totals['flow_q'] += flow_q
+        totals['flow_a'] += flow_a
+        totals['tr_q'] += tr_q
+        totals['tr_a'] += tr_a
+        totals['sa_q'] += sa_q
+        totals['sa_a'] += sa_a
+        totals['exp_q'] += exp_q
+        totals['exp_a'] += exp_a
+        totals['pmp_q'] += pmp_q
+        totals['pmp_a'] += pmp_a
+    return rows, totals
+
+
+def _compute_session_pump_payments(ss):
+    totals = {
+        'tot_psa': 0.0, 'tot_exp': 0.0, 'tot_cab': 0.0,
+        'tot_req': 0.0, 'tot_paid': 0.0, 'tot_lpr': 0.0,
+    }
+    for s in shifts.objects.filter(session=ss):
+        sale = saleList.objects.filter(
+            shift__shift=s, sale__shiftBy__isnull=True, sale__mobile_pay=False,
+        ).annotate(amount=F('qty_sold') * F('sa_price'))
+        tr = transFromTo.objects.filter(shift__shift=s).annotate(worth=F('qty') * F('saprice'))
+        exp = rekodiMatumizi.objects.filter(fromShift__shift=s)
+        cash_b = wekaCash.objects.filter(shift=s.id, biforeShift=True)
+        cash_ba = _fval(cash_b.aggregate(v=Sum('Amount'))['v'])
+        tr_amo = _fval(tr.aggregate(v=Sum('worth'))['v'])
+        sale_a = _fval(sale.aggregate(v=Sum('amount'))['v'])
+        exp_amo = _fval(exp.filter(fuel_cost=0).aggregate(v=Sum('kiasi'))['v'])
+        tot_a = _fval(s.amount) + exp_amo + cash_ba
+        totals['tot_psa'] += tot_a
+        totals['tot_exp'] += exp_amo
+        totals['tot_cab'] += cash_ba
+        totals['tot_req'] += _fval(s.amount)
+        totals['tot_paid'] += _fval(s.paid)
+        totals['tot_lpr'] += _fval(s.paid) - _fval(s.amount)
+    return totals
+
+
+def _empty_day_evaluations():
+    zero_flow = {
+        'flow_q': 0.0, 'flow_a': 0.0, 'tr_q': 0.0, 'tr_a': 0.0,
+        'sa_q': 0.0, 'sa_a': 0.0, 'exp_q': 0.0, 'exp_a': 0.0,
+        'pmp_q': 0.0, 'pmp_a': 0.0,
+    }
+    zero_pay = {
+        'tot_psa': 0.0, 'tot_exp': 0.0, 'tot_cab': 0.0,
+        'tot_req': 0.0, 'tot_paid': 0.0, 'tot_lpr': 0.0,
+    }
+    return {
+        'stock': {'tanks': [], 'has_adj': False, 'all_complete': False},
+        'fuel_flow': {'rows': [], 'totals': dict(zero_flow)},
+        'pump_payments': dict(zero_pay),
+    }
+
+
+def _build_day_evaluations(session_ids):
+    if not session_ids:
+        return _empty_day_evaluations()
+
+    sessions = shiftSesion.objects.filter(pk__in=session_ids).order_by('session__shFrom', 'pk')
+    tank_merge = {}
+    has_adj = False
+    all_complete = True
+    fuel_merge = {}
+    fuel_totals = {
+        'flow_q': 0.0, 'flow_a': 0.0, 'tr_q': 0.0, 'tr_a': 0.0,
+        'sa_q': 0.0, 'sa_a': 0.0, 'exp_q': 0.0, 'exp_a': 0.0,
+        'pmp_q': 0.0, 'pmp_a': 0.0,
+    }
+    pump_totals = {
+        'tot_psa': 0.0, 'tot_exp': 0.0, 'tot_cab': 0.0,
+        'tot_req': 0.0, 'tot_paid': 0.0, 'tot_lpr': 0.0,
+    }
+
+    for ss in sessions:
+        if not ss.complete:
+            all_complete = False
+
+        stock_rows, session_has_adj = _compute_session_stock_tanks(ss)
+        if session_has_adj:
+            has_adj = True
+        for row in stock_rows:
+            tid = row['tank_id']
+            if tid not in tank_merge:
+                tank_merge[tid] = dict(row)
+            else:
+                merged = tank_merge[tid]
+                merged['ses_flow'] += row['ses_flow']
+                merged['rcq'] += row['rcq']
+                merged['a_flow'] = row['a_flow']
+                merged['read'] = row['read']
+                if session_has_adj:
+                    merged['stick'] = row['stick']
+                    merged['diff'] = row['diff']
+
+        fuel_rows, session_fuel_totals = _compute_session_fuel_flow(ss)
+        for row in fuel_rows:
+            fid = row['fuel_id']
+            if fid not in fuel_merge:
+                fuel_merge[fid] = dict(row)
+            else:
+                merged = fuel_merge[fid]
+                for key in ('flow_q', 'flow_a', 'tr_q', 'tr_a', 'sa_q', 'sa_a', 'exp_q', 'exp_a', 'pmp_q', 'pmp_a'):
+                    merged[key] += row[key]
+        for key in fuel_totals:
+            fuel_totals[key] += session_fuel_totals[key]
+
+        session_pump = _compute_session_pump_payments(ss)
+        for key in pump_totals:
+            pump_totals[key] += session_pump[key]
+
+    return {
+        'stock': {
+            'tanks': sorted(tank_merge.values(), key=lambda r: (r.get('tank_name') or '', r.get('fuel_name') or '')),
+            'has_adj': has_adj,
+            'all_complete': all_complete,
+        },
+        'fuel_flow': {
+            'rows': sorted(fuel_merge.values(), key=lambda r: r.get('fuel_name') or ''),
+            'totals': fuel_totals,
+        },
+        'pump_payments': pump_totals,
     }
 
 
@@ -3092,23 +3368,70 @@ def _build_daily_sales_days(kampuni, shell, useri, tFr_date, tTo_date, tFr, tTo)
     for row in session_rows:
         _merge_daily_sales_bucket(buckets, row['date'], row['st_id'], row['stN'], {})
 
-    sales_rows = fuelSales.objects.filter(
-        by__Interprise__company=kampuni,
-        mobile_pay=False,
-        shiftBy__isnull=False,
-        shiftBy__session__date__gte=tFr_date,
-        shiftBy__session__date__lte=tTo_date,
+    sales_rows = saleList.objects.filter(
+        shift__shift__session__session__Interprise__company=kampuni,
+        shift__shift__session__date__gte=tFr_date,
+        shift__shift__session__date__lte=tTo_date,
     ).annotate(
-        sesDate=F('shiftBy__session__date'),
-        st=F('by__Interprise'),
-        stN=F('by__Interprise__name'),
+        sesDate=F('shift__shift__session__date'),
+        st=F('shift__shift__session__session__Interprise'),
+        stN=F('shift__shift__session__session__Interprise__name'),
+        line_amount=F('qty_sold') * F('sa_price'),
     )
     if not useri.admin and not useri.ceo:
-        sales_rows = sales_rows.filter(by__Interprise=shell.id)
-    for row in sales_rows.values('sesDate', 'st', 'stN').annotate(cnt=Count('id'), total=Sum('amount')):
+        sales_rows = sales_rows.filter(shift__shift__session__session__Interprise=shell.id)
+    for row in sales_rows.values('sesDate', 'st', 'stN').annotate(
+        cnt=Count('sale_id', distinct=True),
+        total=Sum('line_amount'),
+    ):
         _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
             'sales_count': row['cnt'],
             'sales_amount': float(row['total'] or 0),
+        })
+
+    credit_rows = _credit_debt_sale_list_qs(
+        shiftSesion.objects.filter(
+            session__Interprise__company=kampuni,
+            date__gte=tFr_date,
+            date__lte=tTo_date,
+        ).values_list('pk', flat=True)
+    ).annotate(
+        sesDate=Coalesce(F('shift__shift__session__date'), F('sale__session__date')),
+        st=Coalesce(F('shift__shift__session__session__Interprise'), F('sale__by__Interprise')),
+        stN=Coalesce(F('shift__shift__session__session__Interprise__name'), F('sale__by__Interprise__name')),
+        line_amount=F('qty_sold') * F('sa_price'),
+    )
+    if not useri.admin and not useri.ceo:
+        credit_rows = credit_rows.filter(
+            Q(shift__shift__session__session__Interprise=shell.id) |
+            Q(sale__by__Interprise=shell.id)
+        )
+    for row in credit_rows.values('sesDate', 'st', 'stN').annotate(
+        cnt=Count('sale_id', distinct=True),
+        total=Sum('line_amount'),
+    ):
+        if not row['sesDate']:
+            continue
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'credit_sales_count': row['cnt'],
+            'credit_sales_amount': float(row['total'] or 0),
+        })
+
+    cash_pay_rows = shifts.objects.filter(
+        session__session__Interprise__company=kampuni,
+        session__date__gte=tFr_date,
+        session__date__lte=tTo_date,
+    ).annotate(
+        sesDate=F('session__date'),
+        st=F('session__session__Interprise'),
+        stN=F('session__session__Interprise__name'),
+    )
+    if not useri.admin and not useri.ceo:
+        cash_pay_rows = cash_pay_rows.filter(session__session__Interprise=shell.id)
+    for row in cash_pay_rows.values('sesDate', 'st', 'stN').annotate(cnt=Count('id'), total=Sum('paid')):
+        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
+            'cash_payment_count': row['cnt'],
+            'cash_payment_amount': float(row['total'] or 0),
         })
 
     mobile_rows = wekaCash.objects.filter(
@@ -3133,17 +3456,19 @@ def _build_daily_sales_days(kampuni, shell, useri, tFr_date, tTo_date, tFr, tTo)
     cust_rows = wekaCash.objects.filter(
         Interprise__company=kampuni,
         Amount__gt=0,
-        customer__isnull=False,
-        shift__session__date__gte=tFr_date,
-        shift__session__date__lte=tTo_date,
-    ).annotate(
-        sesDate=F('shift__session__date'),
+        tarehe__range=[tFr, tTo],
+    ).filter(
+        Q(customer__isnull=False) | Q(cdOrder__isnull=False),
+    ).exclude(sales__mobile_pay=True).annotate(
+        sesDate=TruncDate('tarehe'),
         st=F('Interprise'),
         stN=F('Interprise__name'),
     )
     if not useri.admin and not useri.ceo:
         cust_rows = cust_rows.filter(Interprise=shell.id)
     for row in cust_rows.values('sesDate', 'st', 'stN').annotate(cnt=Count('id'), total=Sum('Amount')):
+        if not row['sesDate']:
+            continue
         _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
             'customer_pay_count': row['cnt'],
             'customer_pay_amount': float(row['total'] or 0),
@@ -3262,7 +3587,8 @@ def _build_daily_sales_days(kampuni, shell, useri, tFr_date, tTo_date, tFr, tTo)
             'receive_worth': float(row['worth_total'] or 0),
         })
 
-    days = sorted(buckets.values(), key=lambda d: (d['date'], d['stN']), reverse=True)
+    days = [_finalize_daily_sales_bucket(row) for row in buckets.values()]
+    days.sort(key=lambda d: (d['date'], d['stN']), reverse=True)
     return days
 
 
@@ -3352,7 +3678,7 @@ def _serialize_shift_transactions(shift_obj):
         exp_name=F('matumizi__matumizi'),
     ).values('id', 'exp_name', 'kiasi', 'fuel_qty', 'tarehe'))
 
-    cash_before = list(wekaCash.objects.filter(shift=shift_obj.id, biforeShift=True).annotate(
+    cash_before = list(wekaCash.objects.filter(shift=shift_obj.id, biforeShift=True,sales__mobile_pay=False).annotate(
         account_name=F('Akaunt__Akaunt_name'),
     ).values('id', 'Amount', 'account_name', 'tarehe', 'maelezo'))
 
@@ -3436,9 +3762,13 @@ def _serialize_shift_pumps(shift_obj):
     return result
 
 
-def _serialize_shift_detail(shift_obj):
+def _compute_shift_summary(shift_obj):
     pmps = shiftPump.objects.filter(shift=shift_obj.id)
-    sale_qs = saleList.objects.filter(shift__shift=shift_obj, sale__shiftBy__isnull=True, sale__mobile_pay=False).annotate(
+    sale_qs = saleList.objects.filter(
+        shift__shift=shift_obj,
+        sale__shiftBy__isnull=True,
+        sale__mobile_pay=False,
+    ).annotate(
         amount=F('qty_sold') * F('sa_price')
     )
     tr_qs = transFromTo.objects.filter(shift__shift=shift_obj).annotate(worth=F('qty') * F('saprice'))
@@ -3459,9 +3789,30 @@ def _serialize_shift_detail(shift_obj):
     toex_a = sale_a + tr_a + exp_f_a + exp_a + cash_b_a
     loss_prof = _fval(shift_obj.paid) - _fval(shift_obj.amount)
 
+    return {
+        'flow_qty': tot_q,
+        'flow_amount': _fval(shift_obj.amount) + toex_a,
+        'sale_qty': sale_q,
+        'sale_amount': sale_a,
+        'transfer_qty': tr_q,
+        'transfer_amount': tr_a,
+        'expense_fuel_qty': exp_f_q,
+        'expense_fuel_amount': exp_f_a,
+        'expense_cash': exp_a,
+        'cash_before': cash_b_a,
+        'pump_sale_qty': tot_q - toex_q,
+        'pump_sale_amount': tot_a,
+        'required': _fval(shift_obj.amount),
+        'paid': _fval(shift_obj.paid),
+        'loss_profit': abs(loss_prof),
+        'is_loss': _fval(shift_obj.amount) > _fval(shift_obj.paid),
+        'is_bonus': _fval(shift_obj.amount) < _fval(shift_obj.paid),
+    }
+
+
+def _serialize_shift_detail(shift_obj):
     attendant = shift_obj.by
     manager = shift_obj.record_by.user if shift_obj.record_by else None
-
     txs = _serialize_shift_transactions(shift_obj)
 
     return {
@@ -3480,25 +3831,7 @@ def _serialize_shift_detail(shift_obj):
             manager.user.last_name if manager else '',
         ),
         'fuels': _serialize_shift_pumps(shift_obj),
-        'summary': {
-            'flow_qty': tot_q,
-            'flow_amount': _fval(shift_obj.amount) + toex_a,
-            'sale_qty': sale_q,
-            'sale_amount': sale_a,
-            'transfer_qty': tr_q,
-            'transfer_amount': tr_a,
-            'expense_fuel_qty': exp_f_q,
-            'expense_fuel_amount': exp_f_a,
-            'expense_cash': exp_a,
-            'cash_before': cash_b_a,
-            'pump_sale_qty': tot_q - toex_q,
-            'pump_sale_amount': tot_a,
-            'required': _fval(shift_obj.amount),
-            'paid': _fval(shift_obj.paid),
-            'loss_profit': abs(loss_prof),
-            'is_loss': _fval(shift_obj.amount) > _fval(shift_obj.paid),
-            'is_bonus': _fval(shift_obj.amount) < _fval(shift_obj.paid),
-        },
+        'summary': _compute_shift_summary(shift_obj),
         **txs,
     }
 
@@ -3558,6 +3891,7 @@ def _serialize_shift_light(shift_obj, attachments=None):
         ),
         'fuels': fuels,
         'attachments': attachments or [],
+        'summary': _compute_shift_summary(shift_obj),
     }
 
 
@@ -3586,51 +3920,122 @@ def _attach_session_label(rows, session_name):
     return rows
 
 
-def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, shell=None, useri=None):
+def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, shell=None, useri=None, day_date=None):
     empty = {
         'sales': [], 'customer_pays': [], 'mobile_pays': [], 'cash_deposits': [],
-        'transfers': [], 'receives': [], 'adjustments': [], 'expenses': [],
+        'transfers': [], 'receives': [], 'expenses': [],
     }
-    if not session_ids:
-        return empty, {}
+    session_ids = session_ids or []
+    pay_date = day_date or day_start.date()
 
-    sales = list(saleList.objects.filter(
-        sale__session_id__in=session_ids,
-        sale__shiftBy__isnull=True,
-        sale__mobile_pay=False,
+    customer_pays = list(_customer_debt_payments_qs(
+        kampuni, pay_date, st, shell, useri,
     ).annotate(
-        amount=F('qty_sold') * F('sa_price'),
-        sale_code=F('sale__code'),
-        cust_name=F('sale__customer__jina'),
-        fuel_name=F('theFuel__name'),
-        session_name=F('sale__session__session__name'),
-    ).values('sale_id', 'sale_code', 'cust_name', 'fuel_name', 'qty_sold', 'amount', 'session_name'))
-
-    shift_sales = list(saleList.objects.filter(
-        shift__shift__session_id__in=session_ids,
-        sale__customer__isnull=False,
-        sale__mobile_pay=False,
-    ).annotate(
-        amount=F('qty_sold') * F('sa_price'),
-        sale_code=F('sale__code'),
-        cust_name=F('sale__customer__jina'),
-        fuel_name=F('theFuel__name'),
-        session_name=F('shift__shift__session__session__name'),
-        attendant_fname=F('shift__shift__by__user__first_name'),
-        attendant_lname=F('shift__shift__by__user__last_name'),
-    ).values('sale_id', 'sale_code', 'cust_name', 'fuel_name', 'qty_sold', 'amount', 'session_name', 'attendant_fname', 'attendant_lname'))
-
-    customer_pays = list(wekaCash.objects.filter(
-        shift__session_id__in=session_ids,
-        customer__isnull=False,
-        Amount__gt=0,
-    ).exclude(sales__mobile_pay=True).annotate(
         account_name=F('Akaunt__Akaunt_name'),
-        cust_name=F('customer__jina'),
+        cust_name=Coalesce(F('customer__jina'), F('cdOrder__customer__jina')),
+        order_code=F('cdOrder__code'),
         session_name=F('shift__session__session__name'),
+        shift_code=F('shift__code'),
         attendant_fname=F('shift__by__user__first_name'),
         attendant_lname=F('shift__by__user__last_name'),
-    ).values('id', 'Amount', 'account_name', 'cust_name', 'tarehe', 'session_name', 'attendant_fname', 'attendant_lname'))
+        by_fname=F('by__user__first_name'),
+        by_lname=F('by__user__last_name'),
+    ).values(
+        'id', 'Amount', 'account_name', 'cust_name', 'order_code', 'tarehe',
+        'session_name', 'shift_id', 'shift_code',
+        'attendant_fname', 'attendant_lname', 'by_fname', 'by_lname', 'maelezo',
+    ).order_by('-tarehe', '-pk'))
+
+    cash_bank_q = toaCash.objects.filter(
+        kuhamisha=True,
+        Akaunt__aina='Cash',
+        Interprise__company=kampuni,
+        Amount__gt=0,
+    ).annotate(dep_date=TruncDate('tarehe')).filter(dep_date=pay_date)
+    cash_bank_q = _apply_daily_sales_station_filter(cash_bank_q, st, shell, useri)
+
+    cash_bank = list(cash_bank_q.annotate(
+        account_name=F('Akaunt__Akaunt_name'),
+        stN=F('Interprise__name'),
+        by_fname=F('by__user__first_name'),
+        by_lname=F('by__user__last_name'),
+    ).values('id', 'Amount', 'account_name', 'stN', 'tarehe', 'maelezo', 'by_fname', 'by_lname'))
+
+    if not session_ids:
+        for row in customer_pays:
+            row['Amount'] = _fval(row.get('Amount'))
+            tarehe = row.pop('tarehe', None)
+            row['tarehe'] = tarehe.isoformat() if tarehe else None
+            row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
+            if not row['attendant']:
+                row['attendant'] = _person_name(row.pop('by_fname', ''), row.pop('by_lname', ''))
+            else:
+                row.pop('by_fname', None)
+                row.pop('by_lname', None)
+        for row in cash_bank:
+            row['Amount'] = _fval(row.get('Amount'))
+            row['by'] = _person_name(row.pop('by_fname', ''), row.pop('by_lname', ''))
+            row['deposit_type'] = 'bank'
+            row['session_name'] = '—'
+        cash_deposits = list(cash_bank)
+        summary = {
+            'sales_count': 0,
+            'sales_amount': 0.0,
+            'sales_qty': 0.0,
+            'credit_sales_count': 0,
+            'credit_sales_amount': 0.0,
+            'credit_sales_qty': 0.0,
+            'cash_payment_count': 0,
+            'cash_payment_amount': 0.0,
+            'customer_pay_count': len(customer_pays),
+            'customer_pay_amount': sum(r['Amount'] for r in customer_pays),
+            'mobile_count': 0,
+            'mobile_amount': 0.0,
+            'total_received': 0.0,
+            'loss_bonus': 0.0,
+            'cash_dep_count': len(cash_deposits),
+            'cash_dep_amount': sum(r['Amount'] for r in cash_deposits),
+            'transfer_count': 0,
+            'transfer_qty': 0.0,
+            'transfer_worth': 0.0,
+            'receive_count': 0,
+            'receive_qty': 0.0,
+            'receive_worth': 0.0,
+            'expense_count': 0,
+            'expense_amount': 0.0,
+            'expense_fuel_qty': 0.0,
+            'shift_count': 0,
+            'session_count': 0,
+        }
+        return {
+            **empty,
+            'customer_pays': customer_pays,
+            'cash_deposits': cash_deposits,
+        }, summary
+
+    credit_sales = list(_credit_debt_sale_list_qs(session_ids).annotate(
+        amount=F('qty_sold') * F('sa_price'),
+        sale_code=F('sale__code'),
+        cust_name=Coalesce(F('sale__customer__jina'), F('sale__cdorder__customer__jina')),
+        fuel_name=F('theFuel__name'),
+        session_name=Coalesce(
+            F('shift__shift__session__session__name'),
+            F('sale__session__session__name'),
+        ),
+        sale_dt=Coalesce(F('sale__date'), F('sale__recDate')),
+        linked_shift_id=F('shift__shift_id'),
+        shift_code=F('shift__shift__code'),
+        attendant_fname=F('shift__shift__by__user__first_name'),
+        attendant_lname=F('shift__shift__by__user__last_name'),
+    ).values(
+        'sale_id', 'sale_code', 'cust_name', 'fuel_name', 'sa_price',
+        'qty_sold', 'amount', 'session_name', 'sale_dt', 'linked_shift_id', 'shift_code',
+        'attendant_fname', 'attendant_lname',
+    ).order_by('-sale_dt', '-pk'))
+
+    total_sales_qs = _total_shift_sale_list_qs(session_ids).annotate(
+        line_amount=F('qty_sold') * F('sa_price'),
+    )
 
     mobile_pays = list(wekaCash.objects.filter(
         shift__session_id__in=session_ids,
@@ -3649,31 +4054,13 @@ def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, s
         shift__session_id__in=session_ids,
         biforeShift=True,
         Amount__gt=0,
+        sales__mobile_pay=False,
     ).annotate(
         account_name=F('Akaunt__Akaunt_name'),
         session_name=F('shift__session__session__name'),
         attendant_fname=F('shift__by__user__first_name'),
         attendant_lname=F('shift__by__user__last_name'),
     ).values('id', 'Amount', 'account_name', 'tarehe', 'maelezo', 'session_name', 'attendant_fname', 'attendant_lname'))
-
-    cash_bank_q = toaCash.objects.filter(
-        kuhamisha=True,
-        Akaunt__supv_acc=False,
-        Interprise__company=kampuni,
-        Amount__gt=0,
-        tarehe__range=[day_start, day_end],
-    )
-    if st:
-        cash_bank_q = cash_bank_q.filter(Interprise=st)
-    elif useri and not useri.admin and not useri.ceo and shell:
-        cash_bank_q = cash_bank_q.filter(Interprise=shell.id)
-
-    cash_bank = list(cash_bank_q.annotate(
-        account_name=F('Akaunt__Akaunt_name'),
-        stN=F('Interprise__name'),
-        by_fname=F('by__user__first_name'),
-        by_lname=F('by__user__last_name'),
-    ).values('id', 'Amount', 'account_name', 'stN', 'tarehe', 'maelezo', 'by_fname', 'by_lname'))
 
     transfers = list(transFromTo.objects.filter(
         shift__shift__session_id__in=session_ids,
@@ -3698,16 +4085,6 @@ def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, s
         session_name=F('receive__ses__session__name'),
     ).values('id', 'receive_id', 'receive_code', 'fuel_name', 'to_tank', 'qty', 'worth', 'session_name'))
 
-    adjustments = list(tankAdjust.objects.filter(
-        adj__session_id__in=session_ids,
-    ).annotate(
-        adj_code=F('adj__code'),
-        tank_name=F('tank__name'),
-        fuel_name=F('fuel__name'),
-        session_name=F('adj__session__session__name'),
-        worth=F('diff') * F('price'),
-    ).values('id', 'adj_id', 'adj_code', 'tank_name', 'fuel_name', 'read', 'stick', 'diff', 'price', 'worth', 'session_name'))
-
     expenses = list(rekodiMatumizi.objects.filter(
         fromShift__shift__session_id__in=session_ids,
     ).annotate(
@@ -3717,12 +4094,24 @@ def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, s
         attendant_lname=F('fromShift__shift__by__user__last_name'),
     ).values('id', 'exp_name', 'kiasi', 'fuel_qty', 'tarehe', 'session_name', 'attendant_fname', 'attendant_lname'))
 
-    for row in sales + shift_sales:
+    for row in credit_sales:
         row['qty_sold'] = _fval(row.get('qty_sold'))
         row['amount'] = _fval(row.get('amount'))
-    for row in shift_sales:
+        row['sa_price'] = _fval(row.get('sa_price'))
+        sale_dt = row.pop('sale_dt', None)
+        row['sale_dt'] = sale_dt.isoformat() if sale_dt else None
         row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
-    for rows in (customer_pays, mobile_pays, cash_before, transfers, receives, expenses):
+    for row in customer_pays:
+        row['Amount'] = _fval(row.get('Amount'))
+        tarehe = row.pop('tarehe', None)
+        row['tarehe'] = tarehe.isoformat() if tarehe else None
+        row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
+        if not row['attendant']:
+            row['attendant'] = _person_name(row.pop('by_fname', ''), row.pop('by_lname', ''))
+        else:
+            row.pop('by_fname', None)
+            row.pop('by_lname', None)
+    for rows in (mobile_pays, cash_before, transfers, receives, expenses):
         for row in rows:
             for k in ('Amount', 'qty', 'worth', 'kiasi', 'fuel_qty'):
                 if k in row:
@@ -3732,9 +4121,6 @@ def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, s
     for row in cash_before:
         if 'attendant_fname' in row:
             row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
-    for row in adjustments:
-        for k in ('read', 'stick', 'diff', 'price', 'worth'):
-            row[k] = _fval(row.get(k))
     for row in cash_bank:
         row['Amount'] = _fval(row.get('Amount'))
         row['by'] = _person_name(row.pop('by_fname', ''), row.pop('by_lname', ''))
@@ -3751,7 +4137,15 @@ def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, s
     for row in cash_bank:
         cash_deposits.append(row)
 
-    all_sales = sales + shift_sales
+    all_sales = credit_sales
+    total_sales_amount = _fval(total_sales_qs.aggregate(v=Sum('line_amount'))['v'])
+    total_sales_count = total_sales_qs.values('sale_id').distinct().count()
+    credit_sales_amount = sum(r['amount'] for r in all_sales)
+    credit_sales_count = _credit_debt_sale_list_qs(session_ids).values('sale_id').distinct().count()
+    cash_payment_amount = _fval(shifts.objects.filter(session_id__in=session_ids).aggregate(v=Sum('paid'))['v'])
+    mobile_amount = sum(r['Amount'] for r in mobile_pays)
+    total_received = cash_payment_amount + mobile_amount
+    loss_bonus = total_sales_amount - total_received
     tables = {
         'sales': all_sales,
         'customer_pays': customer_pays,
@@ -3759,17 +4153,23 @@ def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, s
         'cash_deposits': cash_deposits,
         'transfers': transfers,
         'receives': receives,
-        'adjustments': adjustments,
         'expenses': expenses,
     }
     summary = {
-        'sales_count': len(all_sales),
-        'sales_amount': sum(r['amount'] for r in all_sales),
-        'sales_qty': sum(r['qty_sold'] for r in all_sales),
+        'sales_count': total_sales_count,
+        'sales_amount': total_sales_amount,
+        'sales_qty': _fval(total_sales_qs.aggregate(v=Sum('qty_sold'))['v']),
+        'credit_sales_count': credit_sales_count,
+        'credit_sales_amount': credit_sales_amount,
+        'credit_sales_qty': sum(r['qty_sold'] for r in all_sales),
+        'cash_payment_count': shifts.objects.filter(session_id__in=session_ids).count(),
+        'cash_payment_amount': cash_payment_amount,
         'customer_pay_count': len(customer_pays),
         'customer_pay_amount': sum(r['Amount'] for r in customer_pays),
         'mobile_count': len(mobile_pays),
-        'mobile_amount': sum(r['Amount'] for r in mobile_pays),
+        'mobile_amount': mobile_amount,
+        'total_received': total_received,
+        'loss_bonus': loss_bonus,
         'cash_dep_count': len(cash_deposits),
         'cash_dep_amount': sum(r['Amount'] for r in cash_deposits),
         'transfer_count': len(transfers),
@@ -3778,8 +4178,6 @@ def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, s
         'receive_count': len(receives),
         'receive_qty': sum(r['qty'] for r in receives),
         'receive_worth': sum(r['worth'] for r in receives),
-        'adjustment_count': len(adjustments),
-        'adjustment_diff': sum(r['diff'] for r in adjustments),
         'expense_count': len(expenses),
         'expense_amount': sum(r['kiasi'] for r in expenses),
         'expense_fuel_qty': sum(r['fuel_qty'] for r in expenses),
@@ -4013,7 +4411,10 @@ def getDailySalesDayDetail(request):
         day_start = dj_timezone.make_aware(day_start)
         day_end = dj_timezone.make_aware(day_end)
 
-        tables, summary = _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st, shell, useri)
+        tables, summary = _build_day_activity_tables(
+            session_ids, kampuni, day_start, day_end, st, shell, useri, day_date=day_date,
+        )
+        evaluations = _build_day_evaluations(session_ids)
 
         return JsonResponse({
             'success': True,
@@ -4023,6 +4424,7 @@ def getDailySalesDayDetail(request):
             'sessions': sessions,
             'tables': tables,
             'summary': summary,
+            'evaluations': evaluations,
         })
     except Exception as err:
         print(err)

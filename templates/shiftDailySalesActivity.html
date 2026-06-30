@@ -21,6 +21,13 @@
     .daily-section-adj .daily-section-title { background: linear-gradient(90deg, #20c997 0%, #15936b 100%); }
     .daily-section-exp .daily-section-title { background: linear-gradient(90deg, #dc3545 0%, #b02a37 100%); }
     .daily-section-summary .daily-section-title { background: linear-gradient(90deg, #343a40 0%, #212529 100%); }
+    .daily-section-eval .daily-section-title { background: linear-gradient(90deg, #0dcaf0 0%, #087990 100%); }
+    .daily-eval-wide-table { min-width: 960px; font-size: 10px; }
+    .daily-pump-pay-table { max-width: 480px; }
+    .daily-mini-table tr.daily-summary-green th,
+    .daily-mini-table tr.daily-summary-green td { background: #d1e7dd; font-weight: 700; }
+    .daily-mini-table tr.daily-summary-loss th,
+    .daily-mini-table tr.daily-summary-loss td { background: #f8d7da; font-weight: 700; }
     .daily-session-group { border: 1px solid #cfe2ff; border-radius: 6px; padding: 10px; margin-bottom: 12px; background: #f8fbff; }
     .daily-session-head { font-weight: 600; color: #0d6efd; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #b6d4fe; }
     .daily-shift-card { border: 1px solid #dee2e6; border-radius: 6px; padding: 10px; margin-bottom: 10px; background: #fff; }
@@ -67,6 +74,19 @@
     @media (max-width: 992px) { .daily-attach-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 576px) { .daily-attach-grid { grid-template-columns: repeat(2, 1fr); } }
     .daily-summary-table thead th { background: #343a40; color: #fff; }
+    .daily-shift-summary-table thead th { background: #e7f1ff; color: #084298; }
+    .daily-mini-table tr.daily-summary-grey th,
+    .daily-mini-table tr.daily-summary-grey td,
+    .daily-mini-table th.daily-summary-grey,
+    .daily-mini-table td.daily-summary-grey { background: #e9ecef; font-weight: 700; }
+    .daily-shift-summary { border-top: 1px dashed #dee2e6; padding-top: 8px; }
+    .daily-section-eval .daily-section-title { background: linear-gradient(90deg, #0dcaf0 0%, #087990 100%); }
+    .daily-eval-wide-table { min-width: 960px; font-size: 10px; }
+    .daily-pump-pay-table { max-width: 480px; }
+    .daily-mini-table tr.daily-summary-green th,
+    .daily-mini-table tr.daily-summary-green td { background: #d1e7dd; font-weight: 700; }
+    .daily-mini-table tr.daily-summary-loss th,
+    .daily-mini-table tr.daily-summary-loss td { background: #f8d7da; font-weight: 700; }
     .daily-empty-note { color: #6c757d; font-size: 11px; font-style: italic; padding: 6px 0; }
     @media print {
         .daily-day-panel { font-size: 9px; }
@@ -154,8 +174,12 @@
                 <tr>
                     <th>{% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Siku{% else %}Days{% endif %}</th>
-                    <th>{% if useri.langSet == 0 %}Mauzo{% else %}Sales{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mauzo Jumla{% else %}Total Sales{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mauzo Mkopo{% else %}Credit Sales{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Malipo Taslimu{% else %}Cash Pay{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Malipo Simu{% else %}Mobile Pay{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Jumla Iliyopokelewa{% else %}Total Received{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Hasara/Bonusi{% else %}Loss/Bonus{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Malipo Wateja{% else %}Cust. Pay{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Toa Pesa{% else %}Dep. Before{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Benki{% else %}Cash Dep.{% endif %}</th>
@@ -186,8 +210,12 @@
                     <th>#</th>
                     <th>{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}</th>
-                    <th>{% if useri.langSet == 0 %}Mauzo{% else %}Sales{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mauzo Jumla{% else %}Total Sales{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Mauzo Mkopo{% else %}Credit Sales{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Malipo Taslimu{% else %}Cash Pay{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Malipo Simu{% else %}Mobile Pay{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Jumla Iliyopokelewa{% else %}Total Received{% endif %}</th>
+                    <th>{% if useri.langSet == 0 %}Hasara/Bonusi{% else %}Loss/Bonus{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Malipo Wateja{% else %}Cust. Pay{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Toa Pesa{% else %}Dep. Before{% endif %}</th>
                     <th>{% if useri.langSet == 0 %}Benki{% else %}Cash Dep.{% endif %}</th>

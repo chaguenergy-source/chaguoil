@@ -19,7 +19,11 @@ const sumDays = days => {
     const totals = {
         day_count: new Set((days || []).map(d => d.date)).size,
         sales_amount: 0,
+        credit_sales_amount: 0,
+        cash_payment_amount: 0,
         mobile_amount: 0,
+        total_received: 0,
+        loss_bonus: 0,
         customer_pay_amount: 0,
         dep_before_amount: 0,
         cash_dep_amount: 0,
@@ -31,7 +35,11 @@ const sumDays = days => {
     };
     (days || []).forEach(d => {
         totals.sales_amount += Number(d.sales_amount || 0);
+        totals.credit_sales_amount += Number(d.credit_sales_amount || 0);
+        totals.cash_payment_amount += Number(d.cash_payment_amount || 0);
         totals.mobile_amount += Number(d.mobile_amount || 0);
+        totals.total_received += Number(d.total_received || 0);
+        totals.loss_bonus += Number(d.loss_bonus || 0);
         totals.customer_pay_amount += Number(d.customer_pay_amount || 0);
         totals.dep_before_amount += Number(d.dep_before_amount || 0);
         totals.cash_dep_amount += Number(d.cash_dep_amount || 0);
@@ -42,6 +50,14 @@ const sumDays = days => {
         totals.receive_worth += Number(d.receive_worth || 0);
     });
     return totals;
+};
+
+const lossBonusCell = val => {
+    const n = Number(val || 0);
+    if (Math.abs(n) < 0.0001) return formatNumber(0);
+    const cls = n > 0 ? 'text-danger' : 'text-success';
+    const label = n > 0 ? lang('Hasara', 'Loss') : lang('Bonusi', 'Bonus');
+    return `<span class="${cls}">${formatNumber(Math.abs(n))}</span><span class="sub-label">${label}</span>`;
 };
 
 const amountCell = (amount, count) => {
@@ -137,7 +153,11 @@ const renderSummary = () => {
             <td><a type="button" class="bluePrint moreDetails" data-report="${d.id}">${d.rname}</a></td>
             <td>${t.day_count}</td>
             <td>${formatNumber(t.sales_amount)}</td>
+            <td>${formatNumber(t.credit_sales_amount)}</td>
+            <td>${formatNumber(t.cash_payment_amount)}</td>
             <td>${formatNumber(t.mobile_amount)}</td>
+            <td>${formatNumber(t.total_received)}</td>
+            <td>${lossBonusCell(t.loss_bonus)}</td>
             <td>${formatNumber(t.customer_pay_amount)}</td>
             <td>${formatNumber(t.dep_before_amount)}</td>
             <td>${formatNumber(t.cash_dep_amount)}</td>
@@ -182,7 +202,11 @@ const renderDetails = data => {
             <td>${moment(r.date).format('DD/MM/YYYY')}</td>
             <td>${r.stN || ''}</td>
             <td>${amountCell(r.sales_amount, r.sales_count)}</td>
+            <td>${amountCell(r.credit_sales_amount, r.credit_sales_count)}</td>
+            <td>${amountCell(r.cash_payment_amount, r.cash_payment_count)}</td>
             <td>${amountCell(r.mobile_amount, r.mobile_count)}</td>
+            <td>${formatNumber(r.total_received || 0)}</td>
+            <td>${lossBonusCell(r.loss_bonus)}</td>
             <td>${amountCell(r.customer_pay_amount, r.customer_pay_count)}</td>
             <td>${amountCell(r.dep_before_amount, r.dep_before_count)}</td>
             <td>${amountCell(r.cash_dep_amount, r.cash_dep_count)}</td>
@@ -196,7 +220,11 @@ const renderDetails = data => {
     tr += `<tr class="smallFont font-weight-bold">
         <td colspan="3">${lang('Jumla', 'Total')}</td>
         <td>${formatNumber(t.sales_amount)}</td>
+        <td>${formatNumber(t.credit_sales_amount)}</td>
+        <td>${formatNumber(t.cash_payment_amount)}</td>
         <td>${formatNumber(t.mobile_amount)}</td>
+        <td>${formatNumber(t.total_received)}</td>
+        <td>${lossBonusCell(t.loss_bonus)}</td>
         <td>${formatNumber(t.customer_pay_amount)}</td>
         <td>${formatNumber(t.dep_before_amount)}</td>
         <td>${formatNumber(t.cash_dep_amount)}</td>
@@ -297,6 +325,44 @@ const buildShiftAttachmentsBlock = shift => {
       </div>`;
 };
 
+const buildShiftSummaryBlock = summary => {
+    const s = summary || {};
+    const cur = currency ? ` (${escapeDailyHtml(currency)})` : '';
+    const row = (label, qty, amount, bold = false) => {
+        const tag = bold ? 'th' : 'td';
+        const cls = bold ? ' class="daily-summary-grey"' : '';
+        return `<tr${cls}><${tag}${cls}>${label}</${tag}><${tag}${cls}>${qty !== '' ? formatNumber(qty) : ''}</${tag}><${tag}${cls}>${amount !== '' ? formatNumber(amount) : ''}</${tag}></tr>`;
+    };
+    let body = row(lang('Mafuta yaliyotoka', 'Fuel Flow'), s.flow_qty, s.flow_amount, true);
+    if (Number(s.sale_qty) > 0) body += row(lang('Mauzo Wateja Maalum', 'Credit Order Sales'), s.sale_qty, s.sale_amount);
+    if (Number(s.transfer_qty) > 0) body += row(lang('Mafuta yaliyosafirishwa', 'Transferred Fuel'), s.transfer_qty, s.transfer_amount);
+    if (Number(s.expense_fuel_qty) > 0) body += row(lang('Mafuta Yaliyotumika', 'Fuel Usage'), s.expense_fuel_qty, s.expense_fuel_amount);
+    if (Number(s.sale_qty) > 0 || Number(s.transfer_qty) > 0 || Number(s.expense_fuel_qty) > 0) {
+        body += row(lang('Mauzo ya Pampu', 'Pump Sales'), s.pump_sale_qty, s.pump_sale_amount, true);
+    }
+    if (Number(s.expense_cash) > 0) body += row(lang('Matumizi ya Pesa', 'Expenses by Cash'), '', s.expense_cash);
+    if (Number(s.cash_before) > 0) body += row(lang('Cash Iliyowekwa Benki', 'Cash Deposit'), '', s.cash_before);
+    body += row(lang('Pesa Inayotakiwa', 'Net Required Amount'), '', s.required, true);
+    body += row(lang('Pesa Iliyolipwa', 'Paid Amount'), '', s.paid, true);
+    if (s.is_loss) body += row(lang('Hasara', 'Loss'), '', s.loss_profit, true);
+    else if (s.is_bonus) body += row(lang('Bonusi', 'Bonus'), '', s.loss_profit, true);
+    else body += row(lang('Bonusi/Hasara', 'Bonus/Loss'), '', s.loss_profit, true);
+    return `
+      <div class="daily-shift-summary mt-2">
+        <div class="daily-pump-title weight500 mb-1">${lang('Ufupisho wa Zamu', 'Shift Summary Report')}</div>
+        <table class="daily-mini-table daily-shift-summary-table">
+          <thead>
+            <tr>
+              <th>${lang('Jumla', 'Total')}</th>
+              <th>${lang('Kiasi', 'Qty')} <span class="text-primary">LTRS</span></th>
+              <th>${lang('Kiasi', 'Amount')}${cur ? `<span class="text-primary">${cur}</span>` : ''}</th>
+            </tr>
+          </thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>`;
+};
+
 const buildShiftCard = shift => {
     const analogBadge = shift.analog_used
         ? `<span class="daily-analog-tag daily-analog-tag-shift">${lang('Mita ya Analogi', 'Analog Readings')}</span>` : '';
@@ -316,6 +382,7 @@ const buildShiftCard = shift => {
           </tbody>
         </table>
         ${fuelsHtml || `<div class="daily-empty-note">${lang('Hakuna vipimo vya pampu', 'No pump readings')}</div>`}
+        ${shift.summary ? buildShiftSummaryBlock(shift.summary) : ''}
         <table class="daily-mini-table daily-sign-table mt-2">
           <tbody>
             <tr>
@@ -348,24 +415,81 @@ const buildShiftsSection = sessions => {
 };
 
 const buildSalesTable = rows => buildMiniTable({
-    headers: ['#', lang('Session', 'Session'), lang('Ankara', 'Invoice'), lang('Mteja', 'Customer'), lang('Mafuta', 'Fuel'), lang('Kiasi L', 'Qty L'), lang('Thamani', 'Amount'), lang('Mhusika', 'Attendant')],
-    rows: (rows || []).map((r, i) => [
-        i + 1,
+    headers: [
+        lang('Tarehe', 'Date'),
+        lang('Session', 'Session'),
+        lang('Zamu', 'Shift'),
+        lang('Mhusika', 'Attendant'),
+        lang('Ankara', 'Invoice'),
+        lang('Mteja', 'Customer'),
+        lang('Mafuta', 'Fuel'),
+        lang('Bei', 'Price'),
+        lang('Kiasi L', 'Qty L'),
+        lang('Thamani', 'Amount'),
+    ],
+    rows: (rows || []).map(r => [
+        fmtDt(r.sale_dt),
         escapeDailyHtml(r.session_name || '—'),
-        r.sale_id ? `<a href="/salepurchase/viewFuelSales?i=${r.sale_id}">${escapeDailyHtml(r.sale_code || '')}</a>` : escapeDailyHtml(r.sale_code || '—'),
+        r.linked_shift_id
+            ? `<a href="/salepurchase/viewShift?i=${r.linked_shift_id}">SHF-${escapeDailyHtml(r.shift_code || r.linked_shift_id)}</a>`
+            : '—',
+        escapeDailyHtml(r.attendant || '—'),
+        r.sale_id
+            ? `<a href="/salepurchase/viewFuelSales?i=${r.sale_id}">${escapeDailyHtml(r.sale_code || '')}</a>`
+            : escapeDailyHtml(r.sale_code || '—'),
         escapeDailyHtml(r.cust_name || '—'),
         escapeDailyHtml(r.fuel_name || ''),
+        formatNumber(r.sa_price),
         formatNumber(r.qty_sold),
         formatNumber(r.amount),
-        escapeDailyHtml(r.attendant || '—'),
     ]),
-    footer: [lang('Jumla', 'Total'), '', '', '', '', formatNumber(sumField(rows, 'qty_sold')), formatNumber(sumField(rows, 'amount')), ''],
+    footer: [
+        lang('Jumla', 'Total'),
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        formatNumber(sumField(rows, 'qty_sold')),
+        formatNumber(sumField(rows, 'amount')),
+    ],
 });
 
 const buildCustomerPayTable = rows => buildMiniTable({
-    headers: ['#', lang('Session', 'Session'), lang('Tarehe', 'Date'), lang('Mteja', 'Customer'), lang('Akaunti', 'Account'), lang('Mhusika', 'Attendant'), lang('Kiasi', 'Amount')],
-    rows: (rows || []).map((r, i) => [i + 1, escapeDailyHtml(r.session_name || ''), fmtDt(r.tarehe), escapeDailyHtml(r.cust_name || '—'), escapeDailyHtml(r.account_name || ''), escapeDailyHtml(r.attendant || '—'), formatNumber(r.Amount)]),
-    footer: [lang('Jumla', 'Total'), '', '', '', '', '', formatNumber(sumField(rows, 'Amount'))],
+    headers: [
+        lang('Tarehe', 'Date'),
+        lang('Session', 'Session'),
+        lang('Zamu', 'Shift'),
+        lang('Mteja', 'Customer'),
+        lang('Oda', 'Order'),
+        lang('Akaunti', 'Account'),
+        lang('Mhusika', 'Attendant'),
+        lang('Kiasi', 'Amount'),
+    ],
+    rows: (rows || []).map(r => [
+        fmtDt(r.tarehe),
+        escapeDailyHtml(r.session_name || '—'),
+        r.shift_id
+            ? `<a href="/salepurchase/viewShift?i=${r.shift_id}">SHF-${escapeDailyHtml(r.shift_code || r.shift_id)}</a>`
+            : '—',
+        escapeDailyHtml(r.cust_name || '—'),
+        escapeDailyHtml(r.order_code || '—'),
+        escapeDailyHtml(r.account_name || '—'),
+        escapeDailyHtml(r.attendant || '—'),
+        formatNumber(r.Amount),
+    ]),
+    footer: [
+        lang('Jumla', 'Total'),
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        formatNumber(sumField(rows, 'Amount')),
+    ],
 });
 
 const buildMobilePayTable = rows => buildMiniTable({
@@ -407,54 +531,185 @@ const buildReceiveTable = rows => buildMiniTable({
     footer: [lang('Jumla', 'Total'), '', '', '', '', formatNumber(sumField(rows, 'qty')), formatNumber(sumField(rows, 'worth'))],
 });
 
-const buildAdjustmentTable = rows => buildMiniTable({
-    headers: ['#', lang('Session', 'Session'), lang('Noti', 'Note'), lang('Tanki', 'Tank'), lang('Mafuta', 'Fuel'), lang('Kabla L', 'Opening L'), lang('Stick L', 'Stick L'), lang('Tofauti L', 'Diff L'), lang('Thamani', 'Worth')],
-    rows: (rows || []).map((r, i) => [
-        i + 1, escapeDailyHtml(r.session_name || ''),
-        r.adj_id ? `<a href="/salepurchase/adjView?i=${r.adj_id}">ADJ-${escapeDailyHtml(r.adj_code || '')}</a>` : '—',
-        escapeDailyHtml(r.tank_name || ''), escapeDailyHtml(r.fuel_name || ''),
-        formatNumber(r.read), formatNumber(r.stick), formatNumber(r.diff), formatNumber(r.worth),
-    ]),
-    footer: [lang('Jumla', 'Total'), '', '', '', '', '', '', formatNumber(sumField(rows, 'diff')), formatNumber(sumField(rows, 'worth'))],
-});
-
 const buildExpenseTable = rows => buildMiniTable({
     headers: ['#', lang('Session', 'Session'), lang('Aina', 'Type'), lang('Tarehe', 'Date'), lang('Mhusika', 'Attendant'), lang('Kiasi', 'Amount'), lang('Mafuta L', 'Fuel L')],
     rows: (rows || []).map((r, i) => [i + 1, escapeDailyHtml(r.session_name || ''), escapeDailyHtml(r.exp_name || ''), fmtDt(r.tarehe), escapeDailyHtml(r.attendant || '—'), formatNumber(r.kiasi), formatNumber(r.fuel_qty)]),
     footer: [lang('Jumla', 'Total'), '', '', '', '', formatNumber(sumField(rows, 'kiasi')), formatNumber(sumField(rows, 'fuel_qty'))],
 });
 
+const evalDash = '—';
+
+const buildStockEvaluationSection = stock => {
+    const s = stock || {};
+    const tanks = s.tanks || [];
+    const showFlow = !!s.all_complete;
+    const showDetail = !!(s.has_adj || s.all_complete);
+    const showStick = !!(s.has_adj && s.all_complete);
+    const flowCell = v => (showFlow ? formatNumber(v) : evalDash);
+    const detailCell = v => (showDetail && showFlow ? formatNumber(v) : evalDash);
+    const stickCell = v => (showStick ? formatNumber(v) : evalDash);
+    const diffCell = (v) => {
+        if (!showStick) return evalDash;
+        const cls = Number(v) < 0 ? 'text-danger weight600' : 'weight600';
+        return `<span class="${cls}">${formatNumber(v)}</span>`;
+    };
+    if (!tanks.length) {
+        return buildSection(
+            lang('8. Mwenendo wa Stoku kwa Siku', '8. Day Stock Evaluation'),
+            `<p class="daily-empty-note mb-0">${lang('Hakuna data ya stoku', 'No stock data')}</p>`,
+            'daily-section-eval',
+        );
+    }
+    const rows = tanks.map((t, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${escapeDailyHtml(t.tank_name || '')}</td>
+        <td>${escapeDailyHtml(t.fuel_name || '')}</td>
+        <td>${showDetail ? formatNumber(t.bses) : evalDash}</td>
+        <td>${flowCell(t.ses_flow)}</td>
+        <td>${showDetail ? formatNumber(t.a_flow) : evalDash}</td>
+        <td>${flowCell(t.rcq)}</td>
+        <td>${showDetail ? formatNumber(t.read) : evalDash}</td>
+        <td>${stickCell(t.stick)}</td>
+        <td>${diffCell(t.diff)}</td>
+      </tr>`).join('');
+    const table = `
+      <div class="table-responsive">
+        <table class="daily-mini-table daily-eval-wide-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>${lang('Tanki', 'Tank')}</th>
+              <th>${lang('Mafuta', 'Fuel')}</th>
+              <th>${lang('Kiasi/Kabla', 'Qty/Before')} (L)</th>
+              <th>${lang('Yaliyotoka', 'Flow')} (L)</th>
+              <th>${lang('Baada/Zamu', 'After/Flow')} (L)</th>
+              <th>${lang('Kupokea', 'Receive')} (L)</th>
+              <th>${lang('Kiasi/Baada', 'Qty/After')} (L)</th>
+              <th>${lang('Stiki', 'Stick')} (L)</th>
+              <th>${lang('Tofauti', 'Diff')} (L)</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+    return buildSection(lang('8. Mwenendo wa Stoku kwa Siku', '8. Day Stock Evaluation'), table, 'daily-section-eval');
+};
+
+const buildFuelFlowSummarySection = fuelFlow => {
+    const ff = fuelFlow || {};
+    const rows = ff.rows || [];
+    const t = ff.totals || {};
+    const cur = currency ? ` (${escapeDailyHtml(currency)})` : '';
+    if (!rows.length) {
+        return buildSection(
+            lang('9. Ufupisho Mwenendo wa Mafuta yaliyotoka', '9. Total Day Fuel Flow Summary'),
+            `<p class="daily-empty-note mb-0">${lang('Hakuna data ya mafuta', 'No fuel flow data')}</p>`,
+            'daily-section-eval',
+        );
+    }
+    const body = rows.map((r, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${escapeDailyHtml(r.fuel_name || '')}</td>
+        <td>${formatNumber(r.price)}</td>
+        <td>${formatNumber(r.flow_q)}</td><td>${formatNumber(r.flow_a)}</td>
+        <td>${formatNumber(r.tr_q)}</td><td>${formatNumber(r.tr_a)}</td>
+        <td>${formatNumber(r.exp_q)}</td><td>${formatNumber(r.exp_a)}</td>
+        <td>${formatNumber(r.sa_q)}</td><td>${formatNumber(r.sa_a)}</td>
+        <td>${formatNumber(r.pmp_q)}</td><td>${formatNumber(r.pmp_a)}</td>
+      </tr>`).join('');
+    const table = `
+      <div class="table-responsive">
+        <table class="daily-mini-table daily-eval-wide-table">
+          <thead>
+            <tr>
+              <th rowspan="2">#</th>
+              <th rowspan="2">${lang('Mafuta', 'Fuel')}</th>
+              <th rowspan="2">${lang('Bei', 'Price')}${cur}</th>
+              <th colspan="2">${lang('Yaliyotoka', 'Flow')}</th>
+              <th colspan="2">${lang('Kusafirisha', 'Transfer')}</th>
+              <th colspan="2">${lang('Matumizi', 'Expenses')}</th>
+              <th colspan="2">${lang('Mauzo/Maalum', 'Custom/Sales')}</th>
+              <th colspan="2">${lang('Mauzo/Pampu', 'Pump Sales')}</th>
+            </tr>
+            <tr>
+              <th>${lang('Kiasi', 'Qty')} (L)</th><th>${lang('Thamani', 'Amount')}</th>
+              <th>${lang('Kiasi', 'Qty')} (L)</th><th>${lang('Thamani', 'Amount')}</th>
+              <th>${lang('Kiasi', 'Qty')} (L)</th><th>${lang('Thamani', 'Amount')}</th>
+              <th>${lang('Kiasi', 'Qty')} (L)</th><th>${lang('Thamani', 'Amount')}</th>
+              <th>${lang('Kiasi', 'Qty')} (L)</th><th>${lang('Thamani', 'Amount')}</th>
+            </tr>
+          </thead>
+          <tbody>${body}
+            <tr class="daily-summary-grey">
+              <td colspan="3">${lang('Jumla', 'Total')}</td>
+              <td>${formatNumber(t.flow_q)}</td><td>${formatNumber(t.flow_a)}</td>
+              <td>${formatNumber(t.tr_q)}</td><td>${formatNumber(t.tr_a)}</td>
+              <td>${formatNumber(t.exp_q)}</td><td>${formatNumber(t.exp_a)}</td>
+              <td>${formatNumber(t.sa_q)}</td><td>${formatNumber(t.sa_a)}</td>
+              <td>${formatNumber(t.pmp_q)}</td><td>${formatNumber(t.pmp_a)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+    return buildSection(lang('9. Ufupisho Mwenendo wa Mafuta yaliyotoka', '9. Total Day Fuel Flow Summary'), table, 'daily-section-eval');
+};
+
+const buildPumpPaymentsSummarySection = pay => {
+    const p = pay || {};
+    const cur = currency ? ` (${escapeDailyHtml(currency)})` : '';
+    const totPaid = Number(p.tot_paid || 0);
+    const totReq = Number(p.tot_req || 0);
+    const totLpr = Math.abs(Number(p.tot_lpr || 0));
+    let bonusLossRow = '';
+    if (totPaid > totReq) {
+        bonusLossRow = `<tr class="daily-summary-green"><th>${lang('Bonasi', 'Bonus')}</th><th>${formatNumber(totLpr)}</th></tr>`;
+    } else if (totPaid < totReq) {
+        bonusLossRow = `<tr class="daily-summary-loss"><th>${lang('Hasara', 'Loss')}</th><th>${formatNumber(totLpr)}</th></tr>`;
+    }
+    const table = `
+      <table class="daily-mini-table daily-pump-pay-table">
+        <thead>
+          <tr><th>${lang('Jumla', 'Total')}</th><th>${lang('Kiasi', 'Amount')}${cur}</th></tr>
+        </thead>
+        <tbody>
+          <tr class="daily-summary-grey"><th>${lang('Mauzo ya pampu', 'Pump Sales')}</th><th>${formatNumber(p.tot_psa)}</th></tr>
+          <tr><td>${lang('Matumizi', 'Expenses')}</td><td>${formatNumber(p.tot_exp)}</td></tr>
+          <tr><td>${lang('Pesa Iliyowekwa Benki', 'Cash Deposit')}</td><td>${formatNumber(p.tot_cab)}</td></tr>
+          <tr class="daily-summary-grey"><th>${lang('Pesa Inayotakiwa', 'Net Required Amount')}</th><th>${formatNumber(p.tot_req)}</th></tr>
+          <tr class="daily-summary-grey"><th>${lang('Pesa Ilolipwa', 'Net Paid')}</th><th>${formatNumber(p.tot_paid)}</th></tr>
+          ${bonusLossRow}
+        </tbody>
+      </table>`;
+    return buildSection(
+        lang('10. Ufupisho Mauzo ya Pampu na Malipo', '10. Total Day Pump Sales & Payments Summary'),
+        table,
+        'daily-section-eval daily-section-pump-pay',
+    );
+};
+
+const buildEvaluationSections = evaluations => {
+    const ev = evaluations || {};
+    return [
+        buildStockEvaluationSection(ev.stock),
+        buildFuelFlowSummarySection(ev.fuel_flow),
+        buildPumpPaymentsSummarySection(ev.pump_payments),
+    ].join('');
+};
+
 const buildActivityTablesSection = tables => {
     const t = tables || {};
     const parts = [
-        buildSection(lang('2. Mauzo kwa Wateja Muhimu', '2. Key Customer Sales'), t.sales && t.sales.length ? buildSalesTable(t.sales) : `<p class="daily-empty-note mb-0">${lang('Hakuna mauzo', 'No sales')}</p>`, 'daily-section-sales'),
+        buildSection(lang('2. Mauzo ya Wateja wa Mkopo/Credit', '2. Credit/Debt Customer Sales'), t.sales && t.sales.length ? buildSalesTable(t.sales) : `<p class="daily-empty-note mb-0">${lang('Hakuna mauzo ya wateja wa mkopo/credit', 'No credit/debt customer sales')}</p>`, 'daily-section-sales'),
         buildSection(lang('3. Malipo ya Madeni — Wateja', '3. Customer Debt Payments'), t.customer_pays && t.customer_pays.length ? buildCustomerPayTable(t.customer_pays) : `<p class="daily-empty-note mb-0">${lang('Hakuna malipo ya madeni', 'No debt payments')}</p>`, 'daily-section-payments'),
         buildSection(lang('4. Malipo ya Simu', '4. Mobile Payments'), t.mobile_pays && t.mobile_pays.length ? buildMobilePayTable(t.mobile_pays) : `<p class="daily-empty-note mb-0">${lang('Hakuna malipo ya simu', 'No mobile payments')}</p>`, 'daily-section-payments'),
         buildSection(lang('5. Kuweka Benki / Toa Pesa', '5. Cash Deposits'), t.cash_deposits && t.cash_deposits.length ? buildCashDepTable(t.cash_deposits) : `<p class="daily-empty-note mb-0">${lang('Hakuna amana za pesa', 'No cash deposits')}</p>`, 'daily-section-payments'),
         buildSection(lang('6. Kuhamisha Mafuta', '6. Fuel Transfers'), t.transfers && t.transfers.length ? buildTransferTable(t.transfers) : `<p class="daily-empty-note mb-0">${lang('Hakuna transfer', 'No transfers')}</p>`, 'daily-section-fuel'),
         buildSection(lang('7. Kupokea Mafuta', '7. Fuel Receives'), t.receives && t.receives.length ? buildReceiveTable(t.receives) : `<p class="daily-empty-note mb-0">${lang('Hakuna receive', 'No receives')}</p>`, 'daily-section-fuel'),
-        buildSection(lang('8. Marekebisho / Vipimo vya Matanki', '8. Tank Adjustments'), t.adjustments && t.adjustments.length ? buildAdjustmentTable(t.adjustments) : `<p class="daily-empty-note mb-0">${lang('Hakuna marekebisho', 'No adjustments')}</p>`, 'daily-section-adj'),
-        buildSection(lang('9. Matumizi', '9. Expenses'), t.expenses && t.expenses.length ? buildExpenseTable(t.expenses) : `<p class="daily-empty-note mb-0">${lang('Hakuna matumizi', 'No expenses')}</p>`, 'daily-section-exp'),
+        buildSection(lang('8. Matumizi', '8. Expenses'), t.expenses && t.expenses.length ? buildExpenseTable(t.expenses) : `<p class="daily-empty-note mb-0">${lang('Hakuna matumizi', 'No expenses')}</p>`, 'daily-section-exp'),
     ];
     return parts.join('');
-};
-
-const buildDaySummarySection = summary => {
-    const s = summary || {};
-    const rows = [
-        [lang('Sessions', 'Sessions'), s.session_count, lang('Zamu', 'Shifts'), s.shift_count],
-        [lang('Mauzo', 'Sales'), `${formatNumber(s.sales_amount)} (${s.sales_count || 0})`, lang('Malipo Wateja', 'Cust. Pay'), formatNumber(s.customer_pay_amount)],
-        [lang('Malipo Simu', 'Mobile Pay'), formatNumber(s.mobile_amount), lang('Benki/Toa Pesa', 'Cash Dep.'), formatNumber(s.cash_dep_amount)],
-        [lang('Transfer L', 'Transfer L'), formatNumber(s.transfer_qty), lang('Transfer', 'Transfer'), formatNumber(s.transfer_worth)],
-        [lang('Receive L', 'Receive L'), formatNumber(s.receive_qty), lang('Receive', 'Receive'), formatNumber(s.receive_worth)],
-        [lang('Marekebisho L', 'Adj. Diff L'), formatNumber(s.adjustment_diff), lang('Matumizi', 'Expenses'), formatNumber(s.expense_amount)],
-    ];
-    const table = `
-      <table class="daily-mini-table daily-summary-table">
-        <thead><tr><th>${lang('Kipimo', 'Metric')}</th><th>${lang('Thamani', 'Value')}</th><th>${lang('Kipimo', 'Metric')}</th><th>${lang('Thamani', 'Value')}</th></tr></thead>
-        <tbody>${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody>
-      </table>`;
-    return buildSection(lang('10. Muhtasari wa Siku', '10. Day Summary'), table, 'daily-section-summary');
 };
 
 const renderDayDetail = data => {
@@ -478,7 +733,7 @@ const renderDayDetail = data => {
     const html = header
         + buildShiftsSection(data.sessions)
         + buildActivityTablesSection(data.tables)
-        + buildDaySummarySection(data.summary);
+        + buildEvaluationSections(data.evaluations);
 
     $('#dayDetailContent').html(html);
     $('#paymentDetails').hide();
@@ -511,6 +766,48 @@ $('body').on('click', '.day-detail-row', function (e) {
     loadDayDetail(date, st, stN);
 });
 
+const prepareDayDetailPrintContent = (html, includeAttach) => {
+    const $root = $('<div>').html(html);
+
+    if (!includeAttach) {
+        $root.find('.daily-shift-attachments').remove();
+    }
+
+    $root.find('.daily-session-group').each(function () {
+        if (!$(this).find('.daily-shift-card').length) {
+            $(this).remove();
+        }
+    });
+
+    $root.find('.daily-section').each(function () {
+        const $sec = $(this);
+        const hasDataRows = $sec.find('.daily-mini-table tbody tr').length > 0;
+        const hasShiftCards = $sec.find('.daily-shift-card').length > 0;
+
+        if ($sec.find('.daily-empty-note').length && !hasDataRows && !hasShiftCards) {
+            $sec.remove();
+            return;
+        }
+
+        if ($sec.hasClass('daily-section-shifts') && !hasShiftCards) {
+            $sec.remove();
+            return;
+        }
+
+        if ($sec.hasClass('daily-section-pump-pay')) {
+            const p = (activeDayDetail && activeDayDetail.evaluations && activeDayDetail.evaluations.pump_payments) || {};
+            const hasPumpData = ['tot_psa', 'tot_exp', 'tot_cab', 'tot_req', 'tot_paid'].some(
+                k => Math.abs(Number(p[k] || 0)) > 0.000001,
+            );
+            if (!hasPumpData) {
+                $sec.remove();
+            }
+        }
+    });
+
+    return $root.html();
+};
+
 const getDailyPrintHeaderHtml = () => {
     const $hdr = $('#CompanyTitle');
     if (!$hdr.length) return '';
@@ -525,94 +822,258 @@ const getDayDetailPrintStyles = () => `
       margin: 0;
       padding: 0;
       width: 100%;
-      font-family: Arial, sans-serif;
-      font-size: 9px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10px;
+      font-weight: 600;
       color: #000;
       overflow: visible;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
     .daily-print-wrap { width: 100%; max-width: 100%; padding: 0; }
-    .daily-print-title { font-size: 13px; margin: 0 0 6px; font-weight: 700; }
-    .daily-print-header { margin-bottom: 6px; page-break-after: avoid; break-after: avoid; }
-    .daily-print-header .header-main-title { color: #007bff; font-size: 15px; font-weight: 700; letter-spacing: 1px; margin: 0 0 4px; text-align: center; text-transform: uppercase; }
+    .daily-print-title {
+      font-size: 14px;
+      margin: 0 0 8px;
+      font-weight: 800;
+      color: #0056b3 !important;
+      border-left: 4px solid #0056b3;
+      padding-left: 8px;
+    }
+    .daily-print-header { margin-bottom: 8px; page-break-after: avoid; break-after: avoid; }
+    .daily-print-header .header-main-title {
+      color: #0056b3 !important;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin: 0 0 4px;
+      text-align: center;
+      text-transform: uppercase;
+    }
     .daily-print-header .header-details { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 2px 0; width: 100%; }
-    .daily-print-header .contact-info, .daily-print-header .address-info { font-size: 8px; line-height: 1.3; font-weight: 600; color: #000; }
+    .daily-print-header .contact-info,
+    .daily-print-header .address-info {
+      font-size: 9px;
+      line-height: 1.35;
+      font-weight: 700;
+      color: #000 !important;
+    }
     .daily-print-header .contact-info { text-align: right; }
     .daily-print-header .address-info { text-align: left; }
     .daily-print-header .logo-container img { width: 44px; height: auto; display: block; margin: 0 auto; }
-    .daily-print-header .blue-line { height: 2px; background: #007bff; margin: 4px 0 0; width: 100%; }
-    .daily-print-header p { margin: 0 0 2px; }
-    .page { margin: 0 !important; page-break-after: avoid !important; box-shadow: none !important; width: 100% !important; overflow: visible !important; }
-    .daily-section { page-break-inside: auto; break-inside: auto; margin-bottom: 6px; border: 1px solid #ccc; }
-    .daily-section-body { padding: 4px 6px; }
-    .daily-section-title { padding: 4px 8px; font-size: 10px; font-weight: 700; color: #fff !important; background: #006ae4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .daily-print-header .blue-line { height: 3px; background: #0056b3 !important; margin: 4px 0 0; width: 100%; }
+    .daily-print-header p { margin: 0 0 2px; color: #000 !important; font-weight: 600; }
+    .daily-day-header {
+      border: 1px solid #0056b3 !important;
+      padding: 6px 8px;
+      margin-bottom: 8px;
+      background: #e8f4fd !important;
+      page-break-after: avoid;
+    }
+    .daily-day-header-table td { width: 33.33%; font-weight: 700; color: #000 !important; }
+    .daily-section {
+      page-break-inside: auto;
+      break-inside: auto;
+      margin-bottom: 8px;
+      border: 1px solid #000 !important;
+      background: #fff !important;
+      overflow: hidden;
+    }
+    .daily-section-body { padding: 5px 6px; color: #000 !important; }
+    .daily-section-title {
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 800 !important;
+      color: #fff !important;
+      background: #0056b3 !important;
+      border-bottom: none !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
     .daily-section-shifts .daily-section-title { background: #0d6efd !important; }
     .daily-section-sales .daily-section-title { background: #198754 !important; }
     .daily-section-payments .daily-section-title { background: #6f42c1 !important; }
-    .daily-section-fuel .daily-section-title { background: #fd7e14 !important; }
-    .daily-section-adj .daily-section-title { background: #20c997 !important; }
+    .daily-section-fuel .daily-section-title { background: #e8590c !important; }
     .daily-section-exp .daily-section-title { background: #dc3545 !important; }
-    .daily-section-summary .daily-section-title { background: #343a40 !important; }
-    .daily-mini-table { width: 100%; max-width: 100%; border-collapse: collapse; font-size: 8px; table-layout: fixed; }
-    .daily-mini-table th, .daily-mini-table td { border: 1px solid #bbb; padding: 2px 4px; text-align: left; vertical-align: top; word-wrap: break-word; overflow-wrap: anywhere; color: #000 !important; }
-    .daily-mini-table thead th { background: #e9ecef !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 700; }
-    .daily-mini-table tfoot td { background: #f1f3f5 !important; font-weight: 700; }
-    .daily-pump-table thead th { background: #e7f1ff !important; color: #084298 !important; }
-    .daily-shift-meta-table td { width: 50%; }
-    .daily-sign-table td { width: 50%; height: 36px; }
-    .daily-day-header-table td { width: 33.33%; }
-    .daily-shift-card { page-break-inside: avoid; break-inside: avoid; border: 1px solid #ddd; padding: 4px; margin-bottom: 4px; }
-    .daily-session-group { page-break-inside: auto; break-inside: auto; border: 1px solid #cfe2ff; padding: 4px; margin-bottom: 4px; }
-    .daily-session-head { font-size: 8px; font-weight: 700; margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px dashed #b6d4fe; color: #084298 !important; }
-    .daily-pump-title { font-weight: 700; margin: 4px 0 2px; color: #000 !important; }
+    .daily-section-eval .daily-section-title { background: #087990 !important; }
+    .daily-eval-wide-table { min-width: 100%; font-size: 8.5px; font-weight: 600; }
+    .daily-print-wrap table {
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse !important;
+      border: 1px solid #000 !important;
+    }
+    .daily-print-wrap table th,
+    .daily-print-wrap table td {
+      border: 1px solid #000 !important;
+      color: #000 !important;
+      font-weight: 600;
+    }
+    .daily-mini-table {
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse !important;
+      font-size: 9px;
+      font-weight: 600;
+      table-layout: fixed;
+      border: 1px solid #000 !important;
+    }
+    .daily-mini-table th,
+    .daily-mini-table td {
+      border: 1px solid #000 !important;
+      padding: 3px 5px;
+      text-align: left;
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      color: #000 !important;
+      font-weight: 600;
+    }
+    .daily-mini-table thead th {
+      background: #dbeafe !important;
+      color: #1e3a8a !important;
+      font-weight: 800 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .daily-mini-table tfoot td {
+      background: #f1f5f9 !important;
+      color: #000 !important;
+      font-weight: 800 !important;
+      border-top: 2px solid #000 !important;
+    }
+    .daily-mini-table tbody tr:nth-child(even) td {
+      background: #f8fafc !important;
+    }
+    .daily-pump-table thead th {
+      background: #dbeafe !important;
+      color: #1e40af !important;
+      font-weight: 800 !important;
+    }
+    .daily-shift-summary-table thead th {
+      background: #e0e7ff !important;
+      color: #3730a3 !important;
+      font-weight: 800 !important;
+    }
+    .daily-mini-table tr.daily-summary-grey th,
+    .daily-mini-table tr.daily-summary-grey td {
+      background: #e2e8f0 !important;
+      color: #000 !important;
+      font-weight: 800 !important;
+      border: 1px solid #000 !important;
+    }
+    .daily-mini-table tr.daily-summary-green th,
+    .daily-mini-table tr.daily-summary-green td {
+      background: #bbf7d0 !important;
+      color: #14532d !important;
+      font-weight: 800 !important;
+      border: 1px solid #000 !important;
+    }
+    .daily-mini-table tr.daily-summary-loss th,
+    .daily-mini-table tr.daily-summary-loss td {
+      background: #fecaca !important;
+      color: #7f1d1d !important;
+      font-weight: 800 !important;
+      border: 1px solid #000 !important;
+    }
+    .daily-shift-meta-table td { width: 50%; font-weight: 600; background: #f8fafc !important; }
+    .daily-sign-table td { width: 50%; min-height: 36px; font-weight: 600; }
+    .daily-shift-card {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      border: 1px solid #64748b !important;
+      padding: 5px;
+      margin-bottom: 5px;
+      background: #fff !important;
+    }
+    .daily-session-group {
+      page-break-inside: auto;
+      break-inside: auto;
+      border: 1px solid #93c5fd !important;
+      padding: 5px;
+      margin-bottom: 5px;
+      background: #f8fbff !important;
+    }
+    .daily-session-head {
+      font-size: 9px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      padding: 4px 6px;
+      border-bottom: none !important;
+      color: #1e40af !important;
+      background: #dbeafe !important;
+    }
+    .daily-pump-title {
+      font-weight: 800;
+      margin: 4px 0 2px;
+      color: #92400e !important;
+      font-size: 9.5px;
+      background: #fef3c7;
+      padding: 2px 6px;
+      border-left: 3px solid #f59e0b;
+    }
     .daily-pump-title u { text-decoration: underline; }
-    .daily-day-header { border: 1px solid #b8daff; padding: 4px; margin-bottom: 6px; background: #f0f7ff !important; page-break-after: avoid; }
-    .daily-empty-note { color: #444 !important; font-style: italic; padding: 4px 0; }
-    .analog-shift-card { border-left: 3px solid #856404 !important; }
-    .analog-pump-row td { background: #fff3cd !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .daily-print-wrap a,
+    .daily-print-wrap a:visited {
+      color: #0056b3 !important;
+      text-decoration: underline;
+      font-weight: 700;
+    }
+    .daily-print-wrap .text-danger { color: #991b1b !important; font-weight: 800 !important; }
+    .daily-print-wrap .text-success { color: #166534 !important; font-weight: 800 !important; }
+    .daily-empty-note { color: #475569 !important; font-style: italic; font-weight: 600; padding: 4px 0; }
+    .analog-shift-card { border-left: 4px solid #f59e0b !important; background: #fffbeb !important; }
+    .analog-pump-row td {
+      background: #fef3c7 !important;
+      color: #000 !important;
+      font-weight: 700 !important;
+    }
     .daily-analog-tag {
       display: inline-block;
       font-size: 7px;
-      font-weight: 700;
+      font-weight: 800;
       line-height: 1.2;
       color: #000 !important;
-      background: #ffc107 !important;
-      border: 1px solid #856404;
+      background: #fcd34d !important;
+      border: 1px solid #b45309;
       border-radius: 2px;
       padding: 1px 5px;
       margin-left: 4px;
       white-space: nowrap;
       vertical-align: middle;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
     }
-    .daily-analog-tag-sm { font-size: 6.5px; padding: 1px 4px; }
-    .daily-analog-tag-shift { font-size: 7.5px; margin-left: 6px; }
-    .daily-pump-title .daily-analog-tag { margin-left: 6px; vertical-align: baseline; }
-    .daily-shift-attachments { border-top: 1px dashed #dee2e6; padding-top: 6px; }
-    .daily-attach-heading { font-size: 9px; font-weight: 700; color: #495057; margin-bottom: 4px; }
+    .daily-analog-tag-sm { font-size: 7px; padding: 1px 4px; }
+    .daily-analog-tag-shift { font-size: 8px; margin-left: 6px; }
+    .daily-shift-attachments { border-top: 1px dashed #94a3b8; padding-top: 6px; }
+    .daily-attach-heading { font-size: 9px; font-weight: 800; color: #334155 !important; margin-bottom: 4px; }
     .daily-attach-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    .daily-attach-card { display: block; border: 1px solid #ced4da; border-radius: 4px; overflow: hidden; text-decoration: none !important; color: #000 !important; background: #fff; page-break-inside: avoid; break-inside: avoid; }
-    .daily-attach-thumb { width: 100%; height: 72px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-    .daily-attach-img { width: 100%; height: 72px; object-fit: cover; display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .daily-attach-file-fallback { font-size: 8px; font-weight: 700; color: #6c757d; }
-    .daily-attach-meta { padding: 3px 4px; border-top: 1px solid #eee; }
-    .daily-attach-name { font-size: 7px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .daily-attach-sub { font-size: 6.5px; color: #666; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    a { color: #000 !important; text-decoration: none; }
+    .daily-attach-card {
+      display: block;
+      border: 1px solid #64748b !important;
+      border-radius: 0;
+      overflow: hidden;
+      text-decoration: none !important;
+      color: #000 !important;
+      background: #fff;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .daily-attach-thumb { width: 100%; height: 72px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid #000; }
+    .daily-attach-img { width: 100%; height: 72px; object-fit: cover; display: block; }
+    .daily-attach-file-fallback { font-size: 8px; font-weight: 800; color: #000 !important; }
+    .daily-attach-meta { padding: 3px 4px; border-top: 1px solid #cbd5e1; background: #f8fafc; }
+    .daily-attach-name { font-size: 7.5px; font-weight: 800; line-height: 1.2; color: #000 !important; }
+    .daily-attach-sub { font-size: 7px; color: #475569 !important; font-weight: 600; line-height: 1.2; }
+    .daily-pump-pay-table { max-width: 100%; border: 1px solid #000 !important; }
     .badge { display: none !important; }
   </style>`;
 
 $('#printDayDetail').on('click', function () {
     if (!activeDayDetail) return;
     const includeAttach = $('#printIncludeAttachments').prop('checked');
-    let content = document.getElementById('dayDetailContent').innerHTML;
-    if (!includeAttach) {
-        const $tmp = $('<div>').html(content);
-        $tmp.find('.daily-shift-attachments').remove();
-        content = $tmp.html();
-    }
+    let content = prepareDayDetailPrintContent(
+        document.getElementById('dayDetailContent').innerHTML,
+        includeAttach,
+    );
     const title = $('#dayDetailTitle').text();
     const printWindow = window.open('', '', 'height=800,width=1100');
     printWindow.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Daily Sales</title>');
