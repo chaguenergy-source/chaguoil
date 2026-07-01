@@ -28,6 +28,23 @@ const paymentSourceLabel = payment => {
 	return lang('Haijulikani', 'Unknown');
 };
 
+const expenseTypeLabel = p => {
+	if (p.paye) {
+		const base = lang('Mshahara', 'Salary');
+		return p.salary_advance
+			? `${base} (${lang('Malipo ya awali ya mshahara', 'Salary Advance')})`
+			: base;
+	}
+	return p.expN || '-';
+};
+
+const expenseRecipient = p => {
+	const kab = (p.kabidhiwa || '').trim();
+	if (kab) return kab;
+	const staff = `${p.staffFname || ''} ${p.staffLname || ''}`.trim();
+	return staff || '-';
+};
+
 const loadExpenses = d => {
 	$('#loadMe').modal('show');
 
@@ -187,11 +204,12 @@ const renderPaymentDetails = d => {
 					<td>${moment(p.tarehe).format('DD/MM/YYYY HH:mm')}</td>
 					<td>${p.stN || ''}</td>
 					<td class="text-capitalize">${p.BFname || ''} ${p.BLname || ''}</td>
-					<td>${p.expN || p.paye?lang('Mshahara','Salary') : ''}${p.salary_advance ? ` (${lang('Malipo ya awali', 'Salary Advance')})` : ''}</td>
+					<td>${expenseTypeLabel(p)}</td>
 					<td>${paymentSourceLabel(p)}</td>
 					<td class="text-capitalize">${pumpAttendant}</td>
 					<td>${p.account_name || '-'}</td>
-					<td>${p.maelezo || p.kabidhiwa || '-'}</td>
+					<td class="text-capitalize">${expenseRecipient(p)}</td>
+					<td>${p.maelezo || '-'}</td>
 					<td>${formatNumber(p.kiasi) || 0}</td>
 					<td>
 					  <span>${p.admin_approval ? lang('Imethibitishwa', 'Approved') : lang('Haijathibitishwa', 'Unapproved')}</span>
@@ -202,7 +220,7 @@ const renderPaymentDetails = d => {
 
 	const totalAmount = filteredPayments?.reduce((a, b) => a + Number(b.kiasi), 0) || 0;
 	tr += `<tr class="smallFont font-weight-bold">
-				<td colspan="${isAdmin ? 10 : 9}">Total</td>
+				<td colspan="${isAdmin ? 11 : 10}">Total</td>
 				<td>${formatNumber(totalAmount)}</td>
 				<td>${approvedCount}/${filteredPayments?.length || 0} ${lang('uhakiki', 'Approval')}</td>
 			</tr>`;

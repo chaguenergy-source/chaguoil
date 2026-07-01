@@ -24,7 +24,8 @@ const sumDays = days => {
         mobile_amount: 0,
         total_received: 0,
         loss_bonus: 0,
-        customer_pay_amount: 0,
+        flow_qty: 0,
+        flow_amount: 0,
         dep_before_amount: 0,
         cash_dep_amount: 0,
         expenses_amount: 0,
@@ -40,7 +41,8 @@ const sumDays = days => {
         totals.mobile_amount += Number(d.mobile_amount || 0);
         totals.total_received += Number(d.total_received || 0);
         totals.loss_bonus += Number(d.loss_bonus || 0);
-        totals.customer_pay_amount += Number(d.customer_pay_amount || 0);
+        totals.flow_qty += Number(d.flow_qty || 0);
+        totals.flow_amount += Number(d.flow_amount || 0);
         totals.dep_before_amount += Number(d.dep_before_amount || 0);
         totals.cash_dep_amount += Number(d.cash_dep_amount || 0);
         totals.expenses_amount += Number(d.expenses_amount || 0);
@@ -65,6 +67,8 @@ const amountCell = (amount, count) => {
     if (!count) return `<span class="text-muted">—</span>`;
     return `${amt}<span class="sub-label">${count} ${lang('rekodi', 'records')}</span>`;
 };
+
+const flowCell = (qty, amount) => `${formatNumber(qty || 0)} L<span class="sub-label">${formatNumber(amount || 0)}</span>`;
 
 const qtyWorthCell = (qty, worth, count) => {
     if (!count) return `<span class="text-muted">—</span>`;
@@ -152,18 +156,18 @@ const renderSummary = () => {
         tr += `<tr class="smallFont cursor-pointer moreDetails" data-report="${d.id}">
             <td><a type="button" class="bluePrint moreDetails" data-report="${d.id}">${d.rname}</a></td>
             <td>${t.day_count}</td>
+            <td>${flowCell(t.flow_qty, t.flow_amount)}</td>
+            <td>${formatNumber(t.receive_qty)} L<br><span class="sub-label">${formatNumber(t.receive_worth)}</span></td>
+            <td>${formatNumber(t.transfer_qty)} L<br><span class="sub-label">${formatNumber(t.transfer_worth)}</span></td>
             <td>${formatNumber(t.sales_amount)}</td>
             <td>${formatNumber(t.credit_sales_amount)}</td>
+            <td>${formatNumber(t.expenses_amount)}</td>
             <td>${formatNumber(t.cash_payment_amount)}</td>
             <td>${formatNumber(t.mobile_amount)}</td>
-            <td>${formatNumber(t.total_received)}</td>
-            <td>${lossBonusCell(t.loss_bonus)}</td>
-            <td>${formatNumber(t.customer_pay_amount)}</td>
             <td>${formatNumber(t.dep_before_amount)}</td>
             <td>${formatNumber(t.cash_dep_amount)}</td>
-            <td>${formatNumber(t.expenses_amount)}</td>
-            <td>${formatNumber(t.transfer_qty)} L<br><span class="sub-label">${formatNumber(t.transfer_worth)}</span></td>
-            <td>${formatNumber(t.receive_qty)} L<br><span class="sub-label">${formatNumber(t.receive_worth)}</span></td>
+            <td>${formatNumber(t.total_received)}</td>
+            <td>${lossBonusCell(t.loss_bonus)}</td>
         </tr>`;
     });
 
@@ -201,36 +205,36 @@ const renderDetails = data => {
             <td>${idx + 1}</td>
             <td>${moment(r.date).format('DD/MM/YYYY')}</td>
             <td>${r.stN || ''}</td>
-            <td>${amountCell(r.sales_amount, r.sales_count)}</td>
+            <td>${flowCell(r.flow_qty, r.flow_amount)}</td>
+            <td>${qtyWorthCell(r.receive_qty, r.receive_worth, r.receive_count)}</td>
+            <td>${qtyWorthCell(r.transfer_qty, r.transfer_worth, r.transfer_count)}</td>
+            <td>${formatNumber(r.sales_amount || 0)}</td>
             <td>${amountCell(r.credit_sales_amount, r.credit_sales_count)}</td>
+            <td>${amountCell(r.expenses_amount, r.expenses_count)}</td>
             <td>${amountCell(r.cash_payment_amount, r.cash_payment_count)}</td>
             <td>${amountCell(r.mobile_amount, r.mobile_count)}</td>
-            <td>${formatNumber(r.total_received || 0)}</td>
-            <td>${lossBonusCell(r.loss_bonus)}</td>
-            <td>${amountCell(r.customer_pay_amount, r.customer_pay_count)}</td>
             <td>${amountCell(r.dep_before_amount, r.dep_before_count)}</td>
             <td>${amountCell(r.cash_dep_amount, r.cash_dep_count)}</td>
-            <td>${amountCell(r.expenses_amount, r.expenses_count)}</td>
-            <td>${qtyWorthCell(r.transfer_qty, r.transfer_worth, r.transfer_count)}</td>
-            <td>${qtyWorthCell(r.receive_qty, r.receive_worth, r.receive_count)}</td>
+            <td>${formatNumber(r.total_received || 0)}</td>
+            <td>${lossBonusCell(r.loss_bonus)}</td>
         </tr>`;
     });
 
     const t = sumDays(rows);
     tr += `<tr class="smallFont font-weight-bold">
         <td colspan="3">${lang('Jumla', 'Total')}</td>
+        <td>${formatNumber(t.flow_qty)} L / ${formatNumber(t.flow_amount)}</td>
+        <td>${formatNumber(t.receive_qty)} L / ${formatNumber(t.receive_worth)}</td>
+        <td>${formatNumber(t.transfer_qty)} L / ${formatNumber(t.transfer_worth)}</td>
         <td>${formatNumber(t.sales_amount)}</td>
         <td>${formatNumber(t.credit_sales_amount)}</td>
+        <td>${formatNumber(t.expenses_amount)}</td>
         <td>${formatNumber(t.cash_payment_amount)}</td>
         <td>${formatNumber(t.mobile_amount)}</td>
-        <td>${formatNumber(t.total_received)}</td>
-        <td>${lossBonusCell(t.loss_bonus)}</td>
-        <td>${formatNumber(t.customer_pay_amount)}</td>
         <td>${formatNumber(t.dep_before_amount)}</td>
         <td>${formatNumber(t.cash_dep_amount)}</td>
-        <td>${formatNumber(t.expenses_amount)}</td>
-        <td>${formatNumber(t.transfer_qty)} L / ${formatNumber(t.transfer_worth)}</td>
-        <td>${formatNumber(t.receive_qty)} L / ${formatNumber(t.receive_worth)}</td>
+        <td>${formatNumber(t.total_received)}</td>
+        <td>${lossBonusCell(t.loss_bonus)}</td>
     </tr>`;
 
     $('#activityDetailsTitle').html(title + `<span class="bluePrint">${data.rname}</span>`);
@@ -531,10 +535,29 @@ const buildReceiveTable = rows => buildMiniTable({
     footer: [lang('Jumla', 'Total'), '', '', '', '', formatNumber(sumField(rows, 'qty')), formatNumber(sumField(rows, 'worth'))],
 });
 
+const expenseTypeLabel = r => {
+    if (r.exp_paye) {
+        const base = lang('Mshahara', 'Salary');
+        return r.salary_advance
+            ? `${base} (${lang('Malipo ya awali ya mshahara', 'Salary Advance')})`
+            : base;
+    }
+    return r.exp_name || '';
+};
+
 const buildExpenseTable = rows => buildMiniTable({
-    headers: ['#', lang('Session', 'Session'), lang('Aina', 'Type'), lang('Tarehe', 'Date'), lang('Mhusika', 'Attendant'), lang('Kiasi', 'Amount'), lang('Mafuta L', 'Fuel L')],
-    rows: (rows || []).map((r, i) => [i + 1, escapeDailyHtml(r.session_name || ''), escapeDailyHtml(r.exp_name || ''), fmtDt(r.tarehe), escapeDailyHtml(r.attendant || '—'), formatNumber(r.kiasi), formatNumber(r.fuel_qty)]),
-    footer: [lang('Jumla', 'Total'), '', '', '', '', formatNumber(sumField(rows, 'kiasi')), formatNumber(sumField(rows, 'fuel_qty'))],
+    headers: ['#', lang('Aina', 'Type'), lang('Tarehe', 'Date'), lang('Aliyekabidhiwa', 'Given To'), lang('Mhusika', 'Attendant'), lang('Aliyerekodi', 'Recorded By'), lang('Kiasi', 'Amount'), lang('Mafuta L', 'Fuel L')],
+    rows: (rows || []).map((r, i) => [
+        i + 1,
+        escapeDailyHtml(expenseTypeLabel(r)),
+        fmtDt(r.tarehe),
+        escapeDailyHtml(r.given_to || '—'),
+        escapeDailyHtml(r.attendant || '—'),
+        escapeDailyHtml(r.recorded_by || '—'),
+        formatNumber(r.kiasi),
+        formatNumber(r.fuel_qty),
+    ]),
+    footer: [lang('Jumla', 'Total'), '', '', '', '', '', formatNumber(sumField(rows, 'kiasi')), formatNumber(sumField(rows, 'fuel_qty'))],
 });
 
 const evalDash = '—';

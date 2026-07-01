@@ -3048,6 +3048,12 @@ def _empty_daily_sales_row(ses_date, st, stN):
         'stN': stN or '',
         'sales_count': 0,
         'sales_amount': 0.0,
+        'flow_sa_amount': 0.0,
+        'flow_pmp_amount': 0.0,
+        'pump_tot_req': 0.0,
+        'pump_tot_paid': 0.0,
+        'flow_qty': 0.0,
+        'flow_amount': 0.0,
         'credit_sales_count': 0,
         'credit_sales_amount': 0.0,
         'cash_payment_count': 0,
@@ -3074,8 +3080,9 @@ def _empty_daily_sales_row(ses_date, st, stN):
 
 
 def _finalize_daily_sales_bucket(row):
+    row['sales_amount'] = row['flow_sa_amount'] + row['flow_pmp_amount']
+    row['loss_bonus'] = row['pump_tot_req'] - row['pump_tot_paid']
     row['total_received'] = row['cash_payment_amount'] + row['mobile_amount']
-    row['loss_bonus'] = row['sales_amount'] - row['total_received']
     return row
 
 
@@ -3368,25 +3375,25 @@ def _build_daily_sales_days(kampuni, shell, useri, tFr_date, tTo_date, tFr, tTo)
     for row in session_rows:
         _merge_daily_sales_bucket(buckets, row['date'], row['st_id'], row['stN'], {})
 
-    sales_rows = saleList.objects.filter(
-        shift__shift__session__session__Interprise__company=kampuni,
-        shift__shift__session__date__gte=tFr_date,
-        shift__shift__session__date__lte=tTo_date,
-    ).annotate(
-        sesDate=F('shift__shift__session__date'),
-        st=F('shift__shift__session__session__Interprise'),
-        stN=F('shift__shift__session__session__Interprise__name'),
-        line_amount=F('qty_sold') * F('sa_price'),
-    )
+    eval_sessions = shiftSesion.objects.filter(
+        session__Interprise__company=kampuni,
+        date__gte=tFr_date,
+        date__lte=tTo_date,
+    ).select_related('session', 'session__Interprise')
     if not useri.admin and not useri.ceo:
-        sales_rows = sales_rows.filter(shift__shift__session__session__Interprise=shell.id)
-    for row in sales_rows.values('sesDate', 'st', 'stN').annotate(
-        cnt=Count('sale_id', distinct=True),
-        total=Sum('line_amount'),
-    ):
-        _merge_daily_sales_bucket(buckets, row['sesDate'], row['st'], row['stN'], {
-            'sales_count': row['cnt'],
-            'sales_amount': float(row['total'] or 0),
+        eval_sessions = eval_sessions.filter(session__Interprise=shell.id)
+    for ss in eval_sessions:
+        _, fuel_totals = _compute_session_fuel_flow(ss)
+        pump_totals = _compute_session_pump_payments(ss)
+        st_id = ss.session.Interprise_id if ss.session else 0
+        st_name = ss.session.Interprise.name if ss.session and ss.session.Interprise else ''
+        _merge_daily_sales_bucket(buckets, ss.date, st_id, st_name, {
+            'flow_qty': fuel_totals['flow_q'],
+            'flow_amount': fuel_totals['flow_a'],
+            'flow_sa_amount': fuel_totals['sa_a'],
+            'flow_pmp_amount': fuel_totals['pmp_a'],
+            'pump_tot_req': pump_totals['tot_req'],
+            'pump_tot_paid': pump_totals['tot_paid'],
         })
 
     credit_rows = _credit_debt_sale_list_qs(
@@ -4089,10 +4096,18 @@ def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, s
         fromShift__shift__session_id__in=session_ids,
     ).annotate(
         exp_name=F('matumizi__matumizi'),
-        session_name=F('fromShift__shift__session__session__name'),
+        exp_paye=F('matumizi__paye'),
         attendant_fname=F('fromShift__shift__by__user__first_name'),
         attendant_lname=F('fromShift__shift__by__user__last_name'),
-    ).values('id', 'exp_name', 'kiasi', 'fuel_qty', 'tarehe', 'session_name', 'attendant_fname', 'attendant_lname'))
+        staff_fname=F('staff__user__first_name'),
+        staff_lname=F('staff__user__last_name'),
+        record_fname=F('by__user__first_name'),
+        record_lname=F('by__user__last_name'),
+    ).values(
+        'id', 'exp_name', 'exp_paye', 'salary_advance', 'kiasi', 'fuel_qty', 'tarehe', 'kabidhiwa',
+        'attendant_fname', 'attendant_lname', 'staff_fname', 'staff_lname',
+        'record_fname', 'record_lname',
+    ))
 
     for row in credit_sales:
         row['qty_sold'] = _fval(row.get('qty_sold'))
@@ -4118,6 +4133,15 @@ def _build_day_activity_tables(session_ids, kampuni, day_start, day_end, st=0, s
                     row[k] = _fval(row.get(k))
             if 'attendant_fname' in row:
                 row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
+    for row in expenses:
+        given_to = (row.pop('kabidhiwa', '') or '').strip()
+        if not given_to:
+            given_to = _person_name(row.pop('staff_fname', ''), row.pop('staff_lname', ''))
+        else:
+            row.pop('staff_fname', None)
+            row.pop('staff_lname', None)
+        row['given_to'] = given_to
+        row['recorded_by'] = _person_name(row.pop('record_fname', ''), row.pop('record_lname', ''))
     for row in cash_before:
         if 'attendant_fname' in row:
             row['attendant'] = _person_name(row.pop('attendant_fname', ''), row.pop('attendant_lname', ''))
