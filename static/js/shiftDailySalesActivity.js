@@ -256,7 +256,7 @@ const buildMiniTable = ({ headers, rows, footer }) => {
     if (!rows || !rows.length) return '';
     const body = rows.map(cells => `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`).join('');
     const foot = footer ? `<tfoot><tr>${footer.map(c => `<td>${c}</td>`).join('')}</tr></tfoot>` : '';
-    return `<table class="daily-mini-table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody>${foot}</table>`;
+    return `<div class="table-responsive"><table class="daily-mini-table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody>${foot}</table></div>`;
 };
 
 const buildSection = (title, bodyHtml, cssClass = '') => {
@@ -342,7 +342,7 @@ const buildShiftSummaryBlock = summary => {
     if (Number(s.transfer_qty) > 0) body += row(lang('Mafuta yaliyosafirishwa', 'Transferred Fuel'), s.transfer_qty, s.transfer_amount);
     if (Number(s.expense_fuel_qty) > 0) body += row(lang('Mafuta Yaliyotumika', 'Fuel Usage'), s.expense_fuel_qty, s.expense_fuel_amount);
     if (Number(s.sale_qty) > 0 || Number(s.transfer_qty) > 0 || Number(s.expense_fuel_qty) > 0) {
-        body += row(lang('Mauzo ya Pampu', 'Pump Sales'), s.pump_sale_qty, s.pump_sale_amount, true);
+        body += row(lang('Mauzo ya Pampu(Cash)', 'Cash Pump Sales'), s.pump_sale_qty, s.pump_sale_amount, true);
     }
     if (Number(s.expense_cash) > 0) body += row(lang('Matumizi ya Pesa', 'Expenses by Cash'), '', s.expense_cash);
     if (Number(s.cash_before) > 0) body += row(lang('Cash Iliyowekwa Benki', 'Cash Deposit'), '', s.cash_before);
@@ -578,7 +578,7 @@ const buildStockEvaluationSection = stock => {
     };
     if (!tanks.length) {
         return buildSection(
-            lang('8. Mwenendo wa Stoku kwa Siku', '8. Day Stock Evaluation'),
+            lang('11. Mwenendo wa Stoku kwa Siku', '11. Day Stock Evaluation'),
             `<p class="daily-empty-note mb-0">${lang('Hakuna data ya stoku', 'No stock data')}</p>`,
             'daily-section-eval',
         );
@@ -616,7 +616,7 @@ const buildStockEvaluationSection = stock => {
           <tbody>${rows}</tbody>
         </table>
       </div>`;
-    return buildSection(lang('8. Mwenendo wa Stoku kwa Siku', '8. Day Stock Evaluation'), table, 'daily-section-eval');
+    return buildSection(lang('11. Mwenendo wa Stoku kwa Siku', '11. Day Stock Evaluation'), table, 'daily-section-eval');
 };
 
 const buildFuelFlowSummarySection = fuelFlow => {
@@ -652,9 +652,9 @@ const buildFuelFlowSummarySection = fuelFlow => {
               <th rowspan="2">${lang('Bei', 'Price')}${cur}</th>
               <th colspan="2">${lang('Yaliyotoka', 'Flow')}</th>
               <th colspan="2">${lang('Kusafirisha', 'Transfer')}</th>
-              <th colspan="2">${lang('Matumizi', 'Expenses')}</th>
+              <th colspan="2">${lang('Matumizi ya mafuta', 'Fuel Expenses')}</th>
               <th colspan="2">${lang('Mauzo/Maalum', 'Custom/Sales')}</th>
-              <th colspan="2">${lang('Mauzo/Pampu', 'Pump Sales')}</th>
+              <th colspan="2">${lang('Mauzo/Pampu (Cash)', 'Cash Pump Sales')}</th>
             </tr>
             <tr>
               <th>${lang('Kiasi', 'Qty')} (L)</th><th>${lang('Thamani', 'Amount')}</th>
@@ -697,8 +697,8 @@ const buildPumpPaymentsSummarySection = pay => {
           <tr><th>${lang('Jumla', 'Total')}</th><th>${lang('Kiasi', 'Amount')}${cur}</th></tr>
         </thead>
         <tbody>
-          <tr class="daily-summary-grey"><th>${lang('Mauzo ya pampu', 'Pump Sales')}</th><th>${formatNumber(p.tot_psa)}</th></tr>
-          <tr><td>${lang('Matumizi', 'Expenses')}</td><td>${formatNumber(p.tot_exp)}</td></tr>
+          <tr class="daily-summary-grey"><th>${lang('Mauzo ya pampu (Cash)', 'Cash Pump Sales')}</th><th>${formatNumber(p.tot_psa)}</th></tr>
+          <tr><td>${lang('Matumizi ya Cash', 'Cash Expenses')}</td><td>${formatNumber(p.tot_exp)}</td></tr>
           <tr><td>${lang('Pesa Iliyowekwa Benki', 'Cash Deposit')}</td><td>${formatNumber(p.tot_cab)}</td></tr>
           <tr class="daily-summary-grey"><th>${lang('Pesa Inayotakiwa', 'Net Required Amount')}</th><th>${formatNumber(p.tot_req)}</th></tr>
           <tr class="daily-summary-grey"><th>${lang('Pesa Ilolipwa', 'Net Paid')}</th><th>${formatNumber(p.tot_paid)}</th></tr>
@@ -715,9 +715,9 @@ const buildPumpPaymentsSummarySection = pay => {
 const buildEvaluationSections = evaluations => {
     const ev = evaluations || {};
     return [
-        buildStockEvaluationSection(ev.stock),
         buildFuelFlowSummarySection(ev.fuel_flow),
         buildPumpPaymentsSummarySection(ev.pump_payments),
+        buildStockEvaluationSection(ev.stock),
     ].join('');
 };
 

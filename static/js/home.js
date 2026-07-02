@@ -73,6 +73,24 @@
         }
     }
 
+    function buildStockMovementTable(fuelList, rows) {
+        if (!fuelList.length) {
+            return `<p class="stock-empty-note">${lang('Hakuna data ya stoku', 'No stock data available')}</p>`;
+        }
+        const fuelHeaders = fuelList.map(f => `<th class="text-capitalize">${f}</th>`).join('');
+        const body = rows.map(row => {
+            const cells = fuelList.map(f => {
+                const qty = Number(row.getQty(f) || 0);
+                return `<td class="stock-qty">${qty.toLocaleString()}<span class="stock-unit">L</span></td>`;
+            }).join('');
+            return `<tr class="${row.cls || ''}"><td class="stock-row-label">${row.label}</td>${cells}</tr>`;
+        }).join('');
+        return `<table class="stock-movement-table">
+            <thead><tr><th>${lang('Aina', 'Movement')}</th>${fuelHeaders}</tr></thead>
+            <tbody>${body}</tbody>
+        </table>`;
+    }
+
 
     const getRData = d =>{
     $('#loadMe').modal('show')
@@ -318,67 +336,47 @@ const dashBoard = d =>{
             return {fuel, exp}
         })
 
-        let opnFuel = '', recF = '', transF = '', saleF = '', wastF = '', closingF = '', expFl = '';
-        totalOpening.forEach(o=>{
-            opnFuel += `${Number(o.opening || 0).toLocaleString()} LTRS <span class="bluePrint text-capitalize">${o.fuel}</span> | `
-        })
-        totalReceived.forEach(r=>{
-            recF += `${Number(r.received || 0).toLocaleString()} LTRS <span class="bluePrint text-capitalize">${r.fuel}</span> | `
-        })
-        totalTransferred.forEach(t=>{
-            transF += `${Number(t.transferred || 0).toLocaleString()} LTRS <span class="bluePrint text-capitalize">${t.fuel}</span> | `
-        })
-        totalSales.forEach(s=>{
-            saleF += `${Number(s.sales || 0).toLocaleString()} LTRS <span class="bluePrint text-capitalize">${s.fuel}</span> | `
-        })
-        totalWastage.forEach(w=>{
-            wastF += `${Number(w.wast || 0).toLocaleString()} LTRS <span class="bluePrint text-capitalize">${w.fuel}</span> | `
-        })
+        const findQty = (list, fuel, field) => Number((list.find(x => x.fuel === fuel) || {})[field] || 0);
 
-        totalOpening.forEach(c=>{
-            closingF += `${Number(c.current || 0).toLocaleString()} LTRS <span class="bluePrint text-capitalize">${c.fuel}</span> | `
-        })
+        const stockRows = [
+            {
+                label: lang('Kufungua', 'Opening Stock'),
+                cls: '',
+                getQty: f => findQty(totalOpening, f, 'opening'),
+            },
+            {
+                label: lang('Kupokea', 'Received'),
+                cls: 'stock-in',
+                getQty: f => findQty(totalReceived, f, 'received'),
+            },
+            {
+                label: lang('Uhamishaji', 'Transfer'),
+                cls: 'stock-out',
+                getQty: f => findQty(totalTransferred, f, 'transferred'),
+            },
+            {
+                label: lang('Mauzo', 'Sales'),
+                cls: 'stock-out',
+                getQty: f => findQty(totalSales, f, 'sales'),
+            },
+            {
+                label: lang('Upotevu', 'Wastage'),
+                cls: 'stock-loss',
+                getQty: f => findQty(totalWastage, f, 'wast'),
+            },
+            {
+                label: lang('Matumizi ya Mafuta', 'Fuel Expenses'),
+                cls: 'stock-loss',
+                getQty: f => findQty(fuelExpenses, f, 'exp'),
+            },
+            {
+                label: lang('Stock Ilipo', 'Closing Stock'),
+                cls: 'stock-total',
+                getQty: f => findQty(totalOpening, f, 'current'),
+            },
+        ];
 
-        fuelExpenses.forEach(e=>{
-            expFl += `${Number(e.exp || 0).toLocaleString()} LTRS <span class="bluePrint text-capitalize">${e.fuel}</span> | `
-        })
-     
-        let stockHtml = `
-                        <div class="detail-item">
-                            <span>${lang('Kufungua', 'Opening Stock')}:</span>
-                            <span >${opnFuel} </span>  
-                        </div>
-                        <div class="detail-item">
-                            <span>${lang('Kupokea', 'Received')}:</span>
-                            <span >${recF} </span>  
-
-                        </div>
-                        <div class="detail-item">
-                            <span>${lang('Uhamishaji', 'Transfer')}:</span>
-                            <span >${transF} </span>  
-
-                        </div>
-                        <div class="detail-item">
-                            <span>${lang('Mauzo', 'Sales')}:</span>
-                            <span >${saleF} </span>  
-
-                        </div>
-                        <div class="detail-item">
-                            <span>${lang('Upotevu', 'Wastage')}:</span>
-                            <span style="font-weight: bold; color: var(--danger-color);">${wastF}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span>${lang('Matumizi ya Mafuta', 'Fuel Expenses')}:</span>
-                            <span style="font-weight: bold; color: var(--danger-color);">${expFl}</span>
-                        </div>
-
-                        <div class="detail-item" style="border-top: 2px solid var(--border-color);">
-                            <span style="font-weight: bold;">${lang('Stock Ilipo', 'Current Stock')}:</span>
-                            <span style="font-weight: bold;">${closingF}</span>
-                        </div>
-        `;
-
-        stockCardsDiv.innerHTML = stockHtml;
+        stockCardsDiv.innerHTML = buildStockMovementTable(StockF, stockRows);
 
 }
 

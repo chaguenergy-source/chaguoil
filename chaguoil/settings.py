@@ -66,7 +66,7 @@ GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
 
 # 1. KUPAKIA GS_CREDENTIALS KAMA OBJECT YA SERVICE ACCOUNT
-if not DEBUG:
+if  DEBUG:
         try:
             # Tumia GS_CREDENTIALS, kama inavyotarajiwa na django-storages
             GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GCS_CREDENTIALS_FILE)

@@ -1,252 +1,473 @@
-/* --- Dashboard Section Headers --- */
-.dashboard-section {
-  margin-bottom: 1.5rem;
-}
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #007bff;
-  margin-bottom: 0.7rem;
+/* ── Dashboard page shell ── */
+.dash-page {
+    --dash-radius: 14px;
+    --dash-shadow: 0 4px 24px rgba(15, 23, 42, 0.07);
+    --dash-shadow-hover: 0 12px 32px rgba(15, 23, 42, 0.12);
+    padding-bottom: 4rem;
 }
 
-/* Dashboard Date Buttons Styling */
-.dashboard-date {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+.dash-page .head-title {
+    margin-bottom: 0.5rem;
 }
+
+/* ── Date filter bar (simple, as before) ── */
+.dashboard-header {
+    margin-bottom: 1.25rem;
+}
+
+.dashboard-date {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+}
+
 .btn-date {
-  background: var(--whiteBg);
-  color: #333;
-  border: 1px solid #e0e0e0;
-  border-radius: 20px;
-  padding: 0.4rem 1.2rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-  outline: none;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-}
-.btn-date:hover, .btn-date.active {
-  background: #007bff;
-  color: #fff;
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0,123,255,0.08);
-}
-.btn-date:focus {
-  outline: 2px solid #007bff;
-}
-
-.btn-date.active_date {
-  background: #007bff;
-  color: #fff;
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0,123,255,0.08);
-}
-
-
-.dashboard-date {
-  color: #888;
-  font-size: 1rem;
-}
-
-#refresh-button{
-    background: #f5f6fa;
+    background: var(--whiteBg);
     color: #333;
     border: 1px solid #e0e0e0;
     border-radius: 20px;
     padding: 0.4rem 1.2rem;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, border-color 0.2s;
     outline: none;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-       :root {
-            /* --text-primary: #007BFF; */
-            --secondary-color: #28a745;
-            --background-color: #f8f9fa;
-            /* --card-bg: #ffffff; */
-            /* --dark: #343a40; */
-            /* --borderColor: #e9ecef; */
-            --danger-color: #dc3545;
-        }
+.btn-date:hover {
+    border-color: #007bff;
+    color: #007bff;
+}
 
-        /* body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: var(--background-color);
-            color: var(--dark);
-        } */
+.btn-date.active,
+.btn-date.active_date {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
 
-        h2 {
-            color: var(--text-primary);
-            margin-bottom: 20px;
-        }
+.btn-date:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
 
-  
+/* ── Grid ── */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.15rem;
+    max-width: 100%;
+    margin: 0 auto;
+}
 
-     /* .dashboard-grid {
-        display: grid;
-       
-        grid-template-columns: 1fr; 
-        gap: 1rem; 
-        
-        max-width: 1400px;
-        margin: 0 auto;
-    } */
+@media (min-width: 640px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 
-        .dashboard-grid {
-        display: grid;
-        /* Chagueni 1 column kwa simu */
-        grid-template-columns: 1fr; 
-        gap: 1rem; 
-        /* padding: 1rem; */
-        max-width: 100%;
-        margin: 0 auto;
+@media (min-width: 1100px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ── Cards ── */
+:root {
+    --secondary-color: #28a745;
+    --danger-color: #dc3545;
+}
+
+.dash-card {
+    background: var(--whiteBg);
+    border-radius: var(--dash-radius);
+    box-shadow: var(--dash-shadow);
+    border: 1px solid var(--borderColor);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+}
+
+.dash-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--dash-accent, var(--text-primary));
+    z-index: 1;
+}
+
+.dash-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--dash-shadow-hover);
+}
+
+.dash-card--shift   { --dash-accent: #0d6efd; }
+.dash-card--fuel    { --dash-accent: #fd7e14; }
+.dash-card--sales   { --dash-accent: #198754; }
+.dash-card--qty     { --dash-accent: #6f42c1; }
+.dash-card--expense { --dash-accent: #dc3545; }
+.dash-card--credit  { --dash-accent: #20c997; }
+.dash-card--stock   { --dash-accent: #087990; }
+
+.dash-card .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.15rem 0.75rem;
+    margin-bottom: 0;
+    border-bottom: none;
+    text-decoration: none;
+    color: inherit;
+}
+
+.dash-card .card-header:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.card-header-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.dash-card--shift .dash-icon-wrap   { background: rgba(13, 110, 253, 0.12); }
+.dash-card--fuel .dash-icon-wrap    { background: rgba(253, 126, 20, 0.12); }
+.dash-card--sales .dash-icon-wrap   { background: rgba(25, 135, 84, 0.12); }
+.dash-card--qty .dash-icon-wrap     { background: rgba(111, 66, 193, 0.12); }
+.dash-card--expense .dash-icon-wrap { background: rgba(220, 53, 69, 0.12); }
+.dash-card--credit .dash-icon-wrap  { background: rgba(32, 201, 151, 0.12); }
+.dash-card--stock .dash-icon-wrap   { background: rgba(8, 121, 144, 0.12); }
+
+.dash-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+    background: rgba(13, 110, 253, 0.12);
+    flex-shrink: 0;
+}
+
+.dash-card .icon-svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--dash-accent, var(--text-primary));
+    margin-right: 0;
+    flex-shrink: 0;
+}
+
+.dash-card .icon-svg--clock .clock-face {
+    fill: none;
+    stroke: var(--dash-accent, var(--text-primary));
+    stroke-width: 2;
+}
+
+.dash-card .icon-svg--clock .clock-hand {
+    stroke: var(--dash-accent, var(--text-primary));
+    stroke-width: 2;
+}
+
+.dash-card .icon-svg--clock .clock-center {
+    fill: var(--dash-accent, var(--text-primary));
+    stroke: none;
+}
+
+.dash-card .card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dark);
+    line-height: 1.3;
+}
+
+.dash-card-body {
+    padding: 0 1.15rem 1.15rem;
+    flex: 1;
+}
+
+.dash-card .metric-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--dash-accent, var(--text-primary));
+    margin: 0.15rem 0 0.75rem;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+.dash-card .metric-label {
+    font-size: 0.78rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0;
+    border-top: 1px dashed var(--borderColor);
+    font-size: 0.9rem;
+    color: var(--dark);
+    text-decoration: none;
+}
+
+a.detail-item:hover {
+    background: rgba(0, 123, 255, 0.06);
+    margin: 0 -0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--dark);
+}
+
+.detail-item:first-of-type {
+    border-top: none;
+}
+
+.detail-item--total {
+    border-top: 2px solid var(--borderColor) !important;
+    margin-top: 0.25rem;
+    padding-top: 0.75rem;
+    font-weight: 700;
+}
+
+.detail-item--total.danger {
+    color: var(--danger-color);
+}
+
+.fuel-trend {
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.85rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+}
+
+.trend-up {
+    color: var(--secondary-color);
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.trend-down {
+    color: var(--danger-color);
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.fuel-price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--dash-accent, var(--text-primary));
+}
+
+.sales-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+}
+
+.sales-metric {
+    padding: 0.85rem 0.75rem;
+    background: rgba(25, 135, 84, 0.06);
+    border: 1px solid rgba(25, 135, 84, 0.15);
+    border-radius: 10px;
+}
+
+.sales-metric div {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-top: 0.2rem;
+}
+
+/* Stock movement — full-width card below grid */
+#stockMovementCard {
+    margin-top: 1.25rem;
+}
+
+/* Stock movement table */
+.dash-stock-body {
+    padding-top: 0 !important;
+}
+
+#stockMovementCard .table-responsive {
+    margin: 0;
+    padding: 0;
+}
+
+.stock-movement-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
+    min-width: 520px;
+}
+
+.stock-movement-table thead th {
+    background: rgba(8, 121, 144, 0.1);
+    color: var(--dark);
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.65rem 0.75rem;
+    border-bottom: 2px solid rgba(8, 121, 144, 0.25);
+    white-space: nowrap;
+}
+
+.stock-movement-table thead th:first-child {
+    border-radius: 8px 0 0 0;
+    text-align: left;
+    min-width: 140px;
+}
+
+.stock-movement-table thead th:last-child {
+    border-radius: 0 8px 0 0;
+}
+
+.stock-movement-table tbody td {
+    padding: 0.7rem 0.75rem;
+    border-bottom: 1px solid var(--borderColor);
+    vertical-align: middle;
+}
+
+.stock-movement-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.stock-movement-table tbody tr:hover td {
+    background: rgba(8, 121, 144, 0.04);
+}
+
+.stock-movement-table .stock-row-label {
+    font-weight: 600;
+    color: var(--dark);
+    white-space: nowrap;
+}
+
+.stock-movement-table .stock-qty {
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.stock-movement-table .stock-unit {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #6c757d;
+    margin-left: 0.15rem;
+}
+
+.stock-movement-table tr.stock-in .stock-qty { color: #198754; }
+.stock-movement-table tr.stock-out .stock-qty { color: #fd7e14; }
+.stock-movement-table tr.stock-loss .stock-qty { color: var(--danger-color); }
+
+.stock-movement-table tr.stock-total td {
+    background: rgba(8, 121, 144, 0.08);
+    border-top: 2px solid rgba(8, 121, 144, 0.3);
+    font-size: 0.925rem;
+}
+
+.stock-movement-table tr.stock-total .stock-row-label,
+.stock-movement-table tr.stock-total .stock-qty {
+    font-weight: 800;
+    color: #087990;
+}
+
+.stock-empty-note {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 1.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Floating refresh */
+.dash-fab-wrap {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+}
+
+#refresh-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #0d6efd, #084298);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.45);
+    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 0;
+}
+
+#refresh-button:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 26px rgba(13, 110, 253, 0.55);
+}
+
+#refresh-button:active {
+    transform: scale(0.96);
+}
+
+#refresh-button svg {
+    stroke: #fff;
+}
+
+/* Legacy card class fallback (stock card etc.) */
+.dashboard-grid .card:not(.dash-card),
+.card.mt-3:not(.dash-card) {
+    background: var(--whiteBg);
+    border-radius: var(--dash-radius);
+    box-shadow: var(--dash-shadow);
+    border: 1px solid var(--borderColor);
+}
+
+@media (max-width: 576px) {
+    .btn-date {
+        flex: 1;
+        text-align: center;
+        min-width: calc(33% - 0.35rem);
+        padding: 0.4rem 0.5rem;
+        font-size: 0.8rem;
     }
 
-
-
-      
-
-        /* .card { */
-            /* background-color: var(--whiteBg);
-            border: 1px solid var(--borderColor);
-            border-radius: 0.75rem; /* Rounded corners */
-            /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;  */
-           
-        /* } */
-
-         /* Styling ya card (imeongezwa kwa aesthetic bora) */
-    .card {
-        background-color: var(--whiteBg);
-        border-radius: 0.75rem; /* Rounded corners */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e0e0e0;
-        transition: transform 0.2s, box-shadow 0.2s;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        padding: 1rem;
+    .dash-card .metric-value {
+        font-size: 1.65rem;
     }
 
-  
+    .sales-metrics {
+        grid-template-columns: 1fr;
+    }
 
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-        }
+    .stock-movement-table {
+        font-size: 0.8rem;
+    }
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--borderColor);
-        }
-
-        .card-header h3 {
-            margin: 0;
-            font-size: 1.25rem;
-            color: var(--dark);
-        }
-
-        .icon-svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-primary);
-            margin-right: 10px;
-        }
-
-        .metric-value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 5px;
-        }
-        
-        .metric-label {
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-        
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-top: 1px dashed #e9ecef;
-            font-size: 0.95rem;
-        }
-        
-        .detail-item:first-of-type {
-            border-top: none;
-        }
-
-                    /* Matumizi ya Simu za Kati (Medium devices - mfano tablets, > 640px) */
-            @media (min-width: 640px) {
-                .dashboard-grid {
-                    /* 2 columns kwa skrini za kati */
-                    grid-template-columns: repeat(2, 1fr); 
-                }
-            }
-
-            /* Matumizi ya Skrini Kubwa na Kubwa Zaidi (Large/Extra-Large devices - mfano desktops, > 1024px) */
-            @media (min-width: 1024px) {
-                .dashboard-grid {
-                    /* 3 columns kwa skrini kubwa */
-                    grid-template-columns: repeat(3, 1fr); 
-                }
-            }
-
-        .fuel-trend {
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-        }
-
-        .trend-up { color: var(--secondary-color); }
-        .trend-down { color: var(--danger-color); }
-
-        .fuel-price { font-size: 1.5rem; font-weight: bold; }
-
-        .sales-metrics {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        a {
-            color: var(--dark);
-        }
-        a:hover {
-            text-decoration: none;
-        }
-
-        .sales-metric {
-            padding: 20px 10px;
-            /* background-color: #f1f8ff; */
-            background-color: var(--light-blue);
-            border-radius: 5px;
-        }
-
-        .alert-item {
-            background-color: var(--danger-color);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 15px;
-            text-align: center;
-            font-weight: bold;
-        }
+    .stock-movement-table thead th,
+    .stock-movement-table tbody td {
+        padding: 0.55rem 0.5rem;
+    }
+}

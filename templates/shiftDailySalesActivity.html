@@ -14,6 +14,14 @@
     .daily-section { margin-bottom: 18px; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; }
     .daily-section-title { font-weight: 700; font-size: 13px; padding: 8px 12px; color: #fff; background: linear-gradient(90deg, #006ae4 0%, #0056b3 100%); }
     .daily-section-body { padding: 10px 12px; }
+    .daily-section-body > .table-responsive,
+    .daily-day-panel .table-responsive {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
     .daily-section-shifts .daily-section-title { background: linear-gradient(90deg, #0d6efd 0%, #084298 100%); }
     .daily-section-sales .daily-section-title { background: linear-gradient(90deg, #198754 0%, #146c43 100%); }
     .daily-section-payments .daily-section-title { background: linear-gradient(90deg, #6f42c1 0%, #59359a 100%); }

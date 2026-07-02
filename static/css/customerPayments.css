@@ -84,34 +84,58 @@
     transform: translateY(-2px);
 }
 
-#paymentsTable {
+#paymentSummary .table-responsive,
+#paymentDetails .table-responsive {
+    display: block;
     width: 100%;
-    border-collapse: collapse;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#paymentSummary .table-responsive > .table th,
+#paymentSummary .table-responsive > .table td {
+    white-space: nowrap;
+}
+
+#paymentsTable {
     margin-top: 25px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     border-radius: 8px;
-    overflow: hidden;
 }
 
-#paymentsTable th,
-#paymentsTable td {
+#paymentsTable > .table,
+#paymentsTable > table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+
+#paymentsTable > .table th,
+#paymentsTable > .table td,
+#paymentsTable > table th,
+#paymentsTable > table td {
     padding: 15px 12px;
     text-align: left;
     border-bottom: 1px solid #dee2e6;
+    white-space: nowrap;
 }
 
-#paymentsTable th {
+#paymentsTable > .table th,
+#paymentsTable > table th {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     font-weight: 600;
     color: #495057;
     font-size: 14px;
 }
 
-#paymentsTable tbody tr:nth-child(even) {
+#paymentsTable > .table tbody tr:nth-child(even),
+#paymentsTable > table tbody tr:nth-child(even) {
     background-color: #f8f9fa;
 }
 
-#paymentsTable tbody tr:hover {
+#paymentsTable > .table tbody tr:hover,
+#paymentsTable > table tbody tr:hover {
     background-color: #e3f2fd;
     transition: background-color 0.3s ease;
 }
@@ -136,8 +160,10 @@
         flex-direction: column;
         gap: 10px;
     }
-    #paymentsTable th,
-    #paymentsTable td {
+    #paymentsTable > .table th,
+    #paymentsTable > .table td,
+    #paymentsTable > table th,
+    #paymentsTable > table td {
         padding: 10px 8px;
         font-size: 12px;
     }
