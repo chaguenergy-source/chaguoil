@@ -294,7 +294,7 @@ const dashBoard = d =>{
 
                     <a href="${isAdmin?'/salepurchase/vendors' : '#'}" class="detail-item">
                         <span> ${lang('Wadai', 'Creditors')} :</span>
-                        <span class="smallerFont"> ${lang('Wasambazaji', 'Suppliers')} ${suppliersCount.length} </span> |
+                        <span class="smallerFont"> ${lang('Wasambazaji', 'Suppliers')} ${suppliersCount} </span> |
                         <span style="font-weight: bold; color: var(--danger-color);"><span class="text-primary weight200">${hela}.</span> ${creditorsTotal.toLocaleString()}</span>
                     </a>
 

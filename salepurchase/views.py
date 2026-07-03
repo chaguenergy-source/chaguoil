@@ -5782,74 +5782,110 @@ def savaAdjst(request):
 
             if useri.admin or manager:
                 Sup = UserExtend.objects.get(pk=op,tankSup=True)
-                if not simpleAdjst:
-                    adj = adjustments()
+                adj = None
+
+                def _new_adj_record(*, stock_reconcile=False, maelezo=''):
+                    record = adjustments()
                     entry = adjustments.objects.filter(Interprise=shell)
                     code = invoCode(entry)
-
-                    adj.code = TCode({'code':code,'shell':shell.id}) 
-
-                    adj.Invo_no = int(code)
-                    adj.tarehe = datetime.datetime.now(tz=timezone.utc)
-                    adj.operator =  Sup
-                    adj.by = cheo
-                    adj.Interprise = shell
-                    adj.maelezo = desc
+                    record.code = TCode({'code': code, 'shell': shell.id})
+                    record.Invo_no = int(code)
+                    record.tarehe = datetime.datetime.now(tz=timezone.utc)
+                    record.operator = Sup
+                    record.by = cheo
+                    record.Interprise = shell
+                    record.maelezo = maelezo
+                    record.stock_reconcile = stock_reconcile
                     if move:
-                        TankContainer = tankContainer.objects.get(pk=cont,compan=kampuni)
-                        adj.container = TankContainer
-                    else:
-                        
+                        TankContainer = tankContainer.objects.get(pk=cont, compan=kampuni)
+                        record.container = TankContainer
+                    elif not stock_reconcile:
                         Lses = shiftSesion.objects.filter(session__Interprise=shell).last()
-                        
                         if Lses.complete if Lses else False:
                             sesAdj = adjustments.objects.filter(session=Lses)
                             if not sesAdj.exists():
-                                adj.session = Lses
-                    
-                    adj.save()
+                                record.session = Lses
+                    record.save()
+                    return record
+
+                if simpleAdjst:
+                    reconcile_items = []
+                    for t in tanks:
+                        if t.get('stick') in (None, ''):
+                            continue
+                        tankObj = fuel_tanks.objects.get(pk=t['val'], Interprise__company=kampuni)
+                        stick = float(t['stick'])
+                        if float(tankObj.qty) != stick:
+                            reconcile_items.append((tankObj, stick))
+
+                    if not reconcile_items:
+                        return JsonResponse({
+                            'success': True,
+                            'swa': 'Hakuna mabadiliko ya stoku',
+                            'eng': 'No stock changes to reconcile',
+                            'id': None,
+                        })
+
+                    default_desc = (
+                        'Marekebisho ya msingi wa stoku — kuweka kiasi halisi kilichopo '
+                        '(stock reconciliation baseline)'
+                    )
+                    adj = _new_adj_record(
+                        stock_reconcile=True,
+                        maelezo=(desc or '').strip() or default_desc,
+                    )
+
+                    for tankObj, stick in reconcile_items:
+                        init = float(tankObj.qty)
+                        TAdj = tankAdjust()
+                        TAdj.adj = adj
+                        TAdj.tank = tankObj
+                        TAdj.read = init
+                        TAdj.stick = stick
+                        TAdj.fuel = tankObj.fuel
+                        TAdj.diff = float(stick - init)
+                        TAdj.cost = float(tankObj.cost)
+                        TAdj.price = float(tankObj.price)
+                        TAdj.save()
+                        tankObj.qty = stick
+                        tankObj.save()
+
+                    return JsonResponse({
+                        'success': True,
+                        'swa': 'Marekebisho ya msingi wa stoku yamehifadhiwa kikamilifu',
+                        'eng': 'Stock reconciliation baseline saved successfully',
+                        'id': adj.id,
+                    })
+
+                adj = _new_adj_record(maelezo=desc)
 
                 for t in tanks:
-                    
-                    tankAdj = fuel_tanks.objects.get(pk=t['val'],Interprise__company=kampuni)
+                    if t.get('stick') in (None, ''):
+                        continue
+                    tankAdj = fuel_tanks.objects.get(pk=t['val'], Interprise__company=kampuni)
                     stick = float(t['stick'])
-                    if not simpleAdjst:
-                        TAdj = tankAdjust()
-                        init = float(tankAdj.qty)
-                        
-                        TAdj.adj = adj
-                        TAdj.tank = tankAdj
-                        TAdj.read=init
-                        TAdj.stick = stick
-                        TAdj.fuel = tankAdj.fuel
-                        TAdj.diff = float(stick-init)
-                        TAdj.cost = float(tankAdj.cost)
-                        TAdj.price = float(tankAdj.price)
-                        TAdj.save()
-                    if simpleAdjst and float(tankAdj.qty) != stick:
+                    init = float(tankAdj.qty)
 
-                            tank_adjust = tankAdjust.objects.filter(tank=tankAdj).order_by('pk').last()
-
-                            lastAdj = float(tank_adjust.stick)
-                            tankqy =  float(tankAdj.qty)
-                            init = float(lastAdj - tankqy)
-                            
-                            tank_adjust.read = float(init-float(tank_adjust.diff))
-                            tank_adjust.stick = init
-                            tank_adjust.diff = float(stick - lastAdj)
-                            tank_adjust.save()
+                    TAdj = tankAdjust()
+                    TAdj.adj = adj
+                    TAdj.tank = tankAdj
+                    TAdj.read = init
+                    TAdj.stick = stick
+                    TAdj.fuel = tankAdj.fuel
+                    TAdj.diff = float(stick - init)
+                    TAdj.cost = float(tankAdj.cost)
+                    TAdj.price = float(tankAdj.price)
+                    TAdj.save()
 
                     tankAdj.qty = stick
                     tankAdj.save()
 
-                data = {
-                    'success':True,
-                    'swa':'Taarifa za marekebisho kwenye tanki yamehifadhiwa kikamilifu',
-                    'eng':'Tank Fuel adjustment saved successfully',
-                    'id': adj.id if not simpleAdjst else None
-                }
-
-                return JsonResponse(data)
+                return JsonResponse({
+                    'success': True,
+                    'swa': 'Taarifa za marekebisho kwenye tanki yamehifadhiwa kikamilifu',
+                    'eng': 'Tank Fuel adjustment saved successfully',
+                    'id': adj.id,
+                })
 
 
 

@@ -11,6 +11,13 @@ const evalInRange = (item, tFr, tTo) => {
 const rowToTankId = r => Number(r.To_id ?? r.to_id ?? r.tank ?? 0);
 const rowFromTankId = r => Number(r.trFr ?? r.From_id ?? 0);
 const rowSaleTankId = r => Number(r.tank_id ?? r.tank ?? 0);
+const adjIsWastage = r => !r.stock_reconcile;
+const adjIsReconcile = r => !!r.stock_reconcile;
+const reconcileColGroup = (bg) => (item) => `
+    <td style="${bg}">${Number(item.reconcileQty || 0).toLocaleString()}</td>
+    <td style="${bg}">${item.reconcileQty ? Number((item.reconcileCost / item.reconcileQty).toFixed(2)).toLocaleString() : '-'}</td>
+    <td style="${bg}">${Number(item.reconcileCost || 0).toLocaleString()}</td>
+`;
 
 const filters = () =>{
     const  st = Number($('#staxnF').val()),
@@ -104,7 +111,7 @@ const init = Number($('#generalSaleR tr').length==0)
                     payAmo=Number(sale?.reduce((a,b)=>a+Number(b.payed),0))||0,
                     purchAmo = Number(puch?.reduce((a,b)=>a+Number(Number(b.cost)*Number(b.qty)),0))||0,      
                     transfAmo = Number(trf?.reduce((a,b)=>a+Number(Number(b.cost)*Number(b.qty)),0))||0,      
-                    wastege = Number(adj?.reduce((a,b)=>a+Number(Number(b.diff)*Number(b.cost)),0))||0,   
+                    wastege = Number(adj?.filter(adjIsWastage).reduce((a,b)=>a+Number(Number(b.diff)*Number(b.cost)),0))||0,   
                     puWastage =  Number(puch?.filter(p=>p.closed).reduce((a,b)=>a+Number(Number(b.cost)*(Number(b.qty)-Number(b.rcvd))),0)) || 0,  
                     totWastge = st?Number(puWastage)+Number(wastege):wastege,
             
@@ -220,8 +227,8 @@ const ArryCreate = d =>{
                                 .filter(r => r.tank === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + Number(b.fuel_qty), 0);
 
-                             const wastageBefore = d.adj   
-                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
+                             const wastageBefore = d.adj
+                                .filter(r => r.tank === s.tank && adjIsWastage(r) && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + Number(b.diff), 0);
 
                             // Calculate opening stock at tFr
@@ -247,7 +254,7 @@ const ArryCreate = d =>{
                                 .filter(r => r.tank === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + (Number(b.fuel_qty) * Number(b.fuel_cost)), 0);
                             const wastageValue = d.adj
-                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
+                                .filter(r => r.tank === s.tank && adjIsWastage(r) && evalMoment(r).isAfter(openingDate) && evalMoment(r).isBefore(tFr))
                                 .reduce((a, b) => a + (Number(b.diff) * Number(b.cost)), 0);
 
                             openingValue = openingValue + recvdValue + wastageValue + trfInValue - trfOutValue - soldValue - usedValue;
@@ -278,7 +285,7 @@ const ArryCreate = d =>{
                                 .filter(r => r.tank === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + Number(b.fuel_qty), 0);
                             const wastageAfter = d.adj
-                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
+                                .filter(r => r.tank === s.tank && adjIsWastage(r) && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + Number(b.diff), 0);
                             // Calculate closing stock at tTo
                             closing = s.opening + recvdAfter + wastageAfter + trfInAfter - trfOutAfter - soldAfter - usedAfter;
@@ -303,7 +310,7 @@ const ArryCreate = d =>{
                                 .filter(r => r.tank === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + (Number(b.fuel_qty) * Number(b.fuel_cost)), 0);
                             const wastageValueAfter = d.adj
-                                .filter(r => r.tank === s.tank && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
+                                .filter(r => r.tank === s.tank && adjIsWastage(r) && evalMoment(r).isAfter(closingDate) && evalMoment(r).isSameOrBefore(tTo))
                                 .reduce((a, b) => a + (Number(b.diff) * Number(b.cost)), 0);
                             
                                 closingValue = closingValue + recvdValueAfter + wastageValueAfter + trfInValueAfter - trfOutValueAfter - soldValueAfter - usedValueAfter;
@@ -585,7 +592,7 @@ uniqueDates.reverse().forEach(dateKey => {
                 transfrO = trf.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
                 
                 trToO = trf.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
-                wastageO = adj.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
+                wastageO = adj.filter(r=> adjIsWastage(r) && evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
                 soldO = saL.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0) || 0,
                 usedO = expx.filter(r=> evalMoment(r).format(dtF)<dateKey ).reduce((a,b)=>a+Number(b.fuel_qty*b.fuel_cost),0) || 0,
                 theTrO = transfrO - trToO 
@@ -601,7 +608,9 @@ uniqueDates.reverse().forEach(dateKey => {
     // Transfers: sum of transfers (cost * qty)
     let transferred = trfF.reduce((a, b) => a + Number(b.cost) * Number(b.qty), 0);
     // Wastage: sum of wastage (diff * cost)
-    let wastage = adjF.reduce((a, b) => a + Number(b.diff) * Number(b.cost), 0);
+    let wastage = adjF.filter(adjIsWastage).reduce((a, b) => a + Number(b.diff) * Number(b.cost), 0);
+    // Stock reconciliation (baseline corrections — informational)
+    let reconcile = adjF.filter(adjIsReconcile).reduce((a, b) => a + Number(b.diff) * Number(b.cost), 0);
     // Sales: sum of sales (amount)
     let sales = saleF.reduce((a, b) => a + Number(b.amount), 0);
     // Income: sum of sales (payed)
@@ -630,6 +639,7 @@ uniqueDates.reverse().forEach(dateKey => {
             <td ${st?'hidden':''}>${Number(purchases ).toLocaleString()}</td>
             <td>${Number(received).toLocaleString()}</td>
             <td ${!st?'hidden':''} > ${Number(transferred).toLocaleString()}</td>
+            <td>${Number(reconcile).toLocaleString()}</td>
             <td>${Number(wastage).toLocaleString()}</td>
             <td>${Number(sales).toLocaleString()}</td>
             <td>${Number(income).toLocaleString()}</td>
@@ -653,6 +663,7 @@ let tableHtml = `
 
                 <th rowspan=2 >${lang('Kupokea','Received')} ${fedha}</th>
                 <th rowspan=2  ${!st?'hidden':''} >${lang('Uhamisho','Transferred')} ${fedha}</th>
+                <th rowspan=2 >${lang('Marekebisho ya Misingi','Stock Reconciliation')} ${fedha}</th>
                 <th rowspan=2 >${lang('Upotevu','Wastage')} ${fedha}</th>
                 <th rowspan=2 >${lang('Mauzo','Sales')} ${fedha}</th>
                 <th rowspan=2 >${lang('Mapato','Income')} ${fedha}</th>
@@ -709,6 +720,8 @@ const fuelAnalyze = () => {
                 receivedCost: 0,
                 transferredQty: 0,
                 transferredCost: 0,
+                reconcileQty: 0,
+                reconcileCost: 0,
                 wastageQty: 0,
                 wastageCost: 0,
                 salesQty: 0,
@@ -731,7 +744,7 @@ const fuelAnalyze = () => {
             const fuel = p.fuelName || p.fuel;
             if (!fuelMap[fuel]) fuelMap[fuel] = {
                 openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-                transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+                transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
                 usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
             };
             fuelMap[fuel].purchasesQty += Number(p.qty);
@@ -745,7 +758,7 @@ const fuelAnalyze = () => {
             const fuel = r.fuelName || r.fuel;
             if (!fuelMap[fuel]) fuelMap[fuel] = {
                 openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-                transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+                transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
                 usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
             };
             fuelMap[fuel].receivedQty += Number(r.qty);
@@ -755,7 +768,7 @@ const fuelAnalyze = () => {
             const fuel = t.fuelName || t.fuel;
             if (!fuelMap[fuel]) fuelMap[fuel] = {
                 openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-                transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+                transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
                 usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
             };
             fuelMap[fuel].transferredQty += Number(t.qty);
@@ -765,14 +778,28 @@ const fuelAnalyze = () => {
 
     // Wastage
     adj.forEach(a => {
+        if (!adjIsWastage(a)) return;
         const fuel = a.fuelName || a.fuel;
         if (!fuelMap[fuel]) fuelMap[fuel] = {
             openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-            transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
             usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
         };
         fuelMap[fuel].wastageQty += Number(a.diff);
         fuelMap[fuel].wastageCost += Number(a.diff) * Number(a.cost);
+    });
+
+    // Stock reconciliation (baseline corrections — shown separately from wastage)
+    adj.forEach(a => {
+        if (!adjIsReconcile(a)) return;
+        const fuel = a.fuelName || a.fuel;
+        if (!fuelMap[fuel]) fuelMap[fuel] = {
+            openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
+        };
+        fuelMap[fuel].reconcileQty += Number(a.diff);
+        fuelMap[fuel].reconcileCost += Number(a.diff) * Number(a.cost);
     });
 
     // Sales
@@ -780,7 +807,7 @@ const fuelAnalyze = () => {
         const fuel = s.fuelName || s.fuel;
         if (!fuelMap[fuel]) fuelMap[fuel] = {
             openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-            transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
             usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
         };
         fuelMap[fuel].salesQty += Number(s.qty_sold);
@@ -792,7 +819,7 @@ const fuelAnalyze = () => {
         const fuel = e.fuelName || e.fuel;
         if (!fuelMap[fuel]) fuelMap[fuel] = {
             openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-            transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
             usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
         };
         fuelMap[fuel].usageQty += Number(e.fuel_qty);
@@ -805,6 +832,7 @@ const fuelAnalyze = () => {
         purchases: 'background-color:rgba(40,167,69,0.08);',    // green-ish
         received: 'background-color:rgba(255,193,7,0.08);',     // yellow-ish
         transferred: 'background-color:rgba(23,162,184,0.08);', // cyan-ish
+        reconcile: 'background-color:rgba(13,110,253,0.10);',  // blue-ish
         wastage: 'background-color:rgba(220,53,69,0.08);',      // red-ish
         sales: 'background-color:rgba(108,117,125,0.08);',      // gray-ish
         usage: 'background-color:rgba(255,87,34,0.08);',        // orange-ish
@@ -839,6 +867,7 @@ const fuelAnalyze = () => {
                 <td style="${bgColors.transferred}">${f.transferredQty ? Number((f.transferredCost / f.transferredQty).toFixed(2)).toLocaleString() : '-'}</td>
                 <td style="${bgColors.transferred}">${Number(f.transferredCost).toLocaleString()}</td>
             `}
+            ${reconcileColGroup(bgColors.reconcile)(f)}
             <td style="${bgColors.wastage}">${Number(f.wastageQty).toLocaleString()}</td>
             <td style="${bgColors.wastage}">${f.wastageQty ? Number((f.wastageCost / f.wastageQty).toFixed(2)).toLocaleString() : '-'}</td>
             <td style="${bgColors.wastage}">${Number(f.wastageCost).toLocaleString()}</td>
@@ -858,7 +887,7 @@ const fuelAnalyze = () => {
     if (Object.keys(fuelMap).length > 0) {
         let total = {
             openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-            transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
             usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
         };
         Object.values(fuelMap).forEach(f => {
@@ -870,6 +899,8 @@ const fuelAnalyze = () => {
             total.receivedCost += f.receivedCost;
             total.transferredQty += f.transferredQty;
             total.transferredCost += f.transferredCost;
+            total.reconcileQty += f.reconcileQty || 0;
+            total.reconcileCost += f.reconcileCost || 0;
             total.wastageQty += f.wastageQty;
             total.wastageCost += f.wastageCost;
             total.salesQty += f.salesQty;
@@ -901,6 +932,7 @@ const fuelAnalyze = () => {
                     <td>${total.transferredQty ? Number((total.transferredCost / total.transferredQty).toFixed(2)).toLocaleString() : '-'}</td>
                     <td>${Number(total.transferredCost).toLocaleString()}</td>
                 `}
+                ${reconcileColGroup('')(total)}
                 <td>${Number(total.wastageQty).toLocaleString()}</td>
                 <td>${total.wastageQty ? Number((total.wastageCost / total.wastageQty).toFixed(2)).toLocaleString() : '-'}</td>
                 <td>${Number(total.wastageCost).toLocaleString()}</td>
@@ -930,6 +962,7 @@ const fuelAnalyze = () => {
                         <th colspan="3">${lang('Kupokelewa','Received')}</th>
                         <th colspan="3">${lang('Uhamisho','Transferred')}</th>
                     `}
+                    <th colspan="3">${lang('Marekebisho ya Misingi','Stock Reconciliation')}</th>
                     <th colspan="3">${lang('Upotevu','Wastage')}</th>
                     <th colspan="3">${lang('Mauzo','Sales')}</th>
                     <th colspan="3">${lang('Matumizi','Fuel Usage')}</th>
@@ -1012,6 +1045,8 @@ const tankAnalyze = () =>{
                 receivedCost: 0,
                 transferredQty: 0,
                 transferredCost: 0,
+                reconcileQty: 0,
+                reconcileCost: 0,
                 wastageQty: 0,
                 wastageCost: 0,
                 salesQty: 0,
@@ -1033,7 +1068,7 @@ const tankAnalyze = () =>{
         puch.forEach(p => {
             if (!p.tank) return;
             const key = p.tank;
-            if (!tankMap[key]) tankMap[key] = { tankName: p.TankName || '', fuelName: p.fuelName || p.fuel, stationName: p.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
+            if (!tankMap[key]) tankMap[key] = { tankName: p.TankName || '', fuelName: p.fuelName || p.fuel, stationName: p.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
             tankMap[key].purchasesQty += Number(p.qty);
             tankMap[key].purchasesCost += Number(p.cost) * Number(p.qty);
         });
@@ -1044,14 +1079,14 @@ const tankAnalyze = () =>{
         recv.forEach(r => {
             const key = rowToTankId(r);
             if (!key) return;
-            if (!tankMap[key]) tankMap[key] = { tankName: r.TankName || '', fuelName: r.fuelName || r.fuel, stationName: r.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
+            if (!tankMap[key]) tankMap[key] = { tankName: r.TankName || '', fuelName: r.fuelName || r.fuel, stationName: r.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
             tankMap[key].receivedQty += Number(r.qty);
             tankMap[key].receivedCost += Number(r.cost) * Number(r.qty);
         });
         trf.forEach(t => {
             const key = rowToTankId(t);
             if (!key) return;
-            if (!tankMap[key]) tankMap[key] = { tankName: t.TankName || '', fuelName: t.fuelName || t.fuel, stationName: t.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
+            if (!tankMap[key]) tankMap[key] = { tankName: t.TankName || '', fuelName: t.fuelName || t.fuel, stationName: t.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
             tankMap[key].transferredQty += Number(t.qty);
             tankMap[key].transferredCost += Number(t.cost) * Number(t.qty);
         });
@@ -1059,18 +1094,29 @@ const tankAnalyze = () =>{
 
     // Wastage
     adj.forEach(a => {
+        if (!adjIsWastage(a)) return;
         if (!a.tank) return;
         const key = a.tank;
-        if (!tankMap[key]) tankMap[key] = { tankName: a.TankName || '', fuelName: a.fuelName || a.fuel, stationName: a.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
+        if (!tankMap[key]) tankMap[key] = { tankName: a.TankName || '', fuelName: a.fuelName || a.fuel, stationName: a.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
         tankMap[key].wastageQty += Number(a.diff);
         tankMap[key].wastageCost += Number(a.diff) * Number(a.cost);
+    });
+
+    // Stock reconciliation
+    adj.forEach(a => {
+        if (!adjIsReconcile(a)) return;
+        if (!a.tank) return;
+        const key = a.tank;
+        if (!tankMap[key]) tankMap[key] = { tankName: a.TankName || '', fuelName: a.fuelName || a.fuel, stationName: a.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
+        tankMap[key].reconcileQty += Number(a.diff);
+        tankMap[key].reconcileCost += Number(a.diff) * Number(a.cost);
     });
 
     // Sales
     saL.forEach(s => {
         const key = rowSaleTankId(s);
         if (!key) return;
-        if (!tankMap[key]) tankMap[key] = { tankName: s.TankName || '', fuelName: s.fuelName || s.fuel, stationName: s.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
+        if (!tankMap[key]) tankMap[key] = { tankName: s.TankName || '', fuelName: s.fuelName || s.fuel, stationName: s.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
         tankMap[key].salesQty += Number(s.qty_sold);
         tankMap[key].salesCost += Number(s.qty_sold) * Number(s.cost_sold);
     });
@@ -1079,7 +1125,7 @@ const tankAnalyze = () =>{
     expx.filter(e => Number(e.fuel_qty) > 0).forEach(e => {
         if (!e.tank) return;
         const key = e.tank;
-        if (!tankMap[key]) tankMap[key] = { tankName: e.TankName || '', fuelName: e.fuelName || e.fuel, stationName: e.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
+        if (!tankMap[key]) tankMap[key] = { tankName: e.TankName || '', fuelName: e.fuelName || e.fuel, stationName: e.stationName || '', openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0, transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0, usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0 };
         tankMap[key].usageQty += Number(e.fuel_qty);
         tankMap[key].usageCost += Number(e.fuel_qty) * Number(e.fuel_cost);
     });
@@ -1089,6 +1135,7 @@ const tankAnalyze = () =>{
         purchases: 'background-color:rgba(40,167,69,0.08);',    // green-ish
         received: 'background-color:rgba(255,193,7,0.08);',     // yellow-ish
         transferred: 'background-color:rgba(23,162,184,0.08);', // cyan-ish
+        reconcile: 'background-color:rgba(13,110,253,0.10);',  // blue-ish
         wastage: 'background-color:rgba(220,53,69,0.08);',      // red-ish
         sales: 'background-color:rgba(108,117,125,0.08);',      // gray-ish
         usage: 'background-color:rgba(255,87,34,0.08);',        // orange-ish
@@ -1114,7 +1161,7 @@ const tankAnalyze = () =>{
             <td style="${bgColors.transferred}">${Number(t.transferredQty).toLocaleString()}</td>
             <td style="${bgColors.transferred}">${t.transferredQty ? Number((t.transferredCost / t.transferredQty).toFixed(2)).toLocaleString() : '-'}</td>
             <td style="${bgColors.transferred}">${Number(t.transferredCost).toLocaleString()} </td>
-            
+            ${reconcileColGroup(bgColors.reconcile)(t)}
             <td style="${bgColors.wastage}">${Number(t.wastageQty).toLocaleString()}</td>
             <td style="${bgColors.wastage}">${t.wastageQty ? Number((t.wastageCost / t.wastageQty).toFixed(2)).toLocaleString() : '-'}</td>
             <td style="${bgColors.wastage}">${Number(t.wastageCost).toLocaleString()} </td>
@@ -1134,7 +1181,7 @@ const tankAnalyze = () =>{
     if (Object.keys(tankMap).length > 0) {
         let total = {
             openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-            transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
             usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
         };
         Object.values(tankMap).forEach(t => {
@@ -1146,6 +1193,8 @@ const tankAnalyze = () =>{
             total.receivedCost += t.receivedCost;
             total.transferredQty += t.transferredQty;
             total.transferredCost += t.transferredCost;
+            total.reconcileQty += t.reconcileQty || 0;
+            total.reconcileCost += t.reconcileCost || 0;
             total.wastageQty += t.wastageQty;
             total.wastageCost += t.wastageCost;
             total.salesQty += t.salesQty;
@@ -1170,7 +1219,7 @@ const tankAnalyze = () =>{
                 <td>${Number(total.transferredQty).toLocaleString()}</td>
                 <td>${total.transferredQty ? Number((total.transferredCost / total.transferredQty).toFixed(2)).toLocaleString() : '-'}</td>
                 <td>${Number(total.transferredCost).toLocaleString()} </td>
-             
+                ${reconcileColGroup('')(total)}
                 <td>${Number(total.wastageQty).toLocaleString()}</td>
                 <td>${total.wastageQty ? Number((total.wastageCost / total.wastageQty).toFixed(2)).toLocaleString() : '-'}</td>
                 <td>${Number(total.wastageCost).toLocaleString()} </td>
@@ -1199,6 +1248,7 @@ const tankAnalyze = () =>{
                     <th colspan="3">${lang('Kupokelewa','Received')}</th>
                     <th colspan="3">${lang('Uhamisho','Transferred')}</th>
                    
+                    <th colspan="3">${lang('Marekebisho ya Misingi','Stock Reconciliation')}</th>
                     <th colspan="3">${lang('Upotevu','Wastage')}</th>
                     <th colspan="3">${lang('Mauzo','Sales')}</th>
                     <th colspan="3">${lang('Matumizi','Fuel Usage')}</th>
@@ -1257,6 +1307,7 @@ stock.forEach(s => {
             opening: 0,
             received: 0,
             transferred: 0,
+            reconcile: 0,
             wastage: 0,
             sales: 0,
             income: 0,
@@ -1274,28 +1325,37 @@ stock.forEach(s => {
 // Received
 recv.forEach(r => {
     const key = r.st || r.stationId;
-    if (!stationMap[key]) stationMap[key] = { stationName: r.stationName || '-', opening: 0, received: 0, transferred: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
+    if (!stationMap[key]) stationMap[key] = { stationName: r.stationName || '-', opening: 0, received: 0, transferred: 0, reconcile: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
     stationMap[key].received += Number(r.cost) * Number(r.qty);
 });
 
 // Transferred
 trf.forEach(t => {
     const key = t.st || t.stationId;
-    if (!stationMap[key]) stationMap[key] = { stationName: t.stationName || '-', opening: 0, received: 0, transferred: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
+    if (!stationMap[key]) stationMap[key] = { stationName: t.stationName || '-', opening: 0, received: 0, transferred: 0, reconcile: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
     stationMap[key].transferred += Number(t.cost) * Number(t.qty);
 });
 
 // Wastage
 adj.forEach(a => {
+    if (!adjIsWastage(a)) return;
     const key = a.st || a.stationId;
-    if (!stationMap[key]) stationMap[key] = { stationName: a.stationName || '-', opening: 0, received: 0, transferred: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
+    if (!stationMap[key]) stationMap[key] = { stationName: a.stationName || '-', opening: 0, received: 0, transferred: 0, reconcile: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
     stationMap[key].wastage += Number(a.diff) * Number(a.cost);
+});
+
+// Stock reconciliation
+adj.forEach(a => {
+    if (!adjIsReconcile(a)) return;
+    const key = a.st || a.stationId;
+    if (!stationMap[key]) stationMap[key] = { stationName: a.stationName || '-', opening: 0, received: 0, transferred: 0, reconcile: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
+    stationMap[key].reconcile += Number(a.diff) * Number(a.cost);
 });
 
 // Sales and Income
 sale.forEach(s => {
     const key = s.st || s.stationId;
-    if (!stationMap[key]) stationMap[key] = { stationName: s.stationName || '-', opening: 0, received: 0, transferred: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
+    if (!stationMap[key]) stationMap[key] = { stationName: s.stationName || '-', opening: 0, received: 0, transferred: 0, reconcile: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
     stationMap[key].sales += Number(s.amount);
     stationMap[key].income += Number(s.payed);
 });
@@ -1303,7 +1363,7 @@ sale.forEach(s => {
 // Expenses
 expx.forEach(e => {
     const key = e.st || e.stationId;
-    if (!stationMap[key]) stationMap[key] = { stationName: e.stationName || '-', opening: 0, received: 0, transferred: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
+    if (!stationMap[key]) stationMap[key] = { stationName: e.stationName || '-', opening: 0, received: 0, transferred: 0, reconcile: 0, wastage: 0, sales: 0, income: 0, expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0 };
     if (Number(e.fuel_qty) > 0) {
         stationMap[key].expFuel += Number(e.fuel_qty) * Number(e.fuel_cost);
     } else {
@@ -1336,6 +1396,7 @@ Object.keys(stationMap).forEach(key => {
             <td>${Number(s.opening).toLocaleString()}</td>
             <td>${Number(s.received).toLocaleString()}</td>
             <td>${Number(s.transferred).toLocaleString()}</td>
+            <td>${Number(s.reconcile).toLocaleString()}</td>
             <td>${Number(s.wastage).toLocaleString()}</td>
             <td>${Number(s.sales).toLocaleString()}</td>
             <td>${Number(s.income).toLocaleString()}</td>
@@ -1351,13 +1412,14 @@ Object.keys(stationMap).forEach(key => {
 // Totals row
 if (Object.keys(stationMap).length > 0) {
     let total = {
-        opening: 0, received: 0, transferred: 0, wastage: 0, sales: 0, income: 0,
+        opening: 0, received: 0, transferred: 0, reconcile: 0, wastage: 0, sales: 0, income: 0,
         expFuel: 0, expOther: 0, expTotal: 0, profit: 0, closing: 0
     };
     Object.values(stationMap).forEach(s => {
         total.opening += s.opening;
         total.received += s.received;
         total.transferred += s.transferred;
+        total.reconcile += s.reconcile;
         total.wastage += s.wastage;
         total.sales += s.sales;
         total.income += s.income;
@@ -1373,6 +1435,7 @@ if (Object.keys(stationMap).length > 0) {
             <td>${Number(total.opening).toLocaleString()}</td>
             <td>${Number(total.received).toLocaleString()}</td>
             <td>${Number(total.transferred).toLocaleString()}</td>
+            <td>${Number(total.reconcile).toLocaleString()}</td>
             <td>${Number(total.wastage).toLocaleString()}</td>
             <td>${Number(total.sales).toLocaleString()}</td>
             <td>${Number(total.income).toLocaleString()}</td>
@@ -1393,6 +1456,7 @@ let tableHtml = `
                 <th>${lang('Stock ya Mwanzo','Opening Stock')}</th>
                 <th>${lang('Kupokelewa','Received')}</th>
                 <th>${lang('Uhamisho','Transferred')}</th>
+                <th>${lang('Marekebisho ya Misingi','Stock Reconciliation')}</th>
                 <th>${lang('Upotevu','Wastage')}</th>
                 <th>${lang('Mauzo','Sales')}</th>
                 <th>${lang('Mapato','Income')}</th>
@@ -1492,7 +1556,7 @@ const MoreDetailsFuel = dt => {
                     transfrO = trf.filter(r=> rowFromTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
 
                     trToO = trf.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
-                    wastageO = adj.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
+                    wastageO = adj.filter(r=> r.tank===s.tank && adjIsWastage(r) && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
                     soldO = saL.filter(r=> rowSaleTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0) || 0,
                     usedO = expx.filter(r=>r.tank===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.fuel_qty*b.fuel_cost),0) || 0,
                     theTrO = transfrO - trToO
@@ -1504,7 +1568,7 @@ const MoreDetailsFuel = dt => {
              const recvdQty = recv.filter(r=> rowToTankId(r) === s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
                    transfrQty = trf.filter(r=> rowFromTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
                    trToQty = trf.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
-                     wastageQty = adj.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.diff),0) || 0,
+                     wastageQty = adj.filter(r=> r.tank===s.tank && adjIsWastage(r) && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.diff),0) || 0,
                     soldQty = saL.filter(r=> rowSaleTankId(r)===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.qty_sold),0) || 0,
                     usedQty = expx.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)<dte ).reduce((a,b)=>a+Number(b.fuel_qty),0) || 0,
                     theTrQty = transfrQty - trToQty
@@ -1517,7 +1581,7 @@ const MoreDetailsFuel = dt => {
                     const   recvd = recv.filter(r=>rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty)*b.cost,0) || 0,
                             transfr = trf.filter(r=> rowFromTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
                             trTo = trf.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty*b.cost),0) || 0,
-                            wastage = adj.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
+                            wastage = adj.filter(r=> r.tank===s.tank && adjIsWastage(r) && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.diff)*Number(b.cost),0) || 0,
                             sold = saL.filter(r=> rowSaleTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0) || 0,
                             used = expx.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.fuel_qty*b.fuel_cost),0) || 0,
                             theTr = transfr - trTo
@@ -1528,7 +1592,7 @@ const MoreDetailsFuel = dt => {
                     const recvdQtyC = recv.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
                           transfrQtyC = trf.filter(r=> rowFromTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
                           trToQtyC = trf.filter(r=> rowToTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty),0) || 0,
-                          wastageQtyC = adj.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.diff),0) || 0,
+                          wastageQtyC = adj.filter(r=> r.tank===s.tank && adjIsWastage(r) && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.diff),0) || 0,
                           soldQtyC = saL.filter(r=> rowSaleTankId(r)===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.qty_sold),0) || 0,
                           usedQtyC = expx.filter(r=> r.tank===s.tank && evalMoment(r).format(dtFormat)===dte ).reduce((a,b)=>a+Number(b.fuel_qty),0) || 0,
                           theTrQtyC = transfrQtyC - trToQtyC
@@ -1572,6 +1636,8 @@ const MoreDetailsFuel = dt => {
                 receivedCost: 0,
                 transferredQty: 0,
                 transferredCost: 0,
+                reconcileQty: 0,
+                reconcileCost: 0,
                 wastageQty: 0,
                 wastageCost: 0,
                 salesQty: 0,
@@ -1594,7 +1660,7 @@ const MoreDetailsFuel = dt => {
             const fuel = p.fuelName || p.fuel;
             if (!fuelMap[fuel]) fuelMap[fuel] = {
                 openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-                transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+                transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
                 usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
             };
             fuelMap[fuel].purchasesQty += Number(p.qty);
@@ -1608,7 +1674,7 @@ const MoreDetailsFuel = dt => {
             const fuel = r.fuelName || r.fuel;
             if (!fuelMap[fuel]) fuelMap[fuel] = {
                 openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-                transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+                transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
                 usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
             };
             fuelMap[fuel].receivedQty += Number(r.qty);
@@ -1618,7 +1684,7 @@ const MoreDetailsFuel = dt => {
             const fuel = t.fuelName || t.fuel;
             if (!fuelMap[fuel]) fuelMap[fuel] = {
                 openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-                transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+                transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
                 usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
             };
             fuelMap[fuel].transferredQty += Number(t.qty);
@@ -1628,14 +1694,28 @@ const MoreDetailsFuel = dt => {
 
     // Wastage
     adj.forEach(a => {
+        if (!adjIsWastage(a)) return;
         const fuel = a.fuelName || a.fuel;
         if (!fuelMap[fuel]) fuelMap[fuel] = {
             openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-            transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
             usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
         };
         fuelMap[fuel].wastageQty += Number(a.diff);
         fuelMap[fuel].wastageCost += Number(a.diff) * Number(a.cost);
+    });
+
+    // Stock reconciliation (baseline corrections — shown separately from wastage)
+    adj.forEach(a => {
+        if (!adjIsReconcile(a)) return;
+        const fuel = a.fuelName || a.fuel;
+        if (!fuelMap[fuel]) fuelMap[fuel] = {
+            openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
+        };
+        fuelMap[fuel].reconcileQty += Number(a.diff);
+        fuelMap[fuel].reconcileCost += Number(a.diff) * Number(a.cost);
     });
 
     // Sales
@@ -1643,7 +1723,7 @@ const MoreDetailsFuel = dt => {
         const fuel = s.fuelName || s.fuel;
         if (!fuelMap[fuel]) fuelMap[fuel] = {
             openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-            transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
             usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
         };
         fuelMap[fuel].salesQty += Number(s.qty_sold);
@@ -1655,7 +1735,7 @@ const MoreDetailsFuel = dt => {
         const fuel = e.fuelName || e.fuel;
         if (!fuelMap[fuel]) fuelMap[fuel] = {
             openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-            transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
             usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
         };
         fuelMap[fuel].usageQty += Number(e.fuel_qty);
@@ -1668,6 +1748,7 @@ const MoreDetailsFuel = dt => {
         purchases: 'background-color:rgba(40,167,69,0.08);',    // green-ish
         received: 'background-color:rgba(255,193,7,0.08);',     // yellow-ish
         transferred: 'background-color:rgba(23,162,184,0.08);', // cyan-ish
+        reconcile: 'background-color:rgba(13,110,253,0.10);',  // blue-ish
         wastage: 'background-color:rgba(220,53,69,0.08);',      // red-ish
         sales: 'background-color:rgba(108,117,125,0.08);',      // gray-ish
         usage: 'background-color:rgba(255,87,34,0.08);',        // orange-ish
@@ -1697,7 +1778,7 @@ const MoreDetailsFuel = dt => {
                 <td style="${bgColors.transferred}">${Number(f.transferredCost).toLocaleString()}</td>
             ` : `  `}
 
-            
+            ${reconcileColGroup(bgColors.reconcile)(f)}
             <td style="${bgColors.wastage}">${Number(f.wastageQty).toLocaleString()}</td>
             <td style="${bgColors.wastage}">${f.wastageQty ? Number((f.wastageCost / f.wastageQty).toFixed(2)).toLocaleString() : '-'}</td>
             <td style="${bgColors.wastage}">${Number(f.wastageCost).toLocaleString()}</td>
@@ -1717,7 +1798,7 @@ const MoreDetailsFuel = dt => {
     if (Object.keys(fuelMap).length > 0) {
         let total = {
             openingQty: 0, openingCost: 0, purchasesQty: 0, purchasesCost: 0, receivedQty: 0, receivedCost: 0,
-            transferredQty: 0, transferredCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
+            transferredQty: 0, transferredCost: 0, reconcileQty: 0, reconcileCost: 0, wastageQty: 0, wastageCost: 0, salesQty: 0, salesCost: 0,
             usageQty: 0, usageCost: 0, closingQty: 0, closingCost: 0
         };
         Object.values(fuelMap).forEach(f => {
@@ -1729,6 +1810,8 @@ const MoreDetailsFuel = dt => {
             total.receivedCost += f.receivedCost;
             total.transferredQty += f.transferredQty;
             total.transferredCost += f.transferredCost;
+            total.reconcileQty += f.reconcileQty || 0;
+            total.reconcileCost += f.reconcileCost || 0;
             total.wastageQty += f.wastageQty;
             total.wastageCost += f.wastageCost;
             total.salesQty += f.salesQty;
@@ -1758,6 +1841,7 @@ const MoreDetailsFuel = dt => {
                     <td>${Number(total.transferredCost).toLocaleString()}</td>
                 ` : ` `}
 
+                ${reconcileColGroup('')(total)}
                 <td>${Number(total.wastageQty).toLocaleString()}</td>
                 <td>${total.wastageQty ? Number((total.wastageCost / total.wastageQty).toFixed(2)).toLocaleString() : '-'}</td>
                 <td>${Number(total.wastageCost).toLocaleString()}</td>
@@ -1787,6 +1871,7 @@ const MoreDetailsFuel = dt => {
                         <th colspan="3">${lang('Uhamisho','Transferred')}</th>
                     ` : `  `}
                    
+                    <th colspan="3">${lang('Marekebisho ya Misingi','Stock Reconciliation')}</th>
                     <th colspan="3">${lang('Upotevu','Wastage')}</th>
                     <th colspan="3">${lang('Mauzo','Sales')}</th>
                     <th colspan="3">${lang('Matumizi','Fuel Usage')}</th>

@@ -66,7 +66,7 @@ GCS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs_service_account.json')
 
 
 # 1. KUPAKIA GS_CREDENTIALS KAMA OBJECT YA SERVICE ACCOUNT
-if  DEBUG:
+if not DEBUG:
         try:
             # Tumia GS_CREDENTIALS, kama inavyotarajiwa na django-storages
             GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GCS_CREDENTIALS_FILE)
@@ -89,21 +89,21 @@ if  DEBUG:
         # 3. KUBAINISHA NJIA ZA STORAGE MOJA KWA MOJA KWA KUTUMIA BASE CLASS
         # Hii huepuka matatizo yote ya ImportError
         DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-        STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage' 
+        # STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage' 
 
 
         # KUWEKA LOCATIONS BAADA YA KUFAFANUA CLASS
         # Hizi ndizo zinazobainisha kuwa faili za media zitawekwa kwenye saraka ya 'media'
         # na static kwenye saraka ya 'static'
         GS_MEDIA_LOCATION = 'media'
-        GS_STATIC_LOCATION = 'static'
+        # GS_STATIC_LOCATION = 'static'
 
         # Media files (uploads)
         MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_MEDIA_LOCATION}/'
 
         # Static files (CSS, JavaScript, Images)
-        STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
-        STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
+        # STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
+        # STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Bado inahitajika kwa collectstatic
 
         print(">>> FINAL CHECK: DEFAULT_FILE_STORAGE set to GCS.")
         # =======================================================
@@ -122,9 +122,9 @@ else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-    STATIC_URL = '/static/'
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Only used for collectstatic
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Only used for collectstatic
 
 
 INSTALLED_APPS = [

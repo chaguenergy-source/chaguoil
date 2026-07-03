@@ -70,7 +70,7 @@
                 {% if useri.langSet == 0 %}Kupima {% else %}Adjustment{% endif %}#
              </div>
              <div class="col-9 text-primary ">
-                ADJ-{{trf.code}}
+                ADJ-{{trf.code}}{% if trf.stock_reconcile %} ({% if useri.langSet == 0 %}Misingi wa Stoku{% else %}Stock Reconciliation{% endif %}){% endif %}
              </div>
 
              {% if trf.session %}

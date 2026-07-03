@@ -425,6 +425,7 @@ class adjustments(models.Model):
     operator = models.ForeignKey(UserExtend,on_delete=models.SET_NULL,null=True,blank=True)
     maelezo = models.TextField(blank=True)
     receive = models.ForeignKey(ReceveFuel,on_delete=models.SET_NULL,null=True,blank=True)
+    stock_reconcile = models.BooleanField(default=False)
 
 class tankAdjust(models.Model):   
     adj =  models.ForeignKey(adjustments,on_delete=models.SET_NULL,null=True,blank=True)

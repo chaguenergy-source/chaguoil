@@ -100,9 +100,16 @@
                       <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="generalAdjCheck">
                         <label class="custom-control-label latoFont smallFont brown  cursor-pointer" style="cursor: pointer !important;" for="generalAdjCheck">
-                          {% if useri.langSet == 0 %}Marekebisho ya kawaida kwenye tank tu (bila kuathiri riporti na mwenendo){% else %}Just Simple tanks adjustment without affecting the report{% endif %}
+                          {% if useri.langSet == 0 %}Marekebisho ya msingi wa stoku (kuweka kiasi halisi kilichopo){% else %}Stock reconciliation (set actual physical baseline){% endif %}
                         </label>
-                    </div>  
+                    </div>
+                    <p class="smallFont brown mb-0 mt-1 pl-4">
+                      {% if useri.langSet == 0 %}
+                        Tumia hii wakati stoku ya mfumo ni hasi au haifanani na uhalisi. Itaunda rekodi ya marekebisho inayoanzisha msingi wa stoku bila kuhitaji receive bandia.
+                      {% else %}
+                        Use when system stock is negative or does not match reality. Creates a reconciliation record that establishes the stock baseline without a fake receive.
+                      {% endif %}
+                    </p>
                   </div>
 
 
@@ -300,11 +307,10 @@
                                 if(resp.success){
                                       hideLoading()
                                     toastr.success(msg, lang('Imefanikiwa','Success '), {timeOut: 2000});
-                                    if(simpleAdjst)
-                                        location.reload()
-                                    else{
+                                    if(resp.id)
                                         location.replace(`/salepurchase/adjView?i=${resp.id}`)
-                                    }
+                                    else
+                                        location.reload()
                                 }else{
 
                                     

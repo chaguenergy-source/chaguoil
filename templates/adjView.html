@@ -194,6 +194,11 @@
                          </div>
                          <div class="col-9 text-primary ">
                             ADJ-{{trf.code}}
+                            {% if trf.stock_reconcile %}
+                            <span class="badge badge-info ml-1">
+                              {% if useri.langSet == 0 %}Marekebisho ya Misingi wa Stoku{% else %}Stock Reconciliation{% endif %}
+                            </span>
+                            {% endif %}
                          </div>
 
                          {% if trf.session %}

@@ -259,6 +259,7 @@ def getEvaluation(request):
         date=F('adj__tarehe'),
         fuelName=F('fuel__name'),
         fuelId=F('fuel'),
+        stock_reconcile=F('adj__stock_reconcile'),
       )
      
       def _as_date(val):
@@ -653,7 +654,8 @@ def homePageData(request):
         wastage = tankAdjust.objects.filter(
           adj__tarehe__gte=tFr,
           adj__tarehe__lte=tTo,
-          adj__by__Interprise__company=kampuni
+          adj__by__Interprise__company=kampuni,
+          adj__stock_reconcile=False,
         ).annotate(fuelName=F('fuel__name'))
 
         tanks = fuel_tanks.objects.filter(Interprise__company=kampuni).annotate(fuelName=F('fuel__name'))
