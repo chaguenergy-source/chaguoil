@@ -92,19 +92,17 @@
     }
 
 
-    const getRData = d =>{
-    $('#loadMe').modal('show')
+    const getRData = (d, showModal = false) =>{
+    if (showModal) $('#loadMe').modal('show')
     const {tFr,tTo} = d,
           url = '/analytics/homePageData' ,
-          tdy = Number(moment(tTo).format('DD')),
-          tmFr = tdy>=7?tFr:moment(moment().subtract(7,'days')).format(),
-          data = {data:{tFr:tmFr,tTo},url},
+          data = {data:{tFr,tTo},url},
           
           
           sendIt = POSTREQUEST(data)
          
           sendIt.then(resp=>{
-              $('#loadMe').modal('hide')
+              if (showModal) $('#loadMe').modal('hide')
               hideLoading()
             
               if(!resp.success){
@@ -327,7 +325,7 @@ const dashBoard = d =>{
             return {fuel, sales}
         })
         const totalWastage = StockF.map(fuel=>{
-            wast = wastage.filter(s=>s.fuelName===fuel).reduce((acc, curr) => acc + Number(curr.qty), 0)
+            wast = wastage.filter(s=>s.fuelName===fuel).reduce((acc, curr) => acc + Number(curr.qty || curr.diff || 0), 0)
             return {fuel, wast}
         })
 
@@ -381,17 +379,17 @@ const dashBoard = d =>{
 }
 
     $(document).ready(function() {
+        updateShiftInfo();
         getRData(getDurationRange());
-           
     });
 
     $('.btn-date').click(function() {
         $('.btn-date').removeClass('active_date');
         $(this).addClass('active_date');
-        getRData(getDurationRange());
+        getRData(getDurationRange(), true);
     });
 
-    // Refresh  data button
+    // Refresh data button
     document.getElementById('refresh-button').addEventListener('click', function() {
-        getRData(getDurationRange());
+        getRData(getDurationRange(), true);
     });

@@ -31,7 +31,7 @@ import pytz
 import datetime
 import re
 import traceback
-from django.db.models import Sum
+from django.db.models import Sum, Max
 import random 
 import os
 
@@ -591,8 +591,106 @@ def getExpenses(request):
       traceback.print_exc() 
       return JsonResponse(data)
   else:
-    data = {'success': False}
-    return JsonResponse(data)
+      data = {'success': False}
+      return JsonResponse(data)
+
+def _sum_by_tank(qs, group_field, sum_field='qty'):
+  rows = qs.values(group_field).annotate(total=Sum(sum_field))
+  return {row[group_field]: float(row['total'] or 0) for row in rows if row[group_field] is not None}
+
+
+def _build_dashboard_stock(tanks_qs, kampuni, tFr, tTo, shell_id=None):
+  """Opening at tFr from current qty + batched period movements (fixed query count)."""
+  tank_list = list(tanks_qs.select_related('fuel', 'Interprise'))
+  if not tank_list:
+    return []
+
+  tank_ids = [t.id for t in tank_list]
+  recv_q = receivedFuel.objects.filter(
+    receive__date__gte=tFr, receive__date__lte=tTo,
+    receive__by__Interprise__company=kampuni, To_id__in=tank_ids,
+  )
+  sold_q = saleList.objects.filter(
+    sale__date__gte=tFr, sale__date__lte=tTo,
+    sale__by__Interprise__company=kampuni, tank_id__in=tank_ids, sale__mobile_pay=False,
+  )
+  wast_q = tankAdjust.objects.filter(
+    adj__tarehe__gte=tFr, adj__tarehe__lte=tTo,
+    adj__by__Interprise__company=kampuni, adj__stock_reconcile=False, tank_id__in=tank_ids,
+  )
+  trf_out_q = transFromTo.objects.filter(
+    transfer__date__gte=tFr, transfer__date__lte=tTo,
+    transfer__record_by__Interprise__company=kampuni, From__tank_id__in=tank_ids,
+  )
+  trf_in_q = transFromTo.objects.filter(
+    transfer__date__gte=tFr, transfer__date__lte=tTo,
+    transfer__record_by__Interprise__company=kampuni, to_id__in=tank_ids,
+  )
+  used_q = rekodiMatumizi.objects.filter(
+    tarehe__gte=tFr, tarehe__lte=tTo, Interprise__company=kampuni,
+    fromShift__pump__tank_id__in=tank_ids,
+  )
+  if shell_id:
+    recv_q = recv_q.filter(receive__by__Interprise_id=shell_id)
+    sold_q = sold_q.filter(sale__by__Interprise_id=shell_id)
+    wast_q = wast_q.filter(adj__by__Interprise_id=shell_id)
+    trf_out_q = trf_out_q.filter(transfer__record_by__Interprise_id=shell_id)
+    trf_in_q = trf_in_q.filter(transfer__record_by__Interprise_id=shell_id)
+    used_q = used_q.filter(Interprise_id=shell_id)
+
+  recv_map = _sum_by_tank(recv_q, 'To_id')
+  sold_map = _sum_by_tank(sold_q, 'tank_id', 'qty_sold')
+  wast_map = _sum_by_tank(wast_q, 'tank_id', 'diff')
+  trf_out_map = _sum_by_tank(trf_out_q, 'From__tank_id')
+  trf_in_map = _sum_by_tank(trf_in_q, 'to_id')
+  used_map = _sum_by_tank(used_q, 'fromShift__pump__tank_id', 'fuel_qty')
+
+  stock_rows = []
+  for tk in tank_list:
+    recv = recv_map.get(tk.id, 0)
+    sold = sold_map.get(tk.id, 0)
+    wast = wast_map.get(tk.id, 0)
+    tr_out = trf_out_map.get(tk.id, 0)
+    tr_in = trf_in_map.get(tk.id, 0)
+    used = used_map.get(tk.id, 0)
+    closing = float(tk.qty or 0)
+    opening = closing - recv - wast + sold + tr_out - tr_in + used
+    stock_rows.append({
+      'tank': tk.id,
+      'TankName': tk.name,
+      'fuelName': tk.fuel.name,
+      'stationId': tk.Interprise_id,
+      'stationName': tk.Interprise.name,
+      'fuel': tk.fuel_id,
+      'opening': opening,
+      'closing': closing,
+      'OpenCost': float(tk.cost or 0),
+      'CloseCost': float(tk.cost or 0),
+      'st': tk.Interprise_id,
+    })
+  return stock_rows
+
+
+def _build_fuel_prices(tanks_qs, kampuni):
+  tank_fuels = list(tanks_qs.select_related('fuel').order_by('fuel_id', 'id').distinct('fuel_id'))
+  if not tank_fuels:
+    return []
+  fuel_ids = [t.fuel_id for t in tank_fuels]
+  latest_pks = fuelPriceChange.objects.filter(
+    Interprise__company=kampuni, fuel_id__in=fuel_ids,
+  ).values('fuel_id').annotate(max_pk=Max('pk'))
+  pk_list = [row['max_pk'] for row in latest_pks if row['max_pk']]
+  prev_map = {
+    p.fuel_id: float(p.Bprice or 0)
+    for p in fuelPriceChange.objects.filter(pk__in=pk_list).only('fuel_id', 'Bprice')
+  }
+  return [{
+    'fuel': t.fuel_id,
+    'fuelName': t.fuel.name,
+    'prevCost': prev_map.get(t.fuel_id, 0),
+    'newCost': float(t.price or 0),
+  } for t in tank_fuels]
+
 
 # function to retrive monthly data for home page
 @login_required(login_url='login')
@@ -605,191 +703,108 @@ def homePageData(request):
 
         tFr = request.POST.get('tFr')
         tTo = request.POST.get('tTo')
+        shell_id = None
 
-        # Total Sales for the month
         Sales = fuelSales.objects.filter(
           date__gte=tFr,
           date__lte=tTo,
           by__Interprise__company=kampuni,
-          mobile_pay=False
-        ).annotate(due=F('amount') - F('payed'))
+          mobile_pay=False,
+        )
 
         saL = saleList.objects.filter(
-          sale__in=Sales
+          sale__date__gte=tFr,
+          sale__date__lte=tTo,
+          sale__by__Interprise__company=kampuni,
+          sale__mobile_pay=False,
         ).annotate(fuelName=F('theFuel__name'))
 
         Transf = transFromTo.objects.filter(
           transfer__date__gte=tFr,
           transfer__date__lte=tTo,
-          transfer__record_by__Interprise__company=kampuni
+          transfer__record_by__Interprise__company=kampuni,
         ).annotate(fuelName=F('Fuel__name'))
 
         Recev = receivedFuel.objects.filter(
           receive__date__gte=tFr,
           receive__date__lte=tTo,
-          receive__by__Interprise__company=kampuni
+          receive__by__Interprise__company=kampuni,
         ).annotate(fuelName=F('Fuel__name'))
 
-        # Total Purchases for the month
-
-
-        # Total Expenses for the month
         Expenses = rekodiMatumizi.objects.filter(
           tarehe__gte=tFr,
           tarehe__lte=tTo,
-          Interprise__company=kampuni
+          Interprise__company=kampuni,
         ).annotate(fuelName=F('Fuel__name'))
 
-        pAtt = fuel_pumps.objects.filter(tank__Interprise__company=kampuni,Incharge__company=kampuni)
+        pAtt = fuel_pumps.objects.filter(
+          tank__Interprise__company=kampuni, Incharge__company=kampuni,
+        )
         Sess = None
-
-        # priceChange = fuelPriceChange.objects.filter(
-        #   date__gte=tFr,
-        #   date__lte=tTo,
-        #   Interprise__company=kampuni
-        # )
-
-
 
         wastage = tankAdjust.objects.filter(
           adj__tarehe__gte=tFr,
           adj__tarehe__lte=tTo,
           adj__by__Interprise__company=kampuni,
           adj__stock_reconcile=False,
-        ).annotate(fuelName=F('fuel__name'))
+        ).annotate(fuelName=F('fuel__name'), qty=F('diff'))
 
-        tanks = fuel_tanks.objects.filter(Interprise__company=kampuni).annotate(fuelName=F('fuel__name'))
+        tanks = fuel_tanks.objects.filter(Interprise__company=kampuni)
 
-        # Total Vendor Credits for the month
         Creditors = Purchases.objects.filter(
-        
           record_by__company=kampuni,
-          payed__lt=F('amount')
-        ).annotate(due=F('amount') - F('payed'))
+          payed__lt=F('amount'),
+        ).values('vendor_id').annotate(due=Sum(F('amount') - F('payed'))).filter(due__gt=0)
 
         Debtors = fuelSales.objects.filter(
           by__Interprise__company=kampuni,
           payed__lt=F('amount'),
           customer__isnull=False,
-          mobile_pay=False
-        ).annotate(due=F('amount') - F('payed'))
+          mobile_pay=False,
+        ).values('customer_id').annotate(due=Sum(F('amount') - F('payed'))).filter(due__gt=0)
 
         if not general:
           shell = todo['shell']
+          shell_id = shell.id
           Sales = Sales.filter(by__Interprise=shell)
           Debtors = Debtors.filter(by__Interprise=shell)
           Expenses = Expenses.filter(Interprise=shell)
           pAtt = pAtt.filter(tank__Interprise=shell)
-          
           wastage = wastage.filter(adj__by__Interprise=shell)
           tanks = tanks.filter(Interprise=shell)
-          Sess = shiftSesion.objects.filter(session__Interprise=shell,complete=False).annotate(From=F('session__shFrom'),To=F('session__shTo'),shift_name=F('session__name'))
+          Transf = Transf.filter(transfer__record_by__Interprise=shell)
+          Recev = Recev.filter(receive__by__Interprise=shell)
           saL = saL.filter(sale__by__Interprise=shell)
+          Sess = shiftSesion.objects.filter(
+            session__Interprise=shell, complete=False,
+          ).annotate(
+            From=F('session__shFrom'), To=F('session__shTo'), shift_name=F('session__name'),
+          )
 
-        fuelPrices = fuelPriceChange.objects.filter(Interprise__company=kampuni).order_by('-pk')
-        fp = []
-        for t in tanks.distinct('fuel'):
-          fp.append({
-            'fuel':t.fuel.id,
-            'fuelName':t.fuel.name,
-            'prevCost':fuelPrices.filter(fuel=t.fuel).order_by('-pk').first().Bprice if fuelPrices.filter(fuel=t.fuel).exists() else 0,
-            'newCost':t.price if t.price else 0
-          })
-
-        StockR = []
-        for tk in tanks:
-          tankOp = tankAdjust.objects.filter(adj__tarehe__lt=tFr,adj__by__Interprise__company=kampuni,tank=tk).order_by('-pk').first()
-          # tankCl = tankAdjust.objects.filter(adj__tarehe__lte=tTo,adj__by__Interprise__company=kampuni,tank=tk).order_by('-pk').first()
-        
-
-          OpnDate = tankOp.adj.tarehe if tankOp else None
-          fuelCost = tankOp.cost if tankOp else tk.cost
-          
-          opening = (tankOp.stick) if tankOp else 0
-    
-
-          # print({'opndate':OpnDate,'open':opening})
-          if OpnDate:
-              #calculate all stock movements from time starting date of the query tFr
-              recevd = receivedFuel.objects.filter(receive__date__gt=OpnDate,receive__date__lt=tFr,receive__by__Interprise__company=kampuni,To=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
-              transfr = transFromTo.objects.filter(transfer__date__gte=OpnDate,transfer__date__lt=tFr,transfer__record_by__Interprise__company=kampuni,From__tank=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
-              trTo = transFromTo.objects.filter(transfer__date__gte=OpnDate,transfer__date__lt=tFr,transfer__record_by__Interprise__company=kampuni,to=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
-              transf = transfr - trTo
-              sold = saleList.objects.filter(sale__date__gte=OpnDate,sale__date__lt=tFr,sale__by__Interprise__company=kampuni,tank=tk,sale__mobile_pay=False).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
-              used = rekodiMatumizi.objects.filter(tarehe__gte=OpnDate,tarehe__lt=tFr,Interprise__company=kampuni,fromShift__pump__tank=tk).aggregate(sumi=Sum('fuel_qty'))['sumi'] or 0
-              opening = (opening + recevd) - (transf + sold + used)
-          else:
-            # if there is no opening adjustment get the first tankOp after tFr and all stock movements before tFr
-            tankOp = tankAdjust.objects.filter(adj__tarehe__gte=tFr,adj__by__Interprise__company=kampuni,tank=tk).order_by('pk').first()
-            opening = 0
-            if tankOp:
-              OpnDate = tankOp.adj.tarehe
-              fuelCost = tankOp.cost
-              
-
-              # calculate all stock movements from time starting date of the query tFr to tTo
-              recevd = receivedFuel.objects.filter(receive__date__gt=tFr,receive__date__lt=OpnDate,receive__by__Interprise__company=kampuni,To=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
-              transfr = transFromTo.objects.filter(transfer__date__gte=tFr,transfer__date__lt=OpnDate,transfer__record_by__Interprise__company=kampuni,From__tank=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
-              trTo = transFromTo.objects.filter(transfer__date__gte=tFr,transfer__date__lt=OpnDate,transfer__record_by__Interprise__company=kampuni,to=tk).aggregate(sumi=Sum('qty'))['sumi'] or 0
-              transf = transfr - trTo
-              sold = saleList.objects.filter(sale__date__gte=tFr,sale__date__lt=OpnDate,sale__by__Interprise__company=kampuni,tank=tk,sale__mobile_pay=False).aggregate(sumi=Sum('qty_sold'))['sumi'] or 0
-              used = rekodiMatumizi.objects.filter(tarehe__gte=tFr,tarehe__lt=OpnDate,Interprise__company=kampuni,fromShift__pump__tank=tk).aggregate(sumi=Sum('fuel_qty'))['sumi'] or 0
-              opening = (tankOp.stick - recevd) + (transf + sold + used)
-
-              
-
-      
-
-              # print({'tank':tk.name,'recv':recevd,'opening':tnkClosing.stick,'transf':transf,'sold':sold,'used':used,'opening':opening,'closing':closing,'closingPrice':closingcost})
-
-
-
-
-
-
-          
-
-          StockR.append(
-            {
-              'tank':tk.id,
-              'TankName':tk.name,
-              'fuelName':tk.fuel.name,
-              'stationId':tk.Interprise.id,
-              'stationName':tk.Interprise.name,
-              'fuel':tk.fuel.id,
-              'opening':opening,
-              'closing':tk.qty,
-              
-              'OpnDate':OpnDate,
-              'OpenCost':fuelCost,
-              'CloseCost':tk.cost,
-              'st':tk.Interprise.id
-              }
-            )  
-
+        fp = _build_fuel_prices(tanks, kampuni)
+        StockR = _build_dashboard_stock(tanks, kampuni, tFr, tTo, shell_id)
 
         data = {
-            'sale':list(Sales.values()),
-            'transf':list(Transf.values()),
-            'recev':list(Recev.values()),
-            'Creditors':list(Creditors.values()),
-            'Debtors':list(Debtors.values()),
-            'expenses':list(Expenses.values()),
-            'pAtt':list(pAtt.values()),
-            'fuelPrice':fp,
-            'wastage':list(wastage.values()),
-            'tanks':list(tanks.values()),
-            'general':general,
-            'Sess':list(Sess.values()) if Sess else None,
-            'saL':list(saL.values()),
+            'sale': list(Sales.values('amount', 'payed')),
+            'transf': list(Transf.values('fuelName', 'qty')),
+            'recev': list(Recev.values('fuelName', 'qty')),
+            'Creditors': list(Creditors),
+            'Debtors': list(Debtors),
+            'expenses': list(Expenses.values('fuel_qty', 'kiasi', 'fuelName')),
+            'pAtt': list(pAtt.values('Incharge_id')),
+            'fuelPrice': fp,
+            'wastage': list(wastage.values('fuelName', 'qty', 'diff')),
+            'general': general,
+            'Sess': list(Sess.values()) if Sess else None,
+            'saL': list(saL.values('fuelName', 'qty_sold')),
             'success': True,
-            'isAdmin':todo['useri'].admin,
-            'stock':StockR
+            'isAdmin': todo['useri'].admin,
+            'stock': StockR,
         }
 
         return JsonResponse(data)
     
     except Exception as e:
-      print(e)
+      traceback.print_exc()
       data = {'success': False}
       return JsonResponse(data)
