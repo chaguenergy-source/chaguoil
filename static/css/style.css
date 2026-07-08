@@ -493,16 +493,18 @@ td .form-control{
 }
 #content nav .notification .num {
 	position: absolute;
-	top: -6px;
+	top: -5px;
 	right: -6px;
-	width: 20px;
-	height: 20px;
-	border-radius: 50%;
+	min-width: 16px;
+	height: 16px;
+	padding: 0 3px;
+	border-radius: 10px;
 	border: 2px solid var(--light);
 	background: var(--red);
 	color: var(--light);
 	font-weight: 700;
-	font-size: 12px;
+	font-size: 9px;
+	line-height: 1;
 	display: flex;
 	justify-content: center;
 	align-items: center;

@@ -75,6 +75,7 @@ urlpatterns=[
         path('savaAdjst',views.savaAdjst, name='savaAdjst'),
         path('FuelTrans',views.FuelTrans, name='FuelTrans'),
         path('getStationData',views.getStationData, name='getStationData'),
+        path('getVendorReceiveData',views.getVendorReceiveData, name='getVendorReceiveData'),
         path('FuelReceive',views.FuelReceive, name='FuelReceive'),
         path('trucks',views.trucks, name='trucks'),
         path('truckView',views.truckView, name='truckView'),
@@ -107,6 +108,7 @@ urlpatterns=[
         path('checkCustomerRecords',views.checkCustomerRecords, name='checkCustomerRecords'),
         path('applyCustomerRecordCorrection',views.applyCustomerRecordCorrection, name='applyCustomerRecordCorrection'),
         path('repairCustomerStatementLinks',views.repairCustomerStatementLinks, name='repairCustomerStatementLinks'),
+        path('resolveCustomerExceededPayment',views.resolveCustomerExceededPayment, name='resolveCustomerExceededPayment'),
         path('vendorStatementData',views.vendorStatementData, name='vendorStatementData'),
         path('transporterStatementData',views.transporterStatementData, name='transporterStatementData'),
      

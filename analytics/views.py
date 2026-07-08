@@ -36,6 +36,7 @@ import random
 import os
 
 from account.todos import Todos,confirmMailF,invoCode,TCode
+from salepurchase.views import _build_daily_sales_days
 
 def todoFunct(request):
   usr = Todos(request)
@@ -75,6 +76,12 @@ def getsaler(request):
       todo = todoFunct(request)
       
       kampuni = todo['kampuni']
+      shell = todo['shell']
+      useri = todo['useri']
+
+      daily_sales = _build_daily_sales_days(
+        kampuni, shell, useri, tFr_date, tTo_date, tFr, tTo
+      )
 
       fl = fuel_tanks.objects.filter(Interprise__company=kampuni).annotate(fname=F('fuel__name')).distinct('fuel').values('fuel','fname')
 
@@ -142,6 +149,7 @@ def getsaler(request):
         'pay':list(pay.values()),
         'fuel':list(fl),
         'payRec':list(custPayRec.values()),
+        'dailySales': daily_sales,
         'success':True
       }
       return JsonResponse(data)

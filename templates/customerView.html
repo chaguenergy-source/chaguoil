@@ -77,6 +77,13 @@
 
                     <div id="customerRecordsCheckResult" class="d-none smallFont"></div>
 
+                    <div id="customerExceededPaymentsPanel" class="d-none mt-3 border-top pt-3">
+                        <strong class="d-block mb-2 text-warning">
+                            {% if useri.langSet == 0 %}Malipo Yaliyozidi (Exceeded Payments){% else %}Exceeded Payments{% endif %}
+                        </strong>
+                        <div id="customerExceededPaymentsList"></div>
+                    </div>
+
                     <div id="customerRecordsCorrectionForm" class="d-none mt-3 border-top pt-3">
                         <strong class="d-block mb-2">{% if useri.langSet == 0 %}Rekebisha Deni / Mkopo Halisi{% else %}Correct Actual Debt / Credit{% endif %}</strong>
                         <div class="row">
@@ -154,7 +161,8 @@
                       </span>
                      {% endif %}
                      {% block orderLimitBtn %}
-                     {% if  not hasLastCd  %}
+
+                     {% if not cust.limited_order or not lastCd  %}
                       | <button type="button" class="btn btn-light btn-sm text-primary edit_btn"  data-toggle="modal" data-target="#OrderLimit"
                                           title="Edit" >
                                         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit">
@@ -2455,6 +2463,7 @@
         }
 
         $('#customerRecordsCheckResult').html(html).removeClass('d-none');
+        renderCustomerExceededPayments(resp);
 
         if(resp.show_debt_input || resp.show_credit_input){
             $('#customerRecordsCorrectionForm').removeClass('d-none');
@@ -2469,6 +2478,86 @@
         }else{
             $('#customerRecordsCorrectionForm').addClass('d-none');
         }
+    }
+
+    function renderCustomerExceededPayments(resp){
+        const exceeded = resp.exceeded_payments || [];
+        if(!exceeded.length){
+            $('#customerExceededPaymentsPanel').addClass('d-none');
+            $('#customerExceededPaymentsList').html('');
+            return;
+        }
+
+        let html = `<div class="table-responsive"><table class="table table-sm table-bordered mb-0">
+            <thead>
+                <tr>
+                    <th>${lang('Tarehe','Date')}</th>
+                    <th>${lang('Malipo','Payment')}</th>
+                    <th>${lang('Imetumika','Allocated')}</th>
+                    <th>${lang('Kilichozidi','Exceeded')}</th>
+                    <th>${lang('Maelezo','Description')}</th>
+                    <th>${lang('Hatua','Action')}</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        exceeded.forEach(item => {
+            const onOrderBadge = item.on_order
+                ? `<span class="badge badge-info ml-1">${lang('Kwenye Oda','On Order')}</span>`
+                : '';
+            const applyBtn = (!item.on_order && item.has_credit_order)
+                ? `<button type="button" class="btn btn-sm btn-outline-success apply-exceeded-payment-btn" data-pay-id="${item.pay_id}" data-order-id="${item.last_order_id || ''}">${lang('Ongeza Oda','Add to Order')}</button>`
+                : (item.on_order ? `<span class="text-muted small">${lang('Imeshughulikiwa','Resolved')}</span>` : `<span class="text-muted small">${lang('Hakuna oda','No order')}</span>`);
+            const deleteBtn = item.on_order
+                ? ''
+                : `<button type="button" class="btn btn-sm btn-outline-danger delete-exceeded-payment-btn ml-1" data-pay-id="${item.pay_id}">${lang('Futa','Delete')}</button>`;
+
+            html += `<tr>
+                <td>${item.tarehe || '-'}</td>
+                <td><strong>${Number(item.amount || 0).toLocaleString()}</strong> ${customerCurrency}${onOrderBadge}<br><small class="text-muted">${item.kutoka || ''}</small></td>
+                <td>${Number(item.allocated || 0).toLocaleString()} ${customerCurrency}</td>
+                <td><strong class="text-warning">${Number(item.exceeded || 0).toLocaleString()}</strong> ${customerCurrency}</td>
+                <td>${item.maelezo || '-'}</td>
+                <td class="text-nowrap">${applyBtn}${deleteBtn}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        $('#customerExceededPaymentsList').html(html);
+        $('#customerExceededPaymentsPanel').removeClass('d-none');
+    }
+
+    function resolveCustomerExceededPayment(payId, action, orderId){
+        const data = {
+            data:{
+                cust: customerRecordsCustId,
+                payId,
+                action,
+                orderId: orderId || '',
+            },
+            url:'/salepurchase/resolveCustomerExceededPayment'
+        };
+
+        $('#loadMe').modal('show');
+        POSTREQUEST(data).then(resp => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            const msg = lang(resp.swa, resp.eng);
+            if(resp.success){
+                renderCustomerRecordsResult(resp);
+                toastr.success(msg, lang('Imefanikiwa','Success'), {timeOut: 2500});
+            }else{
+                toastr.error(msg, lang('Imeshindikana','Failed'), {timeOut: 3500});
+            }
+        }).catch(() => {
+            $('#loadMe').modal('hide');
+            hideLoading();
+            toastr.error(
+                lang('Hitilafu imejitokeza wakati wa kushughulikia malipo','An error occurred while handling the payment'),
+                lang('Imeshindikana','Failed'),
+                {timeOut: 3500}
+            );
+        });
     }
 
     $('body').on('click', '#toggleCustomerSettingsPanel', function(){
@@ -2531,6 +2620,27 @@
             hideLoading();
             toastr.error(lang('Hitilafu imejitokeza wakati wa kurekebisha data','An error occurred while repairing data'), lang('Imeshindikana','Failed'), {timeOut: 3500});
         });
+    });
+
+    $('body').on('click', '.delete-exceeded-payment-btn', function(){
+        const payId = Number($(this).data('pay-id'));
+        const confirmMsg = lang(
+            'Una uhakika unataka kufuta malipo haya yaliyozidi?',
+            'Are you sure you want to delete this exceeded payment?'
+        );
+        if(!confirm(confirmMsg)) return;
+        resolveCustomerExceededPayment(payId, 'delete');
+    });
+
+    $('body').on('click', '.apply-exceeded-payment-btn', function(){
+        const payId = Number($(this).data('pay-id'));
+        const orderId = $(this).data('order-id');
+        const confirmMsg = lang(
+            'Ongeza kiasi kilichozidi kwenye oda ya mkopo?',
+            'Add the exceeded amount to the credit order?'
+        );
+        if(!confirm(confirmMsg)) return;
+        resolveCustomerExceededPayment(payId, 'apply_order', orderId);
     });
 
     $('body').on('click', '#applyCustomerRecordCorrectionBtn', function(){

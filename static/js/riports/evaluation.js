@@ -111,6 +111,7 @@ const init = Number($('#generalSaleR tr').length==0)
                     payAmo=Number(sale?.reduce((a,b)=>a+Number(b.payed),0))||0,
                     purchAmo = Number(puch?.reduce((a,b)=>a+Number(Number(b.cost)*Number(b.qty)),0))||0,      
                     transfAmo = Number(trf?.reduce((a,b)=>a+Number(Number(b.cost)*Number(b.qty)),0))||0,      
+                    reconcileAmo = Number(adj?.filter(adjIsReconcile).reduce((a,b)=>a+Number(Number(b.diff)*Number(b.cost)),0))||0,
                     wastege = Number(adj?.filter(adjIsWastage).reduce((a,b)=>a+Number(Number(b.diff)*Number(b.cost)),0))||0,   
                     puWastage =  Number(puch?.filter(p=>p.closed).reduce((a,b)=>a+Number(Number(b.cost)*(Number(b.qty)-Number(b.rcvd))),0)) || 0,  
                     totWastge = st?Number(puWastage)+Number(wastege):wastege,
@@ -137,6 +138,7 @@ const init = Number($('#generalSaleR tr').length==0)
             <td ${st?'hidden':''} >${Number(purchAmo).toLocaleString()}  </td>
             <td >${Number(rcvAmo).toLocaleString()}  </td>
             <td ${!st?'hidden':''} >${Number(transfAmo).toLocaleString()}  </td>
+            <td>${Number(reconcileAmo).toLocaleString()}  </td>
             <td>${Number(totWastge).toLocaleString()}  </td>
             <td>${Number(saleCost).toLocaleString()}  </td>
             <td>${Number(payAmo).toLocaleString()}  </td>

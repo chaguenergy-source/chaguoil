@@ -51,6 +51,21 @@
               <input type="datetime-local" class="form-control" name="tr_date" id="tr_date" aria-describedby="helpId" placeholder="">
             </div>
 
+            <div class="form-group">
+              <label class="brown" for="receiveSourceType">
+                {% if useri.langSet == 0 %}Aina ya Upokeaji{% else %}Receive Type{% endif %}
+                <sup>*</sup>
+              </label>
+              <select class="form-control" name="receiveSourceType" id="receiveSourceType">
+                <option value="transfer" selected>
+                  {% if useri.langSet == 0 %}Transfer ya Kawaida{% else %}Regular Transfer{% endif %}
+                </option>
+                <option value="purchase">
+                  {% if useri.langSet == 0 %}Kutoka Manunuzi{% else %}From Purchase{% endif %}
+                </option>
+              </select>
+            </div>
+
             <div  class="form-group mb-3 toTankOpt " id="objTest" >
                 <label for="OptBtn"> {% if useri.langSet == 0 %}Hamisha Kwenda{% else %}Transfer To{% endif %}: </label>
                <div id="OptBtn" >
@@ -97,7 +112,7 @@
   
               </div>
 
-             <div class="form-group row mb-3">
+             <div id="transferFromFields" class="form-group row mb-3">
                 <div class="col-6">
                         <label for="containerTr" class="brown" >
                             {% if useri.langSet == 0 %}Kutoka {% else %}From {% endif %} <sup>*</sup>
@@ -133,6 +148,29 @@
                 </div>
 
               </div>
+
+             <div id="purchaseVendorFields" class="form-group mb-3 d-none">
+                <label for="puVendor" class="brown">
+                    {% if useri.langSet == 0 %}Msambazaji{% else %}Vendor{% endif %}
+                    <sup>*</sup>
+                </label>
+                <select class="form-control border selectpicker" data-live-search="true" name="puVendor" id="puVendor">
+                    <option value="0" selected>-----------</option>
+                    {% for v in pu_vendors %}
+                        <option value="{{v.id}}">{{v.jina}}</option>
+                    {% endfor %}
+                </select>
+                <small id="puVendorInfo" class="text-muted d-none"></small>
+             </div>
+
+             <div id="purchaseStationFields" class="form-group mb-3 d-none">
+                <label for="ToStationVisible" class="brown">
+                    {% if useri.langSet == 0 %}Kwenda Kituo{% else %}To Station{% endif %}
+                </label>
+                <select class="form-control" id="ToStationVisible" disabled>
+                    <option value="{{shell.id}}" selected>{{shell.name}}</option>
+                </select>
+             </div>
 
              <div class="form-group mb-3 row  trOpt trOpt2" id="toMovingTank" hidden >
                 <div class="col-6">
@@ -178,7 +216,7 @@
                    <option value=0  >-------</option>
                    {% for u in tanksSup %}
                            
-                   <option value={{u.id}}>{{u.user.user.first_name|title}}  {{u.user.user.last_name|title}}</option>
+                   <option data-intp="{{u.Interprise.id}}" data-val="{{u.Interprise.id}}" value={{u.id}}>{{u.user.user.first_name|title}}  {{u.user.user.last_name|title}}</option>
 
                 {%endfor%}
                 </select>
@@ -205,7 +243,8 @@
    
      <div class="table-responsive">
         <table class="table-sm">
-            <thead>
+            <thead id="receiveTableHead">
+                <tr id="receiveTableHeadTransfer">
                 <th>#</th>
                 <th class="fromTanks" >{% if useri.langSet == 0 %}Kutoka/Tanki{% else %}From Tank{% endif %}</th>
                 <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
@@ -214,7 +253,20 @@
                 <th>{% if useri.langSet == 0 %}Stick/Baada{% else %}Stick/After{% endif %} <span class="text-primary">LTRS</span></th>
                 <th>{% if useri.langSet == 0 %}Kiasi/Hamishwa{% else %}Tranfered/Qty{% endif %} <span class="text-primary">LTRS</span></th>
                 <th>{% if useri.langSet == 0 %}Ondoa{% else %}Remove{% endif %} </th>
-            </thead>      
+                </tr>
+                <tr id="receiveTableHeadPurchase" class="d-none">
+                <th>#</th>
+                <th>{% if useri.langSet == 0 %}Msafirishaji{% else %}Transporter{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Dereva{% else %}Driver{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Gari{% else %}Vehicle{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Mafuta{% else %}Fuel{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Kwenda/Tanki{% else %}To Tank{% endif %}</th>
+                <th>{% if useri.langSet == 0 %}Stick/Kabla{% else %}Stick/Before{% endif %} <span class="text-primary">LTRS</span> </th>
+                <th>{% if useri.langSet == 0 %}Stick/Baada{% else %}Stick/After{% endif %} <span class="text-primary">LTRS</span></th>
+                <th>{% if useri.langSet == 0 %}Kiasi/Hamishwa{% else %}Tranfered/Qty{% endif %} <span class="text-primary">LTRS</span></th>
+                <th>{% if useri.langSet == 0 %}Ondoa{% else %}Remove{% endif %} </th>
+                </tr>
+            </thead>
             <tbody id="trRows" >
                 <tr data-pos=1 >
                     <td  class="IndexNo" data-pos=1 >1</td>
@@ -363,6 +415,10 @@
 {% endblock %}
 
 {% block additionaljs %}
+ <script>
+    const FUEL_RECEIVE_SHELL_ID = Number('{{ shell.id }}');
+    const FUEL_RECEIVE_SHELL_NAME = '{{ shell.name|escapejs }}';
+ </script>
  <script src="{% static 'js/fuelreceive.js' %}"></script>
 
 {% endblock %}

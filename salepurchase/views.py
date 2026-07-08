@@ -64,13 +64,130 @@ def todoFunct(request):
   return usr.todoF()
 
 
+def _customer_sales_and_payments_qs(cust, kampuni):
+    customer_order_ids = list(
+        creditDebtOrder.objects.filter(
+            customer=cust,
+            by__user__company=kampuni,
+        ).values_list('id', flat=True)
+    )
+    sales_qs = fuelSales.objects.filter(
+        Q(customer=cust) | Q(cdorder_id__in=customer_order_ids),
+        by__Interprise__company=kampuni,
+    ).order_by('recDate', 'date', 'pk')
+    payments_qs = wekaCash.objects.filter(
+        Interprise__company=kampuni,
+        Akaunt__isnull=False,
+        Amount__gt=0,
+    ).filter(
+        Q(customer=cust) | Q(cdOrder_id__in=customer_order_ids)
+    ).order_by('tarehe', 'pk')
+    return sales_qs, payments_qs, customer_order_ids
+
+
+def _simulate_customer_payment_allocation(sales, payments):
+    sale_payed = {sale.pk: Decimal('0') for sale in sales}
+    sale_amounts = {sale.pk: Decimal(str(sale.amount or 0)) for sale in sales}
+    exceeded_payments = []
+    sale_index = 0
+
+    for pay in payments:
+        remaining = Decimal(str(pay.Amount or 0))
+        allocated = Decimal('0')
+
+        while remaining > 0 and sale_index < len(sales):
+            sale = sales[sale_index]
+            amount = sale_amounts[sale.pk]
+            paid = sale_payed[sale.pk]
+            due = amount - paid
+
+            if due <= 0:
+                sale_index += 1
+                continue
+
+            apay = due if due <= remaining else remaining
+            sale_payed[sale.pk] = paid + apay
+            allocated += apay
+            remaining -= apay
+
+            if sale_payed[sale.pk] >= amount:
+                sale_index += 1
+
+        if remaining > Decimal('0.01'):
+            exceeded_payments.append({
+                'pay_id': pay.pk,
+                'amount': float(pay.Amount or 0),
+                'allocated': float(allocated),
+                'exceeded': float(remaining),
+                'tarehe': pay.tarehe.strftime('%Y-%m-%d %H:%M') if pay.tarehe else '',
+                'kutoka': pay.kutoka or '',
+                'maelezo': pay.maelezo or '',
+            })
+
+    return exceeded_payments
+
+
+def _get_customer_exceeded_payments(cust, kampuni):
+    sales_qs, payments_qs, _ = _customer_sales_and_payments_qs(cust, kampuni)
+    sales = list(sales_qs)
+    payments = list(payments_qs)
+    simulated = _simulate_customer_payment_allocation(sales, payments)
+    tolerance = Decimal('0.01')
+
+    last_order = creditDebtOrder.objects.filter(
+        customer=cust,
+        by__user__company=kampuni,
+    ).order_by('pk').last()
+    last_order_id = last_order.pk if last_order else None
+
+    exceeded = []
+    for item in simulated:
+        pay = next((p for p in payments if p.pk == item['pay_id']), None)
+        if pay is None:
+            continue
+
+        allocated_db = _payment_allocated_to_sales(pay)
+        amount = Decimal(str(pay.Amount or 0))
+        used_amount = Decimal(str(pay.used_amount or 0))
+        if pay.cdOrder_id and used_amount >= amount - tolerance:
+            continue
+        surplus = amount - allocated_db
+        if surplus <= tolerance:
+            continue
+
+        item['allocated'] = float(allocated_db)
+        item['exceeded'] = float(surplus)
+        item['on_order'] = bool(pay.cdOrder_id)
+        item['order_id'] = pay.cdOrder_id
+        item['last_order_id'] = last_order_id
+        item['has_credit_order'] = last_order_id is not None
+        exceeded.append(item)
+
+    return exceeded
+
+
+def _payment_allocated_to_sales(pay):
+    return Decimal(str(
+        CustmDebtPayRec.objects.filter(pay=pay).aggregate(total=Sum('Apay'))['total'] or 0
+    ))
+
+
 def check_customer_records_metrics(cust, kampuni):
-    sales_qs = fuelSales.objects.filter(Q(customer=cust)|Q(cdorder__customer=cust), by__Interprise__company=kampuni)
+    customer_order_ids = list(
+        creditDebtOrder.objects.filter(
+            customer=cust,
+            by__user__company=kampuni,
+        ).values_list('id', flat=True)
+    )
+    sales_qs = fuelSales.objects.filter(
+        Q(customer=cust) | Q(cdorder_id__in=customer_order_ids),
+        by__Interprise__company=kampuni,
+    )
     payments_qs = wekaCash.objects.filter(
         Interprise__company=kampuni,
         Amount__gt=0,
     ).filter(
-        Q(customer=cust) | Q(cdOrder__customer=cust)
+        Q(customer=cust) | Q(cdOrder_id__in=customer_order_ids)
     )
 
     total_paid = Decimal(str(payments_qs.aggregate(total=Sum('Amount'))['total'] or 0))
@@ -148,6 +265,25 @@ def check_customer_records_metrics(cust, kampuni):
             'eng': 'Total payments and consumption are balanced.',
         })
 
+    exceeded_payments = _get_customer_exceeded_payments(cust, kampuni)
+    if exceeded_payments:
+        status = 'mismatch' if status == 'ok' else status
+        total_exceeded = sum(item['exceeded'] for item in exceeded_payments)
+        issues.append({
+            'swa': (
+                f'Kuna malipo {len(exceeded_payments)} yaliyozidi ankara '
+                f'(jumla {total_exceeded:.2f}).'
+            ),
+            'eng': (
+                f'There are {len(exceeded_payments)} exceeded payment(s) '
+                f'(total {total_exceeded:.2f}).'
+            ),
+        })
+        recommendations.append({
+            'swa': 'Chagua kufuta malipo yaliyozidi au kuongeza kiasi kilichozidi kwenye oda ya mkopo.',
+            'eng': 'Choose to delete exceeded payments or add the surplus to a credit order.',
+        })
+
     return {
         'status': status,
         'scenario': scenario,
@@ -166,6 +302,8 @@ def check_customer_records_metrics(cust, kampuni):
         'payments_count': payments_qs.count(),
         'sales_count': sales_qs.count(),
         'orders_count': orders_qs.count(),
+        'exceeded_payments': exceeded_payments,
+        'has_exceeded_payments': bool(exceeded_payments),
     }
 
 
@@ -484,28 +622,16 @@ def repairCustomerStatementLinks(request):
             })
 
         cust = wateja.objects.get(pk=cust_id, Interprise__company=kampuni)
-        customer_order_ids = creditDebtOrder.objects.filter(
-            customer=cust,
-            by__user__company=kampuni
-        ).values_list('id', flat=True)
+        sales_qs, payments_qs, customer_order_ids = _customer_sales_and_payments_qs(cust, kampuni)
 
         with transaction.atomic():
+            sale_ids = list(sales_qs.values_list('pk', flat=True))
+            payment_ids = list(payments_qs.values_list('pk', flat=True))
             sales = list(
-                fuelSales.objects.filter(customer=cust, by__Interprise__company=kampuni)
+                fuelSales.objects.filter(pk__in=sale_ids)
                 .order_by('recDate', 'date', 'pk')
                 .select_for_update()
             )
-
-            payment_ids = list(
-                wekaCash.objects.filter(
-                    Interprise__company=kampuni,
-                    Akaunt__isnull=False,
-                    Amount__gt=0
-                ).filter(
-                    Q(customer=cust) | Q(cdOrder_id__in=customer_order_ids)
-                ).values_list('id', flat=True)
-            )
-
             payments = list(
                 wekaCash.objects.filter(pk__in=payment_ids)
                 .order_by('tarehe', 'pk')
@@ -514,7 +640,7 @@ def repairCustomerStatementLinks(request):
 
             CustmDebtPayRec.objects.filter(Q(sale__in=sales) | Q(pay__in=payments)).delete()
 
-            wekaCash.objects.filter(pk__in=payment_ids).update(used_amount=Decimal('0'))
+            wekaCash.objects.filter(pk__in=payment_ids).update(used_amount=Decimal('0'), cdOrder=None)
 
             for s in sales:
                 s.payed = Decimal('0')
@@ -525,9 +651,7 @@ def repairCustomerStatementLinks(request):
                 .select_for_update()
             )
             last_order = orders[-1] if orders else None
-            topup_by_order = {}
-            topup_total = Decimal('0')
-
+            exceeded_payments = []
             created_links = 0
             sale_index = 0
 
@@ -562,18 +686,24 @@ def repairCustomerStatementLinks(request):
                     if sale.payed >= amount:
                         sale_index += 1
 
-                if remaining > 0 and last_order is not None:
-                    topup = remaining
-                    topup_by_order[last_order.id] = topup_by_order.get(last_order.id, Decimal('0')) + topup
-                    topup_total += topup
-                    remaining = Decimal('0')
-                    pay.cdOrder = last_order
-                    pay.used_amount = allocated + topup
-                    pay.save(update_fields=['used_amount', 'cdOrder'])
-                else:
-                    pay.cdOrder = None
-                    pay.used_amount = allocated
-                    pay.save(update_fields=['used_amount', 'cdOrder'])
+                pay.used_amount = allocated
+                pay.cdOrder = None
+                pay.save(update_fields=['used_amount', 'cdOrder'])
+
+                if remaining > Decimal('0.01'):
+                    exceeded_payments.append({
+                        'pay_id': pay.pk,
+                        'amount': float(pay.Amount or 0),
+                        'allocated': float(allocated),
+                        'exceeded': float(remaining),
+                        'tarehe': pay.tarehe.strftime('%Y-%m-%d %H:%M') if pay.tarehe else '',
+                        'kutoka': pay.kutoka or '',
+                        'maelezo': pay.maelezo or '',
+                        'on_order': False,
+                        'order_id': None,
+                        'last_order_id': last_order.pk if last_order else None,
+                        'has_credit_order': last_order is not None,
+                    })
 
             for s in sales:
                 s.save(update_fields=['payed'])
@@ -582,29 +712,39 @@ def repairCustomerStatementLinks(request):
                 order_sales = [sale for sale in sales if sale.cdorder_id == order.id]
                 order_amount = sum(Decimal(str(sale.amount or 0)) for sale in order_sales)
                 order_paid_sales = sum(Decimal(str(sale.payed or 0)) for sale in order_sales)
-                order_topup = topup_by_order.get(order.id, Decimal('0'))
-                order_paid = order_paid_sales + order_topup
 
                 base_amount = order_amount if order_amount > 0 else Decimal(str(order.amount or 0))
                 base_consumed = order_amount if order_amount > 0 else Decimal(str(order.consumed or 0))
 
-                if order_paid > base_amount:
-                    base_amount = order_paid
-
                 order.amount = base_amount
                 order.consumed = base_consumed
-                order.paid = order_paid
-                order.prepaid_order = order_paid > base_consumed
+                order.paid = order_paid_sales
+                order.prepaid_order = order_paid_sales > base_consumed
                 order.save(update_fields=['amount', 'consumed', 'paid', 'prepaid_order'])
 
         metrics = check_customer_records_metrics(cust, kampuni)
+        exceeded_total = sum(item['exceeded'] for item in exceeded_payments)
+
+        swa_msg = 'Marekebisho ya malipo yamekamilika'
+        eng_msg = 'Payment reconciliation completed successfully'
+        if exceeded_payments:
+            swa_msg = (
+                f'Marekebisho yamekamilika. Kuna malipo {len(exceeded_payments)} '
+                f'yaliyozidi (jumla {exceeded_total:.2f}). Chagua hatua hapa chini.'
+            )
+            eng_msg = (
+                f'Reconciliation completed. {len(exceeded_payments)} exceeded payment(s) '
+                f'found (total {exceeded_total:.2f}). Choose an action below.'
+            )
 
         return JsonResponse({
             'success': True,
-            'swa': 'Marekebisho ya malipo yamekamilika',
-            'eng': 'Payment reconciliation completed successfully',
+            'swa': swa_msg,
+            'eng': eng_msg,
             'links': created_links,
-            'topup': float(topup_total),
+            'topup': 0,
+            'exceeded_payments': exceeded_payments,
+            'has_exceeded_payments': bool(exceeded_payments),
             **metrics,
         })
     except Exception as err:
@@ -728,6 +868,146 @@ def applyCustomerRecordCorrection(request):
             'success': False,
             'swa': 'Marekebisho yameshindikana',
             'eng': 'Correction failed due to an error',
+        })
+
+
+@login_required(login_url='login')
+def resolveCustomerExceededPayment(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'swa': 'Bad Request', 'eng': 'Bad Request'})
+
+    try:
+        cust_id = int(request.POST.get('cust', 0))
+        pay_id = int(request.POST.get('payId', 0))
+        action = (request.POST.get('action') or '').strip().lower()
+        order_id_raw = request.POST.get('orderId', '').strip()
+        todo = todoFunct(request)
+        useri = todo['useri']
+        kampuni = todo['kampuni']
+
+        if not useri.admin:
+            return JsonResponse({
+                'success': False,
+                'swa': 'Hauna ruhusa ya kufanya marekebisho haya',
+                'eng': 'You have no permission to apply this action',
+            })
+
+        if action not in ('delete', 'apply_order'):
+            return JsonResponse({
+                'success': False,
+                'swa': 'Chaguo halali: delete au apply_order',
+                'eng': 'Valid action: delete or apply_order',
+            })
+
+        cust = wateja.objects.get(pk=cust_id, Interprise__company=kampuni)
+        customer_order_ids = list(
+            creditDebtOrder.objects.filter(
+                customer=cust,
+                by__user__company=kampuni,
+            ).values_list('id', flat=True)
+        )
+
+        with transaction.atomic():
+            pay = wekaCash.objects.select_for_update().get(
+                pk=pay_id,
+                Interprise__company=kampuni,
+            )
+            if not (pay.customer_id == cust.pk or pay.cdOrder_id in customer_order_ids):
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Malipo hayo hayahusiani na mteja huyu',
+                    'eng': 'This payment does not belong to this customer',
+                })
+
+            allocated = _payment_allocated_to_sales(pay)
+            amount = Decimal(str(pay.Amount or 0))
+            exceeded = amount - allocated
+            tolerance = Decimal('0.01')
+
+            if exceeded <= tolerance:
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Malipo haya hayana kiasi kilichozidi',
+                    'eng': 'This payment has no exceeded amount',
+                })
+
+            if action == 'delete':
+                pay_recs = CustmDebtPayRec.objects.filter(pay=pay)
+                for pr in pay_recs:
+                    sale = fuelSales.objects.select_for_update().get(pk=pr.sale_id)
+                    sale.payed = Decimal(str(sale.payed or 0)) - Decimal(str(pr.Apay or 0))
+                    sale.save(update_fields=['payed'])
+                    if sale.cdorder_id:
+                        order = creditDebtOrder.objects.select_for_update().get(pk=sale.cdorder_id)
+                        order.paid = Decimal(str(order.paid or 0)) - Decimal(str(pr.Apay or 0))
+                        if order.paid < 0:
+                            order.paid = Decimal('0')
+                        order.prepaid_order = order.paid > Decimal(str(order.consumed or 0))
+                        order.save(update_fields=['paid', 'prepaid_order'])
+
+                if pay.cdOrder_id:
+                    order = creditDebtOrder.objects.select_for_update().get(pk=pay.cdOrder_id)
+                    order.paid = Decimal(str(order.paid or 0)) - exceeded
+                    if order.paid < 0:
+                        order.paid = Decimal('0')
+                    order.prepaid_order = order.paid > Decimal(str(order.consumed or 0))
+                    order.save(update_fields=['paid', 'prepaid_order'])
+
+                pay_recs.delete()
+                pay.delete()
+
+                swa_msg = 'Malipo yaliyozidi yamefutwa'
+                eng_msg = 'Exceeded payment deleted successfully'
+            else:
+                if order_id_raw:
+                    order = creditDebtOrder.objects.select_for_update().get(
+                        pk=int(order_id_raw),
+                        customer=cust,
+                        by__user__company=kampuni,
+                    )
+                else:
+                    order = creditDebtOrder.objects.select_for_update().filter(
+                        customer=cust,
+                        by__user__company=kampuni,
+                    ).order_by('pk').last()
+                    if order is None:
+                        return JsonResponse({
+                            'success': False,
+                            'swa': 'Hakuna oda ya mkopo ya kuongeza kiasi kilichozidi',
+                            'eng': 'No credit order found to apply exceeded amount',
+                        })
+
+                order_paid = Decimal(str(order.paid or 0)) + exceeded
+                order_amount = Decimal(str(order.amount or 0))
+                order_consumed = Decimal(str(order.consumed or 0))
+
+                order.paid = order_paid
+                if order_paid > order_amount:
+                    order.amount = order_paid
+                order.prepaid_order = order_paid > order_consumed
+                order.save(update_fields=['amount', 'paid', 'prepaid_order'])
+
+                pay.cdOrder = order
+                pay.used_amount = amount
+                pay.save(update_fields=['cdOrder', 'used_amount'])
+
+                swa_msg = f'Kiasi kilichozidi ({float(exceeded):.2f}) kimeongezwa kwenye oda ya mkopo'
+                eng_msg = f'Exceeded amount ({float(exceeded):.2f}) added to credit order'
+
+        metrics = check_customer_records_metrics(cust, kampuni)
+        return JsonResponse({
+            'success': True,
+            'swa': swa_msg,
+            'eng': eng_msg,
+            **metrics,
+        })
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'swa': 'Hatua imeshindikana',
+            'eng': 'Action failed due to an error',
         })
 
 
@@ -1846,9 +2126,10 @@ def saveReceive(request):
                     rcv.Incharge = cont_From.Transfer_by
 
                 if is_pu:
-                     cont_From =  Purchases.objects.get(pk=Frcont,record_by__company=kampuni)   
-                     rcv.FromPurchase = cont_From
-                     rcv.Incharge = cont_From.record_by
+                     if Frcont:
+                         cont_From = Purchases.objects.get(pk=Frcont, record_by__company=kampuni)
+                         rcv.FromPurchase = cont_From
+                         rcv.Incharge = cont_From.record_by
 
                 rcv.save()
 
@@ -1895,12 +2176,18 @@ def saveReceive(request):
                                 t.save()
 
                     if is_pu:
-                        puRec = PuList.objects.get(pk=rec['tnk'],pu=cont_From)
+                        puRec = PuList.objects.select_related('pu').get(pk=rec['tnk'])
+                        line_pu = puRec.pu
+                        if rcv.FromPurchase_id is None:
+                            rcv.FromPurchase = line_pu
+                            rcv.Incharge = line_pu.record_by
+                            rcv.save(update_fields=['FromPurchase', 'Incharge'])
+                            cont_From = line_pu
                         puRec.rcvd = float(float(puRec.rcvd) + trqty)
                         puRec.save()
-                        puLst = PuList.objects.filter(pu=cont_From,qty__gt=F('rcvd'))
-                        if not puLst.exists():
-                            cont_From.closed = True
+                        if not PuList.objects.filter(pu=line_pu, qty__gt=F('rcvd')).exists():
+                            line_pu.closed = True
+                            line_pu.save()
 
 
                         
@@ -5944,6 +6231,151 @@ def TankAdjst(request):
         return render(request,'pagenotFound.html',todo)
     
     
+def _build_purchase_trip_payload(pu_lines):
+    transporter_map = {}
+    driver_seen = set()
+    vehicle_seen = set()
+    trip_drivers = []
+    trip_vehicles = []
+    lines = []
+
+    for line in pu_lines:
+        pending = Decimal(str(line.qty or 0)) - Decimal(str(line.rcvd or 0))
+        if pending <= Decimal('0.01'):
+            continue
+
+        att = line.puAttach
+        tr = att.transp if att is not None else None
+        tr_id = tr.id if tr is not None else 0
+        tr_name = tr.jina if tr is not None else ''
+        driver = (att.driver or '').strip() if att is not None else ''
+        vehicle = (att.vihecle or '').strip() if att is not None else ''
+
+        if tr_id not in transporter_map:
+            transporter_map[tr_id] = {
+                'transpoter_id': tr_id,
+                'name': tr_name,
+                'vihecles': []
+            }
+
+        transporter_entry = transporter_map[tr_id]
+        if att is not None and not any(v.get('puAttach_id') == att.id for v in transporter_entry['vihecles']):
+            transporter_entry['vihecles'].append({
+                'trasp_id': tr_id,
+                'driver': driver,
+                'vehicle': vehicle,
+                'puAttach_id': att.id
+            })
+
+        if driver:
+            drv_key = (tr_id, driver)
+            if drv_key not in driver_seen:
+                driver_seen.add(drv_key)
+                trip_drivers.append({
+                    'transpoter_id': tr_id,
+                    'driver': driver
+                })
+
+        if vehicle:
+            veh_key = (tr_id, vehicle)
+            if veh_key not in vehicle_seen:
+                vehicle_seen.add(veh_key)
+                trip_vehicles.append({
+                    'transpoter_id': tr_id,
+                    'vehicle': vehicle
+                })
+
+        lines.append({
+            'id': line.id,
+            'Fuel': line.Fuel_id,
+            'fname': line.Fuel.name,
+            'qty': float(pending),
+            'othTr': False,
+            'pu': True,
+            'tr': line.pu_id,
+            'cost': float(line.cost or 0),
+            'transp_id': tr_id,
+            'transp_name': tr_name,
+            'driver': driver,
+            'vehicle': vehicle,
+        })
+
+    trip_transporters = sorted(
+        transporter_map.values(),
+        key=lambda x: (x.get('name') or '').lower()
+    )
+
+    return {
+        'trip_transporters': trip_transporters,
+        'trip_drivers': trip_drivers,
+        'trip_vehicles': trip_vehicles,
+        'lines': lines,
+    }
+
+
+@login_required(login_url='login')
+def getVendorReceiveData(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False})
+
+    try:
+        vendor_id = int(request.POST.get('vendor', 0))
+        shell_id = int(request.POST.get('shell', 0))
+        todo = todoFunct(request)
+        kampuni = todo['kampuni']
+
+        purchase_ids = list(
+            Purchases.objects.filter(
+                vendor_id=vendor_id,
+                closed=False,
+                record_by__company=kampuni,
+            ).values_list('id', flat=True)
+        )
+        if not purchase_ids:
+            return JsonResponse({
+                'success': False,
+                'swa': 'Hakuna manunuzi yasiyokamilika kwa msambazaji huyu',
+                'eng': 'No open purchases found for this vendor',
+            })
+
+        pu_lines = PuList.objects.filter(
+            pu_id__in=purchase_ids,
+            qty__gt=F('rcvd'),
+        ).select_related('Fuel', 'puAttach__transp', 'pu__vendor')
+
+        payload = _build_purchase_trip_payload(pu_lines)
+        if not payload['lines']:
+            return JsonResponse({
+                'success': False,
+                'swa': 'Hakuna mafuta yanayosubiri kupokelewa kwa msambazaji huyu',
+                'eng': 'No pending fuel to receive for this vendor',
+            })
+
+        primary_purchase = Purchases.objects.filter(pk__in=purchase_ids).select_related('vendor').order_by('pk').first()
+        shell_tanks = fuel_tanks.objects.filter(
+            Interprise_id=shell_id,
+            Interprise__company=kampuni,
+            moving=False,
+        ).annotate(
+            Fuel=F('fuel'),
+            Fname=F('fuel__name'),
+            shell=F('Interprise'),
+        ).values()
+
+        return JsonResponse({
+            'success': True,
+            'purchase_id': primary_purchase.id,
+            'vendor_name': primary_purchase.vendor.jina if primary_purchase.vendor else '',
+            'sta_tanks': list(shell_tanks),
+            'otherF': payload['lines'],
+            **payload,
+        })
+    except Exception as err:
+        print(err)
+        traceback.print_exc()
+        return JsonResponse({'success': False})
+
+
 @login_required(login_url='login')
 def getStationData(request):
     if request.method == 'POST':
@@ -6076,8 +6508,15 @@ def FuelReceive(request):
         todo.update({
             'isreceive':True,
             'otherTr':theTr,
-            'trFuel':othF
-            
+            'trFuel':othF,
+            'pu_vendors': wasambazaji.objects.filter(
+                pk__in=PuList.objects.filter(
+                    pu__closed=False,
+                    pu__record_by__company=kampuni,
+                    pu__vendor__isnull=False,
+                    qty__gt=F('rcvd'),
+                ).values_list('pu__vendor_id', flat=True).distinct()
+            ).order_by('jina'),
         })    
           
 
@@ -6620,11 +7059,16 @@ def  lipaInvo(request):
                                         b.payed = float(lipwa + deni)
                                         paid_amo = paid_amo - deni
                                         theP = deni
+                                        # print('paid item1',b.pk,deni)
+                                        b.save()    
                                     else:
                                         b.payed = float(lipwa + paid_amo)
                                         paid_amo = 0  
+                                        b.save()
+                                        print('paid item2',b.pk,paid_amo,b.payed)
                                         break  
-                                    b.save()
+                                    # b.save()
+                                    # print('paid item',b.pk,b.payed)
 
                                     if b.cdorder is not None and not prepaid_order:
                                         cdOd = b.cdorder
@@ -10036,7 +10480,8 @@ def puReceive(request):
         kampuni = todo['kampuni'] 
         i = request.GET.get('i',0)
         useri = todo['useri']
-        if useri.admin:
+        manager = todo['manager']
+        if useri.admin or manager:
             pu = Purchases.objects.get(pk=i,record_by__company=kampuni) 
             PL = PuList.objects.filter(pu=pu,qty__gt=F('rcvd')).select_related('puAttach', 'puAttach__transp', 'Fuel')
             Intp = Interprise.objects.filter(company=kampuni)

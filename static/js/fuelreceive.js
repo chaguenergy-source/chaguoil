@@ -1,15 +1,31 @@
 var TR_TANKS=[], STA_TANKS =[],OTHERF = []
+var RECEIVE_MODE = 'transfer'
+var TRANSFER_ROWS_HTML = ''
+var TRANSFER_CONTAINER_HTML = ''
+var CURRENT_PURCHASE_ID = 0
 
+if ($('#trRows').length) {
+    TRANSFER_ROWS_HTML = $('#trRows').html()
+}
+if ($('#containerTr').length) {
+    TRANSFER_CONTAINER_HTML = $('#containerTr').html()
+}
+
+const isPurchaseReceiveMode = () => ($('#receiveSourceType').val() || 'transfer') === 'purchase'
 
 const trT = () =>{
          const  mv=Number($('#moveTankAdj').hasClass('active')),
                 trTo = mv?'#Mv_Tanks':'#pmp_Tanks',
                 ToCont = Number($('#containerTrTo').val()) ,
-                ToSt = Number($('#ToStation').val()) || 0,
+                ToSt = isPurchaseReceiveMode()
+                    ? (typeof FUEL_RECEIVE_SHELL_ID !== 'undefined' ? FUEL_RECEIVE_SHELL_ID : (Number($('#ToStation').val()) || 0))
+                    : (Number($('#ToStation').val()) || 0),
                 cont = Number($('#containerTr').val()) ,
-                is_othr = Number($('#containerTr').find('option:selected').data('is_othr'))||0 ,
-                is_tnk = Number($('#containerTr').find('option:selected').data('is_tr')) ||0,
-                is_pu = Number($('#containerTr').find('option:selected').data('is_pu')) ||0,
+                is_othr = isPurchaseReceiveMode() ? 0 : (Number($('#containerTr').find('option:selected').data('is_othr'))||0) ,
+                is_tnk = isPurchaseReceiveMode() ? 0 : (Number($('#containerTr').find('option:selected').data('is_tr')) ||0),
+                is_pu = isPurchaseReceiveMode()
+                    ? (CURRENT_PURCHASE_ID > 0 ? 1 : 0)
+                    : (Number($('#containerTr').find('option:selected').data('is_pu')) ||0),
                 rlen = $('#trRows').children('tr').length,
                 lpos = $('#trRows').children('tr').last().data('pos')
 
@@ -192,6 +208,224 @@ const getSelectExtraOptionsHtml = selector => {
 
 syncTripFilters(1)
 
+const escapeHtml = val => $('<div>').text(val || '').html()
+
+const buildTripSelectOptions = (items, valueKey, labelKey) => {
+    let html = ''
+    items.forEach(item => {
+        const value = asText(item[valueKey])
+        const label = asText(item[labelKey] || item[valueKey])
+        if (!value || !label) return
+        html += `<option value="${escapeHtml(value)}" data-val="${escapeHtml(value)}">${escapeHtml(label)}</option>`
+    })
+    return html
+}
+
+const buildStationTankOptions = tanks => {
+    let html = '<option value="0" data-val="0" selected>-----------</option>'
+    tanks.forEach(t => {
+        html += `<option data-val="${t.id}" data-intp="${t.shell || t.Interprise_id || ''}" data-fname="${escapeHtml(t.Fname || t.fname || '')}" data-qty="${t.qty}" data-fuel="${t.Fuel}" value="${t.id}">${escapeHtml(t.name)}</option>`
+    })
+    return html
+}
+
+const buildPurchaseFuelOptions = lines => {
+    let html = '<option value="0" data-value="0" selected>-----------</option>'
+    lines.forEach(f => {
+        html += `<option data-val="${f.id}" value="${f.Fuel}" data-cost="${f.cost}" data-tr="${f.tr}" data-fname="${escapeHtml(f.fname)}" data-fuel="${f.Fuel}" data-qty="${f.qty}" data-pu="0" data-value="${f.Fuel}" data-transp-id="${f.transp_id || 0}" data-transp-name="${escapeHtml(f.transp_name || '')}" data-driver="${escapeHtml(f.driver || '')}" data-vehicle="${escapeHtml(f.vehicle || '')}">${escapeHtml(f.fname)}</option>`
+    })
+    return html
+}
+
+const buildPurchaseReceiveRow = (pos, fuelOpt, trspOpt, drvOpt, vehOpt, tankOpt) => `
+    <tr data-pos="${pos}">
+        <td class="IndexNo" data-pos="${pos}">${pos}</td>
+        <td class="px-1">
+            <select name="TranspOpt${pos}" id="TranspOpt${pos}" data-pos="${pos}" class="form-control brown tripTranspSel">
+                <option value="0" data-val="0" selected>-----------</option>
+                ${trspOpt}
+            </select>
+        </td>
+        <td class="px-1">
+            <select name="DriverOpt${pos}" id="DriverOpt${pos}" data-pos="${pos}" class="form-control brown tripDriverSel">
+                <option value="" data-val="0" selected>-----------</option>
+                ${drvOpt}
+            </select>
+        </td>
+        <td class="px-1">
+            <select name="VehicleOpt${pos}" id="VehicleOpt${pos}" data-pos="${pos}" class="form-control brown tripVehicleSel">
+                <option value="" data-val="0" selected>-----------</option>
+                ${vehOpt}
+            </select>
+        </td>
+        <td class="px-1">
+            <select name="FuelOpt${pos}" id="FuelOpt${pos}" data-pos="${pos}" class="form-control brown incaseIsFuel">
+                ${fuelOpt}
+            </select>
+        </td>
+        <td class="px-1">
+            <select hidden class="Mv_Tanks form-control border trOpt trOpt2 btn-sm bluePrint" data-pos="${pos}" disabled name="Mv_Tanks${pos}" id="Mv_Tanks${pos}">
+                <option value="0" data-value="0" selected>-----------</option>
+            </select>
+            <select class="pmp_Tanks form-control btn-sm bluePrint trOpt trOpt1" data-pos="${pos}" name="pmp_Tanks${pos}" id="pmp_Tanks${pos}">
+                ${tankOpt}
+            </select>
+        </td>
+        <td class="px-1">
+            <div class="input-group">
+                <input type="number" data-pos="${pos}" style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)" step="0.01" id="stickB${pos}" class="mvqty money-fomat btn-sm form-control AllAdjTanks weight600">
+            </div>
+        </td>
+        <td class="px-2">
+            <div class="input-group">
+                <input type="number" data-pos="${pos}" style="width: 150px;background-color: var(--whiteBg);color:var(--inputColor)" step="0.01" id="stickA${pos}" class="mvqty money-fomat form-control btn-sm AllAdjTanks weight600">
+            </div>
+        </td>
+        <td class="px-1">
+            <input type="text" readonly id="mvqty${pos}" class="form-control btn-sm">
+        </td>
+        <td class="pl-2">
+            <a type="button" data-pos="${pos}" class="brown rowRemoveBtn text-danger">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus-circle">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+            </a>
+        </td>
+    </tr>
+`
+
+const setupPurchaseStationFilters = () => {
+    const shellId = typeof FUEL_RECEIVE_SHELL_ID !== 'undefined' ? FUEL_RECEIVE_SHELL_ID : Number($('#ToStation').val())
+    $('#ToStation').val(shellId)
+    $('#TankSupVisor option[data-val!=0]').hide()
+    $(`#TankSupVisor option[data-intp=${shellId}]`).show()
+    $('#TankSupVisor').val(0).prop('disabled', false)
+    $('.pmp_Tanks option[data-val!=0]').hide()
+    $(`.pmp_Tanks option[data-intp=${shellId}]`).show()
+    $('.pmp_Tanks').val(0).prop('disabled', false)
+}
+
+const applyPurchaseReceiveData = resp => {
+    CURRENT_PURCHASE_ID = Number(resp.purchase_id || 0)
+    OTHERF = resp.otherF || resp.lines || []
+    STA_TANKS = resp.sta_tanks || []
+
+    const vendorName = resp.vendor_name || ''
+    $('#containerTr').html(
+        `<option data-is_othr="0" data-is_pu="1" data-by="0" value="${CURRENT_PURCHASE_ID}" selected>${escapeHtml(vendorName)}</option>`
+    )
+
+    const fuelOpt = buildPurchaseFuelOptions(OTHERF)
+    const trspOpt = buildTripSelectOptions(resp.trip_transporters || [], 'transpoter_id', 'name')
+    const drvOpt = buildTripSelectOptions(resp.trip_drivers || [], 'driver', 'driver')
+    const vehOpt = buildTripSelectOptions(resp.trip_vehicles || [], 'vehicle', 'vehicle')
+    const tankOpt = buildStationTankOptions(STA_TANKS)
+
+    $('#trRows').html(buildPurchaseReceiveRow(1, fuelOpt, trspOpt, drvOpt, vehOpt, tankOpt))
+    $(`#FuelOpt1`).data('baseOptions', null)
+    syncTripFilters(1)
+    setupPurchaseStationFilters()
+
+    if (vendorName) {
+        $('#puVendorInfo').removeClass('d-none').text(`PU-${CURRENT_PURCHASE_ID} | ${vendorName}`)
+    }
+}
+
+const resetTransferReceiveMode = () => {
+    RECEIVE_MODE = 'transfer'
+    CURRENT_PURCHASE_ID = 0
+    OTHERF = []
+
+    $('#receiveTableHeadTransfer').removeClass('d-none')
+    $('#receiveTableHeadPurchase').addClass('d-none')
+    $('#transferFromFields').removeClass('d-none')
+    $('#purchaseVendorFields').addClass('d-none')
+    $('#purchaseStationFields').addClass('d-none')
+    $('#puVendorInfo').addClass('d-none').text('')
+
+    if (TRANSFER_CONTAINER_HTML) {
+        $('#containerTr').html(TRANSFER_CONTAINER_HTML)
+        $('#containerTr').selectpicker('refresh')
+    }
+    $('#containerTr').val(0).selectpicker('refresh')
+
+    $('#puVendor').val(0).selectpicker('refresh')
+    $('#FromTankIncharge').val(0).selectpicker('refresh')
+
+    if (TRANSFER_ROWS_HTML) {
+        $('#trRows').html(TRANSFER_ROWS_HTML)
+    }
+
+    $('#TankSupVisor option').show()
+    $('#TankSupVisor').val(0).prop('disabled', true)
+    $('.pmp_Tanks option').show()
+    $('.pmp_Tanks').val(0).prop('disabled', true)
+
+    getdata()
+}
+
+const setPurchaseReceiveMode = () => {
+    RECEIVE_MODE = 'purchase'
+    CURRENT_PURCHASE_ID = 0
+
+    $('#receiveTableHeadTransfer').addClass('d-none')
+    $('#receiveTableHeadPurchase').removeClass('d-none')
+    $('#transferFromFields').addClass('d-none')
+    $('#purchaseVendorFields').removeClass('d-none')
+    $('#purchaseStationFields').removeClass('d-none')
+
+    $('#containerTr').html('<option value="0" selected>-----------</option>')
+    $('#trRows').html('')
+    $('#puVendor').val(0).selectpicker('refresh')
+    $('#puVendorInfo').addClass('d-none').text('')
+
+    $('#ToStation').val(typeof FUEL_RECEIVE_SHELL_ID !== 'undefined' ? FUEL_RECEIVE_SHELL_ID : $('#ToStation').val())
+    setupPurchaseStationFilters()
+}
+
+$('#receiveSourceType').on('change', function(){
+    if ($(this).val() === 'purchase') {
+        setPurchaseReceiveMode()
+    } else {
+        resetTransferReceiveMode()
+    }
+})
+
+$('#puVendor').on('change', function(){
+    const vendorId = Number($(this).val())
+    if (!vendorId) {
+        CURRENT_PURCHASE_ID = 0
+        $('#containerTr').html('<option value="0" selected>-----------</option>')
+        $('#trRows').html('')
+        $('#puVendorInfo').addClass('d-none').text('')
+        return
+    }
+
+    const shellId = typeof FUEL_RECEIVE_SHELL_ID !== 'undefined' ? FUEL_RECEIVE_SHELL_ID : Number($('#ToStation').val())
+    $('#loadMe').modal('show')
+    POSTREQUEST({
+        data: { vendor: vendorId, shell: shellId },
+        url: '/salepurchase/getVendorReceiveData'
+    }).then(resp => {
+        $('#loadMe').modal('hide')
+        hideLoading()
+        const msg = lang(resp.swa, resp.eng)
+        if (resp.success) {
+            applyPurchaseReceiveData(resp)
+            toastr.success(msg || lang('Data imepakiwa', 'Data loaded'), lang('Imefanikiwa', 'Success'), { timeOut: 2000 })
+        } else {
+            CURRENT_PURCHASE_ID = 0
+            $('#trRows').html('')
+            toastr.error(msg || lang('Imeshindikana', 'Failed'), lang('Imeshindikana', 'Failed'), { timeOut: 3000 })
+        }
+    }).catch(() => {
+        $('#loadMe').modal('hide')
+        hideLoading()
+        toastr.error(lang('Hitilafu imejitokeza', 'An error occurred'), lang('Imeshindikana', 'Failed'), { timeOut: 3000 })
+    })
+})
+
 // FOR PURCHASE RECEIVE PURPOSE...................//
 $('#ToStation').change(function(){
     const  St = Number($(this).val())
@@ -352,7 +586,7 @@ $('#AddTransfrow').click(function(){
                 trTo_optMv+=`<option data-val="${t.id}" data-cont=${t.tank_id} data-pos=${pos} data-fname="${t.Fname}" data-qty=${t.qty} data-fuel="${t.Fuel}" value=${t.id}>${t.name}</option>`
             })
          ToTnkSt?.forEach(t=>{
-                trTo_optSt+=`<option data-val="${t.id}" data-intp=${t.Interprise_id} data-pos=${pos} data-fname="${t.Fname}" data-qty=${t.qty} data-fuel="${t.Fuel}" value=${t.id}>${t.name}</option>`
+                trTo_optSt+=`<option data-val="${t.id}" data-intp=${t.shell || t.Interprise_id} data-pos=${pos} data-fname="${t.Fname}" data-qty=${t.qty} data-fuel="${t.Fuel}" value=${t.id}>${t.name}</option>`
             })
           
           otherFuel?.forEach(t=>{
@@ -541,7 +775,7 @@ $('#saveTrBtn').click(function(){
 
                      }else{
                         
-                            if(!tnk)redborder(`#FrmTank${pos}`)
+                            if(!tnk && is_tnk)redborder(`#FrmTank${pos}`)
                             if(!toTnk)redborder(`${trTo}${pos}`)
                             if(!(qtyA>qtyB)){redborder(`#stickB${pos}`);redborder(`#stickA${pos}`)}
                             if(!is_tnk && !t_fuel)redborder(`#FuelOpt${pos}`)
@@ -618,7 +852,11 @@ $('#saveTrBtn').click(function(){
             }else{
                 if(!tr_date)redborder('#tr_date')
                 if(!op)$('#TankSupVisor').selectpicker('setStyle','redborder')  
-                if((mv&&!trTo)&&!cont) $('#containerTr').selectpicker('setStyle','redborder') 
+                if(isPurchaseReceiveMode()){
+                    if(!cont) $('#puVendor').selectpicker('setStyle','redborder')
+                }else if((mv&&!ToCont)&&!cont){
+                    $('#containerTr').selectpicker('setStyle','redborder')
+                }
                
             }
            

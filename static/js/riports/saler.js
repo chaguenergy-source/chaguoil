@@ -14,6 +14,33 @@ const filters = () =>{
            return {st,ses,fl,pA,saT,today,week,month,isChart,chartT}
 }
 
+const getDailySalesAmount = (row, saT = 0) => {
+    if (saT === 1) return Number(row.flow_pmp_amount || 0)
+    if (saT === 2) return Number(row.credit_sales_amount || 0)
+    return Number(row.sales_amount || 0)
+}
+
+const filterDailySalesRows = (rows, opts = {}) => {
+    const { st = 0, tFr = null, tTo = null, periodKey = null, periodFormat = null } = opts
+    let filtered = rows || []
+    const fromDate = tFr ? moment(tFr).format('YYYY-MM-DD') : null
+    const toDate = tTo ? moment(tTo).format('YYYY-MM-DD') : null
+
+    if (fromDate && toDate) {
+        filtered = filtered.filter(r => r.date >= fromDate && r.date <= toDate)
+    }
+    if (st) {
+        filtered = filtered.filter(r => Number(r.st) === st)
+    }
+    if (periodKey && periodFormat) {
+        filtered = filtered.filter(r => moment(r.date).format(periodFormat) === periodKey)
+    }
+    return filtered
+}
+
+const sumDailySalesRows = (rows, saT = 0) =>
+    (rows || []).reduce((total, row) => total + getDailySalesAmount(row, saT), 0)
+
 const getRData = d =>{
     $('#loadMe').modal('show')
     const {tFr,tTo,rname,init} = d,
@@ -40,19 +67,19 @@ const getRData = d =>{
 const summaryR = d =>{
         const {resp,rname,init,tFr,tTo} = d,
           {today,week} = filters(),
-          {sale,saL,pay,payRec} = resp
+          {sale,saL,pay,payRec,dailySales} = resp
     
          if(init){
                 // Today report 
-                ArryCreate({sale,saL,pay,payRec,tFr:today.tFr,tTo:today.tTo,rname:today.rname})
+                ArryCreate({sale,saL,pay,payRec,dailySales,tFr:today.tFr,tTo:today.tTo,rname:today.rname})
 
                 // week report 
                 
-                ArryCreate({sale,saL,pay,payRec,tFr:week.tFr,tTo:week.tTo,rname:week.rname})
+                ArryCreate({sale,saL,pay,payRec,dailySales,tFr:week.tFr,tTo:week.tTo,rname:week.rname})
               
             }
 
-                ArryCreate({sale,saL,pay,payRec,tFr,tTo,rname})
+                ArryCreate({sale,saL,pay,payRec,dailySales,tFr,tTo,rname})
                createtr()
      }
 
@@ -77,13 +104,9 @@ const init = Number($('#generalSaleR tr').length==0)
                 sale = ses?sale?.filter(sa=>sa.ses===ses):sale
                 saL = ses?saL?.filter(sa=>sa.ses===ses):saL
 
-        
-
-
-                
-
-            const   cost=saL.reduce((a,b)=>a+Number(b.Tcost),0),
-                amo=sale.reduce((a,b)=>a+Number(b.amount),0),
+            const dailyRows = filterDailySalesRows(r.dailySales, { st, tFr: r.tFr, tTo: r.tTo }),
+                cost=saL.reduce((a,b)=>a+Number(b.Tcost),0),
+                amo=sumDailySalesRows(dailyRows, saT),
                 paid=sale.reduce((a,b)=>a+Number(b.payed),0),
                 due=sale.filter(sa=>sa.due>=0 && sa.customer_id!=null).reduce((a,b)=>a+Number(b.due),0),
                 
@@ -143,7 +166,8 @@ const ArryCreate = d =>{
                      sale = d.sale?.filter(s=>moment(s.sesDate).format() >= tFr && moment(s.sesDate).format() <= tTo ),
                      saL = d.saL?.filter(s=>moment(s.sesDate).format() >= tFr && moment(s.sesDate).format() <= tTo ),
                      pay = d.pay?.filter(s=>moment(s.tarehe).format() >= tFr && moment(s.tarehe).format() <= tTo ),
-                     payRec = d.payRec?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo )
+                     payRec = d.payRec?.filter(s=>moment(s.date).format() >= tFr && moment(s.date).format() <= tTo ),
+                     dailySales = filterDailySalesRows(d.dailySales, { tFr, tTo })
             thedt = {
                 id:saData.length + 1,
                 rname,
@@ -152,7 +176,8 @@ const ArryCreate = d =>{
                 pay,
                 tFr,
                 tTo,
-                payRec
+                payRec,
+                dailySales
            
          }
          saData.push(thedt)
@@ -173,7 +198,7 @@ function createArray(rname,tFr,tTo){
                 }else{
                 if(saDt.length>0){
                      const theDt = saDt[0],
-                     dt = {sale:theDt.sale,pay:theDt.pay,saL:theDt.saL,tFr,tTo,rname}
+                     dt = {sale:theDt.sale,pay:theDt.pay,saL:theDt.saL,dailySales:theDt.dailySales,tFr,tTo,rname}
                      ArryCreate(dt)
                      createtr()
 
@@ -601,11 +626,13 @@ const customerTable = d =>{
     
 const dateSaleTable = d =>{
         const {sale,saL} = d,
+            {st, saT} = filters(),
             PASale = sale,
             PASaL = saL,
             totCost = PASaL.reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0),
             totPay = PASale.reduce((a,b)=>a+Number(b.payed),0),
-            totSale = PASale.reduce((a,b)=>a+Number(b.amount),0),
+            dailyRows = filterDailySalesRows(VDATA.dailySales || [], { st, tFr: VDATA.tFr, tTo: VDATA.tTo }),
+            totSale = sumDailySalesRows(dailyRows, saT),
             Totdue =  PASale.filter(sa=>sa.due>=0 && sa.customer_id!=null).reduce((a,b)=>a+Number(b.due),0),
             totProf = totPay - totCost,
             {tFr,tTo} = VDATA,
@@ -613,12 +640,18 @@ const dateSaleTable = d =>{
             formt = diff>0?'MMMM, YYYY':'DD/MM/YYYY',
 
             flter = st=>moment(st.sesDate).format(formt),
-            Stxns = [... new Set(PASale.map(st=>flter(st)))],
+            periodKeysFromDaily = [...new Set(dailyRows.map(row => moment(row.date).format(formt)))],
+            periodKeysFromSales = [...new Set(PASale.map(stRow => flter(stRow)))],
+            Stxns = [...new Set([...periodKeysFromDaily, ...periodKeysFromSales])],
             StationData = (at) =>{
             const ftr = a=>moment(a.sesDate).format(formt)===at,
                     Atsa = PASale.filter(a=>ftr(a)),
                 AtsaL = PASaL.filter(a=>ftr(a)),
-                atF = FUEL.map(f=>StaxnFuel(f))
+                atF = FUEL.map(f=>StaxnFuel(f)),
+                periodDailyRows = filterDailySalesRows(dailyRows, {
+                    periodKey: at,
+                    periodFormat: formt,
+                })
                 
             function  StaxnFuel(f){
                 
@@ -634,7 +667,7 @@ const dateSaleTable = d =>{
                 return fDt
             }    
             
-            const tot = Atsa.reduce((a,b)=>a+Number(b.amount),0),
+            const tot = sumDailySalesRows(periodDailyRows, saT),
                 pay=Atsa.reduce((a,b)=>a+Number(b.payed),0),
                 cost = AtsaL.reduce((a,b)=>a+Number(b.qty_sold*b.cost_sold),0),
                 due = Atsa.filter(sa=>sa.due>=0 && sa.customer_id!=null).reduce((a,b)=>a+Number(b.due),0),
