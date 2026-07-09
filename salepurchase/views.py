@@ -10037,19 +10037,39 @@ def deletePurchase(request):
                 i = int(request.POST.get('pu',0))
                 kampuni = todo['kampuni']
                 
-                pu = Purchases.objects.get(pk=i,vendor__compan=kampuni)
-                pu.delete()
-                data={
-                    'success':True,
-                    'swa':'Imefanikiwa kufuta bili',
-                    'eng':'Purchase was deleted successfully'
-                }
+                pu = Purchases.objects.filter(pk=i,vendor__compan=kampuni)
+                puD = pu.first() if pu.exists() else None
+                if puD is not None:
+                    toa = toaCash.objects.filter(bill=puD.id)
+                    for t in toa:
+                        a = t.Akaunt
+                        a.Amount = a.Amount + t.Amount
+                        a.save()
+                        t.delete()
+
+                    PuList.objects.filter(pu=puD.id).delete()
+                    puAttachments.objects.filter(purchase=puD.id).delete()
+                    receivedFuel.objects.filter(receive__FromPurchase=puD.id).delete()
+                    attachments.objects.filter(purchase=puD.id).delete()
+                    pu.delete()
+
+                    return JsonResponse({
+                        'success': True,
+                        'swa': 'Imefanikiwa kufuta bili',
+                        'eng': 'Purchase was deleted successfully'
+                    })
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'swa': 'Bili haikuwa haijapatikana tafadhari jaribu tena',
+                        'eng': 'Purchase was not found please try again with a valid purchase id'
+                    })
             else:
-                data={
-                    'success':False,
-                    'swa':'Hauna ruhusa kwa kitendo hiki tafadhari wasiliana na uongozi',
-                    'eng':'You have no permission for this please contanct administration'
-                }
+                return JsonResponse({
+                    'success': False,
+                    'swa': 'Hauna ruhusa kwa kitendo hiki tafadhari wasiliana na uongozi',
+                    'eng': 'You have no permission for this please contanct administration'
+                })
         except Exception as err:
             print(err)
             traceback.print_exc()
