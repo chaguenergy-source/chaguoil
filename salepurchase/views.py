@@ -9723,8 +9723,9 @@ def lipaBill(request):
                         pu = Purchases.objects.filter(pk=value,vendor__compan=kampuni)
                     if ven:
                         pu = Purchases.objects.filter(vendor=ven,record_by__company=kampuni)
-                    pu = pu.filter(amount__gt=F('payed'))    
+                    pu = pu.filter(amount__gt=F('payed')).order_by('pk')    
                     toakwa= PaymentAkaunts.objects.get(pk=ac,Interprise__company=kampuni)
+                    duka = toakwa.Interprise
                     daiwa = float(pu.aggregate(sumi=Sum(F('amount')-F('payed')))['sumi'])
                     if paid <= daiwa:
                         vendor = pu.last().vendor 
