@@ -26,10 +26,10 @@
 
 
     <div class="table-data">
-        <div class="order">
+        <div class="order exp-records-page">
                    {% include 'matumiziHeading.html' %}   
                    {% include 'matumiziNav.html' %}   
-          <div class="head">
+          <div class="head exp-records-head">
 
             
 <div id="recordExpPanel" >
@@ -52,7 +52,7 @@
 
     <form id="expenseForm">
         <div class="row">
-            <div class="form-group col-md-5" id="expenseDateTimeWrapper" style="grid-column: span 2;">
+            <div class="form-group col-md-5" id="expenseDateTimeWrapper">
                 <label class="required">{% if useri.langSet == 0 %}Tarehe na Wakati{% else %}Date &amp; Time{% endif %}</label>
                 <input type="datetime-local" id="expenseDateTime" step="60">
             </div>

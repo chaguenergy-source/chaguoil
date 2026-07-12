@@ -258,12 +258,6 @@ document.addEventListener('DOMContentLoaded', function(){
     `;
 
     const reportBody = document.getElementById('TheReportData').innerHTML;
-    const reportData = heading + (details ? details.outerHTML : '') + statementDetails + reportBody;
-    const printWindow = window.open('', '', 'height=600,width=1000');
-    printWindow.document.write(company_header);
-    printWindow.document.write(reportData);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
+    openAndPrintDocument(reportData);
   });
 });

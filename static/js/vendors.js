@@ -152,24 +152,7 @@ $(document).on('click', '#vendorStatement', function(e){
 
                         `
 
-    const printWindow = window.open('', '', 'height=700,width=1000');
-    if (!printWindow) {
-        toastr.warning(lang('Kivinjari kimezuia popup ya print. Tafadhali ruhusu popups kisha jaribu tena.','Your browser blocked the print popup. Please allow popups and try again.'))
-        return
-    }
-
-    const printHeader = (typeof company_header !== 'undefined' && company_header)
-        ? company_header
-        : '<html><head><title>Vendor Statement</title></head><body>'
-
-    printWindow.document.write(printHeader);
-    printWindow.document.write(`${head} ${vendorDetails} ${summary} <hr> ${thisMonthTable} <hr> ${prevSaleTable}`);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-        printWindow.print()
-    }, 300)
+    openAndPrintDocument(`${head} ${vendorDetails} ${summary} <hr> ${thisMonthTable} <hr> ${prevSaleTable}`);
 })
 
 $(document).on('click', '#transporterStatement', function(e){
@@ -219,24 +202,7 @@ $(document).on('click', '#transporterStatement', function(e){
             ${prev ? $('#transporter_last_Month').html() : `<div class="alert alert-light text-center">${lang('Hakuna madeni ya nyuma','No previous debt records')}</div>`}
     `
 
-    const printWindow = window.open('', '', 'height=700,width=1000');
-    if (!printWindow) {
-        toastr.warning(lang('Kivinjari kimezuia popup ya print. Tafadhali ruhusu popups kisha jaribu tena.','Your browser blocked the print popup. Please allow popups and try again.'))
-        return
-    }
-
-    const printHeader = (typeof company_header !== 'undefined' && company_header)
-        ? company_header
-        : '<html><head><title>Transporter Statement</title></head><body>'
-
-    printWindow.document.write(printHeader)
-    printWindow.document.write(`${head} ${transporterDetails} ${summary} <hr> ${thisMonthTable} <hr> ${prevSaleTable}`)
-    printWindow.document.write('</body></html>')
-    printWindow.document.close()
-    printWindow.focus()
-    setTimeout(() => {
-        printWindow.print()
-    }, 300)
+    openAndPrintDocument(`${head} ${transporterDetails} ${summary} <hr> ${thisMonthTable} <hr> ${prevSaleTable}`);
 })
 
 $(document).on('click', '#openTransporterPayModal', function(e){

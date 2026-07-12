@@ -40,7 +40,7 @@
 
 
 <div class="table-data">
-    <div class="order">
+    <div class="order exp-attachments-page">
 
      {% include 'matumiziHeading.html' %}   
       {% include 'matumiziNav.html' %} 
@@ -72,7 +72,8 @@
            
             
             {% if all_attachments %}
-                <table class="table table-bordered table-striped mt-3">
+                <div class="table-responsive exp-att-table-wrap">
+                <table class="table table-bordered table-striped mt-3 exp-att-table smallFont">
                     <thead>
                         <tr>
                              <th>{% if useri.langSet == 0 %}Tarehe {% else %}Date {% endif %}</th>
@@ -86,28 +87,29 @@
                     <tbody>
                         {% for attachment in all_attachments %}
                         <tr>
-                            <td>
+                            <td data-label="{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}">
                                 <script>
                                     document.write(moment("{{ attachment.date|date:'r' }}").format("DD/MM/YYYY HH:mm"))
                                 </script>
                                 </td>
 
-                            <td>
+                            <td data-label="{% if useri.langSet == 0 %}Matumizi{% else %}Expense{% endif %}">
                               
                                     {{ attachment.attach_name}}
                                
                             </td>
-                            <td>
+                            <td data-label="{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} ({{currencii}})">
                                 {{ attachment.expAttach.kiasi|floatformat:2|intcomma }} 
                             </td>
                             
-                            <td>
+                            <td data-label="{% if useri.langSet == 0 %}Chaguo{% else %}Options{% endif %}">
                                 <a href="{{ attachment.file.url }}" target="_blank" class="btn btn-primary btn-sm">{% if useri.langSet == 0 %}Tazama{% else %}View{% endif %}</a>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
 
     
           <p class=" pt-4 ">
@@ -154,9 +156,8 @@
         {% else %}
             <div id="attachments" class="report-section mt-4">
                 
-                
-                
-                    <table class="table table-bordered table-striped mt-3">
+                <div class="table-responsive exp-att-table-wrap">
+                    <table class="table table-bordered table-striped mt-3 exp-att-table smallFont">
                         <thead>
                             <tr> 
                                 <th>{% if useri.langSet == 0 %}Tarehe {% else %} Date{% endif %}</th>
@@ -175,27 +176,27 @@
                         <tbody>
                             {% for item in missingAttachments %}
                             <tr>
-                                <td>
+                                <td data-label="{% if useri.langSet == 0 %}Tarehe{% else %}Date{% endif %}">
                                    
                                     <script>
                                         document.write(moment("{{ item.tarehe|date:'r' }}").format("DD/MM/YYYY HH:mm"))
                                     </script>
                                 </td>
-                                <td>
+                                <td data-label="{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}">
                                     {{item.Interprise.name}}
                                 </td>
 
-                                <td>
+                                <td data-label="{% if useri.langSet == 0 %}Matumizi{% else %}Expense{% endif %}">
                                     {{item.matumizi.matumizi}} 
                                 </td>
-                                <td>
+                                <td data-label="{% if useri.langSet == 0 %}Maelezo{% else %}Remarks{% endif %}">
                                     {{item.maelezo}}
                                 </td>
-                                <td>{{ item.kabidhiwa | title}}</td>
-                                <td>{{ item.by.user.first_name | title }} {{ item.by.user.last_name | title }}</td>
+                                <td data-label="{% if useri.langSet == 0 %}Aliyekabidhiwa{% else %}Given To{% endif %}">{{ item.kabidhiwa | title}}</td>
+                                <td data-label="{% if useri.langSet == 0 %}Na{% else %}By{% endif %}">{{ item.by.user.first_name | title }} {{ item.by.user.last_name | title }}</td>
 
-                                <td>{{ item.kiasi|floatformat:2|intcomma }}</td>
-                                <td>
+                                <td data-label="{% if useri.langSet == 0 %}Kiasi{% else %}Amount{% endif %} ({{currencii}})">{{ item.kiasi|floatformat:2|intcomma }}</td>
+                                <td data-label="{% if useri.langSet == 0 %}Viambatisho{% else %}Attachments{% endif %}">
                                     
                                         <span 
                                         data-station="{{item.Interprise.id}}"
@@ -220,6 +221,7 @@
                             {% endfor %}
                             </tbody>
                             </table>
+                </div>
                             </div>
 
         {% endif %}
@@ -410,6 +412,10 @@
        
 
 
+{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{% static 'css/matumiziAttachments.css' %}">
 {% endblock %}
 
 {% block expenses %} active  {% endblock %}

@@ -1559,7 +1559,7 @@
                                 const paidAmo = parseFloat($(this).val()) || 0;
                                 const custmDebt = parseFloat('{{totD}}') || 0;
 
-                                if(paidAmo > custmDebt)$('#orderAmount').val( paidAmo - custmDebt );
+                                if(paidAmo > custmDebt)$('#orderAmount').val( Number(paidAmo - custmDebt).toFixed(2) );
                                 else $('#orderAmount').val('');
                                
                             });

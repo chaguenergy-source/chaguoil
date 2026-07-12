@@ -256,7 +256,7 @@ const buildMiniTable = ({ headers, rows, footer }) => {
     if (!rows || !rows.length) return '';
     const body = rows.map(cells => `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`).join('');
     const foot = footer ? `<tfoot><tr>${footer.map(c => `<td>${c}</td>`).join('')}</tr></tfoot>` : '';
-    return `<div class="table-responsive"><table class="daily-mini-table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody>${foot}</table></div>`;
+    return `<div class="table-responsive daily-table-scroll"><table class="daily-mini-table daily-scroll-table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody>${foot}</table></div>`;
 };
 
 const buildSection = (title, bodyHtml, cssClass = '') => {
@@ -280,7 +280,8 @@ const buildPumpFuelBlock = fuel => {
 
     return `
       <div class="daily-pump-title brown weight500 mb-1">${lang('Pampu za', 'Pumps of')} <u>${escapeDailyHtml(fuel.fuel_name)}</u>${analogNote}</div>
-      <table class="daily-mini-table daily-pump-table mb-2">
+      <div class="table-responsive daily-table-scroll daily-pump-scroll-wrap">
+      <table class="daily-mini-table daily-pump-table daily-scroll-table mb-2">
         <thead>
           <tr>
             <th>${lang('Dispensa', 'Dispenser')}</th>
@@ -300,7 +301,8 @@ const buildPumpFuelBlock = fuel => {
             <td>${formatNumber(fuel.total_amount)}</td>
           </tr>
         </tfoot>
-      </table>`;
+      </table>
+      </div>`;
 };
 
 const buildShiftAttachmentsBlock = shift => {
@@ -597,8 +599,8 @@ const buildStockEvaluationSection = stock => {
         <td>${diffCell(t.diff)}</td>
       </tr>`).join('');
     const table = `
-      <div class="table-responsive">
-        <table class="daily-mini-table daily-eval-wide-table">
+      <div class="table-responsive daily-table-scroll">
+        <table class="daily-mini-table daily-eval-wide-table daily-scroll-table">
           <thead>
             <tr>
               <th>#</th>
@@ -643,8 +645,8 @@ const buildFuelFlowSummarySection = fuelFlow => {
         <td>${formatNumber(r.pmp_q)}</td><td>${formatNumber(r.pmp_a)}</td>
       </tr>`).join('');
     const table = `
-      <div class="table-responsive">
-        <table class="daily-mini-table daily-eval-wide-table">
+      <div class="table-responsive daily-table-scroll">
+        <table class="daily-mini-table daily-eval-wide-table daily-scroll-table">
           <thead>
             <tr>
               <th rowspan="2">#</th>
@@ -742,15 +744,11 @@ const renderDayDetail = data => {
 
     const header = `
       <div class="daily-day-header">
-        <table class="daily-mini-table daily-day-header-table mb-0">
-          <tbody>
-            <tr>
-              <td><strong>${lang('Tarehe', 'Date')}:</strong> ${dateLabel}</td>
-              <td><strong>${lang('Kituo', 'Station')}:</strong> ${escapeDailyHtml(data.stN || lang('Vituo Vyote', 'All Stations'))}</td>
-              <td><strong>${lang('Sessions', 'Sessions')}:</strong> ${(data.summary || {}).session_count || 0} · <strong>${lang('Zamu', 'Shifts')}:</strong> ${(data.summary || {}).shift_count || 0}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="daily-day-header-grid">
+          <div class="daily-day-header-item"><strong>${lang('Tarehe', 'Date')}:</strong> ${dateLabel}</div>
+          <div class="daily-day-header-item"><strong>${lang('Kituo', 'Station')}:</strong> ${escapeDailyHtml(data.stN || lang('Vituo Vyote', 'All Stations'))}</div>
+          <div class="daily-day-header-item"><strong>${lang('Sessions', 'Sessions')}:</strong> ${(data.summary || {}).session_count || 0} · <strong>${lang('Zamu', 'Shifts')}:</strong> ${(data.summary || {}).shift_count || 0}</div>
+        </div>
       </div>`;
 
     const html = header
@@ -1098,17 +1096,14 @@ $('#printDayDetail').on('click', function () {
         includeAttach,
     );
     const title = $('#dayDetailTitle').text();
-    const printWindow = window.open('', '', 'height=800,width=1100');
-    printWindow.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Daily Sales</title>');
-    printWindow.document.write(getDayDetailPrintStyles());
-    printWindow.document.write('</head><body><div class="daily-print-wrap">');
-    printWindow.document.write(getDailyPrintHeaderHtml());
-    printWindow.document.write(`<h2 class="daily-print-title">${escapeDailyHtml(title)}</h2>`);
-    printWindow.document.write(`<div class="daily-print-content">${content}</div>`);
-    printWindow.document.write('</div></body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => printWindow.print(), 600);
+    const fullHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Daily Sales</title>'
+        + getDayDetailPrintStyles()
+        + '</head><body><div class="daily-print-wrap">'
+        + getDailyPrintHeaderHtml()
+        + `<h2 class="daily-print-title">${escapeDailyHtml(title)}</h2>`
+        + `<div class="daily-print-content">${content}</div>`
+        + '</div></body></html>';
+    openAndPrintDocument(fullHtml, { fullDocument: true });
 });
 
 $('#stationFilter').on('change', function () {
@@ -1170,10 +1165,5 @@ $('#printPayments').on('click', function () {
     </div>`;
 
     const theReportData = document.getElementById('paymentsTable').innerHTML;
-    const printWindow = window.open('', '', 'height=600,width=1200');
-    printWindow.document.write(company_header);
-    printWindow.document.write(`${heading}${statementDetails}${theReportData}`);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
+    openAndPrintDocument(`${heading}${statementDetails}${theReportData}`);
 });

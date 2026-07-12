@@ -626,32 +626,6 @@ $(document).ready(() => {
         const reportData = psBuildPrintReport();
         if (!reportData) return;
 
-        const printWindow = window.open('', '_blank', 'height=700,width=1100');
-        if (!printWindow) {
-            toastr.error(lang('Ruhusu popup ili kuchapisha', 'Allow popups to print'), lang('Haikufanikiwa', 'Error'));
-            return;
-        }
-
-        printWindow.document.open();
-        printWindow.document.write(company_header);
-        printWindow.document.write(psPrintStyles);
-        printWindow.document.write(`<div id="psPrintReport">${reportData}</div>`);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-
-        let printed = false;
-        const triggerPrint = () => {
-            if (printed) return;
-            printed = true;
-            printWindow.focus();
-            printWindow.print();
-        };
-
-        printWindow.onload = () => setTimeout(triggerPrint, 400);
-        setTimeout(() => {
-            if (printWindow.document.readyState === 'complete') {
-                triggerPrint();
-            }
-        }, 800);
+        openAndPrintDocument(`<div id="psPrintReport">${reportData}</div>`, { extraHead: psPrintStyles });
     });
 });

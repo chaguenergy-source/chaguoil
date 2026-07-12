@@ -1,13 +1,15 @@
 
 
      #recordExpPanel{
-            width: 90vw;
+            width: 100%;
+            max-width: min(90vw, 1200px);
             margin: 0 auto;
             background: var(--whiteBg);
             border-radius: 14px;
             padding: 24px;
             /* box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08); */
             border: 1px solid var(--borderColor);
+            box-sizing: border-box;
      }
 
         .recylebtn{
@@ -102,11 +104,14 @@
         #recordExpPanel select,
         #recordExpPanel textarea {
             width: 100%;
+            max-width: 100%;
+            min-width: 0;
             padding: 11px 12px;
             font-size: small;
             border: 1px solid var(--borderColor);
             border-radius: 8px;
             outline: none;
+            box-sizing: border-box;
            
         }
 
@@ -348,3 +353,93 @@
             font-weight: 700;
             letter-spacing: 0.2px;
         }
+
+@media screen and (max-width: 768px) {
+    .exp-records-page {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .exp-records-page > .nav-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .exp-records-page > .nav-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .exp-records-page > .nav-tabs .nav-link {
+        white-space: nowrap;
+    }
+
+    .exp-records-head {
+        min-width: 0 !important;
+        overflow-x: hidden;
+    }
+
+    #recordExpPanel {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    #recordExpPanel .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    #recordExpPanel .header-top h1 {
+        font-size: 1.15rem;
+        line-height: 1.3;
+    }
+
+    #recordExpPanel .form-row,
+    #recordExpPanel #expenseForm > .row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    #recordExpPanel .form-group[style*="grid-column"] {
+        grid-column: 1 / -1 !important;
+    }
+
+    #recordExpPanel .salary-deduction-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #recordExpPanel .table-container {
+        margin-top: 16px;
+        border-radius: 6px;
+    }
+
+    #recordExpPanel .table-container table {
+        min-width: 0 !important;
+        width: 100%;
+        font-size: 12px;
+    }
+
+    #recordExpPanel th,
+    #recordExpPanel td {
+        padding: 8px 6px;
+        word-break: break-word;
+    }
+
+    #recordExpPanel .total-expenses-panel {
+        justify-content: flex-start;
+        gap: 8px;
+        padding: 10px 8px;
+    }
+
+    #recordExpPanel .btn-new {
+        width: 100%;
+        text-align: center;
+    }
+}

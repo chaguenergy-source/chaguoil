@@ -153,18 +153,5 @@ $('#customerStatement').click(function(){
                         
                         `
 
-    const printWindow = window.open('', '', 'height=600,width=800');
-    if(!printWindow){
-      toastr.warning(lang('Kivinjari kimezuia popup ya print. Tafadhali ruhusu popups kisha jaribu tena.','Your browser blocked the print popup. Please allow popups and try again.'));
-      return;
-    }
-    printWindow.document.write(company_header);
-    printWindow.document.write(`${head} ${custDetails} ${summary} <hr> ${thisMonthTable} <hr> ${prevSaleTable}`); 
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(function(){
-      printWindow.print();
-      printWindow.close();
-    }, 900);
+    openAndPrintDocument(`${head} ${custDetails} ${summary} <hr> ${thisMonthTable} <hr> ${prevSaleTable}`);
   })

@@ -3200,16 +3200,6 @@ $('#printRBtn').click(function(){
         return
     }
 
-    const printWindow = window.open('', '', 'height=600,width=800');
-    printWindow.document.write(company_header);
-    printWindow.document.write(`${head}<table class="table table-bordered" style="max-width:100%" >${table}</table>`); 
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    // create a delay to allow the content to render before printing
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 700);
+    openAndPrintDocument(`${head}<table class="table table-bordered" style="max-width:100%" >${table}</table>`);
     
 })

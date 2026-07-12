@@ -500,13 +500,7 @@ $('#printPayments').on('click', function () {
 
     // Print exactly the same table structure shown on screen to preserve column alignment.
     const theReportData = document.getElementById('paymentsTable').innerHTML;
-    const reportData = heading + statementDetails + theReportData;
-    const printWindow = window.open('', '', 'height=600,width=1000');
-    printWindow.document.write(company_header);
-    printWindow.document.write(`${reportData}`);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
+    openAndPrintDocument(heading + statementDetails + theReportData);
 });
 
 const docLabelForMode = (r, parentId) => {
@@ -550,13 +544,12 @@ $('#printShiftAttachments').on('click', function () {
         return;
     }
 
-    const printWindow = window.open('', '', 'height=800,width=1000');
-    printWindow.document.write('<html><head><title>Attachments</title></head><body>');
-    printWindow.document.write(buildShiftAttachmentsPrintHtml());
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => printWindow.print(), 700);
+    openAndPrintDocument(
+        '<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Attachments</title></head><body>'
+        + buildShiftAttachmentsPrintHtml()
+        + '</body></html>',
+        { fullDocument: true }
+    );
 });
 
 // Checkbox selection for approve / delete

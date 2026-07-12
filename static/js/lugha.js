@@ -51,6 +51,20 @@ function removeRedboder(){
     })
 }
 
+// Prevent mouse wheel from changing number input values while focused
+document.addEventListener('wheel', function(e){
+  const active = document.activeElement;
+  if(active && active.tagName === 'INPUT' && active.type === 'number'){
+    e.preventDefault();
+  }
+}, { passive: false });
+
+$(document).on('wheel', 'input[type="number"]', function(e){
+  if(document.activeElement === this){
+    e.preventDefault();
+  }
+});
+
 
 //Save attachment...........................//
 $('#attachform').submit(function(e){
@@ -105,11 +119,9 @@ $('#attachform').submit(function(e){
 
 // PRINT TABLE OR DOCU
 function Printable(p) {
-  var divToPrint = p;
-  var newWin = window.open("");
-  newWin.document.write(divToPrint.outerHTML);
-  newWin.print();
-  newWin.close();
+  if(!p) return;
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Print</title></head><body>${p.outerHTML}</body></html>`;
+  openAndPrintDocument(html, { fullDocument: true });
 }
 
 
@@ -125,6 +137,7 @@ const company_header = `
   <html lang="en">
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     
     <link rel="stylesheet" href="https://storage.googleapis.com/chagufilling/static/css/bootstrap5.min.css" >
@@ -250,6 +263,88 @@ const company_header = `
 
   ${$('#CompanyTitle').html()}
   `
+
+function isMobilePrintDevice(){
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent)
+    || (window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+}
+
+function openAndPrintDocument(bodyHtml, options){
+  options = options || {};
+  const extraHead = options.extraHead || '';
+  const fullDocument = !!options.fullDocument;
+
+  const printWindow = window.open('', '_blank');
+  if(!printWindow){
+    toastr.warning(
+      lang('Kivinjari kimezuia popup ya print. Tafadhali ruhusu popups kisha jaribu tena.','Your browser blocked the print popup. Please allow popups and try again.')
+    );
+    return null;
+  }
+
+  printWindow.document.open();
+  if(fullDocument){
+    printWindow.document.write(bodyHtml);
+  } else {
+    printWindow.document.write(company_header);
+    printWindow.document.write(extraHead);
+    printWindow.document.write(bodyHtml);
+    printWindow.document.write('</body></html>');
+  }
+  printWindow.document.close();
+
+  let printed = false;
+  const mobile = isMobilePrintDevice();
+  const printDelay = mobile ? 1500 : 700;
+
+  const triggerPrint = () => {
+    if(printed || !printWindow || printWindow.closed) return;
+    printed = true;
+    printWindow.focus();
+    printWindow.print();
+    if(!mobile){
+      const closePrintWindow = () => {
+        if(printWindow && !printWindow.closed) printWindow.close();
+      };
+      if('onafterprint' in printWindow){
+        printWindow.onafterprint = closePrintWindow;
+      } else {
+        setTimeout(closePrintWindow, 1500);
+      }
+    }
+  };
+
+  const waitForImages = (callback) => {
+    const imgs = printWindow.document.images;
+    if(!imgs || !imgs.length) return callback();
+    let remaining = imgs.length;
+    const done = () => {
+      remaining--;
+      if(remaining <= 0) callback();
+    };
+    for(let i = 0; i < imgs.length; i++){
+      if(imgs[i].complete) done();
+      else {
+        imgs[i].onload = done;
+        imgs[i].onerror = done;
+      }
+    }
+  };
+
+  const schedulePrint = () => waitForImages(() => setTimeout(triggerPrint, printDelay));
+
+  printWindow.onload = schedulePrint;
+  setTimeout(() => {
+    if(!printed && printWindow.document && printWindow.document.readyState === 'complete'){
+      schedulePrint();
+    }
+  }, 400);
+  setTimeout(() => {
+    if(!printed) triggerPrint();
+  }, printDelay + 5000);
+
+  return printWindow;
+}
 
   const printProperties =`
               <script>

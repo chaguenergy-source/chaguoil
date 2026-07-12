@@ -501,21 +501,7 @@ document.addEventListener('DOMContentLoaded', function(){
       return;
     }
 
-    const printWindow = window.open('', '', 'height=800,width=1000');
-    if(!printWindow){
-      toastr.warning(lang('Kivinjari kimezuia popup ya print. Tafadhali ruhusu popups kisha jaribu tena.','Your browser blocked the print popup. Please allow popups and try again.'));
-      return;
-    }
-
-    printWindow.document.write(company_header);
-    printWindow.document.write(buildAttachmentsPrintHtml(filtered));
-    printWindow.document.write('</div></body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(function(){
-      printWindow.print();
-      printWindow.close();
-    }, 900);
+    openAndPrintDocument(buildAttachmentsPrintHtml(filtered));
   });
 
 // Print the Report ......//
@@ -558,20 +544,7 @@ $('#printStatement').click(function(){
   // document.body.innerHTML = heading + customerDetails.outerHTML + statementDetails + theReportData;
 
   const reportData = heading + (customerDetails ? customerDetails.outerHTML : '') + statementDetails + theReportData;
-     const printWindow = window.open('', '', 'height=600,width=1000');
-    if(!printWindow){
-      toastr.warning(lang('Kivinjari kimezuia popup ya print. Tafadhali ruhusu popups kisha jaribu tena.','Your browser blocked the print popup. Please allow popups and try again.'));
-      return;
-    }
-    printWindow.document.write(company_header);
-    printWindow.document.write(`${reportData}`); 
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(function(){
-      printWindow.print();
-      printWindow.close();
-    }, 900);
+  openAndPrintDocument(reportData);
 
   
 });

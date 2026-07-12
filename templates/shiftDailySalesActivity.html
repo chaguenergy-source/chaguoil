@@ -11,17 +11,29 @@
     .day-detail-row:hover { background: #f0f7ff; }
     .daily-day-panel { font-size: 12px; }
     .daily-day-header { background: linear-gradient(135deg, #e8f4fd 0%, #f8f9fa 100%); border: 1px solid #b8daff; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+    .daily-day-header-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; }
+    .daily-day-header-item { font-size: 12px; line-height: 1.45; word-break: break-word; }
     .daily-section { margin-bottom: 18px; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; }
     .daily-section-title { font-weight: 700; font-size: 13px; padding: 8px 12px; color: #fff; background: linear-gradient(90deg, #006ae4 0%, #0056b3 100%); }
     .daily-section-body { padding: 10px 12px; }
     .daily-section-body > .table-responsive,
-    .daily-day-panel .table-responsive {
+    .daily-day-panel .table-responsive,
+    .daily-table-scroll {
         display: block;
         width: 100%;
         max-width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
     }
+    .daily-scroll-table { min-width: 640px; table-layout: auto; }
+    .daily-pump-table.daily-scroll-table { min-width: 700px; }
+    .daily-pump-table th:nth-child(1),
+    .daily-pump-table td:nth-child(1) { min-width: 72px; }
+    .daily-pump-table th:nth-child(2),
+    .daily-pump-table td:nth-child(2) { min-width: 88px; }
+    .daily-pump-table th:nth-child(n+3),
+    .daily-pump-table td:nth-child(n+3) { min-width: 64px; white-space: nowrap; }
     .daily-section-shifts .daily-section-title { background: linear-gradient(90deg, #0d6efd 0%, #084298 100%); }
     .daily-section-sales .daily-section-title { background: linear-gradient(90deg, #198754 0%, #146c43 100%); }
     .daily-section-payments .daily-section-title { background: linear-gradient(90deg, #6f42c1 0%, #59359a 100%); }
@@ -47,7 +59,6 @@
     .daily-pump-table thead th { background: #e7f1ff; color: #084298; }
     .daily-shift-meta-table td { width: 50%; }
     .daily-sign-table td { width: 50%; min-height: 48px; }
-    .daily-day-header-table td { width: 33.33%; }
     .daily-pump-title { font-weight: 600; margin: 4px 0 2px; }
     .analog-shift-card { border-left: 3px solid #856404; }
     .analog-pump-row td { background: #fff3cd; }
@@ -96,6 +107,82 @@
     .daily-mini-table tr.daily-summary-loss th,
     .daily-mini-table tr.daily-summary-loss td { background: #f8d7da; font-weight: 700; }
     .daily-empty-note { color: #6c757d; font-size: 11px; font-style: italic; padding: 6px 0; }
+    @media (max-width: 768px) {
+        #paymentDayDetail,
+        #dayDetailContent {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        .daily-day-panel {
+            font-size: 11px;
+        }
+        .daily-day-header {
+            padding: 10px 12px;
+        }
+        .daily-day-header-grid {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        .daily-day-header-item {
+            font-size: 11px;
+        }
+        .daily-section-body {
+            padding: 8px 6px;
+        }
+        .daily-session-group {
+            padding: 8px;
+        }
+        .daily-session-head {
+            font-size: 11px;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+        .daily-shift-card {
+            padding: 8px;
+        }
+        .daily-shift-meta-table tbody tr,
+        .daily-sign-table tbody tr {
+            display: flex;
+            flex-direction: column;
+        }
+        .daily-shift-meta-table td,
+        .daily-sign-table td {
+            width: 100% !important;
+            display: block;
+        }
+        .daily-mini-table {
+            table-layout: auto;
+            font-size: 10.5px;
+        }
+        .daily-mini-table th,
+        .daily-mini-table td {
+            padding: 5px 7px;
+            line-height: 1.35;
+        }
+        .daily-scroll-table {
+            min-width: 620px;
+        }
+        .daily-pump-table.daily-scroll-table {
+            min-width: 680px;
+        }
+        #content main .table-data .order #paymentDayDetail table {
+            min-width: 0 !important;
+        }
+        #content main .table-data .order #paymentDayDetail .table-responsive > table,
+        #content main .table-data .order #paymentDayDetail .daily-scroll-table {
+            min-width: 620px !important;
+        }
+        #content main .table-data .order #paymentDayDetail .daily-pump-table.daily-scroll-table {
+            min-width: 680px !important;
+        }
+        .daily-shift-summary-table.daily-mini-table {
+            min-width: 0 !important;
+            width: 100%;
+        }
+        .daily-eval-wide-table {
+            min-width: 720px;
+        }
+    }
     @media print {
         .daily-day-panel { font-size: 9px; }
         .daily-section { page-break-inside: auto; break-inside: auto; margin-bottom: 8px; border-width: 1px; }
