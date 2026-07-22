@@ -5,7 +5,10 @@
 {% block additional_css %}
 <link rel="stylesheet" href="{% static 'css/customerPayments.css' %}">
 <style>
-    .daily-sales-table th, .daily-sales-table td { font-size: 12px; vertical-align: middle; white-space: nowrap; text-align: left; }
+    .daily-summary-filters { margin-bottom: 16px; }
+    .daily-station-bar,
+    .daily-details-station-bar { margin-bottom: 16px; }
+    .daily-details-station-bar .filter-group { margin-bottom: 0; min-width: 200px; max-width: 320px; }
     .daily-sales-table .sub-label { display: block; font-size: 10px; color: #6c757d; font-weight: normal; }
     .day-detail-row { cursor: pointer; }
     .day-detail-row:hover { background: #f0f7ff; }
@@ -220,43 +223,45 @@
     </h5>
 </div>
 
-<div id="paymentSummary">
-    <div class="payment-filters">
-        {% csrf_token %}
-        <div class="filter-group">
-            <label>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}:</label>
-            <div class="input-group">
-                <select id="stationFilter" class="form-control">
-                    {% if not general %}
-                        <option value="{{shell.id}}" data-stxn="{{shell.name}}">{{shell.name}}</option>
-                        {% if useri.admin or useri.ceo %}
-                            {% for station in stations %}
-                                {% if station != shell %}
-                                    <option value="{{ station.id }}" data-stxn="{{station.name}}">{{ station.name }}</option>
-                                {% endif %}
-                            {% endfor %}
-                            <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
-                        {% endif %}
-                    {% else %}
-                        <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
-                        {% for station in stations %}
+<div id="dailySalesStationBar" class="payment-filters daily-station-bar">
+    {% csrf_token %}
+    <div id="dailySalesStationFilterGroup" class="filter-group">
+        <label>{% if useri.langSet == 0 %}Kituo{% else %}Station{% endif %}:</label>
+        <select id="stationFilter" class="form-control">
+            {% if not general %}
+                <option value="{{shell.id}}" data-stxn="{{shell.name}}">{{shell.name}}</option>
+                {% if useri.admin or useri.ceo %}
+                    {% for station in stations %}
+                        {% if station != shell %}
                             <option value="{{ station.id }}" data-stxn="{{station.name}}">{{ station.name }}</option>
-                        {% endfor %}
-                    {% endif %}
-                </select>
-                <div class="input-group-append dropdown">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        {% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}
-                    </button>
-                    <div class="dropdown-menu" id="common_duration">
-                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Wiki Ilopita{% else %}Last Week{% endif %}',moment().startOf('isoWeek').subtract(1,'days').startOf('isoWeek').format(),moment().startOf('isoWeek').subtract(1,'days').endOf('isoWeek').format())">{% if useri.langSet == 0 %}Wiki Ilopita{% else %}Last Week{% endif %}</a>
-                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwezi ulopita{% else %}Last Month{% endif %}',moment().startOf('month').subtract(1,'days').startOf('month').format(),moment().startOf('month').subtract(1,'days').endOf('month').format())">{% if useri.langSet == 0 %}Mwezi Uliopita{% else %}Last Month{% endif %}</a>
-                       
-                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}',moment().startOf('year').format(),moment().endOf('year').format())">{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}</a>
-                        <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwaka Jana{% else %}Last Year{% endif %}',moment().startOf('year').subtract(1,'years').format(),moment().startOf('year').subtract(1,'years').endOf('year').format())">{% if useri.langSet == 0 %}Mwaka Jana{% else %}Last Year{% endif %}</a>
-                        <a class="dropdown-item" type="button" data-toggle="modal" data-target="#durationModal">{% if useri.langSet == 0 %}Weka Muda{% else %}Custom Date{% endif %}</a>
+                        {% endif %}
+                    {% endfor %}
+                    <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                {% endif %}
+            {% else %}
+                <option value="0">{% if useri.langSet == 0 %}Vituo Vyote{% else %}All Stations{% endif %}</option>
+                {% for station in stations %}
+                    <option value="{{ station.id }}" data-stxn="{{station.name}}">{{ station.name }}</option>
+                {% endfor %}
+            {% endif %}
+        </select>
+    </div>
+</div>
 
-                    </div>
+<div id="paymentSummary">
+    <div class="payment-filters daily-summary-filters">
+        <div class="filter-group">
+            <label>{% if useri.langSet == 0 %}Muda{% else %}Duration{% endif %}:</label>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {% if useri.langSet == 0 %}Chagua Muda{% else %}Select Duration{% endif %}
+                </button>
+                <div class="dropdown-menu" id="common_duration">
+                    <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Wiki Ilopita{% else %}Last Week{% endif %}',moment().startOf('isoWeek').subtract(1,'days').startOf('isoWeek').format(),moment().startOf('isoWeek').subtract(1,'days').endOf('isoWeek').format())">{% if useri.langSet == 0 %}Wiki Ilopita{% else %}Last Week{% endif %}</a>
+                    <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwezi ulopita{% else %}Last Month{% endif %}',moment().startOf('month').subtract(1,'days').startOf('month').format(),moment().startOf('month').subtract(1,'days').endOf('month').format())">{% if useri.langSet == 0 %}Mwezi Uliopita{% else %}Last Month{% endif %}</a>
+                    <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}',moment().startOf('year').format(),moment().endOf('year').format())">{% if useri.langSet == 0 %}Mwaka Huu{% else %}This Year{% endif %}</a>
+                    <a class="dropdown-item" type="button" onclick="createArray('{% if useri.langSet == 0 %}Mwaka Jana{% else %}Last Year{% endif %}',moment().startOf('year').subtract(1,'years').format(),moment().startOf('year').subtract(1,'years').endOf('year').format())">{% if useri.langSet == 0 %}Mwaka Jana{% else %}Last Year{% endif %}</a>
+                    <a class="dropdown-item" type="button" data-toggle="modal" data-target="#durationModal">{% if useri.langSet == 0 %}Weka Muda{% else %}Custom Date{% endif %}</a>
                 </div>
             </div>
         </div>
@@ -289,10 +294,12 @@
 </div>
 
 <div id="paymentDetails" class="mt-4" style="display:none">
-    <div>
+    <div class="d-flex flex-wrap align-items-center mb-3">
         <button class="btn btn-sm btn-outline-secondary" id="backToSummary">{% if useri.langSet == 0 %}Rudi{% else %}Back{% endif %}</button>
-        <h6 id="activityDetailsTitle" class="d-inline weight600 ml-2"></h6>
+        <h6 id="activityDetailsTitle" class="d-inline weight600 ml-2 mb-0"></h6>
     </div>
+
+    <div id="dailySalesDetailsStationBar" class="payment-filters daily-details-station-bar"></div>
 
     <div class="d-flex justify-content-end align-items-center mb-3">
         <button id="printPayments" class="btn btn-secondary btn-sm">{% if useri.langSet == 0 %}Chapisha{% else %}Print{% endif %}</button>

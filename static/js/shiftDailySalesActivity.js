@@ -15,6 +15,19 @@ const filters = () => {
 
 const filterDaysByStation = (days, st) => (st ? (days || []).filter(d => Number(d.st) === st) : (days || []));
 
+const placeStationFilter = target => {
+    const $group = $('#dailySalesStationFilterGroup');
+    if (!$group.length) return;
+    $group.detach();
+    if (target === 'details') {
+        $('#dailySalesDetailsStationBar').append($group).show();
+        $('#dailySalesStationBar').hide();
+    } else {
+        $('#dailySalesStationBar').append($group).show();
+        $('#dailySalesDetailsStationBar').hide().empty();
+    }
+};
+
 const sumDays = days => {
     const totals = {
         day_count: new Set((days || []).map(d => d.date)).size,
@@ -59,20 +72,20 @@ const lossBonusCell = val => {
     if (Math.abs(n) < 0.0001) return formatNumber(0);
     const cls = n > 0 ? 'text-danger' : 'text-success';
     const label = n > 0 ? lang('Hasara', 'Loss') : lang('Bonusi', 'Bonus');
-    return `<span class="${cls}">${formatNumber(Math.abs(n))}</span><span class="sub-label">${label}</span>`;
+    return `<span class="${cls}">${formatNumber(Math.abs(n))}</span><br><span class="sub-label">${label}</span>`;
 };
 
 const amountCell = (amount, count) => {
     const amt = formatNumber(amount || 0);
     if (!count) return `<span class="text-muted">—</span>`;
-    return `${amt}<span class="sub-label">${count} ${lang('rekodi', 'records')}</span>`;
+    return `${amt}<br><span class="sub-label">${count} ${lang('rekodi', 'records')}</span>`;
 };
 
-const flowCell = (qty, amount) => `${formatNumber(qty || 0)} L<span class="sub-label">${formatNumber(amount || 0)}</span>`;
+const flowCell = (qty, amount) => `${formatNumber(qty || 0)} L<br><span class="sub-label">${formatNumber(amount || 0)}</span>`;
 
 const qtyWorthCell = (qty, worth, count) => {
     if (!count) return `<span class="text-muted">—</span>`;
-    return `${formatNumber(qty || 0)} L<span class="sub-label">${formatNumber(worth || 0)} · ${count} ${lang('rekodi', 'records')}</span>`;
+    return `${formatNumber(qty || 0)} L<br><span class="sub-label">${formatNumber(worth || 0)} · ${count} ${lang('rekodi', 'records')}</span>`;
 };
 
 const loadRecords = ({ tFr, tTo, rname, init }) => {
@@ -186,12 +199,14 @@ $('#backToSummary').on('click', function () {
     $('#paymentDayDetail').hide();
     $('#paymentDetails').hide();
     $('#paymentSummary').show();
+    placeStationFilter('summary');
     activeDayDetail = null;
 });
 
 $('#backToDayList').on('click', function () {
     $('#paymentDayDetail').hide();
     $('#paymentDetails').show();
+    placeStationFilter('details');
     activeDayDetail = null;
 });
 const renderDetails = data => {
@@ -242,6 +257,7 @@ const renderDetails = data => {
     $('#paymentSummary').hide();
     $('#paymentDayDetail').hide();
     $('#paymentDetails').show();
+    placeStationFilter('details');
 };
 
 const escapeDailyHtml = text => {
@@ -759,6 +775,7 @@ const renderDayDetail = data => {
     $('#dayDetailContent').html(html);
     $('#paymentDetails').hide();
     $('#paymentDayDetail').show();
+    placeStationFilter('summary');
 };
 
 const loadDayDetail = (date, st, stN) => {
@@ -834,6 +851,50 @@ const getDailyPrintHeaderHtml = () => {
     if (!$hdr.length) return '';
     return `<div class="daily-print-header">${$hdr.html()}</div>`;
 };
+
+const getDailySalesListPrintStyles = () => `
+  <style>
+    .daily-sales-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 8px;
+    }
+    .daily-sales-table th,
+    .daily-sales-table td {
+      border: 1px solid #000;
+      padding: 4px 6px;
+      vertical-align: top;
+      text-align: left;
+      white-space: normal;
+      word-wrap: break-word;
+      color: #000;
+    }
+    .daily-sales-table thead th {
+      background: #e9ecef;
+      font-weight: 700;
+    }
+    .daily-sales-table tbody tr:nth-child(even) td {
+      background: #f8f9fa;
+    }
+    .daily-sales-table .sub-label {
+      display: block;
+      font-size: 10px;
+      color: #444;
+      font-weight: normal;
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .daily-sales-table .text-danger { color: #dc3545 !important; font-weight: 700; }
+    .daily-sales-table .text-success { color: #198754 !important; font-weight: 700; }
+    .daily-sales-table .text-muted { color: #666 !important; }
+    .daily-sales-table .font-weight-bold td,
+    .daily-sales-table tr.font-weight-bold td {
+      font-weight: 700;
+      background: #eef2f7 !important;
+    }
+    h2 { font-size: 16px; margin: 0 0 10px; color: #000; }
+  </style>`;
 
 const getDayDetailPrintStyles = () => `
   <style>
@@ -1165,5 +1226,5 @@ $('#printPayments').on('click', function () {
     </div>`;
 
     const theReportData = document.getElementById('paymentsTable').innerHTML;
-    openAndPrintDocument(`${heading}${statementDetails}${theReportData}`);
+    openAndPrintDocument(`${heading}${statementDetails}${theReportData}`, { extraHead: getDailySalesListPrintStyles() });
 });
