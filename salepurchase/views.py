@@ -1633,6 +1633,9 @@ def customerStatementData(request):
             })
 
         for p in payments_qs:
+            recorded_by = ''
+            if p.by and getattr(p.by, 'user', None):
+                recorded_by = f"{p.by.user.first_name} {p.by.user.last_name}".strip()
             txs.append({
                 'st': p.Interprise.pk,
                 'pay':True,
@@ -1644,7 +1647,7 @@ def customerStatementData(request):
                 'details': p.Akaunt.Akaunt_name if p.Akaunt else '',
                 'driver': '',
                 'vehicle': '',
-                'recorded_by': f'{p.by.user.first_name} {p.by.user.last_name}',
+                'recorded_by': recorded_by,
                 'fuel_price': 0,
                 'qty': 0,
                 'amount': float(getattr(p, 'Amount', 0) or 0),

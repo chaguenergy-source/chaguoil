@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function(){
         <td>${moment(r.date).format('DD/MM/YYYY HH:mm')}</td>
         <td>${escapeHtml(r.type||'')}</td>
         <td>${r.use?escapeHtml(r.station||''):'-----'}</td>
-        <td class="text-capitalize">${r.use?escapeHtml(r.recorded_by||r.user||''):'-----'}</td>
+        <td class="text-capitalize">${(r.use||r.pay)?escapeHtml(r.recorded_by||r.user||''):'-----'}</td>
         <td>${r.use?escapeHtml(r.details||''):'-----'}</td>
         <td>${r.use?escapeHtml(r.driver||''):'-----'}</td>
         <td>${r.use?escapeHtml(r.vehicle||''):'-----'}</td>
