@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
   function filters(){
     return {
-      tFr: moment(fromDate.value).format(),
-      tTo: moment(toDate.value).format(),
+      tFr: moment(fromDate.value).startOf('day').format(),
+      tTo: moment(toDate.value).endOf('day').format(),
       st: parseInt(stationSelect.value) || 0
     };
   }

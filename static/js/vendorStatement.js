@@ -58,8 +58,8 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 
   function filters(){
-    const tFr = moment(fromDate.value).format();
-    const tTo = moment(toDate.value).format();
+    const tFr = moment(fromDate.value).startOf('day').format();
+    const tTo = moment(toDate.value).endOf('day').format();
     const st = parseInt(stationSelect.value) || 0;
     return {tFr,tTo,st};
   }
@@ -99,78 +99,75 @@ document.addEventListener('DOMContentLoaded', function(){
     fetchAndRender();
   });
 
-  // generate on load
-  fetchAndRender();
+  function applyStatementResponse(response, tFr, tTo, st){
+    Kituo = response.kituo || Kituo;
 
-  generateBtn.addEventListener('click', fetchAndRender);
+    renderFuelSummary(response.fuel_summary || []);
+    renderPaymentsSummary(response.payments_summary || []);
+    renderTransactions(st ? response.transactions.filter(r => (r.st === st || r.st === 0)) : response.transactions || []);
+
+    updateAttachmentsBadge(response.attachment_counts || {}, response.attachments || []);
+    puAttachmentsData = response.attachments || [];
+
+    const fromDateObj = moment(tFr);
+    const toDateObj = moment(tTo);
+    const now = moment();
+    const firstDayThisMonth = now.clone().startOf('month');
+    const lastDayThisMonth = now.clone().endOf('month');
+    const firstDayLastMonth = now.clone().subtract(1, 'month').startOf('month');
+    const lastDayLastMonth = now.clone().subtract(1, 'month').endOf('month');
+    const firstDayThisYear = now.clone().startOf('year');
+    const lastDayThisYear = now.clone().endOf('year');
+
+    if((fromDateObj.isSame(firstDayThisMonth, 'day') && toDateObj.isSame(lastDayThisMonth, 'day')) ||
+      (fromDateObj.isSame(firstDayLastMonth, 'day') && toDateObj.isSame(lastDayLastMonth, 'day')) ||
+      (fromDateObj.isSame(firstDayThisYear, 'day') && toDateObj.isSame(lastDayThisYear, 'day'))
+    ){
+      // keep dropdown label
+    } else {
+      const friendlyFrom = fromDateObj.format('DD/MM/YYYY');
+      const friendlyTo = toDateObj.format('DD/MM/YYYY');
+      const startOfMonth = fromDateObj.clone().startOf('month');
+      const endOfMonth = fromDateObj.clone().endOf('month');
+      if (fromDateObj.isSame(startOfMonth, 'day') && toDateObj.isSame(endOfMonth, 'day')) {
+        durationSelect.value = fromDateObj.format('MMMM YYYY');
+      } else {
+        durationSelect.value = `${friendlyFrom} - ${friendlyTo}`;
+      }
+    }
+  }
 
   function fetchAndRender(){
-
     const {tFr, tTo, st} = filters();
     const url = `/salepurchase/vendorStatementData`;
-    const data = {data:{tFr,tTo,vendor:st},url};
-    $('#loadMe').modal('show');
-    // console.log(filters());
-    const sendIt = POSTREQUEST(data);
-    sendIt.then(response => {
-      // handle response here
-        $('#loadMe').modal('hide');
-        hideLoading();
+    const data = {data:{tFr, tTo, vendor: st}, url};
 
-        Kituo = response.kituo || Kituo;
-        
-        renderFuelSummary(response.fuel_summary || []);
-        renderPaymentsSummary(response.payments_summary || []);
-        
-        renderTransactions(st?response.transactions.filter(r => (r.st === st||r.st===0)) : response.transactions || []);
-
-        updateAttachmentsBadge(response.attachment_counts || {}, response.attachments || []);
-        puAttachmentsData = response.attachments || [];
-
-        // check whether the duration is not this month, this year or last month then show custom date range in #durationSelect;
-        const fromDateObj = moment(tFr);
-        const toDateObj = moment(tTo);
-        const now = moment();
-        const firstDayThisMonth = now.clone().startOf('month');
-        const lastDayThisMonth = now.clone().endOf('month');
-        const firstDayLastMonth = now.clone().subtract(1, 'month').startOf('month');
-        const lastDayLastMonth = now.clone().subtract(1, 'month').endOf('month');
-        const firstDayThisYear = now.clone().startOf('year');
-        const lastDayThisYear = now.clone().endOf('year');
-
-        if((fromDateObj.isSame(firstDayThisMonth, 'day') && toDateObj.isSame(lastDayThisMonth, 'day')) ||
-          (fromDateObj.isSame(firstDayLastMonth, 'day') && toDateObj.isSame(lastDayLastMonth, 'day')) ||
-          (fromDateObj.isSame(firstDayThisYear, 'day') && toDateObj.isSame(lastDayThisYear, 'day'))
-        ){
-          // do nothing, the durationSelect is already set by the dropdown
-        }else{
-          // set custom date range
-          const friendlyFrom = fromDateObj.format('DD/MM/YYYY');
-          const friendlyTo = toDateObj.format('DD/MM/YYYY');
-            // if the range exactly matches a calendar month, show "MonthName YYYY"
-            const startOfMonth = fromDateObj.clone().startOf('month');
-            const endOfMonth = fromDateObj.clone().endOf('month');
-            if (fromDateObj.isSame(startOfMonth, 'day') && toDateObj.isSame(endOfMonth, 'day')) {
-            durationSelect.value = fromDateObj.format('MMMM YYYY');
-            } else {
-            durationSelect.value = `${friendlyFrom} - ${friendlyTo}`;
-            }
-        }
-
-    }).catch(error => {
-       $('#loadMe').modal('hide');
-        hideLoading();
-      // console.error('Error:', error);
-    });
-
-    // show loading state
     clearTables();
     showLoadingRows();
     updateAttachmentsBadge({}, []);
     puAttachmentsData = [];
+    $('#loadMe').modal('show');
 
-
+    return POSTREQUEST(data).then(response => {
+      $('#loadMe').modal('hide');
+      hideLoading();
+      applyStatementResponse(response, tFr, tTo, st);
+      return response;
+    }).catch(error => {
+      $('#loadMe').modal('hide');
+      hideLoading();
+      showErrorRows();
+      throw error;
+    });
   }
+
+  // generate on load
+  fetchAndRender();
+
+  generateBtn.addEventListener('click', fetchAndRender);
+  fromDate.addEventListener('change', fetchAndRender);
+  toDate.addEventListener('change', fetchAndRender);
+  stationSelect.addEventListener('change', fetchAndRender);
 
   function renderFuelSummary(rows){
     const tbody = document.querySelector('#fuelSummaryTable tbody');
@@ -504,50 +501,41 @@ document.addEventListener('DOMContentLoaded', function(){
     openAndPrintDocument(buildAttachmentsPrintHtml(filtered));
   });
 
-// Print the Report ......//
-$('#printStatement').click(function(){
-  const customerDetails = document.getElementById('venomerDetails') || document.getElementById('customerDetails');
-  const userN = $('#printedBy').val() || 'Admin';
-  const duration_name = $('#durationSelect').val() || '';
-  const heading = `<h3 class="text-center mb-0" > ${lang('Taarifa ya Msambazaji','Vendor Statement')} ${duration_name} </h3>`
-  const statementDetails = `<div class="row my-3">
-                            <div class="col-6 row">
-                             
-                                  
-                                <div class="col-5">
-                  ${lang('Msambazaji','Vendor')}:  
-                                </div>
-                                <div class="col-7 ">
-                                    ${Kituo}  
-                                </div>
-                                  
-                                <div class="col-5">
-                                    ${lang('Imetolewa','Issued on')}:  
-                                </div>
-                                <div class="col-7 ">
-                                    ${moment().format('DD/MM/YYYY HH:mm')}  
-                                </div>
+  const vendorStatementPrintStyles = `
+    <style>
+      @page { size: landscape; margin: 8mm; }
+      #transactionsTable { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: auto; }
+      #transactionsTable th, #transactionsTable td { padding: 4px 5px; border: 1px solid #000; vertical-align: top; }
+      #transactionsTable thead { display: table-header-group; }
+      #transactionsTable tr { page-break-inside: avoid; }
+      #fuelSummaryTable { font-size: 11px; }
+      #statementResults .table-responsive { overflow: visible !important; }
+    </style>
+  `;
 
-                                <div class="col-5">
-                                    ${lang('Imetolewa na','Issued by')}:  
-                                </div>
-                                <div class="col-7 text-capitalize">
-                                    ${userN}    
-                                </div>
+  function printVendorStatement(){
+    const customerDetails = document.getElementById('venomerDetails') || document.getElementById('customerDetails');
+    const userN = $('#printedBy').val() || 'Admin';
+    const duration_name = $('#durationSelect').val() || '';
+    const heading = `<h3 class="text-center mb-0">${lang('Taarifa ya Msambazaji', 'Vendor Statement')} ${duration_name}</h3>`;
+    const statementDetails = `<div class="row my-3">
+      <div class="col-6 row">
+        <div class="col-5">${lang('Msambazaji', 'Vendor')}:</div>
+        <div class="col-7">${Kituo}</div>
+        <div class="col-5">${lang('Imetolewa', 'Issued on')}:</div>
+        <div class="col-7">${moment().format('DD/MM/YYYY HH:mm')}</div>
+        <div class="col-5">${lang('Imetolewa na', 'Issued by')}:</div>
+        <div class="col-7 text-capitalize">${userN}</div>
+      </div>
+    </div>`;
+    const theReportData = document.getElementById('TheReportData').innerHTML;
+    const reportData = heading + (customerDetails ? customerDetails.outerHTML : '') + statementDetails + theReportData;
+    openAndPrintDocument(reportData, { extraHead: vendorStatementPrintStyles });
+  }
 
-                            </div>
-
-
-                     </div>           
-  `
-  const theReportData = document.getElementById('TheReportData').innerHTML;
-  // document.body.innerHTML = heading + customerDetails.outerHTML + statementDetails + theReportData;
-
-  const reportData = heading + (customerDetails ? customerDetails.outerHTML : '') + statementDetails + theReportData;
-  openAndPrintDocument(reportData);
-
-  
-});
+  $('#printStatement').click(function(){
+    fetchAndRender().then(printVendorStatement).catch(() => {});
+  });
 
 
 });

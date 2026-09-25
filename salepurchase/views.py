@@ -9016,6 +9016,28 @@ def transporterStatement(request):
         return render(request, 'pagenotFound.html', todoFunct(request))
 
 
+def _statement_range_datetimes(tFr, tTo, parse_dt):
+    """Ensure statement end date includes the full calendar day."""
+    tFr_dt = parse_dt(tFr)
+    tTo_dt = parse_dt(tTo)
+    if tTo_dt is not None and all(getattr(tTo_dt, field, 0) == 0 for field in ('hour', 'minute', 'second', 'microsecond')):
+        tTo_dt = tTo_dt.replace(hour=23, minute=59, second=59, microsecond=999999)
+    return tFr_dt, tTo_dt
+
+
+def _statement_tx_sort_key(tx):
+    dt = tx.get('date') or datetime.datetime.min
+    if tx.get('opening'):
+        order = 0
+    elif tx.get('use'):
+        order = 1
+    elif tx.get('pay'):
+        order = 2
+    else:
+        order = 3
+    return (dt, order)
+
+
 @login_required(login_url='login')
 def transporterStatementData(request):
     try:
@@ -9044,8 +9066,7 @@ def transporterStatementData(request):
                     return None
             return value
 
-        tFr_dt = parse_dt(tFr)
-        tTo_dt = parse_dt(tTo)
+        tFr_dt, tTo_dt = _statement_range_datetimes(tFr, tTo, parse_dt)
 
         purchases_qs = PuList.objects.filter(
             pu__record_by__company=kampuni.id,
@@ -9192,7 +9213,7 @@ def transporterStatementData(request):
                 'fuelN': ''
             })
 
-        txs_sorted = sorted(txs, key=lambda x: x.get('date') or datetime.datetime.min)
+        txs_sorted = sorted(txs, key=_statement_tx_sort_key)
 
         running_balance = float(opening_balance)
         transactions = []
@@ -9286,8 +9307,7 @@ def vendorStatementData(request):
                     return None
             return value
 
-        tFr_dt = parse_dt(tFr)
-        tTo_dt = parse_dt(tTo)
+        tFr_dt, tTo_dt = _statement_range_datetimes(tFr, tTo, parse_dt)
 
         purchases_qs = PuList.objects.filter(
             pu__record_by__company=kampuni.id,
@@ -9439,7 +9459,7 @@ def vendorStatementData(request):
                 'fuelN': ''
             })
 
-        txs_sorted = sorted(txs, key=lambda x: x.get('date') or datetime.datetime.min)
+        txs_sorted = sorted(txs, key=_statement_tx_sort_key)
 
         running_balance = float(opening_balance)
 
